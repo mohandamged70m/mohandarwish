@@ -1,26 +1,193 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds — Dark (default) */
+  --bg-primary: #0a0a0a;
+  --bg-surface: #151515;
+  --bg-surface-hover: #1c1c1c;
+  --border: #1f1f1f;
+  --border-strong: #2a2a2a;
+
+  /* Accent — Lime */
+  --accent-primary: #a3e635;
+  --accent-hover: #84cc16;
+  --accent-soft: #d9f99d;
+  --accent-ring: rgba(163, 230, 53, 0.15);
+  --accent-soft-text: #0a0a0a;
+
+  /* Text */
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1a1;
+  --text-muted: #737373;
+  --text-on-accent: #0a0a0a;
+
+  /* Fonts — will be set via next/font variables */
+  --font-heading: var(--font-jetbrains);
+  --font-body: var(--font-inter);
+
+  /* Radius & Shadow */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 9999px;
+  --shadow-accent: 0 0 20px rgba(163, 230, 53, 0.15);
+
+  /* Legacy compat for existing components */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+
+  color-scheme: dark;
+}
+
+/* Light theme — for next-themes class="light" on <html> */
+.light,
+html.light {
+  --bg-primary: #fafaf9;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f5f5f5;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+
+  --accent-primary: #65a30d;
+  --accent-hover: #4d7c0f;
+  --accent-soft: #ecfccb;
+  --accent-ring: rgba(101, 163, 13, 0.15);
+  --accent-soft-text: #365314;
+
+  --text-primary: #1c1917;
+  --text-secondary: #78716c;
+  --text-muted: #a8a29e;
+  --text-on-accent: #ffffff;
+
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --shadow-accent: 0 0 20px rgba(101, 163, 13, 0.12);
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
 }
 
 @theme inline {
+  /* Tailwind color utilities */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-hover: var(--bg-surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-accent: var(--accent-primary);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-text: var(--accent-soft-text);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-on-accent: var(--text-on-accent);
+
+  /* Legacy */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Fonts */
+  --font-heading: var(--font-jetbrains);
+  --font-body: var(--font-inter);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-pill: 9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base */
+html {
+  scrollbar-gutter: stable;
+  /* smooth theme transition for non-reduced-motion */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    transition: none;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
+}
+
+/* Headings use mono */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+}
+
+/* Focus ring — accent */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-primary);
+  color: var(--text-on-accent);
+}
+
+/* Scrollbar — subtle */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* View transition for theme toggle */
+html[data-theme-anim="1"]::view-transition-old(root),
+html[data-theme-anim="1"]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-theme-anim="1"]::view-transition-old(root) {
+  z-index: 1;
+}
+
+html[data-theme-anim="1"]::view-transition-new(root) {
+  z-index: 9999;
 }

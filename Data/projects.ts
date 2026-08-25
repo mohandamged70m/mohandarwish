@@ -1,0 +1,176 @@
+export type ProjectCategory = "App UI" | "Web UI" | "Desktop App UI";
+export type FilterCategory = "Best Works" | ProjectCategory;
+
+export type Project = {
+  id: string;
+  title: string;
+  category: ProjectCategory;
+  image: string;
+  href: string;
+  year?: string;
+  stack?: string[];
+  description?: string;
+  featured?: boolean;
+  liveUrl?: string;
+  githubUrl?: string;
+};
+
+export const FILTER_CATEGORIES: readonly FilterCategory[] = [
+  "Best Works",
+  "App UI",
+  "Web UI",
+  "Desktop App UI",
+] as const;
+
+export const PROJECTS: readonly Project[] = [
+  {
+    id: "p1",
+    title: "Portfolio — Dark Editorial",
+    category: "Web UI",
+    image: "https://picsum.photos/seed/mohand-p1/800/500",
+    href: "#",
+    year: "2025",
+    stack: ["Next.js", "TypeScript", "Motion"],
+    description: "High-contrast editorial portfolio with lime accents and terminal typography.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p2",
+    title: "Talent Hub — Mobile Job Discovery",
+    category: "App UI",
+    image: "https://picsum.photos/seed/mohand-p2/800/500",
+    href: "#",
+    year: "2025",
+    stack: ["React Native", "Figma", "Motion"],
+    description: "Job discovery flows, category filters and profile cards for mobile.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p3",
+    title: "Personal Site — Light Minimal",
+    category: "Web UI",
+    image: "https://picsum.photos/seed/mohand-p3/800/500",
+    href: "#",
+    year: "2024",
+    stack: ["Next.js", "Tailwind", "MDX"],
+    description: "Light minimal surface with stone palette and accent-soft badges.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p4",
+    title: "Analytics — Desktop Command Center",
+    category: "Desktop App UI",
+    image: "https://picsum.photos/seed/mohand-p4/800/500",
+    href: "#",
+    year: "2024",
+    stack: ["Electron", "TypeScript", "Recharts"],
+    description: "Dense data tables and command palette for desktop analytics.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p5",
+    title: "Store — Product Experience",
+    category: "Web UI",
+    image: "https://picsum.photos/seed/mohand-p5/800/500",
+    href: "#",
+    year: "2024",
+    stack: ["Next.js", "Motion", "Stripe"],
+    description: "Product storytelling with staggered reveals and cart micro-interactions.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p6",
+    title: "Chat — Glass Mobile",
+    category: "App UI",
+    image: "https://picsum.photos/seed/mohand-p6/800/500",
+    href: "#",
+    year: "2023",
+    stack: ["Flutter", "Figma", "Riverpod"],
+    description: "Translucent chat bubbles and gesture-driven navigation.",
+    featured: true,
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p7",
+    title: "Banking — Neo Finance Mobile",
+    category: "App UI",
+    image: "https://picsum.photos/seed/mohand-p7/800/500",
+    href: "#",
+    year: "2023",
+    stack: ["SwiftUI", "Figma", "Motion"],
+    description: "Clean banking flows with card stacks and biometric auth.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p8",
+    title: "Travel — Explore Web Experience",
+    category: "Web UI",
+    image: "https://picsum.photos/seed/mohand-p8/800/500",
+    href: "#",
+    year: "2023",
+    stack: ["Next.js", "Mapbox", "Framer"],
+    description: "Immersive destination discovery with map integration.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p9",
+    title: "Studio — Desktop Design System",
+    category: "Desktop App UI",
+    image: "https://picsum.photos/seed/mohand-p9/800/500",
+    href: "#",
+    year: "2022",
+    stack: ["Tauri", "React", "Storybook"],
+    description: "Token-driven design system manager for desktop tooling.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p10",
+    title: "Fitness — Workout Companion",
+    category: "App UI",
+    image: "https://picsum.photos/seed/mohand-p10/800/500",
+    href: "#",
+    year: "2022",
+    stack: ["React Native", "Expo", "Reanimated"],
+    description: "Workout tracking with progress rings and haptics.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p11",
+    title: "Docs — Knowledge Base",
+    category: "Web UI",
+    image: "https://picsum.photos/seed/mohand-p11/800/500",
+    href: "#",
+    year: "2022",
+    stack: ["Next.js", "MDX", "Algolia"],
+    description: "Search-first documentation with command palette.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "p12",
+    title: "Ops — Infrastructure Dashboard",
+    category: "Desktop App UI",
+    image: "https://picsum.photos/seed/mohand-p12/800/500",
+    href: "#",
+    year: "2021",
+    stack: ["Electron", "tRPC", "Prisma"],
+    description: "Real-time infra monitoring with log tailing and alerts.",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+] as const;
