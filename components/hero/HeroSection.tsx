@@ -1,7 +1,6 @@
 "use client";
 
 import TextAnimated from "./TextAnimated";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScaleUnblur } from "../ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
@@ -29,18 +28,6 @@ const HeroSection = () => {
         <div className="grid items-center gap-10 pt-24 pb-10 sm:gap-12 sm:pt-28 sm:pb-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pt-32 lg:pb-16 xl:gap-12 xl:pt-36 xl:pb-20">
           {/* ── left : content ── */}
           <div className="flex flex-col items-start gap-6 text-left lg:pr-2">
-            {/* availability */}
-            <Badge
-              variant="soft"
-              className="gap-2 py-1.5 pl-2.5 pr-3 text-[11px] font-medium uppercase tracking-wide"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-              </span>
-              Available for new opportunities
-            </Badge>
-
             {/* heading */}
             <div className="w-full space-y-4">
               <h1 className="font-heading font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">

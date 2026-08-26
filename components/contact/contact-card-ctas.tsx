@@ -24,19 +24,8 @@ export function ContactCardCtas(): ReactNode {
           transition={{ layout: { duration: 0.55, ease: EASE } }}
         >
           <Link
-            href="#projects"
-            aria-label="Scroll to projects"
-            onClick={(e) => {
-              // smooth scroll if on same page
-              if (typeof window !== "undefined" && window.location.pathname === "/") {
-                const el = document.getElementById("projects");
-                if (el) {
-                  e.preventDefault();
-                  el.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-              }
-            }}
-            className="focus-ring group inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg-primary px-5 py-2.5 text-sm font-medium font-heading text-text-primary transition-colors hover:border-accent hover:text-accent"
+            href="/projects"
+            className="border border-foreground/5 focus-ring group inline-flex cursor-pointer items-center gap-2 rounded-xl bg-background px-5 py-2.5 text-sm font-medium text-foreground shadow-md/2 transition-colors"
           >
             See projects
             <ArrowRight

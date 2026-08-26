@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, Mail } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { CONTACT } from "@/Data/me";
 
+const EMAIL = "hello@example.com";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function ContactButton(): ReactNode {
@@ -14,12 +14,12 @@ export function ContactButton(): ReactNode {
 
   const handleCopy = async (): Promise<void> => {
     try {
-      await navigator.clipboard.writeText(CONTACT.email);
+      await navigator.clipboard.writeText(EMAIL);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       const ta = document.createElement("textarea");
-      ta.value = CONTACT.email;
+      ta.value = EMAIL;
       ta.style.position = "fixed";
       ta.style.opacity = "0";
       document.body.appendChild(ta);
@@ -43,11 +43,11 @@ export function ContactButton(): ReactNode {
       onFocus={() => setOpen(true)}
       onBlur={() => setOpen(false)}
       aria-label={
-        copied ? "Email copied" : open ? `Copy ${CONTACT.email}` : "Show email"
+        copied ? "Email copied" : open ? `Copy ${EMAIL}` : "Show email"
       }
       transition={{ layout: { duration: 0.55, ease: EASE } }}
       style={{ borderRadius: 12 }}
-      className="focus-ring relative inline-flex h-11 cursor-pointer items-center justify-center bg-accent px-5 text-sm font-medium font-heading text-text-on-accent hover:bg-accent-hover transition-colors shadow-[0_0_20px_var(--accent-ring)]"
+      className="focus-ring relative inline-flex h-11 cursor-pointer items-center justify-center bg-foreground px-5 text-sm font-medium text-background"
     >
       <motion.span
         layout="position"
@@ -91,7 +91,7 @@ export function ContactButton(): ReactNode {
                   )}
                 </AnimatePresence>
               </span>
-              <span className="tabular-nums text-xs sm:text-sm">{CONTACT.email}</span>
+              <span className="tabular-nums">{EMAIL}</span>
             </motion.span>
           ) : (
             <motion.span
