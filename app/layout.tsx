@@ -19,8 +19,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mohand Darwish | Software Engineer",
-  description: "Personal website and portfolio of Mohand Darwish, a software engineer.",
+  title: "Mohand Darwish | Software Engineer — Full-Stack, Frontend-leaning",
+  description: "Mohand Darwish — Software Engineer (Full-Stack, Frontend-leaning) from Alexandria. Next.js, TypeScript, Node — clean architecture, perf, a11y.",
 };
 
 export default function RootLayout({ children, modal }: LayoutProps<"/">) {

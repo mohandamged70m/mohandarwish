@@ -8,9 +8,10 @@ import { ProjectCard } from "./ProjectCard";
 
 type Props = {
   projects: readonly Project[];
+  active?: string;
 };
 
-export function ProjectsCarousel({ projects }: Props) {
+export function ProjectsCarousel({ projects, active }: Props) {
   const visible = projects;
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -180,7 +181,7 @@ export function ProjectsCarousel({ projects }: Props) {
         >
           <AnimatePresence mode="popLayout" initial={false}>
             {visible.map((project, idx) => {
-              const featured = idx === 1 && visible.length === 3;
+              const featured = active === "Best Works" && idx === 1 && visible.length >= 3;
               return (
                 <motion.div
                   key={project.id}
@@ -201,7 +202,7 @@ export function ProjectsCarousel({ projects }: Props) {
 
       {/* progress + dots */}
       <div className="mx-auto mt-4 flex w-full max-w-xl flex-col items-center gap-3 px-6">
-        <div className="relative h-1 w-full overflow-hidden rounded-pill bg-border">
+        <div role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Carousel progress" className="relative h-1 w-full overflow-hidden rounded-pill bg-border">
           <motion.div
             className="absolute inset-y-0 left-0 rounded-pill bg-accent"
             style={{ width: `${Math.max(24, progress * 100)}%` }}
@@ -209,18 +210,28 @@ export function ProjectsCarousel({ projects }: Props) {
             aria-hidden
           />
         </div>
-        <div className="flex justify-center gap-1.5" aria-hidden>
+        <div className="flex justify-center gap-1.5">
           {visible.map((_, i) => {
             const activeIdx = Math.round(progress * Math.max(1, visible.length - 1));
             const isActive = i === activeIdx;
             return (
-              <span
+              <button
                 key={i}
-                className={`h-1 rounded-pill transition-all duration-300 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong"}`}
+                type="button"
+                aria-label={`Go to slide ${i + 1}`}
+                aria-current={isActive ? "true" : undefined}
+                onClick={() => {
+                  const el = scrollerRef.current;
+                  if (!el) return;
+                  const target = (el.scrollWidth - el.clientWidth) * (i / Math.max(1, visible.length - 1));
+                  el.scrollTo({ left: target, behavior: "smooth" });
+                }}
+                className={`h-1 rounded-pill transition-all duration-300 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
               />
             );
           })}
         </div>
+        <span className="sr-only" aria-live="polite">Slide {Math.round(progress * Math.max(1, visible.length - 1)) + 1} of {visible.length}{active ? ` — ${active}` : ""}</span>
       </div>
     </div>
   );

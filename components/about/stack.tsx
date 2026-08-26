@@ -47,8 +47,27 @@ export function Stack(): ReactNode {
   const measureRef = useRef<HTMLDivElement | null>(null);
   const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [resetKey, setResetKey] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isInView, setIsInView] = useState(false);
 
   useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mql.matches);
+    const onChange = () => setPrefersReducedMotion(mql.matches);
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => setIsInView(e.isIntersecting), { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion || !isInView) return;
     const container = containerRef.current;
     const measure = measureRef.current;
     if (!container || !measure) return;
@@ -119,11 +138,11 @@ export function Stack(): ReactNode {
         const y = -80 - i * 60 - Math.random() * 120;
         const body = Bodies.rectangle(x, y, w, h, {
           chamfer: { radius: CHIP_RADIUS },
-          restitution: 0.35,
-          friction: 0.5,
-          frictionAir: 0.025,
-          density: 0.0018,
-          angle: (Math.random() - 0.5) * 0.4,
+          restitution: 0.3,
+          friction: 0.45,
+          frictionAir: 0.035,
+          density: 0.0014,
+          angle: (Math.random() - 0.5) * 0.3,
         });
         World.add(world, body);
         return { chip, body, width: w, height: h };
@@ -210,22 +229,38 @@ export function Stack(): ReactNode {
       cancelled = true;
       cleanup?.();
     };
-  }, [resetKey]);
+  }, [resetKey, prefersReducedMotion, isInView]);
+
+  if (prefersReducedMotion) {
+    return (
+      <div className="flex flex-col gap-3">
+        <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">Stack — Frontend-leaning</h3>
+        <div className="rounded-[20px] border border-border bg-bg-surface p-3 sm:p-4">
+          <div className="flex flex-wrap gap-2.5">
+            {CHIPS.map((chip) => (
+              <ChipPill key={chip.label} chip={chip} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <h3 className="text-foreground text-[15px] font-semibold tracking-tight">
-          Stack
+        <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
+          Stack — drag & play
         </h3>
+        <span className="font-heading text-[11px] uppercase tracking-wide text-text-muted">Playful · Matter.js</span>
       </div>
 
-      <div className="border-foreground/5 bg-foreground/2 dark:bg-foreground/5 relative h-40 overflow-hidden rounded-4xl border sm:h-64">
+      <div className="border-border bg-bg-surface relative h-40 overflow-hidden rounded-[20px] border sm:h-64">
         <button
           type="button"
           onClick={() => setResetKey((k) => k + 1)}
           aria-label="Reset stack"
-          className="focus-ring border-foreground/8 bg-background text-foreground/70 hover:text-foreground absolute top-3 right-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-colors"
+          className="focus-ring border-border bg-bg-primary text-text-muted hover:text-text-primary absolute top-3 right-3 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-colors"
         >
           <RotateCcw
             className="h-4 w-4"

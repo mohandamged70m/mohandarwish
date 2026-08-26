@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "Portfolio",
+  name: "Mohand Darwish",
   description:
-    "A modern, accessible portfolio template built with Next.js, Tailwind CSS, and TypeScript.",
-  url: "https://example.com",
+    "Mohand Darwish — Software Engineer (Full-Stack, Frontend-leaning) from Alexandria. Clean architecture, performant web apps, delightful UX. Next.js, TypeScript, Node.",
+  url: "https://mohand-darwish.dev",
   ogImage: "/og-image.png",
-  creator: "@yourhandle",
+  creator: "@mohanddarwish",
   authors: [
     {
-      name: "Your Name",
-      url: "https://example.com",
+      name: "Mohand Darwish",
+      url: "https://mohand-darwish.dev",
     },
   ],
   keywords: [
-    "portfolio",
-    "personal site",
+    "Mohand Darwish",
+    "Software Engineer",
+    "Frontend Engineer",
+    "Full-Stack",
     "Next.js",
     "React",
-    "Tailwind CSS",
     "TypeScript",
+    "Portfolio",
+    "Alexandria",
   ],
 } as const;
 

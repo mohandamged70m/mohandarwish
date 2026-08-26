@@ -19,19 +19,20 @@ export default function AboutPage(): ReactNode {
     <main id="main-content" className="flex flex-1 flex-col">
       <section className="mx-auto w-full max-w-160 px-6 pt-20 pb-16 sm:px-10 sm:pt-28 sm:pb-24">
         <FadeIn delay={0.5}>
-          <div className="rounded-4xl border border-foreground/5 bg-foreground/1.5 p-8 sm:p-12 dark:bg-foreground/3">
-            <h1 className="font-serif text-[1.75rem] font-medium tracking-tight text-foreground sm:text-[2rem]">
-              Hello! I&rsquo;m <span className="border-b border-foreground/30 pb-0.5">Mohand Darwish</span>.
+          <div className="rounded-[20px] border border-border bg-bg-surface p-8 sm:p-12">
+            <h1 className="font-heading text-[1.75rem] font-semibold tracking-tight text-text-primary sm:text-[2rem]">
+              Hello! I&rsquo;m <span className="border-b border-accent/30 pb-0.5 text-accent">Mohand Darwish</span>.
             </h1>
-            <div className="mt-8 space-y-6 text-[17px] leading-[1.7] tracking-tight text-foreground/75 sm:text-[18px]">
+            <p className="mt-3 font-heading text-sm tracking-wide text-text-muted">Alexandria, Egypt · GMT+2 · Full-Stack, Frontend-leaning</p>
+            <div className="mt-8 space-y-6 font-body text-[17px] leading-[1.7] tracking-tight text-text-secondary sm:text-[18px]">
               <p>
-                A <strong className="font-semibold text-foreground">product designer and frontend engineer</strong> passionate about building intuitive, human-centered digital experiences. With a background in <strong className="font-semibold text-foreground">visual craft</strong> and <strong className="font-semibold text-foreground">interaction design</strong>, I bring a unique blend of design thinking and technical execution to every project.
+                A <strong className="font-semibold text-text-primary">software engineer (full-stack, frontend-leaning)</strong> focused on clean architecture, performant web apps, and systems that scale. I ship <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> with attention to perf, a11y and DX.
               </p>
               <p>
-                My journey into design began when I realized how often good user experience was missing from powerful tools. That led me to embrace <strong className="font-semibold text-foreground">user-centered design</strong> as both a mindset and a craft, one that balances clarity, creativity, and functionality.
+                I enjoy turning fuzzy product ideas into shipped software — from design tokens and component APIs to tRPC routes and Postgres queries. My sweet spot is where <strong className="font-semibold text-text-primary">frontend craft meets full-stack ownership</strong>.
               </p>
               <p>
-                Currently leading design at small product teams shipping software for <strong className="font-semibold text-foreground">creative professionals</strong>, I&rsquo;m always looking for opportunities to <strong className="font-semibold text-foreground">shape thoughtful interfaces and build scalable design systems</strong>.
+                Currently building mock engineering projects across <strong className="font-semibold text-text-primary">design systems, tooling and full-stack products</strong> — always open to collaboration. See <a href="/projects" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">projects</a> or <a href="#contact" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">get in touch</a>.
               </p>
             </div>
           </div>

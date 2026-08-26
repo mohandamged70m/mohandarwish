@@ -19,20 +19,13 @@ export default function ProjectsSection() {
     return PROJECTS.filter((p) => p.category === active);
   }, [active]);
 
-  const display = useMemo(() => {
-    if (filtered.length >= 3) return filtered;
-    const needed = 3 - filtered.length;
-    const pool = PROJECTS.filter((p) => p.featured && !filtered.some((f) => f.id === p.id));
-    const fallback = pool.length >= needed ? pool : PROJECTS.filter((p) => !filtered.some((f) => f.id === p.id));
-    return [...filtered, ...fallback.slice(0, needed)] as typeof PROJECTS;
-  }, [filtered]);
-
   const filterCounts = useMemo<Record<FilterCategory, number>>(
     () => ({
       "Best Works": PROJECTS.filter((p) => p.featured).length,
-      "App UI": PROJECTS.filter((p) => p.category === "App UI").length,
-      "Web UI": PROJECTS.filter((p) => p.category === "Web UI").length,
-      "Desktop App UI": PROJECTS.filter((p) => p.category === "Desktop App UI").length,
+      Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
+      "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
+      "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
+      Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
     }),
     []
   );
@@ -79,16 +72,23 @@ export default function ProjectsSection() {
           Showing {filtered.length} projects for {active}
         </p>
 
-        {/* carousel */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
-          className="w-full"
-        >
-          <ProjectsCarousel projects={display} />
-        </motion.div>
+        {/* carousel or empty */}
+        {filtered.length === 0 ? (
+          <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
+            <p className="font-heading text-sm font-medium text-text-primary">No projects in {active} — try Best Works</p>
+            <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured engineering mocks.</p>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
+            className="w-full"
+          >
+            <ProjectsCarousel projects={filtered} active={active} />
+          </motion.div>
+        )}
 
         {/* CTA */}
         <motion.div

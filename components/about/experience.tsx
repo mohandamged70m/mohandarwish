@@ -14,52 +14,23 @@ type Entry = {
 
 const ENTRIES: Entry[] = [
   {
-    company: "Linear",
-    role: "Senior Design Engineer",
-    period: "Mar 2024 – Present",
-    slug: "linear",
-    brand: "#5E6AD2",
+    company: "Freelance",
+    role: "Frontend Engineer (Full-Stack)",
+    period: "Jan 2023 – Present",
+    brand: "#A3E635",
   },
   {
-    company: "Vercel",
-    role: "Product Designer",
-    period: "Aug 2022 – Feb 2024",
-    slug: "vercel",
-    brand: "#0a0a0a",
-  },
-  {
-    company: "Stripe",
-    role: "Design Engineer",
-    period: "Jun 2021 – Jul 2022",
-    slug: "stripe",
-    brand: "#635BFF",
-  },
-  {
-    company: "Figma",
-    role: "UI Engineer",
-    period: "Sep 2019 – May 2021",
-    slug: "figma",
-    brand: "#A259FF",
-  },
-  {
-    company: "Notion",
-    role: "Product Designer",
-    period: "Jan 2018 – Aug 2019",
-    slug: "notion",
+    company: "Open Source",
+    role: "Contributor — Design System & Tooling",
+    period: "Jun 2022 – Present",
+    slug: "github",
     brand: "#111111",
   },
   {
-    company: "Airbnb",
-    role: "Design Intern",
-    period: "May 2017 – Dec 2017",
-    slug: "airbnb",
-    brand: "#FF5A5F",
-  },
-  {
-    company: "Freelance",
-    role: "Designer & Developer",
-    period: "2015 – 2017",
-    brand: "#0AE448",
+    company: "Studio Intern",
+    role: "Frontend Intern",
+    period: "Jun 2021 – May 2022",
+    brand: "#1F1F1F",
   },
 ];
 
@@ -77,11 +48,11 @@ export function Experience(): ReactNode {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="text-foreground text-[15px] font-semibold tracking-tight">
+      <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
         Experience
       </h3>
       <div
-        className={`border-foreground/5 bg-foreground/2 dark:bg-foreground/5 relative overflow-hidden rounded-4xl border px-2 pt-2 sm:px-4 sm:pt-4 ${
+        className={`border-border bg-bg-surface relative overflow-hidden rounded-[20px] border px-2 pt-2 sm:px-4 sm:pt-4 ${
           open ? "pb-2 sm:pb-4" : "pb-0"
         }`}
       >
@@ -98,18 +69,18 @@ export function Experience(): ReactNode {
             {ENTRIES.map((entry) => (
               <li
                 key={`${entry.company}-${entry.period}`}
-                className="bg-background border-foreground/5 flex items-center gap-4 rounded-3xl border p-2"
+                className="bg-bg-primary border-border flex items-center gap-4 rounded-[16px] border p-2"
                 style={{ minHeight: ROW_HEIGHT }}
               >
                 <CompanyLogo entry={entry} />
                 <div className="flex min-w-0 flex-col">
-                  <span className="text-foreground text-[17px] font-semibold tracking-tight sm:text-[18px]">
+                  <span className="text-text-primary text-[17px] font-semibold tracking-tight sm:text-[18px]">
                     {entry.company}
                   </span>
-                  <span className="text-foreground/65 mt-0.5 text-[14px] tracking-tight sm:text-[15px]">
+                  <span className="text-text-secondary mt-0.5 text-[14px] tracking-tight sm:text-[15px]">
                     {entry.role}
-                    <span className="text-foreground/30 mx-2">•</span>
-                    <span className="text-foreground/55">{entry.period}</span>
+                    <span className="text-text-muted mx-2">•</span>
+                    <span className="text-text-muted">{entry.period}</span>
                   </span>
                 </div>
               </li>
@@ -145,7 +116,7 @@ export function Experience(): ReactNode {
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className={`focus-ring text-foreground flex w-full cursor-pointer items-center justify-center gap-1.5 bg-transparent text-[15px] font-medium tracking-tight ${
+            className={`focus-ring text-text-primary flex w-full cursor-pointer items-center justify-center gap-1.5 bg-transparent font-heading text-[14px] font-medium tracking-tight ${
               open
                 ? "relative mt-4"
                 : "absolute inset-x-0 bottom-0 z-10 py-3 sm:py-4"
@@ -170,7 +141,7 @@ function CompanyLogo({ entry }: { entry: Entry }): ReactNode {
   const initials = entry.company.charAt(0);
   return (
     <span
-      className="ring-foreground/8 inline-flex h-12 w-12 shrink-0 items-center justify-center bg-white ring-1 dark:ring-white/10"
+      className="ring-border inline-flex h-12 w-12 shrink-0 items-center justify-center bg-white ring-1 dark:ring-white/10"
       aria-hidden="true"
       style={{
         borderRadius: 14,

@@ -46,10 +46,43 @@ export function ProjectDetailContent({ project }: Props) {
           {project.title}
         </h2>
 
+        {project.problem && (
+          <div className="rounded-[12px] border border-accent/20 bg-accent/5 px-4 py-3">
+            <p className="font-heading text-xs uppercase tracking-wide text-accent mb-1">Problem</p>
+            <p className="font-body text-[14px] leading-relaxed text-text-secondary">{project.problem}</p>
+          </div>
+        )}
+
         {project.description && (
           <p className="font-body text-[15px] leading-relaxed text-text-secondary">
             {project.description}
           </p>
+        )}
+
+        {project.role && (
+          <p className="font-heading text-sm text-text-muted"><span className="text-text-primary font-medium">Role:</span> {project.role}</p>
+        )}
+
+        {project.metrics && project.metrics.length > 0 && (
+          <div className="grid grid-cols-2 gap-3">
+            {project.metrics.map((m) => (
+              <div key={m.label} className="rounded-[12px] border border-border bg-bg-primary px-3 py-3">
+                <p className="font-heading text-[11px] uppercase tracking-wide text-text-muted">{m.label}</p>
+                <p className="font-heading text-[15px] font-semibold text-text-primary">{m.value}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {project.highlights && project.highlights.length > 0 && (
+          <ul className="flex flex-col gap-2">
+            {project.highlights.map((h) => (
+              <li key={h} className="flex gap-2 font-body text-sm text-text-secondary">
+                <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+                {h}
+              </li>
+            ))}
+          </ul>
         )}
 
         {project.stack && project.stack.length > 0 && (

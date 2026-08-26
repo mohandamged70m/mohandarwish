@@ -34,8 +34,8 @@ const HeroSection = () => {
                 <TextAnimated
                   text="Hi, I'm Mohand Darwish"
                   className="block text-left text-[2.15rem] font-bold leading-[0.9] tracking-[-0.02em] sm:text-5xl lg:text-[3.45rem] xl:text-6xl"
-                  stagger={45}
-                  duration={500}
+                  stagger={18}
+                  duration={260}
                 />
               </h1>
 
@@ -49,20 +49,19 @@ const HeroSection = () => {
 
               <p className="pt-1 font-heading text-base text-text-secondary sm:text-lg">
                 <TextAnimated
-                  text="A passionate software engineer, love creating innovative solutions."
+                  text="Full-stack engineer, frontend-leaning — clean architecture, fast UIs, systems that scale."
                   className="block text-left font-heading text-base font-medium tracking-tight text-text-secondary sm:text-lg lg:text-xl"
-                  startDelay={950}
-                  stagger={35}
-                  duration={400}
+                  startDelay={280}
+                  stagger={16}
+                  duration={260}
                 />
               </p>
             </div>
 
             {/* description */}
-            <div className="max-w-[54ch] space-y-3">
-              <p className="font-body text-sm leading-relaxed text-text-muted">
-                Focused on clean architecture, performant web apps, and
-                delightful user experiences.
+            <div className="max-w-[48ch] space-y-3">
+              <p className="font-body text-sm leading-relaxed text-text-secondary">
+                I turn product ideas into shipped software — Next.js + TypeScript + Node, with a focus on performance, accessibility and DX. Based in Alexandria, working worldwide.
               </p>
             </div>
 
@@ -101,10 +100,10 @@ const HeroSection = () => {
             <div className="flex flex-wrap justify-start gap-2 pt-2 font-heading text-xs text-text-muted">
               <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-bg-surface px-3 py-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Cairo, Egypt
+                Alexandria, Egypt
               </span>
               <span className="inline-flex items-center rounded-pill border border-border bg-bg-surface px-3 py-1.5 tracking-wide">
-                Next.js • TypeScript • Node.js
+                Next.js • TypeScript • Node.js • tRPC • Prisma
               </span>
             </div>
           </div>

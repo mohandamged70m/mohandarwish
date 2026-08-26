@@ -23,9 +23,10 @@ export function Projects(): ReactNode {
   const counts = useMemo<Record<FilterCategory, number>>(
     () => ({
       "Best Works": PROJECTS.length,
-      "App UI": PROJECTS.filter((p) => p.category === "App UI").length,
-      "Web UI": PROJECTS.filter((p) => p.category === "Web UI").length,
-      "Desktop App UI": PROJECTS.filter((p) => p.category === "Desktop App UI").length,
+      Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
+      "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
+      "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
+      Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
     }),
     []
   );
@@ -116,7 +117,7 @@ export function Projects(): ReactNode {
                     )}
                     <div className="flex items-center justify-between gap-2 pt-1">
                       <div className="flex flex-wrap gap-1.5">
-                        {project.stack?.slice(0, 3).map((s) => (
+                        {project.stack?.slice(0, 2).map((s) => (
                           <span
                             key={s}
                             className="inline-flex items-center rounded-pill border border-border bg-bg-primary px-2 py-1 font-body text-[11px] leading-none text-text-secondary"
@@ -124,23 +125,16 @@ export function Projects(): ReactNode {
                             {s}
                           </span>
                         ))}
+                        {project.year && (
+                          <span className="inline-flex items-center rounded-pill border border-border bg-accent-soft px-2 py-1 font-heading text-[11px] leading-none text-accent-soft-text">{project.year}</span>
+                        )}
                       </div>
                       <div className="hidden sm:flex items-center gap-1.5">
-                        {project.githubUrl && (
-                          <span
-                            aria-hidden
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary font-heading text-[10px] leading-none text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent"
-                          >
-                            GH
-                          </span>
+                        {project.githubUrl && project.githubUrl !== "#" && (
+                          <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary font-heading text-[10px] leading-none text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent">GH</span>
                         )}
-                        {project.liveUrl && (
-                          <span
-                            aria-hidden
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </span>
+                        {project.liveUrl && project.liveUrl !== "#" && (
+                          <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent"><ExternalLink className="h-3.5 w-3.5" /></span>
                         )}
                       </div>
                     </div>

@@ -40,16 +40,18 @@ export function ProjectCard({ project, featured = false }: Props) {
             <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
             {project.title}
           </span>
-          <span className="ml-auto hidden lg:inline-flex items-center gap-1.5">
-            {project.stack?.slice(0, 2).map((s) => (
-              <span
-                key={s}
-                className="rounded-pill bg-bg-primary border border-border px-2 py-0.5 font-heading text-[10px] leading-none text-text-secondary"
-              >
-                {s}
-              </span>
-            ))}
-          </span>
+          {featured && (
+            <span className="ml-auto hidden lg:inline-flex items-center gap-1.5">
+              {project.stack?.slice(0, 2).map((s) => (
+                <span
+                  key={s}
+                  className="rounded-pill bg-bg-primary border border-border px-2 py-0.5 font-heading text-[10px] leading-none text-text-secondary"
+                >
+                  {s}
+                </span>
+              ))}
+            </span>
+          )}
         </div>
 
         <ViewTransition name={`project-${project.id}`} share="morph">
@@ -113,7 +115,7 @@ export function ProjectCard({ project, featured = false }: Props) {
         )}
         <div className="flex items-center justify-between gap-2 pt-1">
           <div className="flex flex-wrap gap-1.5">
-            {project.stack?.slice(0, 3).map((s) => (
+            {project.stack?.slice(0, 2).map((s) => (
               <span
                 key={s}
                 className="inline-flex items-center rounded-pill border border-border bg-bg-primary px-2 py-1 font-body text-[11px] leading-none text-text-secondary"
@@ -121,9 +123,14 @@ export function ProjectCard({ project, featured = false }: Props) {
                 {s}
               </span>
             ))}
+            {project.year && (
+              <span className="inline-flex items-center rounded-pill border border-border bg-accent-soft px-2 py-1 font-heading text-[11px] leading-none text-accent-soft-text">
+                {project.year}
+              </span>
+            )}
           </div>
           <div className="hidden sm:flex items-center gap-1.5">
-            {project.githubUrl && (
+            {project.githubUrl && project.githubUrl !== "#" && (
               <span
                 aria-hidden
                 className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary font-heading text-[10px] leading-none text-text-muted group-hover:border-accent/30 group-hover:text-accent transition-colors"
@@ -131,7 +138,7 @@ export function ProjectCard({ project, featured = false }: Props) {
                 GH
               </span>
             )}
-            {project.liveUrl && (
+            {project.liveUrl && project.liveUrl !== "#" && (
               <span
                 aria-hidden
                 className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary text-text-muted group-hover:border-accent/30 group-hover:text-accent transition-colors"

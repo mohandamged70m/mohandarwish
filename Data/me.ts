@@ -1,10 +1,12 @@
 export const ME = {
   name: "Mohand Darwish",
-  role: "Software Engineer",
-  tagline: "Software Engineer — Next.js / TypeScript / Node.js",
-  location: "Cairo, Egypt",
-  email: "mohand.darwish@example.com",
-  // Update these to real URLs when available
+  role: "Software Engineer — Full-Stack, Frontend-leaning",
+  tagline: "Full-stack engineer leaning frontend: clean architecture, performant web apps, and systems that scale.",
+  location: "Alexandria, Egypt",
+  availability: "Available for new opportunities",
+  timezone: "GMT+2",
+  email: "mohandamged70m@gmail.com",
+  cvUrl: "/cv.pdf",
   socials: {
     linkedin: "https://www.linkedin.com/in/mohand-darwish",
     github: "https://github.com/mohand-darwish",
