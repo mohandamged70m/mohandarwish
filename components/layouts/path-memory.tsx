@@ -20,8 +20,11 @@ export function PathMemory(): ReactNode {
 
   useEffect(() => {
     if (!DETAIL_PATTERN.test(pathname)) {
-      inMemoryPath = pathname;
-      sessionStorage.setItem(STORAGE_KEY, pathname);
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      const fullPath = `${pathname}${search}${hash}`;
+      inMemoryPath = fullPath;
+      sessionStorage.setItem(STORAGE_KEY, fullPath);
     }
   }, [pathname]);
 

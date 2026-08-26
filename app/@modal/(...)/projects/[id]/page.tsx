@@ -14,7 +14,7 @@ export default async function InterceptedProjectPage({
   if (!project) notFound();
 
   return (
-    <ProjectModal backHref="/" marker="root-slot">
+    <ProjectModal backHref="/#projects" marker="root-slot">
       <ProjectDetailContent project={project} />
     </ProjectModal>
   );

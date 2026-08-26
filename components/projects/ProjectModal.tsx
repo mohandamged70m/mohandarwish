@@ -19,9 +19,30 @@ export function ProjectModal({ children, backHref, marker }: Props) {
 
   const close = useCallback(() => {
     const bg = getBackgroundPath();
+    const bgPathOnly = (bg?.split("?")[0]?.split("#")[0]) ?? "";
+    const isDetailBg = /^\/projects\/p\d+$/.test(bgPathOnly);
+    // If we have a meaningful background with history, prefer back() to preserve scroll/filter state
+    if (bg && !isDetailBg && bg !== "/" && bg !== "/#projects" && window.history.length > 1) {
+      router.back();
+      return;
+    }
     // Prefer stored background, but ensure it is not the current detail route
-    const target = bg && !/^\/projects\/p\d+$/.test(bg) ? bg : backHref;
-    router.push(target, { scroll: false });
+    let target = bg && !isDetailBg ? bg : backHref;
+    // When background is root "/" (no hash), normalize to projects section anchor
+    if (target === "/") target = "/#projects";
+    const hasHash = target.includes("#");
+    if (hasHash) {
+      router.push(target);
+      // Ensure anchor scroll after navigation (Next may delay it)
+      const hashId = target.split("#")[1];
+      if (hashId) {
+        window.setTimeout(() => {
+          document.getElementById(hashId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      }
+    } else {
+      router.push(target, { scroll: false });
+    }
   }, [router, backHref]);
 
   useEffect(() => {
