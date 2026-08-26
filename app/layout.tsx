@@ -4,6 +4,7 @@ import "./globals.css";
 import { Nav } from "@/components/layouts/nav";
 import { PathMemory } from "@/components/layouts/path-memory";
 import { Providers } from "@/components/layouts/providers";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -36,6 +37,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
           {children}
           {modal}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
