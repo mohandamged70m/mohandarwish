@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PROJECTS, type FilterCategory } from "@/Data/projects";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
 };
 
 const defaultCounts: Record<FilterCategory, number> = {
-  "Best Works": PROJECTS.length,
+  "Best Works": PROJECTS.filter((p) => p.featured).length,
   "App UI": PROJECTS.filter((p) => p.category === "App UI").length,
   "Web UI": PROJECTS.filter((p) => p.category === "Web UI").length,
   "Desktop App UI": PROJECTS.filter((p) => p.category === "Desktop App UI").length,
@@ -25,7 +25,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
   const [ready, setReady] = useState(false);
   const activeIdx = categories.indexOf(active);
 
-  const measure = () => {
+  const measure = useCallback(() => {
     const track = listRef.current;
     const el = activeIdx >= 0 ? btnRefs.current[activeIdx] : null;
     if (!track || !el) {
@@ -35,12 +35,11 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
     const tr = track.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     setPill({ x: r.left - tr.left, w: r.width });
-  };
+  }, [activeIdx]);
 
   useLayoutEffect(() => {
     measure();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIdx, active]);
+  }, [measure]);
 
   useEffect(() => {
     const ro = new ResizeObserver(measure);
@@ -51,7 +50,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, []);
+  }, [measure]);
 
   useEffect(() => {
     if (!pill) return;
@@ -96,6 +95,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
         )}
         {categories.map((cat, i) => {
           const isActive = cat === active;
+          const count = counts[cat];
           return (
             <button
               key={cat}
@@ -110,6 +110,16 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
                 ${isActive ? "text-text-on-accent" : "text-text-secondary hover:text-text-primary"}`}
             >
               {cat}
+              {typeof count === "number" && (
+                <span
+                  aria-hidden
+                  className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[11px] leading-none font-semibold transition-colors ${
+                    isActive ? "bg-text-on-accent/15 text-text-on-accent" : "bg-bg-primary border border-border text-text-muted"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
             </button>
           );
         })}

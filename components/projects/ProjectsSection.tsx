@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FILTER_CATEGORIES, PROJECTS } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
@@ -21,8 +22,9 @@ export default function ProjectsSection() {
   const display = useMemo(() => {
     if (filtered.length >= 3) return filtered;
     const needed = 3 - filtered.length;
-    const pool = PROJECTS.filter((p) => p.featured);
-    return [...filtered, ...pool.slice(0, needed)] as typeof PROJECTS;
+    const pool = PROJECTS.filter((p) => p.featured && !filtered.some((f) => f.id === p.id));
+    const fallback = pool.length >= needed ? pool : PROJECTS.filter((p) => !filtered.some((f) => f.id === p.id));
+    return [...filtered, ...fallback.slice(0, needed)] as typeof PROJECTS;
   }, [filtered]);
 
   const filterCounts = useMemo<Record<FilterCategory, number>>(
@@ -96,7 +98,7 @@ export default function ProjectsSection() {
           transition={{ duration: 0.5, delay: 0.22 }}
           className="flex w-full flex-col items-center gap-3 pt-2"
         >
-          <a href="/projects" aria-label="See all projects">
+          <Link href="/projects" aria-label="See all projects">
             <Button
               variant="secondary"
               size="md"
@@ -110,7 +112,7 @@ export default function ProjectsSection() {
                 →
               </span>
             </Button>
-          </a>
+          </Link>
           <span className="font-heading text-[11px] uppercase tracking-[0.14em] text-text-muted">
             {active}
           </span>

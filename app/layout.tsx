@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/layouts/nav";
+import { PathMemory } from "@/components/layouts/path-memory";
 import { Providers } from "@/components/layouts/providers";
 
 const inter = Inter({
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   description: "Personal website and portfolio of Mohand Darwish, a software engineer.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children, modal }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
@@ -30,8 +31,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         <Providers>
+          <PathMemory />
           <Nav />
           {children}
+          {modal}
         </Providers>
       </body>
     </html>

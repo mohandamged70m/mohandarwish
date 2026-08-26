@@ -1,35 +1,57 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
-import { PROJECTS } from "@/Data/projects";
+import { FILTER_CATEGORIES, PROJECTS } from "@/Data/projects";
+import type { FilterCategory } from "@/Data/projects";
+import { ProjectFilter } from "./ProjectFilter";
 import type { ReactNode } from "react";
 
 export function Projects(): ReactNode {
-  const filtered = PROJECTS;
+  const [active, setActive] = useState<FilterCategory>("Best Works");
+
+  const filtered = useMemo(() => {
+    if (active === "Best Works") return PROJECTS;
+    return PROJECTS.filter((p) => p.category === active);
+  }, [active]);
+
+  const counts = useMemo<Record<FilterCategory, number>>(
+    () => ({
+      "Best Works": PROJECTS.length,
+      "App UI": PROJECTS.filter((p) => p.category === "App UI").length,
+      "Web UI": PROJECTS.filter((p) => p.category === "Web UI").length,
+      "Desktop App UI": PROJECTS.filter((p) => p.category === "Desktop App UI").length,
+    }),
+    []
+  );
 
   return (
     <section aria-label="All projects" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
       <div className="flex w-full flex-col items-center gap-8">
+        <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={counts} />
         <p className="sr-only" aria-live="polite">
-          Showing {filtered.length} projects
+          Showing {filtered.length} projects for {active}
         </p>
 
         {filtered.length === 0 ? (
           <p className="font-body text-sm text-text-muted">No projects in this category.</p>
         ) : (
-          <div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((project) => (
-              <motion.div
-                key={project.id}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
+          <motion.div layout className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {filtered.map((project) => (
+                <motion.div
+                  key={project.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
                 <Link
                   href={project.href}
                   aria-label={`${project.title} — ${project.category}`}
@@ -49,32 +71,34 @@ export function Projects(): ReactNode {
                         {project.title}
                       </span>
                     </div>
-                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
-                      <Image
-                        src={project.image}
-                        alt={project.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06]"
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
-                      <div className="absolute left-3 top-3 flex items-center gap-2">
-                        <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
-                          {project.category}
-                        </Badge>
-                        {project.year && (
-                          <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
-                            {project.year}
+                    <ViewTransition name={`project-${project.id}`} share="morph">
+                      <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
+                        <Image
+                          src={project.image}
+                          alt={project.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06]"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
+                        <div className="absolute left-3 top-3 flex items-center gap-2">
+                          <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
+                            {project.category}
                           </Badge>
-                        )}
+                          {project.year && (
+                            <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
+                              {project.year}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                          <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
+                            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
+                          </span>
+                        </div>
                       </div>
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                      <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                        <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
-                          View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
-                        </span>
-                      </div>
-                    </div>
+                    </ViewTransition>
                   </div>
                   <div className="flex flex-col gap-2 px-3 pb-3 pt-3">
                     <div className="flex items-start justify-between gap-3">
@@ -122,13 +146,14 @@ export function Projects(): ReactNode {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
-        <span className="font-heading text-[11px] uppercase tracking-[0.14em] text-text-muted sr-only">
-          {filtered.length} projects
+        <span className="font-heading text-[11px] uppercase tracking-[0.14em] text-text-muted">
+          {filtered.length} projects · {active}
         </span>
       </div>
     </section>

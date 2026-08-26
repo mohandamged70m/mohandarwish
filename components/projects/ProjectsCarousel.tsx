@@ -61,29 +61,35 @@ export function ProjectsCarousel({ projects }: Props) {
     el.scrollBy({ left: dir * (el.clientWidth * 0.85), behavior: "smooth" });
   };
 
-  // drag to scroll
+  // drag to scroll — only capture the pointer once actual dragging starts
+  // (after a movement threshold) so plain clicks still reach the card links
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = scrollerRef.current;
     if (!el) return;
-    isDragging.current = true;
+    isDragging.current = false;
     startX.current = e.clientX;
     scrollStart.current = el.scrollLeft;
-    el.setPointerCapture(e.pointerId);
-    el.style.cursor = "grabbing";
-    el.style.userSelect = "none";
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current) return;
     const el = scrollerRef.current;
     if (!el) return;
     const dx = e.clientX - startX.current;
+    if (!isDragging.current) {
+      if (Math.abs(dx) < 6) return;
+      isDragging.current = true;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    }
     el.scrollLeft = scrollStart.current - dx;
   };
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    isDragging.current = false;
     const el = scrollerRef.current;
     if (!el) return;
-    el.releasePointerCapture(e.pointerId);
+    if (isDragging.current && el.hasPointerCapture(e.pointerId)) {
+      el.releasePointerCapture(e.pointerId);
+    }
+    isDragging.current = false;
     el.style.cursor = "grab";
     el.style.userSelect = "";
   };

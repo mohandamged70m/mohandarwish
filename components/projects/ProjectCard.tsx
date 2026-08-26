@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/Data/projects";
 
@@ -51,46 +52,48 @@ export function ProjectCard({ project, featured = false }: Props) {
           </span>
         </div>
 
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
-          <Image
-            src={project.image}
-            alt={project.title}
-            fill
-            sizes={featured ? "(max-width: 1024px) 88vw, 560px" : "(max-width: 1024px) 46vw, 500px"}
-            className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
-            priority={featured}
-          />
-          {/* gradient */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
+        <ViewTransition name={`project-${project.id}`} share="morph">
+          <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
+            <Image
+              src={project.image}
+              alt={project.title}
+              fill
+              sizes={featured ? "(max-width: 1024px) 88vw, 560px" : "(max-width: 1024px) 46vw, 500px"}
+              className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
+              priority={featured}
+            />
+            {/* gradient */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
 
-          {/* top badges */}
-          <div className="absolute left-3 top-3 flex items-center gap-2">
-            <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
-              {project.category}
-            </Badge>
-            {project.year && (
-              <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
-                {project.year}
+            {/* top badges */}
+            <div className="absolute left-3 top-3 flex items-center gap-2">
+              <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
+                {project.category}
               </Badge>
-            )}
-            {featured && (
-              <Badge variant="accent" className="hidden sm:inline-flex text-[10px] px-2 py-1">
-                Featured
-              </Badge>
-            )}
-          </div>
+              {project.year && (
+                <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
+                  {project.year}
+                </Badge>
+              )}
+              {featured && (
+                <Badge variant="accent" className="hidden sm:inline-flex text-[10px] px-2 py-1">
+                  Featured
+                </Badge>
+              )}
+            </div>
 
-          {/* hover overlay + CTA */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
-              View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
-            </span>
-            <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent text-text-on-accent shadow-[0_0_20px_var(--accent-ring)]">
-              <ArrowUpRight className="h-4 w-4" />
-            </span>
+            {/* hover overlay + CTA */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+              <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
+                View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
+              </span>
+              <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent text-text-on-accent shadow-[0_0_20px_var(--accent-ring)]">
+                <ArrowUpRight className="h-4 w-4" />
+              </span>
+            </div>
           </div>
-        </div>
+        </ViewTransition>
       </div>
 
       {/* footer editorial */}
