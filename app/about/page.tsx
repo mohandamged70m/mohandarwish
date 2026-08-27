@@ -10,7 +10,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = createMetadata({
   title: "About",
-  description: "About me, background, and how to get in touch.",
+  description: "About me, background, and how to book a call.",
   path: "/about",
 });
 
@@ -32,7 +32,11 @@ export default function AboutPage(): ReactNode {
                 I enjoy turning fuzzy product ideas into shipped software — from design tokens and component APIs to tRPC routes and Postgres queries. My sweet spot is where <strong className="font-semibold text-text-primary">frontend craft meets full-stack ownership</strong>.
               </p>
               <p>
-                Currently building mock engineering projects across <strong className="font-semibold text-text-primary">design systems, tooling and full-stack products</strong> — always open to collaboration. See <a href="/projects" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">projects</a> or <a href="#contact" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">get in touch</a>.
+                Currently building mock engineering projects across <strong className="font-semibold text-text-primary">design systems, tooling and full-stack products</strong> — always open to collaboration. See <a href="/projects" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">projects</a> or{" "}
+                <a href="/#booking" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">
+                  book a call
+                </a>
+                .
               </p>
             </div>
           </div>

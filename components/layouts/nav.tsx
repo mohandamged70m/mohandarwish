@@ -23,7 +23,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: "#booking" },
 ];
 
 function useIsMounted(): boolean {
@@ -186,20 +186,28 @@ export function Nav(): ReactNode {
                   href={item.href}
                   aria-current={isActive ? "page" : undefined}
                   onClick={(e) => {
-                    if (isHash) {
-                      e.preventDefault();
-                      const id = item.href.slice(1);
-                      // if not on home, navigate home then scroll
-                      if (pathname !== "/") {
-                        window.location.href = `/${item.href}`;
-                        return;
-                      }
-                      document
-                        .getElementById(id)
-                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      window.history.pushState(null, "", item.href);
-                    }
-                  }}
+                     if (isHash) {
+                       e.preventDefault();
+                       const id = item.href.slice(1);
+                       // unified: Contact now opens booking modal via #booking
+                       if (id === "booking") {
+                         if (pathname !== "/") {
+                           window.location.href = `/#booking`;
+                           return;
+                         }
+                         window.location.hash = "#booking";
+                         return;
+                       }
+                       if (pathname !== "/") {
+                         window.location.href = `/${item.href}`;
+                         return;
+                       }
+                       document
+                         .getElementById(id)
+                         ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                       window.history.pushState(null, "", item.href);
+                     }
+                   }}
                   className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1.5 text-sm font-medium font-heading transition-colors duration-300"
                 >
                   <span

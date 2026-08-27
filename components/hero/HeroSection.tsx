@@ -4,6 +4,7 @@ import TextAnimated from "./TextAnimated";
 import { Button } from "@/components/ui/button";
 import { ScaleUnblur } from "../ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
+import { BookButton } from "@/components/booking/BookButton";
 
 const PORTRAIT_SRC = "/josh.webp";
 const PORTRAIT_HOVER_SRC = "/josh_wave.webp";
@@ -65,23 +66,9 @@ const HeroSection = () => {
               </p>
             </div>
 
-            {/* CTAs */}
+            {/* CTAs — single primary conversion (Book a call), secondary View projects */}
             <div className="flex w-full flex-wrap justify-start gap-3 pt-1">
-              <Button
-                variant="primary"
-                size="lg"
-                className="min-w-[152px] shadow-[0_0_24px_var(--accent-ring)]"
-                onClick={() => {
-                  document
-                    .getElementById("contact")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                Get in touch
-                <span aria-hidden className="ml-2 translate-y-px">
-                  →
-                </span>
-              </Button>
+              <BookButton label="Book a call →" />
               <Button
                 variant="secondary"
                 size="lg"

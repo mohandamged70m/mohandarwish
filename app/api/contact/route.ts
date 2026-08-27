@@ -85,19 +85,42 @@ export async function POST(req: Request) {
     scheduledAt = `${preferredDate} ${preferredTime}${timezone ? ` (${timezone})` : ""}`;
   }
 
-  // TODO: wire to real email provider (Resend, SendGrid, etc.)
-  // For now we just log and return success — keeps the portfolio functional
-  // without requiring env vars. Replace with actual send if CONTACT_EMAIL is set.
-  console.log("[contact] message", {
-    name,
-    email,
-    message: message.slice(0, 500),
-    scheduledAt,
-    timezone: timezone || undefined,
-  });
+  // Persist to Supabase messages + Resend (anon key, RLS public insert)
+  try {
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+      const { supabaseServer } = await import("@/lib/supabase/server");
+      const supabase = supabaseServer();
+      await supabase.from("messages").insert({
+        name,
+        email,
+        message,
+        number: null,
+        has_whatsapp: false,
+        files: scheduledAt ? [{ scheduledAt, timezone }] : [],
+      });
+    }
+  } catch {}
 
-  // Optional: if RESEND_API_KEY is configured, you could send here.
-  // Keeping no-op success avoids breaking builds when env is missing.
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const { Resend } = await import("resend");
+      const { emailTemplate, escHtml } = await import("@/lib/email");
+      const { getResendFrom, sendSafe } = await import("@/lib/resend");
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const owner = process.env.OWNER_EMAIL || "mohandamged70m@gmail.com";
+      const from = getResendFrom();
+      const html = emailTemplate(
+        `New message from ${name}`,
+        `<div><strong>${escHtml(name)}</strong> &lt;${escHtml(email)}&gt;</div><div style="margin-top:8px;white-space:pre-wrap">${escHtml(message)}</div>${scheduledAt ? `<div style="margin-top:8px">Requested: ${escHtml(scheduledAt)}</div>` : ""}`
+      );
+      const res = await sendSafe(resend, { from, to: owner, subject: `New message: ${name}`, html, replyTo: email });
+      if (res.skipped) console.log("[contact] saved but email skipped (Resend test mode) — verify domain at resend.com/domains");
+    } catch (e) {
+      console.error("[contact] resend error", e);
+    }
+  } else {
+    console.log("[contact] message", { name, email, message: message.slice(0, 500), scheduledAt });
+  }
 
   return NextResponse.json({ ok: true });
 }
