@@ -33,9 +33,10 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
       setPill(null);
       return;
     }
+    // account for track scroll offset — prevents pill drift when filter overflows
     const tr = track.getBoundingClientRect();
     const r = el.getBoundingClientRect();
-    setPill({ x: r.left - tr.left, w: r.width });
+    setPill({ x: r.left - tr.left + track.scrollLeft, w: r.width });
   }, [activeIdx]);
 
   useLayoutEffect(() => {
@@ -46,9 +47,12 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
     const ro = new ResizeObserver(measure);
     if (listRef.current) ro.observe(listRef.current);
     btnRefs.current.forEach((el) => el && ro.observe(el));
+    const track = listRef.current;
+    track?.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     return () => {
       ro.disconnect();
+      track?.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
     };
   }, [measure]);
@@ -59,11 +63,32 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
     return () => cancelAnimationFrame(id);
   }, [pill]);
 
+  // keep active tab visible when filter changes or overflows
+  useEffect(() => {
+    const el = activeIdx >= 0 ? btnRefs.current[activeIdx] : null;
+    if (!el) return;
+    // scroll into view centered, smooth unless reduced motion
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({
+      behavior: prefersReduced ? "instant" as ScrollBehavior : "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+    // re-measure after scroll
+    const id = requestAnimationFrame(measure);
+    return () => cancelAnimationFrame(id);
+  }, [activeIdx, measure]);
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Home" && e.key !== "End") return;
     e.preventDefault();
-    const dir = e.key === "ArrowRight" ? 1 : -1;
-    const next = (activeIdx + dir + categories.length) % categories.length;
+    let next = activeIdx;
+    if (e.key === "ArrowRight") next = (activeIdx + 1) % categories.length;
+    else if (e.key === "ArrowLeft") next = (activeIdx - 1 + categories.length) % categories.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = categories.length - 1;
     btnRefs.current[next]?.focus();
     onChange(categories[next]!);
   };
@@ -74,12 +99,16 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
 
   return (
     <div
-      className="inline-flex max-w-full items-center gap-2 rounded-full bg-bg-surface border border-border p-1.5 shadow-sm"
+      className="inline-flex max-w-[calc(100vw-2rem)] sm:max-w-full items-center gap-2 rounded-full bg-bg-surface border border-border p-1.5 shadow-sm overflow-hidden"
       role="tablist"
       aria-label="Project categories"
       onKeyDown={onKeyDown}
     >
-      <div ref={listRef} className="relative flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div
+        ref={listRef}
+        data-lenis-prevent
+        className="relative flex items-center gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [scroll-padding-inline:8px]"
+      >
         {pill && (
           <motion.span
             aria-hidden
@@ -90,7 +119,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
                 ? { type: "spring", stiffness: 380, damping: 32 }
                 : { duration: 0 }
             }
-            className="absolute inset-y-0 left-0 rounded-full bg-accent shadow-[0_0_20px_var(--accent-ring)]"
+            className="absolute inset-y-0 left-0 rounded-full bg-accent shadow-[0_0_20px_var(--accent-ring)] will-change-transform"
             style={{ top: 0, bottom: 0 }}
           />
         )}
@@ -107,7 +136,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(cat)}
-              className={`relative z-10 inline-flex items-center gap-1.5 rounded-full px-4 sm:px-5 py-2 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-ring whitespace-nowrap outline-none
+              className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-full px-4 sm:px-5 py-2 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent whitespace-nowrap
                 ${isActive ? "text-text-on-accent" : "text-text-secondary hover:text-text-primary"}`}
             >
               {cat}

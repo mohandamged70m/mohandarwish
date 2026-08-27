@@ -42,21 +42,21 @@ export function Projects(): ReactNode {
         {filtered.length === 0 ? (
           <p className="font-body text-sm text-text-muted">No projects in this category.</p>
         ) : (
-          <motion.div layout className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout" initial={false}>
-              {filtered.map((project) => (
+              {filtered.map((project, idx) => (
                 <motion.div
                   key={project.id}
-                  layout
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 12 }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: Math.min(idx * 0.04, 0.2) }}
+                  className="min-w-0"
                 >
                 <Link
                   href={project.href}
                   aria-label={`${project.title} — ${project.category}`}
-                  className="group relative flex w-full flex-col overflow-hidden rounded-[18px] border border-border bg-bg-surface shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-300 hover:-translate-y-1 hover:border-border-strong hover:bg-bg-surface-hover hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] focus-ring outline-none"
+                  className="group relative flex w-full min-w-0 flex-col overflow-hidden rounded-[18px] border border-border bg-bg-surface shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-[transform,box-shadow,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-border-strong hover:bg-bg-surface-hover hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
                 >
                   <span
                     aria-hidden
@@ -79,7 +79,7 @@ export function Projects(): ReactNode {
                           alt={project.title}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06]"
+                          className="object-cover will-change-transform transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06]"
                         />
                         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
                         <div className="absolute left-3 top-3 flex items-center gap-2">

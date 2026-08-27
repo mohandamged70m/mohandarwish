@@ -34,25 +34,25 @@ export default function ProjectsSection() {
     <section
       id="projects"
       aria-label="Projects"
-      className="relative w-full overflow-hidden bg-bg-primary border-t border-border/50"
+      className="relative w-full max-w-full overflow-hidden isolate [contain:layout_paint] bg-bg-primary border-t border-border/50"
     >
-      {/* backdrop — lime glow + grid */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[86%] bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-70" />
+      {/* backdrop — lime glow + grid — contained to avoid translate overflow */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-70" />
         <div className="absolute inset-0 opacity-[0.035] [mask-image:radial-gradient(ellipse_at_50%_12%,black_38%,transparent_78%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:28px_28px]" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
         {/* subtle vignette */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary/40" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8 sm:gap-10 px-0 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8 sm:gap-10 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         {/* filter */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="flex w-full justify-center px-4 sm:px-0"
+          className="flex w-full min-w-0 justify-center"
         >
           <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
         </motion.div>
@@ -63,7 +63,7 @@ export default function ProjectsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
-          className="w-full px-4 sm:px-0"
+          className="w-full min-w-0"
         >
           <ProjectsHeader />
         </motion.div>
@@ -84,7 +84,7 @@ export default function ProjectsSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
-            className="w-full"
+            className="w-full max-w-full min-w-0 overflow-hidden"
           >
             <ProjectsCarousel projects={filtered} active={active} />
           </motion.div>

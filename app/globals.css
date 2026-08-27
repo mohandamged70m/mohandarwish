@@ -108,6 +108,9 @@ html.light {
 /* Base */
 html {
   scrollbar-gutter: stable;
+  overflow-x: clip;
+  max-width: 100%;
+  overscroll-behavior-x: none;
   /* smooth theme transition for non-reduced-motion */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -125,6 +128,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
+  overflow-x: clip;
+  max-width: 100%;
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
+}
+
+/* Lenis smooth scroll — prevent horizontal shift */
+html.lenis,
+html.lenis body {
+  overscroll-behavior-x: none;
+}
+
+/* Carousel & filtered scrollers — isolate scroll chaining */
+[data-lenis-prevent] {
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {

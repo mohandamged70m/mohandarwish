@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ExternalLink } from "lucide-react";
-import { ViewTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/Data/projects";
 
@@ -15,10 +14,10 @@ export function ProjectCard({ project, featured = false }: Props) {
     <Link
       href={project.href}
       aria-label={`${project.title} — ${project.category}`}
-      className={`group relative flex shrink-0 flex-col overflow-hidden bg-bg-surface border transition-all duration-300 focus-ring outline-none
-        hover:bg-bg-surface-hover hover:border-border-strong hover:-translate-y-1
-        ${featured ? "rounded-[20px] lg:rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.45)] lg:shadow-[0_18px_56px_rgba(0,0,0,0.55)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.6)]" : "rounded-[18px] shadow-[0_6px_24px_rgba(0,0,0,0.25)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)]"}
-        ${featured ? "w-[88vw] sm:w-[52vw] lg:w-[560px]" : "w-[88vw] sm:w-[46vw] lg:w-[500px] opacity-[0.97] hover:opacity-100"}`}
+      className={`group relative flex min-w-0 shrink-0 flex-col overflow-hidden bg-bg-surface border transition-[transform,box-shadow,border-color,background-color] duration-300 will-change-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary
+        hover:bg-bg-surface-hover hover:border-border-strong hover:-translate-y-1.5
+        ${featured ? "rounded-[20px] lg:rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.45)] lg:shadow-[0_18px_56px_rgba(0,0,0,0.55)] hover:shadow-[0_20px_56px_rgba(0,0,0,0.6)]" : "rounded-[18px] shadow-[0_6px_24px_rgba(0,0,0,0.25)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.38)]"}
+        ${featured ? "w-[min(88vw,360px)] sm:w-[min(52vw,480px)] lg:w-[560px]" : "w-[min(88vw,360px)] sm:w-[min(46vw,420px)] lg:w-[500px] opacity-[0.97] hover:opacity-100"}`}
     >
       {/* accent top line on hover */}
       <span
@@ -54,48 +53,46 @@ export function ProjectCard({ project, featured = false }: Props) {
           )}
         </div>
 
-        <ViewTransition name={`project-${project.id}`} share="morph">
-          <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
-            <Image
-              src={project.image}
-              alt={project.title}
-              fill
-              sizes={featured ? "(max-width: 1024px) 88vw, 560px" : "(max-width: 1024px) 46vw, 500px"}
-              className="object-cover transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
-              priority={featured}
-            />
-            {/* gradient */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
+          <Image
+            src={project.image}
+            alt={project.title}
+            fill
+            sizes={featured ? "(max-width: 640px) 88vw, (max-width: 1024px) 52vw, 560px" : "(max-width: 640px) 88vw, (max-width: 1024px) 46vw, 500px"}
+            className="object-cover will-change-transform transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06] group-focus-visible:scale-[1.06]"
+            priority={featured}
+          />
+          {/* gradient */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
 
-            {/* top badges */}
-            <div className="absolute left-3 top-3 flex items-center gap-2">
-              <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
-                {project.category}
+          {/* top badges */}
+          <div className="absolute left-3 top-3 flex items-center gap-2">
+            <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
+              {project.category}
+            </Badge>
+            {project.year && (
+              <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
+                {project.year}
               </Badge>
-              {project.year && (
-                <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
-                  {project.year}
-                </Badge>
-              )}
-              {featured && (
-                <Badge variant="accent" className="hidden sm:inline-flex text-[10px] px-2 py-1">
-                  Featured
-                </Badge>
-              )}
-            </div>
-
-            {/* hover overlay + CTA */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-              <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
-                View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
-              </span>
-              <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent text-text-on-accent shadow-[0_0_20px_var(--accent-ring)]">
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </div>
+            )}
+            {featured && (
+              <Badge variant="accent" className="hidden sm:inline-flex text-[10px] px-2 py-1">
+                Featured
+              </Badge>
+            )}
           </div>
-        </ViewTransition>
+
+          {/* hover overlay + CTA */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
+              View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
+            </span>
+            <span className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent text-text-on-accent shadow-[0_0_20px_var(--accent-ring)]">
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* footer editorial */}
