@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { ProjectsCarousel } from "./ProjectsCarousel";
 import { ProjectsHeader } from "./ProjectsHeader";
 
 export default function ProjectsSection() {
+  const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState<FilterCategory>("Best Works");
 
   // Homepage shows only featured (top 6) for "Best Works", not the full archive
@@ -32,6 +33,7 @@ export default function ProjectsSection() {
 
   return (
     <section
+      ref={sectionRef}
       id="projects"
       aria-label="Projects"
       className="relative w-full max-w-full overflow-hidden isolate [contain:layout_paint] bg-bg-primary border-t border-border/50"
@@ -86,7 +88,7 @@ export default function ProjectsSection() {
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
             className="w-full max-w-full min-w-0 overflow-hidden"
           >
-            <ProjectsCarousel projects={filtered} active={active} />
+            <ProjectsCarousel projects={filtered} active={active} sectionRef={sectionRef} />
           </motion.div>
         )}
 

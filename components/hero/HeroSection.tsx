@@ -89,9 +89,6 @@ const HeroSection = () => {
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 Alexandria, Egypt
               </span>
-              <span className="inline-flex items-center rounded-pill border border-border bg-bg-surface px-3 py-1.5 tracking-wide">
-                Next.js • TypeScript • Node.js • tRPC • Prisma
-              </span>
             </div>
           </div>
 

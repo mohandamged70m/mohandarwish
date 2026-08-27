@@ -3,6 +3,8 @@
 import { useEffect, type ReactNode } from "react";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Feature flag — local fallback until lib/config exists
 const features = { smoothScroll: true } as const;
@@ -32,11 +34,24 @@ export function SmoothScroll({
 
     if (prefersReducedMotion) return;
 
+    gsap.registerPlugin(ScrollTrigger);
+
     const lenis = new Lenis(LENIS_OPTIONS as never);
+    // expose for vertical→horizontal sync (ProjectsCarousel) — optional velocity scaling
+    (window as unknown as { __lenis?: unknown }).__lenis = lenis;
+
+    // Sync Lenis → ScrollTrigger so pinned scrub stays in sync with smooth scroll
+    lenis.on("scroll", ScrollTrigger.update);
+    // Use GSAP ticker for Lenis raf to keep both in same tick (prevents jitter)
+    const gsapTickerCb = (time: number) => {
+      // gsap ticker time is seconds, lenis expects ms
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(gsapTickerCb);
+    gsap.ticker.lagSmoothing(0);
 
     let rafId = 0;
-    function raf(time: number): void {
-      lenis.raf(time);
+    function raf(): void {
       rafId = requestAnimationFrame(raf);
     }
 
@@ -62,6 +77,11 @@ export function SmoothScroll({
     return () => {
       document.removeEventListener("click", handleAnchorClick);
       cancelAnimationFrame(rafId);
+      gsap.ticker.remove(gsapTickerCb);
+      lenis.off("scroll", ScrollTrigger.update);
+      try {
+        delete (window as unknown as { __lenis?: unknown }).__lenis;
+      } catch {}
       lenis.destroy();
     };
   }, []);

@@ -45,15 +45,6 @@ export function ContactCard(): ReactNode {
             <div className="relative grid gap-8 p-6 sm:gap-10 sm:p-7 md:grid-cols-[1.25fr_0.9fr] md:items-stretch md:gap-6 md:p-6">
               {/* left — conversion */}
               <div className="flex flex-col gap-5">
-                {/* eyebrow — signature availability indicator (frontend-design: structure encodes truth) */}
-                <div className="inline-flex w-fit items-center gap-2 rounded-pill border border-accent/20 bg-accent/10 px-3 py-1.5">
-                  <span className="relative inline-flex h-2 w-2 shrink-0" aria-hidden>
-                    <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-accent opacity-30 motion-reduce:hidden" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
-                  </span>
-                  <span className="font-heading text-xs font-medium tracking-wide text-accent">Available for new opportunities</span>
-                  <span className="hidden font-heading text-xs text-accent/60 sm:inline">· replies within 24h</span>
-                </div>
 
                 <div className="space-y-3">
                   <h2 className="font-heading text-[2.25rem] font-semibold leading-[0.95] tracking-tight text-text-primary sm:text-[2.75rem] lg:text-[3.25rem]">
