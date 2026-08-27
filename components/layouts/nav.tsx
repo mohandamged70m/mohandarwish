@@ -309,156 +309,151 @@ export function Nav(): ReactNode {
         </div>
       </nav>
 
-      {/* Mobile — top bar with hamburger */}
-      <header className="lg:hidden fixed inset-x-0 top-0 z-50 pointer-events-none">
-        {/* floating bar */}
-        <div className="pointer-events-auto mx-3 mt-3 flex items-center justify-between rounded-full bg-bg-surface/90 backdrop-blur-xl border border-border px-2 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.12)] supports-[backdrop-filter]:bg-bg-surface/80">
-          {/* brand */}
-          <Link
-            href="/"
-            onClick={() => setMobileOpen(false)}
-            className="focus-ring flex items-center gap-2 rounded-full pl-3 pr-1 py-1"
-            aria-label="Go to homepage"
-          >
-            <span className="font-heading font-bold text-sm tracking-tight text-text-primary">
-              M<span className="text-accent">.</span>DARWISH
-            </span>
-            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-accent/10 ring-1 ring-accent/20 px-2 py-0.5 font-heading text-[10px] font-medium uppercase tracking-widest text-accent">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-              Available
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-1.5">
-            <NavThemeToggle />
-            <button
-              type="button"
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-nav-panel"
-              onClick={() => setMobileOpen((v) => !v)}
-              className={`focus-ring inline-flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium transition-colors cursor-pointer ${
-                mobileOpen
-                  ? "bg-accent text-text-on-accent border-accent shadow-accent"
-                  : "bg-bg-primary border-border text-text-primary hover:border-border-strong"
-              }`}
-            >
-              <HamburgerIcon open={mobileOpen} />
-            </button>
+      {/* Mobile — minimal hamburger only */}
+      <div className="lg:hidden">
+        {/* floating action cluster — just theme + hamburger, no brand bar */}
+        <div className="fixed top-4 right-4 z-[60] flex items-center gap-2">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-bg-surface/80 backdrop-blur-xl shadow-sm supports-[backdrop-filter]:bg-bg-surface/70">
+            <div className="scale-[1.05] [&_button]:!h-8 [&_button]:!w-8 [&_button]:!border-0 [&_button]:!bg-transparent [&_button]:!shadow-none">
+              <NavThemeToggle />
+            </div>
           </div>
+          <button
+            type="button"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-nav-panel"
+            onClick={() => setMobileOpen((v) => !v)}
+            className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-xl shadow-sm transition-all duration-200 cursor-pointer ${
+              mobileOpen
+                ? "bg-accent text-text-on-accent border-accent shadow-accent rotate-0"
+                : "bg-bg-surface/80 border-border text-text-primary hover:border-border-strong supports-[backdrop-filter]:bg-bg-surface/70"
+            }`}
+          >
+            <HamburgerIcon open={mobileOpen} />
+          </button>
         </div>
 
-        {/* overlay + panel */}
         <AnimatePresence>
           {mobileOpen && (
             <>
-              {/* backdrop */}
-              <motion.button
-                aria-label="Close menu"
-                onClick={() => setMobileOpen(false)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="pointer-events-auto fixed inset-0 -z-10 bg-bg-primary/40 backdrop-blur-sm cursor-pointer"
-                style={{ marginTop: 0 }}
-              />
-
-              {/* panel — dropdown sheet */}
+              {/* full-screen minimal drawer */}
               <motion.div
                 id="mobile-nav-panel"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation menu"
-                initial={{ opacity: 0, y: -12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 380,
-                  damping: 30,
-                  mass: 0.8,
-                }}
-                className="pointer-events-auto mx-3 mt-2 overflow-hidden rounded-[24px] border border-border bg-bg-surface shadow-[0_16px_48px_rgba(0,0,0,0.18)]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.22 }}
+                className="fixed inset-0 z-50 flex min-h-dvh flex-col bg-bg-primary"
               >
-                <nav className="p-2">
-                  <ul className="flex flex-col gap-1">
+                {/* subtle grid + glow — very restrained */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:32px_32px]"
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -top-24 right-0 h-[420px] w-[420px] rounded-full bg-[radial-gradient(ellipse_at_center,var(--accent-ring)_0%,transparent_70%)] opacity-60 blur-[40px]"
+                />
+
+                {/* centered nav */}
+                <nav className="relative flex flex-1 flex-col items-center justify-center px-6 py-20">
+                  {/* thin top hairline */}
+                  <motion.div
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    animate={{ scaleX: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+                    className="absolute top-24 h-px w-12 origin-center bg-gradient-to-r from-transparent via-border-strong to-transparent"
+                  />
+                  <ul className="flex w-full max-w-[320px] flex-col">
                     {NAV_ITEMS.map((item, idx) => {
                       const isActive = idx === activeIndex;
                       return (
-                        <li key={item.href}>
+                        <motion.li
+                          key={item.href}
+                          initial={{ opacity: 0, y: 14 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 8 }}
+                          transition={{
+                            duration: 0.35,
+                            ease: [0.22, 1, 0.36, 1],
+                            delay: 0.06 + idx * 0.05,
+                          }}
+                          className="group relative"
+                        >
                           <Link
                             href={item.href}
                             aria-current={isActive ? "page" : undefined}
                             onClick={(e) => handleNavClick(e, item)}
-                            className={`group flex items-center justify-between rounded-2xl px-4 py-3.5 font-heading text-[17px] font-medium tracking-tight transition-all duration-200 ${
-                              isActive
-                                ? "bg-accent text-text-on-accent shadow-accent"
-                                : "bg-transparent text-text-primary hover:bg-bg-surface-hover active:scale-[0.98]"
-                            }`}
+                            className="focus-ring flex items-baseline gap-4 rounded-xl px-2 py-4 -mx-2 transition-colors"
                           >
-                            <span className="flex items-center gap-3">
-                              <span
-                                className={`font-mono text-xs tracking-widest ${
-                                  isActive ? "text-text-on-accent/70" : "text-text-muted"
-                                }`}
-                              >
-                                0{idx + 1}
-                              </span>
-                              <span>{item.label}</span>
-                            </span>
+                            {/* index — mono, muted, fixed width */}
                             <span
-                              className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs transition-colors ${
-                                isActive
-                                  ? "border-text-on-accent/20 bg-text-on-accent/10 text-text-on-accent"
-                                  : "border-border bg-bg-primary text-text-muted group-hover:border-accent/30 group-hover:text-accent"
+                              className={`font-heading text-xs tabular-nums tracking-widest transition-colors ${
+                                isActive ? "text-accent" : "text-text-muted/60 group-hover:text-text-muted"
                               }`}
                             >
-                              <motion.span
-                                animate={{ x: isActive ? 0 : 0 }}
-                                className="text-[11px]"
-                              >
-                                {isActive ? "•" : "→"}
-                              </motion.span>
+                              0{idx + 1}
                             </span>
+
+                            {/* label — large, editorial */}
+                            <span
+                              className={`font-heading text-[2.05rem] font-bold leading-none tracking-[-0.02em] transition-colors ${
+                                isActive
+                                  ? "text-accent"
+                                  : "text-text-primary group-hover:text-accent group-active:text-accent"
+                              }`}
+                            >
+                              {item.label}
+                            </span>
+
+                            {/* active dot — the single signature */}
+                            <span
+                              aria-hidden
+                              className={`ml-auto h-1.5 w-1.5 rounded-full bg-accent transition-all duration-300 ${
+                                isActive ? "opacity-100 scale-100" : "opacity-0 scale-0 group-hover:opacity-40 group-hover:scale-100"
+                              }`}
+                            />
                           </Link>
-                        </li>
+
+                          {/* hairline divider — not after last */}
+                          {idx !== NAV_ITEMS.length - 1 && (
+                            <div className="h-px w-full bg-border/60" />
+                          )}
+                        </motion.li>
                       );
                     })}
                   </ul>
 
-                  {/* footer meta */}
-                  <div className="mt-2 rounded-2xl bg-bg-primary border border-border p-4">
-                    <p className="font-heading text-xs font-medium uppercase tracking-widest text-text-muted">
-                      Get in touch
-                    </p>
-                    <p className="mt-1 font-body text-sm leading-relaxed text-text-secondary">
-                      Have an idea? Let&apos;s build it — fast, clean, scalable.
+                  {/* bottom meta — ultra minimal */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.32, duration: 0.4 }}
+                    className="absolute bottom-0 inset-x-0 flex flex-col items-center gap-3 border-t border-border/50 px-6 py-6"
+                  >
+                    <p className="font-heading text-[11px] tracking-[0.14em] uppercase text-text-muted">
+                      Mohand Darwish — Alexandria • Available for new work
                     </p>
                     <Link
                       href="#booking"
                       onClick={(e) =>
                         handleNavClick(e, { label: "Contact", href: "#booking" })
                       }
-                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 font-heading text-sm font-semibold text-text-on-accent hover:bg-accent-hover transition-colors focus-ring"
+                      className="font-heading text-sm font-medium text-text-secondary hover:text-accent underline underline-offset-4 decoration-border hover:decoration-accent/50 transition-colors"
                     >
-                      Book a call
-                      <span aria-hidden>→</span>
+                      Book a call →
                     </Link>
-                    <div className="mt-3 flex items-center justify-between font-heading text-[11px] text-text-muted">
-                      <span>Alexandria, Egypt • GMT+2</span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        Online
-                      </span>
-                    </div>
-                  </div>
+                  </motion.div>
                 </nav>
               </motion.div>
             </>
           )}
         </AnimatePresence>
-      </header>
+      </div>
     </>
   );
 }
