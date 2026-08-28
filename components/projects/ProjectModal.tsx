@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { useCallback, useEffect, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { getBackgroundPath } from "@/components/layouts/path-memory";
 
@@ -11,29 +11,48 @@ type Props = {
   children: ReactNode;
   backHref: string;
   marker?: string;
+  initialMedia?: string;
 };
 
-export function ProjectModal({ children, backHref, marker }: Props) {
+type ModalCtx = {
+  activeMedia: string | null;
+  setActiveMedia: (src: string | null) => void;
+  isMobile: boolean;
+};
+
+const Ctx = createContext<ModalCtx>({ activeMedia: null, setActiveMedia: () => {}, isMobile: false });
+export const useProjectModal = () => useContext(Ctx);
+
+export function ProjectModal({ children, backHref, marker, initialMedia }: Props) {
   const router = useRouter();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeMedia, setActiveMedia] = useState<string | null>(initialMedia ?? null);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (initialMedia) setActiveMedia(initialMedia);
+  }, [initialMedia]);
 
   const close = useCallback(() => {
     const bg = getBackgroundPath();
     const bgPathOnly = (bg?.split("?")[0]?.split("#")[0]) ?? "";
     const isDetailBg = /^\/projects\/p\d+$/.test(bgPathOnly);
-    // If we have a meaningful background with history, prefer back() to preserve scroll/filter state
     if (bg && !isDetailBg && bg !== "/" && bg !== "/#projects" && window.history.length > 1) {
       router.back();
       return;
     }
-    // Prefer stored background, but ensure it is not the current detail route
     let target = bg && !isDetailBg ? bg : backHref;
-    // When background is root "/" (no hash), normalize to projects section anchor
     if (target === "/") target = "/#projects";
     const hasHash = target.includes("#");
     if (hasHash) {
       router.push(target);
-      // Ensure anchor scroll after navigation (Next may delay it)
       const hashId = target.split("#")[1];
       if (hashId) {
         window.setTimeout(() => {
@@ -50,49 +69,110 @@ export function ProjectModal({ children, backHref, marker }: Props) {
       if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKeyDown);
-    const previousOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = prev;
     };
   }, [close]);
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      data-marker={marker}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
-    >
+    <Ctx.Provider value={{ activeMedia, setActiveMedia, isMobile }}>
       <motion.div
-        aria-hidden
-        onClick={close}
+        role="dialog"
+        aria-modal="true"
+        data-marker={marker}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-      />
-
-      <motion.div
-        initial={{ opacity: 0, y: 28, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.9 }}
-        className="relative flex max-h-[88vh] w-full max-w-3xl flex-col overflow-y-auto rounded-[20px] border border-border bg-bg-surface shadow-[0_24px_80px_rgba(0,0,0,0.6)] focus-ring outline-none"
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
+        style={{ fontFamily: "var(--font-body)" }}
       >
+        {/* backdrop */}
+        <motion.div
+          aria-hidden
+          onClick={close}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0 bg-black/85"
+          style={{ backdropFilter: "blur(2px)" }}
+        />
+        {/* ambient bleed - Revil style */}
+        {activeMedia && !isVideo(activeMedia) && (
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: -50,
+              backgroundImage: `url(${activeMedia})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "blur(80px) brightness(0.35)",
+              opacity: 0.7,
+              transition: "background-image 1.5s cubic-bezier(0.16, 1, 0.3, 1)",
+              zIndex: -1,
+            }}
+          />
+        )}
+        {/* floating close - Revil */}
         <button
           ref={closeRef}
           type="button"
           onClick={close}
           aria-label="Close project details"
-          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg-surface/90 text-text-primary shadow-md backdrop-blur transition-colors duration-300 hover:border-accent/40 hover:text-accent focus-ring outline-none cursor-pointer"
+          className="fixed z-[110] inline-flex items-center justify-center rounded-full border text-white cursor-pointer focus-ring outline-none"
+          style={{
+            top: isMobile ? 16 : 28,
+            right: isMobile ? 16 : 28,
+            width: isMobile ? 44 : 56,
+            height: isMobile ? 44 : 56,
+            background: "rgba(255,255,255,0.1)",
+            borderColor: "rgba(255,255,255,0.15)",
+            backdropFilter: "blur(10px)",
+            transition: "all 0.3s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#ef4444";
+            e.currentTarget.style.transform = "scale(1.1) rotate(90deg)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+            e.currentTarget.style.transform = "scale(1) rotate(0deg)";
+          }}
         >
-          <X className="h-4 w-4" />
+          <X size={isMobile ? 20 : 24} />
         </button>
 
-        {children}
+        {/* cinema container - 90vw/90vh */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="relative flex w-full flex-col overflow-y-auto focus-ring outline-none"
+          style={{
+            width: isMobile ? "100%" : "90vw",
+            height: isMobile ? "100%" : "90vh",
+            maxWidth: isMobile ? "100%" : 1500,
+            borderRadius: isMobile ? 0 : 24,
+            background: "transparent",
+            scrollbarWidth: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          <div className="cinema-scroll" style={{ width: "100%", minHeight: "100%" }}>
+            {children}
+          </div>
+        </motion.div>
       </motion.div>
-    </div>
+    </Ctx.Provider>
   );
+}
+
+function isVideo(src: string) {
+  const clean = src.split("?")[0].toLowerCase();
+  return /\.(mp4|webm|ogg|mov)$/.test(clean) || src.includes("/videos/");
 }

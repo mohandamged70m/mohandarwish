@@ -17,6 +17,8 @@ export type Project = {
   githubUrl?: string;
   metrics?: readonly { label: string; value: string }[];
   highlights?: readonly string[];
+  images?: readonly string[];
+  videos?: readonly string[];
 };
 
 export const FILTER_CATEGORIES: readonly FilterCategory[] = [
@@ -42,6 +44,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p1-a/1200/675",
+      "https://picsum.photos/seed/mohand-p1-b/1200/675",
+      "https://picsum.photos/seed/mohand-p1-c/1200/675",
+    ],
     metrics: [
       { label: "Build time", value: "1.2s for 120 tokens" },
       { label: "Adoption", value: "6 products" },
@@ -62,6 +69,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p2-a/1200/675",
+      "https://picsum.photos/seed/mohand-p2-b/1200/675",
+      "https://picsum.photos/seed/mohand-p2-c/1200/675",
+    ],
     metrics: [
       { label: "Stream p95", value: "180ms" },
       { label: "Retention", value: "+22% W4" },
@@ -82,6 +94,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p3-a/1200/675",
+      "https://picsum.photos/seed/mohand-p3-b/1200/675",
+      "https://picsum.photos/seed/mohand-p3-c/1200/675",
+    ],
     metrics: [
       { label: "Pins", value: "5k @ 60fps" },
       { label: "LCP", value: "1.8s" },
@@ -102,6 +119,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p4-a/1200/675", "https://picsum.photos/seed/mohand-p4-b/1200/675"],
     metrics: [
       { label: "Reconcile", value: "10k rows <1s" },
       { label: "Close time", value: "-40%" },
@@ -122,6 +140,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p5-a/1200/675",
+      "https://picsum.photos/seed/mohand-p5-b/1200/675",
+      "https://picsum.photos/seed/mohand-p5-c/1200/675",
+    ],
     metrics: [
       { label: "Search", value: "45ms" },
       { label: "Builds", value: "3.2s for 400 pages" },
@@ -142,6 +165,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p6-a/1200/675",
+      "https://picsum.photos/seed/mohand-p6-b/1200/675",
+      "https://picsum.photos/seed/mohand-p6-c/1200/675",
+    ],
     metrics: [
       { label: "Ingest", value: "1M events/day" },
       { label: "Alert noise", value: "-62%" },
@@ -162,6 +190,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p7-a/1200/675", "https://picsum.photos/seed/mohand-p7-b/1200/675"],
     metrics: [
       { label: "Checkout", value: "99.2% success" },
       { label: "Setup", value: "<15 min" },
@@ -182,6 +211,11 @@ export const PROJECTS: readonly Project[] = [
     featured: true,
     liveUrl: "#",
     githubUrl: "#",
+    images: [
+      "https://picsum.photos/seed/mohand-p8-a/1200/675",
+      "https://picsum.photos/seed/mohand-p8-b/1200/675",
+      "https://picsum.photos/seed/mohand-p8-c/1200/675",
+    ],
     metrics: [
       { label: "Sync", value: "<80ms" },
       { label: "Cursors", value: "50 concurrent" },
@@ -202,6 +236,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p9-a/1200/675", "https://picsum.photos/seed/mohand-p9-b/1200/675"],
     metrics: [
       { label: "W4 retention", value: "+18%" },
       { label: "PWA score", value: "100" },
@@ -222,6 +257,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p10-a/1200/675", "https://picsum.photos/seed/mohand-p10-b/1200/675"],
     metrics: [
       { label: "MTTR", value: "-31%" },
       { label: "Deploys/week", value: "240" },
@@ -242,6 +278,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p11-a/1200/675", "https://picsum.photos/seed/mohand-p11-b/1200/675"],
     metrics: [
       { label: "Release time", value: "8m → 45s" },
       { label: "Mistakes", value: "-90%" },
@@ -262,6 +299,7 @@ export const PROJECTS: readonly Project[] = [
     featured: false,
     liveUrl: "#",
     githubUrl: "#",
+    images: ["https://picsum.photos/seed/mohand-p12-a/1200/675", "https://picsum.photos/seed/mohand-p12-b/1200/675"],
     metrics: [
       { label: "Coverage", value: "94% visual" },
       { label: "A11y issues", value: "-55%" },

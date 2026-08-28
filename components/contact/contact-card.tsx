@@ -57,7 +57,7 @@ export function ContactCard(): ReactNode {
 
                 {/* primary + secondary — one intent, clear hierarchy (ui-ux-pro-max: single primary) */}
                 <div className="flex flex-wrap items-center gap-3 pt-1">
-                  <BookButton label="Book a call — 30 min" variant="primary" />
+                  <BookButton label="Book a call" variant="primary" />
                   <button
                     type="button"
                     onClick={copyEmail}
@@ -123,7 +123,7 @@ export function ContactCard(): ReactNode {
                   </p>
                   <p className="inline-flex items-center gap-1.5 font-body text-[12px] tracking-tight text-text-muted">
                     <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-                    Alexandria · GMT+2 · Available for new opportunities
+                    Alexandria · GMT+2
                   </p>
                 </div>
               </div>

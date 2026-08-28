@@ -13,8 +13,9 @@ export default async function InterceptedProjectPage({
   const project = PROJECTS.find((p) => p.id === id);
   if (!project) notFound();
 
+  const initialMedia = project.images?.[0] ?? project.videos?.[0] ?? project.image;
   return (
-    <ProjectModal backHref="/#projects" marker="root-slot">
+    <ProjectModal backHref="/#projects" marker="root-slot" initialMedia={initialMedia}>
       <ProjectDetailContent project={project} />
     </ProjectModal>
   );

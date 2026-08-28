@@ -241,3 +241,27 @@ html[data-theme-anim="1"]::view-transition-new(root) {
     animation-delay: 0s !important;
   }
 }
+
+/* Revil cinema modal — keyframes */
+@keyframes shimmer-fast {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes scrollWheel {
+  0% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(10px); opacity: 0.5; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cinema-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cinema-scroll::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="scrollWheel"], [style*="shimmer-fast"] { animation: none !important; }
+}
