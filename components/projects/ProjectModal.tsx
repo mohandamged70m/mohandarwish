@@ -88,8 +88,9 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
-        style={{ fontFamily: "var(--font-body)" }}
+        className="fixed inset-0 z-[100] flex justify-center overflow-y-auto overscroll-contain p-0 sm:p-4"
+        style={{ fontFamily: "var(--font-body)", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+        data-lenis-prevent
       >
         {/* backdrop */}
         <motion.div
@@ -98,7 +99,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0 bg-black/85"
+          className="fixed inset-0 bg-black/85"
           style={{ backdropFilter: "blur(2px)" }}
         />
         {/* ambient bleed - Revil style */}
@@ -147,23 +148,28 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
           <X size={isMobile ? 20 : 24} />
         </button>
 
-        {/* cinema container - 90vw/90vh */}
+        {/* cinema container - 90vw/90vh - this is the scroll container */}
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="relative flex w-full flex-col overflow-y-auto focus-ring outline-none"
+          data-lenis-prevent
+          className="relative flex w-full flex-col overflow-y-auto overscroll-contain focus-ring outline-none cinema-scroll my-auto"
           style={{
             width: isMobile ? "100%" : "90vw",
-            height: isMobile ? "100%" : "90vh",
+            height: isMobile ? "100dvh" : "90vh",
+            maxHeight: isMobile ? "100dvh" : "90vh",
             maxWidth: isMobile ? "100%" : 1500,
+            flexShrink: 0,
             borderRadius: isMobile ? 0 : 24,
             background: "transparent",
             scrollbarWidth: "none",
             WebkitOverflowScrolling: "touch",
-          }}
+            overscrollBehavior: "contain",
+            touchAction: "pan-y",
+          } as React.CSSProperties}
         >
-          <div className="cinema-scroll" style={{ width: "100%", minHeight: "100%" }}>
+          <div style={{ width: "100%", flexShrink: 0 }}>
             {children}
           </div>
         </motion.div>

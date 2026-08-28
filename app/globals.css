@@ -259,8 +259,12 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .cinema-scroll {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overscroll-behavior: contain;
 }
 .cinema-scroll::-webkit-scrollbar { display: none; }
+.cinema-scroll {
+  -webkit-overflow-scrolling: touch;
+}
 
 @media (prefers-reduced-motion: reduce) {
   [style*="scrollWheel"], [style*="shimmer-fast"] { animation: none !important; }
