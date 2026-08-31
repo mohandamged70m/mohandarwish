@@ -1,3 +1,5 @@
+import { ModalViewport } from "@/components/layouts/modal-viewport";
+
 export default function ProjectsLayout({
   children,
   modal,
@@ -5,7 +7,7 @@ export default function ProjectsLayout({
   return (
     <>
       {children}
-      {modal}
+      <ModalViewport modal={modal} />
     </>
   );
 }

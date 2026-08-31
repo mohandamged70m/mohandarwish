@@ -6,10 +6,10 @@ import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
 
 export async function POST(req: Request) {
-  let body: { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean } | null = null;
+  let body: { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean; files?: { name: string; url: string }[] } | null = null;
   try {
     const json = await req.json();
-    body = json as { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean };
+    body = json as { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean; files?: { name: string; url: string }[] };
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -18,6 +18,7 @@ export async function POST(req: Request) {
   const message = body?.message?.trim() ?? "";
   const number = body?.number?.trim() ?? "";
   const hasWhatsapp = !!body?.hasWhatsapp;
+  const files = Array.isArray(body?.files) ? body!.files!.slice(0, 5).filter((f) => f && typeof f.name === "string") : [];
   if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
   if (!email || !EMAIL_RE.test(email)) return NextResponse.json({ error: "Valid email required" }, { status: 400 });
   if (!message || message.length < 10) return NextResponse.json({ error: "Message too short" }, { status: 400 });
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please wait 30s before sending another message." }, { status: 429 });
     }
   } catch {}
-  const { error } = await supabase.from("messages").insert({ name, email, number: number || null, has_whatsapp: hasWhatsapp, message, files: [] });
+  const { error } = await supabase.from("messages").insert({ name, email, number: number || null, has_whatsapp: hasWhatsapp, message, files });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const resendKey = process.env.RESEND_API_KEY;
@@ -38,9 +39,10 @@ export async function POST(req: Request) {
     const resend = new Resend(resendKey);
     const owner = process.env.OWNER_EMAIL || "mohandamged70m@gmail.com";
     const from = getResendFrom();
+    const filesHtml = files.length ? `<div style="margin-top:12px"><strong>Attachments:</strong> ${files.map((f) => f.url ? `<a href="${escHtml(f.url)}" style="color:#3395ff">${escHtml(f.name)}</a>` : escHtml(f.name)).join(", ")}</div>` : "";
     const html = emailTemplate(
       `New message from ${name}`,
-      `<div><strong>${escHtml(name)}</strong> &lt;${escHtml(email)}&gt;</div><div style="margin-top:8px;white-space:pre-wrap">${escHtml(message)}</div>${number ? `<div style="margin-top:8px">Phone: ${escHtml(number)}${hasWhatsapp ? " (WhatsApp)" : ""}</div>` : ""}`
+      `<div><strong>${escHtml(name)}</strong> &lt;${escHtml(email)}&gt;</div><div style="margin-top:8px;white-space:pre-wrap">${escHtml(message)}</div>${number ? `<div style="margin-top:8px">Phone: ${escHtml(number)}${hasWhatsapp ? " (WhatsApp)" : ""}</div>` : ""}${filesHtml}`
     );
     const ack = emailTemplate("Message received", `<div>Hi ${escHtml(name)}, thanks for reaching out — I'll get back within 24h.</div>`);
     void (async () => {
