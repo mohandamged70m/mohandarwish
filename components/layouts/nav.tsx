@@ -1,10 +1,11 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { FileText, Moon, Sun } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ME } from "@/Data/me";
 import {
   useEffect,
   useLayoutEffect,
@@ -91,7 +92,7 @@ function NavThemeToggle({ size = "default" }: { size?: "default" | "large" }): R
           : "Toggle theme"
       }
       aria-pressed={mounted ? isDark : undefined}
-      className={`focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
+      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
     >
       <span aria-hidden="true" className="relative h-4 w-4">
         <Sun
@@ -110,6 +111,22 @@ function NavThemeToggle({ size = "default" }: { size?: "default" | "large" }): R
         />
       </span>
     </button>
+  );
+}
+
+function NavDocLink({ size = "default" }: { size?: "default" | "large" }): ReactNode {
+  const sizeClass = size === "large" ? "h-11 w-11" : "h-8 w-8 sm:h-9 sm:w-9";
+  return (
+    <Link
+      href={ME.cvUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View CV (opens in new tab)"
+      title="View CV"
+      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
+    >
+      <FileText className="h-4 w-4" aria-hidden="true" />
+    </Link>
   );
 }
 
@@ -306,6 +323,8 @@ export function Nav(): ReactNode {
               );
             })}
           </ul>
+          <span aria-hidden="true" className="mx-1 h-5 w-px bg-border/70" />
+          <NavDocLink />
           <NavThemeToggle />
         </div>
       </nav>
@@ -314,6 +333,7 @@ export function Nav(): ReactNode {
       <div className="lg:hidden">
         {/* floating action cluster — just theme + hamburger, no brand bar */}
         <div className="fixed top-4 right-4 z-[60] flex items-center gap-2">
+          <NavDocLink size="large" />
           <NavThemeToggle size="large" />
           <button
             type="button"
