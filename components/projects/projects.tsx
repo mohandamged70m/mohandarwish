@@ -24,6 +24,7 @@ export function Projects(): ReactNode {
     Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
   };
 
+  const sectionRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
@@ -138,6 +139,38 @@ export function Projects(): ReactNode {
     const id = window.setTimeout(() => updateScrollState(), 80);
     return () => window.clearTimeout(id);
   }, [filtered.length, active, updateScrollState]);
+
+  // reset to first when section leaves viewport — fixes down->up->down staying at last project
+  useEffect(() => {
+    const root = sectionRef.current;
+    const viewport = viewportRef.current;
+    if (!root || !viewport) return;
+    let wasIntersecting = true;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const isVisible = entry.isIntersecting;
+        if (wasIntersecting && !isVisible) {
+          isSmoothScrolling.current = false;
+          if (smoothTimer.current) {
+            window.clearTimeout(smoothTimer.current);
+            smoothTimer.current = null;
+          }
+          if (wheelEndTimer.current) {
+            window.clearTimeout(wheelEndTimer.current);
+            wheelEndTimer.current = null;
+          }
+          viewport.scrollTo({ left: 0, behavior: "auto" });
+          requestAnimationFrame(() => updateScrollState());
+        }
+        wasIntersecting = isVisible;
+      },
+      { threshold: 0 }
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, [updateScrollState]);
 
   const getNearestIndex = useCallback(() => {
     const el = viewportRef.current;
@@ -278,6 +311,7 @@ export function Projects(): ReactNode {
 
   return (
     <section
+      ref={sectionRef}
       aria-label="All projects"
       className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 overflow-hidden"
     >

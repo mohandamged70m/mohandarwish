@@ -13,6 +13,7 @@ type Props = {
 
 export function ProjectsCarousel({ projects, active }: Props) {
   const visible = projects;
+  const rootRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +136,39 @@ export function ProjectsCarousel({ projects, active }: Props) {
     const id = window.setTimeout(() => updateScrollState(), 80);
     return () => window.clearTimeout(id);
   }, [visible.length, active, updateScrollState]);
+
+  // reset to first when carousel leaves viewport — fixes down->up->down staying at last project
+  useEffect(() => {
+    const root = rootRef.current;
+    const viewport = viewportRef.current;
+    if (!root || !viewport) return;
+    let wasIntersecting = true;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const isVisible = entry.isIntersecting;
+        // only reset when we *leave* viewport, not on mount
+        if (wasIntersecting && !isVisible) {
+          isSmoothScrolling.current = false;
+          if (smoothTimer.current) {
+            window.clearTimeout(smoothTimer.current);
+            smoothTimer.current = null;
+          }
+          if (wheelEndTimer.current) {
+            window.clearTimeout(wheelEndTimer.current);
+            wheelEndTimer.current = null;
+          }
+          viewport.scrollTo({ left: 0, behavior: "auto" });
+          requestAnimationFrame(() => updateScrollState());
+        }
+        wasIntersecting = isVisible;
+      },
+      { threshold: 0 }
+    );
+    io.observe(root);
+    return () => io.disconnect();
+  }, [updateScrollState]);
 
   // ---------- helpers: offset-based (actual card positions), not equal distribution ----------
   const getNearestIndex = useCallback(() => {
@@ -293,7 +327,7 @@ export function ProjectsCarousel({ projects, active }: Props) {
   })();
 
   return (
-    <div className="carousel-root relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint]">
+    <div ref={rootRef} className="carousel-root relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint]">
       {/* edge fade affordances — subtle, palette-matched */}
       <div
         aria-hidden
