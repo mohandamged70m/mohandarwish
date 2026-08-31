@@ -21,12 +21,7 @@ export function ProjectsCarousel({ projects, active }: Props) {
   const [canRight, setCanRight] = useState(false);
   const [prefersReduced, setPrefersReduced] = useState(false);
 
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollStart = useRef(0);
-  const draggedRecently = useRef(false);
   const isSmoothScrolling = useRef(false);
-  const isPointerDown = useRef(false);
   const smoothTimer = useRef<number | null>(null);
   const wheelEndTimer = useRef<number | null>(null);
   const rafId = useRef<number | null>(null);
@@ -210,7 +205,6 @@ export function ProjectsCarousel({ projects, active }: Props) {
   const snapToNearest = useCallback(() => {
     if (prefersReduced) return;
     if (isSmoothScrolling.current) return;
-    if (isDragging.current) return;
     const el = viewportRef.current;
     if (!el || visible.length <= 1) return;
     const total = el.scrollWidth - el.clientWidth;
@@ -227,75 +221,7 @@ export function ProjectsCarousel({ projects, active }: Props) {
     el.scrollTo({ left: dest, behavior: "smooth" });
   }, [flushSmooth, getNearestIndex, prefersReduced, visible.length]);
 
-  // drag — mouse/pen only; touch relies on native momentum (gesture-conflicts, drag-threshold)
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    const el = viewportRef.current;
-    if (!el) return;
-    isPointerDown.current = true;
-    isDragging.current = false;
-    draggedRecently.current = false;
-    startX.current = e.clientX;
-    scrollStart.current = el.scrollLeft;
-    // interruptible — cancel smooth
-    isSmoothScrolling.current = false;
-    if (smoothTimer.current) {
-      window.clearTimeout(smoothTimer.current);
-      smoothTimer.current = null;
-    }
-    if (wheelEndTimer.current) {
-      window.clearTimeout(wheelEndTimer.current);
-      wheelEndTimer.current = null;
-    }
-  };
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    if (!isPointerDown.current) return;
-    const el = viewportRef.current;
-    if (!el) return;
-    const dx = e.clientX - startX.current;
-    if (!isDragging.current) {
-      if (Math.abs(dx) < 8) return; // drag-threshold
-      isDragging.current = true;
-      try {
-        el.setPointerCapture(e.pointerId);
-      } catch {}
-      el.style.cursor = "grabbing";
-      el.style.userSelect = "none";
-    }
-    const next = scrollStart.current - dx;
-    el.scrollLeft = Math.max(0, Math.min(next, el.scrollWidth - el.clientWidth));
-  };
-  const stopDrag = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === "touch") return;
-    const el = viewportRef.current;
-    const wasDragging = isDragging.current;
-    isPointerDown.current = false;
-    if (!el) return;
-    if (wasDragging) {
-      try {
-        if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
-      } catch {}
-      draggedRecently.current = true;
-      window.setTimeout(() => {
-        draggedRecently.current = false;
-      }, 220);
-      requestAnimationFrame(() => {
-        scheduleUpdate();
-        window.setTimeout(snapToNearest, 40);
-      });
-    }
-    isDragging.current = false;
-    el.style.cursor = "grab";
-    el.style.userSelect = "";
-    if (wasDragging) scheduleUpdate();
-  };
-  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (draggedRecently.current) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
+  // drag disabled — user wants scroll/wheel only, no left-click drag to move carousel
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowLeft") {
@@ -404,7 +330,7 @@ export function ProjectsCarousel({ projects, active }: Props) {
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>
 
-      {/* viewport — fix hover snap-back: disable CSS snap, JS handles snap on drag/arrow only */}
+      {/* viewport — drag disabled, scroll/wheel + arrows only */}
       <div
         ref={viewportRef}
         data-lenis-prevent
@@ -414,14 +340,8 @@ export function ProjectsCarousel({ projects, active }: Props) {
         tabIndex={0}
         onKeyDown={onKeyDown}
         onWheel={onWheel}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={stopDrag}
-        onPointerLeave={stopDrag}
-        onPointerCancel={stopDrag}
-        onClickCapture={onClickCapture}
         style={{ scrollSnapType: "none" }}
-        className={`carousel-viewport block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
+        className={`carousel-viewport block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
       >
         <div ref={trackRef} className="flex w-max max-w-none items-start gap-4 sm:gap-6 lg:gap-8">
           {visible.map((project) => {
