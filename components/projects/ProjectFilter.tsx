@@ -93,9 +93,14 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
     onChange(categories[next]!);
   };
 
-  const prefersReduced =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const [prefersReduced, setPrefersReduced] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReduced(mql.matches);
+    update();
+    mql.addEventListener?.("change", update);
+    return () => mql.removeEventListener?.("change", update);
+  }, []);
 
   return (
     <div
@@ -107,7 +112,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
       <div
         ref={listRef}
         data-lenis-prevent
-        className="relative flex items-center gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [scroll-padding-inline:8px]"
+        className="relative flex items-center gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory [scroll-padding-inline:12px]"
       >
         {pill && (
           <motion.span
@@ -136,7 +141,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(cat)}
-              className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-full px-4 sm:px-5 py-2 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent whitespace-nowrap
+              className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-full px-4 sm:px-5 min-h-11 py-2.5 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface whitespace-nowrap
                 ${isActive ? "text-text-on-accent" : "text-text-secondary hover:text-text-primary"}`}
             >
               {cat}

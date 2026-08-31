@@ -13,7 +13,7 @@ const HeroSection = () => {
   return (
     <section
       aria-label="Introduction"
-      className="relative w-full overflow-hidden border-b border-border/50"
+      className="relative flex min-h-[100svh] w-full max-w-full min-w-0 items-center overflow-hidden border-b border-border/50 supports-[min-height:100dvh]:min-h-[100dvh]"
     >
       {/* ── background ── */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
@@ -25,8 +25,8 @@ const HeroSection = () => {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
       </div>
 
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 pt-24 pb-10 sm:gap-12 sm:pt-28 sm:pb-14 lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 lg:pt-32 lg:pb-16 xl:gap-12 xl:pt-36 xl:pb-20">
+      <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-1 items-center overflow-hidden px-4 py-6 pt-[calc(3.5rem+4dvh)] pb-[max(1.5rem,3dvh)] sm:px-6 sm:py-8 sm:pt-[calc(3.75rem+4dvh)] lg:px-8 lg:py-6 lg:pt-[calc(2rem+4dvh)]">
+        <div className="grid w-full max-w-full min-w-0 items-center gap-8 sm:gap-10 overflow-hidden lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 xl:gap-12 hero-grid">
           {/* ── left : content ── */}
           <div className="flex flex-col items-start gap-6 text-left lg:pr-2">
             {/* heading */}
@@ -34,7 +34,7 @@ const HeroSection = () => {
               <h1 className="font-heading font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
                 <TextAnimated
                   text="Hi, I'm Mohand Darwish"
-                  className="block text-left text-[2.15rem] font-bold leading-[0.9] tracking-[-0.02em] sm:text-5xl lg:text-[3.45rem] xl:text-6xl"
+                  className="block text-left font-bold leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,5vw+0.75rem,3.75rem)]"
                   stagger={18}
                   duration={260}
                 />
@@ -51,7 +51,7 @@ const HeroSection = () => {
               <p className="pt-1 font-heading text-base text-text-secondary sm:text-lg">
                 <TextAnimated
                   text="Full-stack engineer, frontend-leaning — clean architecture, fast UIs, systems that scale."
-                  className="block text-left font-heading text-base font-medium tracking-tight text-text-secondary sm:text-lg lg:text-xl"
+                  className="block text-left font-heading font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
                   startDelay={280}
                   stagger={16}
                   duration={260}
@@ -101,9 +101,9 @@ const HeroSection = () => {
               className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] bg-[radial-gradient(ellipse_at_center,var(--accent-ring)_0%,transparent_70%)] opacity-60 blur-[18px] lg:left-auto lg:right-[-4%] lg:w-[92%] lg:translate-x-0"
             />
 
-            <ScaleUnblur className="relative w-full max-w-[360px] sm:max-w-[400px] lg:max-w-[440px]">
-              <div className="relative aspect-square w-full overflow-hidden rounded-[28px]">
-                <div className="relative h-full w-full overflow-hidden rounded-[28px] bg-bg-primary">
+            <ScaleUnblur className="relative w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[clamp(320px,32vw,440px)] max-h-[min(50dvh,420px)] sm:max-h-[min(48dvh,460px)] lg:max-h-[min(62dvh,560px)]">
+              <div className="relative aspect-square w-full max-h-[inherit] overflow-hidden rounded-[28px]">
+                <div className="relative h-full w-full max-h-[inherit] overflow-hidden rounded-[28px] bg-bg-primary">
                   <PortraitMorph
                     srcA={PORTRAIT_SRC}
                     srcB={PORTRAIT_HOVER_SRC}

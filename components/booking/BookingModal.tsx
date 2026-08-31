@@ -76,7 +76,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
   const [existingMeetings, setExistingMeetings] = useState<Meeting[]>([]);
   const [bookingSuccess, setBookingSuccess] = useState<{ date: string; time: string; link: string } | null>(null);
   const { alert, showAlert, hideAlert } = useSafeAlert(4000);
-  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" ? window.innerWidth < 768 : false);
+  const [isMobile, setIsMobile] = useState(false);
   const [agendaScrolled, setAgendaScrolled] = useState(false);
   const [messageScrolled, setMessageScrolled] = useState(false);
 
@@ -97,7 +97,12 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
   const [hostTimezoneString, setHostTimezoneString] = useState("UTC+02:00 (EET)");
   const [userTimezone, setUserTimezone] = useState<number>(() => -(new Date().getTimezoneOffset() / 60));
 
-  useEffect(() => { const h = () => setIsMobile(window.innerWidth < 768); window.addEventListener("resize", h); return () => window.removeEventListener("resize", h); }, []);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    h();
+    window.addEventListener("resize", h);
+    return () => window.removeEventListener("resize", h);
+  }, []);
 
   const [prevDate, setPrevDate] = useState(selectedDate);
   if (prevDate !== selectedDate) { setPrevDate(selectedDate); setBookingSuccess(null); setAgendaScrolled(false); setSelectedTime(null); setIsCustomTime(false); }

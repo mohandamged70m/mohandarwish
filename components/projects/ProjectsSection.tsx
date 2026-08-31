@@ -36,51 +36,56 @@ export default function ProjectsSection() {
       ref={sectionRef}
       id="projects"
       aria-label="Projects"
-      className="relative w-full max-w-full overflow-hidden isolate [contain:layout_paint] bg-bg-primary border-t border-border/50"
+      className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary"
     >
-      {/* backdrop — lime glow + grid — contained to avoid translate overflow */}
+      {/* backdrop — lime glow + grid — true frameless: no border, max-width contained */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-70" />
-        <div className="absolute inset-0 opacity-[0.035] [mask-image:radial-gradient(ellipse_at_50%_12%,black_38%,transparent_78%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:28px_28px]" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
-        {/* subtle vignette */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary/40" />
+        <div className="absolute inset-0 mx-auto max-w-[1600px] bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-60" />
+        <div className="absolute inset-0 opacity-[0.032] [mask-image:radial-gradient(ellipse_at_50%_12%,black_38%,transparent_78%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:28px_28px]" />
+        {/* no top hairline — frameless: gap, not border, creates rhythm */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary/30" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-8 sm:gap-10 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        {/* filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="flex w-full min-w-0 justify-center"
-        >
-          <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
-        </motion.div>
+      <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
+        {/* header block — constrained */}
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
+          {/* filter */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="flex w-full min-w-0 justify-center"
+          >
+            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
+          </motion.div>
 
-        {/* header */}
-        <motion.div
-          initial={{ opacity: 0, y: 14 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
-          className="w-full min-w-0"
-        >
-          <ProjectsHeader />
-        </motion.div>
+          {/* header */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+            className="w-full min-w-0 overflow-hidden"
+          >
+            <ProjectsHeader />
+          </motion.div>
 
-        <p className="sr-only" aria-live="polite">
-          Showing {filtered.length} projects for {active}
-        </p>
+          <p className="sr-only" aria-live="polite">
+            Showing {filtered.length} projects for {active}
+          </p>
 
-        {/* carousel or empty */}
-        {filtered.length === 0 ? (
-          <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
-            <p className="font-heading text-sm font-medium text-text-primary">No projects in {active} — try Best Works</p>
-            <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured engineering mocks.</p>
-          </div>
-        ) : (
+          {/* empty state — stays inside gutter */}
+          {filtered.length === 0 && (
+            <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
+              <p className="font-heading text-sm font-medium text-text-primary">No projects in {active} — try Best Works</p>
+              <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured engineering mocks.</p>
+            </div>
+          )}
+        </div>
+
+        {/* carousel — FULL BLEED frameless: viewport owns gutters, not section container */}
+        {filtered.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -92,19 +97,19 @@ export default function ProjectsSection() {
           </motion.div>
         )}
 
-        {/* CTA */}
+        {/* CTA — constrained */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.22 }}
-          className="flex w-full flex-col items-center gap-3 pt-2"
+          className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 px-4 sm:px-6 lg:px-8 pt-2"
         >
           <Link href="/projects" aria-label="See all projects">
             <Button
               variant="secondary"
               size="md"
-              className="group rounded-pill border-border px-8 hover:border-accent hover:text-accent hover:shadow-[0_0_20px_var(--accent-ring)] transition-all"
+              className="group rounded-pill border-border px-8 min-h-11 hover:border-accent hover:text-accent hover:shadow-[0_0_20px_var(--accent-ring)] transition-all"
             >
               See all
               <span

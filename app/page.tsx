@@ -5,16 +5,16 @@ import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 
 export default function Home() {
   return (
-    <div className="w-full">
-      <section id="hero">
+    <div className="w-full max-w-full min-w-0 overflow-x-hidden">
+      <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
         <HeroSection />
-      </section>
-      <section id="projects">
+      </div>
+      <div id="projects-wrap" className="flex min-h-0 w-full max-w-full min-w-0 flex-col justify-center overflow-hidden">
         <ProjectsSection />
-      </section>
-      <section id="contact">
+      </div>
+      <div id="contact-wrap" className="flex w-full max-w-full min-w-0 flex-col justify-center overflow-hidden">
         <ContactCard />
-      </section>
+      </div>
       <BookingHashHandler />
     </div>
   );

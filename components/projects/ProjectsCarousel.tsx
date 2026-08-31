@@ -1,9 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Project } from "@/Data/projects";
 import { ProjectCard } from "./ProjectCard";
 
@@ -13,12 +11,7 @@ type Props = {
   sectionRef?: React.RefObject<HTMLElement | null>;
 };
 
-// register once on client
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
-export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
+export function ProjectsCarousel({ projects, active }: Props) {
   const visible = projects;
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -26,36 +19,43 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
   const [progress, setProgress] = useState(0);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(false);
 
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollStart = useRef(0);
   const draggedRecently = useRef(false);
   const isSmoothScrolling = useRef(false);
+  const isPointerDown = useRef(false);
   const smoothTimer = useRef<number | null>(null);
+  const wheelEndTimer = useRef<number | null>(null);
   const rafId = useRef<number | null>(null);
 
-  // ---------- helpers for box-by-box index ----------
-  const getActiveIndex = (p: number) => {
-    if (visible.length <= 1) return 0;
-    return Math.min(visible.length - 1, Math.max(0, Math.round(p * (visible.length - 1))));
-  };
+  // prefers-reduced-motion — ui-ux: reduced-motion, no-blocking-animation
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReduced(mql.matches);
+    update();
+    mql.addEventListener?.("change", update);
+    return () => mql.removeEventListener?.("change", update);
+  }, []);
 
-  const getProgressForIndex = (idx: number) => {
-    if (visible.length <= 1) return 0;
-    return Math.max(0, Math.min(1, idx / (visible.length - 1)));
-  };
-
-  // ---------- fallback (reduced-motion / short list) scroll state ----------
-  const updateScrollFallback = () => {
+  // ---------- scroll state — interruptible, no blocking, main-thread-budget ----------
+  // use refs to avoid stale deps causing missed updates (main-thread-budget)
+  const canLeftRef = useRef(canLeft);
+  const canRightRef = useRef(canRight);
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    canLeftRef.current = canLeft;
+    canRightRef.current = canRight;
+    progressRef.current = progress;
+  }, [canLeft, canRight, progress]);
+  const updateScrollState = useCallback(() => {
     const el = viewportRef.current;
     if (!el) return;
-    if (isSmoothScrolling.current) return;
-    if (isPinned) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
     if (scrollWidth <= clientWidth + 4) {
-      if (canLeft || canRight || progress !== 0) {
+      if (canLeftRef.current || canRightRef.current || progressRef.current !== 0) {
         setCanLeft(false);
         setCanRight(false);
         setProgress(0);
@@ -65,325 +65,214 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
     const nextCanLeft = scrollLeft > 8;
     const nextCanRight = scrollLeft + clientWidth < scrollWidth - 8;
     const nextProgress = scrollLeft / (scrollWidth - clientWidth);
-    setCanLeft((prev) => (prev !== nextCanLeft ? nextCanLeft : prev));
-    setCanRight((prev) => (prev !== nextCanRight ? nextCanRight : prev));
-    setProgress((prev) => (Math.abs(prev - nextProgress) > 0.005 ? nextProgress : prev));
-  };
+    if (nextCanLeft !== canLeftRef.current) setCanLeft(nextCanLeft);
+    if (nextCanRight !== canRightRef.current) setCanRight(nextCanRight);
+    if (Math.abs(nextProgress - progressRef.current) > 0.005) setProgress(nextProgress);
+  }, []);
 
-  const scheduleUpdate = () => {
+  const scheduleUpdate = useCallback(() => {
     if (rafId.current) return;
     rafId.current = window.requestAnimationFrame(() => {
       rafId.current = null;
-      updateScrollFallback();
+      updateScrollState();
     });
-  };
+  }, [updateScrollState]);
 
-  const flushScrollState = () => {
+  const flushSmooth = useCallback(() => {
     isSmoothScrolling.current = false;
     if (smoothTimer.current) {
       window.clearTimeout(smoothTimer.current);
       smoothTimer.current = null;
     }
-    updateScrollFallback();
-  };
+    updateScrollState();
+  }, [updateScrollState]);
 
   useEffect(() => {
-    if (isPinned) return;
     const el = viewportRef.current;
     if (!el) return;
-    updateScrollFallback();
-    const onScroll = () => {
-      if (isSmoothScrolling.current) return;
-      scheduleUpdate();
-    };
-    const onScrollEnd = () => flushScrollState();
+    updateScrollState();
+    const onScroll = () => scheduleUpdate();
+    // scrollend is best-effort; fallback timer also clears lock
+    const onScrollEnd = () => flushSmooth();
     el.addEventListener("scroll", onScroll, { passive: true });
-    el.addEventListener("scrollend", onScrollEnd as EventListener);
+    (el as unknown as { addEventListener: (a: string, b: EventListener) => void }).addEventListener(
+      "scrollend",
+      onScrollEnd as EventListener
+    );
     const ro = new ResizeObserver(scheduleUpdate);
     ro.observe(el);
+    if (trackRef.current) ro.observe(trackRef.current);
     window.addEventListener("resize", scheduleUpdate);
     return () => {
       el.removeEventListener("scroll", onScroll);
-      el.removeEventListener("scrollend", onScrollEnd as EventListener);
+      (el as unknown as { removeEventListener: (a: string, b: EventListener) => void }).removeEventListener(
+        "scrollend",
+        onScrollEnd as EventListener
+      );
       window.removeEventListener("resize", scheduleUpdate);
       ro.disconnect();
       if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+      if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
       if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPinned, visible.length]);
+  }, [visible.length, scheduleUpdate, flushSmooth, updateScrollState]);
 
-  // reset on filter change for fallback
+  // reset on filter change — cancellable-state-transitions, focus-management
   const prevActive = useRef(active);
   const prevLen = useRef(visible.length);
   useEffect(() => {
-    if (isPinned) return;
     const el = viewportRef.current;
     if (!el) return;
     if (prevActive.current !== active || prevLen.current !== visible.length) {
       prevActive.current = active;
       prevLen.current = visible.length;
-      gsap.killTweensOf(el);
+      isSmoothScrolling.current = false;
+      if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+      if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
       requestAnimationFrame(() => {
         el.scrollTo({ left: 0, behavior: "auto" });
-        requestAnimationFrame(updateScrollFallback);
+        requestAnimationFrame(updateScrollState);
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, visible.length, isPinned]);
+  }, [active, visible.length, updateScrollState]);
 
-  // ---------- pinned scrub — BOX BY BOX ----------
   useEffect(() => {
-    const viewport = viewportRef.current;
+    const id = window.setTimeout(() => updateScrollState(), 80);
+    return () => window.clearTimeout(id);
+  }, [visible.length, active, updateScrollState]);
+
+  // ---------- helpers: offset-based (actual card positions), not equal distribution ----------
+  const getNearestIndex = useCallback(() => {
+    const el = viewportRef.current;
     const track = trackRef.current;
-    const section = sectionRef?.current ?? null;
-    if (!viewport || !track || !section) return;
-
-    const mqlReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleReducedChange = () => {
-      ScrollTrigger.refresh();
-    };
-    mqlReduced.addEventListener?.("change", handleReducedChange);
-
-    const getMax = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
-
-    // if reduced motion or not enough content → fallback, no pin
-    if (mqlReduced.matches) {
-      setIsPinned(false);
-      setProgress(0);
-      setCanLeft(false);
-      setCanRight(getMax() > 8);
-      return () => mqlReduced.removeEventListener?.("change", handleReducedChange);
+    if (!el || !track || visible.length <= 1) return 0;
+    const children = Array.from(track.children) as HTMLElement[];
+    if (children.length === 0) return 0;
+    // distance of each card start to viewport scrollLeft
+    let best = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i]!;
+      // offsetLeft is relative to track's offsetParent; track is w-max inside viewport, so diff is scroll + padding
+      const childLeft = child.offsetLeft;
+      const dist = Math.abs(childLeft - el.scrollLeft);
+      // also consider viewport visible center bias: prefer snap that keeps card fully in view when near
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
     }
+    return best;
+  }, [visible.length]);
 
-    const initialMax = getMax();
-    if (initialMax < 8) {
-      setIsPinned(false);
-      setProgress(0);
-      setCanLeft(false);
-      setCanRight(false);
-      return () => mqlReduced.removeEventListener?.("change", handleReducedChange);
-    }
-
-    let ctx: gsap.Context | null = null;
-    let ro: ResizeObserver | null = null;
-
-    const t = window.setTimeout(() => {
-      const max = getMax();
-      if (max < 8) {
-        setIsPinned(false);
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      const el = viewportRef.current;
+      const track = trackRef.current;
+      if (!el || !track) return;
+      const clamped = Math.max(0, Math.min(visible.length - 1, index));
+      const children = Array.from(track.children) as HTMLElement[];
+      const targetEl = children[clamped];
+      const behavior: ScrollBehavior = prefersReduced ? "auto" : "smooth";
+      if (targetEl) {
+        // interruptible — cancel prior smooth
+        isSmoothScrolling.current = false;
+        if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+        if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
+        // compute dest via offsetLeft (stable) not getBoundingClientRect
+        const dest = targetEl.offsetLeft;
+        if (!prefersReduced) {
+          isSmoothScrolling.current = true;
+          smoothTimer.current = window.setTimeout(flushSmooth, 700);
+        }
+        el.scrollTo({ left: dest, behavior });
         return;
       }
-      setIsPinned(true);
+      // fallback
+      const fallback = (el.scrollWidth - el.clientWidth) * (visible.length <= 1 ? 0 : clamped / (visible.length - 1));
+      if (!prefersReduced) {
+        isSmoothScrolling.current = true;
+        smoothTimer.current = window.setTimeout(flushSmooth, 700);
+      }
+      el.scrollTo({ left: fallback, behavior });
+    },
+    [flushSmooth, prefersReduced, visible.length]
+  );
 
-      const count = visible.length;
-      const snapTo = (v: number) => {
-        if (count <= 1) return 0;
-        return Math.round(v * (count - 1)) / (count - 1);
-      };
+  const scrollBy = useCallback(
+    (dir: 1 | -1) => {
+      const current = getNearestIndex();
+      scrollToIndex(current + dir);
+    },
+    [getNearestIndex, scrollToIndex]
+  );
 
-      ctx = gsap.context(() => {
-        gsap.to(track, {
-          x: () => -getMax(),
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            // box-by-box: tighter end so each project gets ~ one viewport-height tick
-            // max still drives horizontal distance, small vh padding gives breathing
-            end: () => `+=${getMax() + window.innerHeight * 0.18}`,
-            pin: true,
-            pinSpacing: true,
-            scrub: 1,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            snap: {
-              snapTo,
-              duration: { min: 0.18, max: 0.38 },
-              ease: "power2.inOut",
-              delay: 0.06,
-            },
-            onUpdate: (self) => {
-              const p = self.progress;
-              setProgress(p);
-              setCanLeft(p > 0.015);
-              setCanRight(p < 0.985);
-            },
-            onRefresh: (self) => {
-              const p = self.progress;
-              setProgress(p);
-              setCanLeft(p > 0.015);
-              setCanRight(p < 0.985);
-            },
-          },
-        });
-      }, section);
-
-      ro = new ResizeObserver(() => {
-        ScrollTrigger.refresh();
-      });
-      ro.observe(track);
-      ro.observe(viewport);
-
-      const imgs = track.querySelectorAll("img");
-      const onImgLoad = () => ScrollTrigger.refresh();
-      imgs.forEach((img) => img.addEventListener("load", onImgLoad, { once: true }));
-
-      ScrollTrigger.refresh();
-    }, 50);
-
-    return () => {
-      window.clearTimeout(t);
-      mqlReduced.removeEventListener?.("change", handleReducedChange);
-      if (ro) ro.disconnect();
-      if (ctx) ctx.revert();
-      ScrollTrigger.getAll().forEach((st) => {
-        if (st.trigger === section) st.kill();
-      });
-      setIsPinned(false);
-    };
-  }, [sectionRef, visible.length, active]);
-
-  // refresh when visible changes (after filter)
-  useEffect(() => {
-    if (!isPinned) return;
-    const id = window.setTimeout(() => ScrollTrigger.refresh(), 120);
-    return () => window.clearTimeout(id);
-  }, [visible.length, active, isPinned]);
-
-  // ---------- navigation helpers — box by box ----------
-  const getST = () => {
-    const section = sectionRef?.current;
-    if (!section) return null;
-    return ScrollTrigger.getAll().find((s) => s.trigger === section) ?? null;
-  };
-
-  const scrollByPinned = (dir: 1 | -1) => {
-    const st = getST();
-    if (!st) return;
-    const count = visible.length;
-    if (count <= 1) return;
-    const step = 1 / (count - 1); // exactly one box
-    const currentIdx = getActiveIndex(st.progress);
-    const targetIdx = Math.max(0, Math.min(count - 1, currentIdx + dir));
-    const targetProgress = getProgressForIndex(targetIdx);
-    const targetY = st.start + targetProgress * (st.end - st.start);
-    const lenis = (window as unknown as { __lenis?: { scrollTo: (t: number, o?: unknown) => void } }).__lenis;
-    if (lenis?.scrollTo) {
-      lenis.scrollTo(targetY, { duration: 0.85 });
-    } else {
-      window.scrollTo({ top: targetY, behavior: "smooth" });
-    }
-  };
-
-  const scrollToIndexPinned = (index: number) => {
-    const st = getST();
-    if (!st || visible.length <= 1) return;
-    const targetProgress = getProgressForIndex(index);
-    const targetY = st.start + targetProgress * (st.end - st.start);
-    const lenis = (window as unknown as { __lenis?: { scrollTo: (t: number, o?: unknown) => void } }).__lenis;
-    if (lenis?.scrollTo) lenis.scrollTo(targetY, { duration: 0.85 });
-    else window.scrollTo({ top: targetY, behavior: "smooth" });
-  };
-
-  const scrollToIndexFallback = (index: number) => {
-    const el = viewportRef.current;
-    if (!el) return;
-    gsap.killTweensOf(el);
-    const children = Array.from(trackRef.current?.children ?? []) as HTMLElement[];
-    const targetEl = children[index];
-    if (targetEl) {
-      isSmoothScrolling.current = true;
-      if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
-      smoothTimer.current = window.setTimeout(flushScrollState, 650);
-      // frameless: no inner card border offset, align to viewport padding
-      const left = targetEl.offsetLeft - viewportRef.current!.offsetLeft;
-      // account for ps-4 (16px) on viewport - keep precise
-      const pad = 16;
-      const viewportPad = window.innerWidth >= 1024 ? 32 : window.innerWidth >= 640 ? 24 : 16;
-      el.scrollTo({ left: Math.max(0, left - viewportPad + pad), behavior: "smooth" });
-      return;
-    }
-    const fallback = (el.scrollWidth - el.clientWidth) * getProgressForIndex(index);
-    isSmoothScrolling.current = true;
-    if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
-    smoothTimer.current = window.setTimeout(flushScrollState, 650);
-    el.scrollTo({ left: fallback, behavior: "smooth" });
-  };
-
-  const scrollByFallback = (dir: 1 | -1) => {
+  const snapToNearest = useCallback(() => {
+    if (prefersReduced) return;
+    if (isSmoothScrolling.current) return;
+    if (isDragging.current) return;
     const el = viewportRef.current;
     if (!el || visible.length <= 1) return;
     const total = el.scrollWidth - el.clientWidth;
     if (total <= 4) return;
-    // derive current index from scroll position and step exactly one box
-    const currentProgress = el.scrollLeft / total;
-    const currentIdx = getActiveIndex(currentProgress);
-    const targetIdx = Math.max(0, Math.min(visible.length - 1, currentIdx + dir));
-    scrollToIndexFallback(targetIdx);
-  };
+    const idx = getNearestIndex();
+    const children = Array.from(trackRef.current?.children ?? []) as HTMLElement[];
+    const target = children[idx];
+    if (!target) return;
+    const dest = target.offsetLeft;
+    if (Math.abs(el.scrollLeft - dest) < 4) return;
+    isSmoothScrolling.current = true;
+    if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+    smoothTimer.current = window.setTimeout(flushSmooth, 500);
+    el.scrollTo({ left: dest, behavior: "smooth" });
+  }, [flushSmooth, getNearestIndex, prefersReduced, visible.length]);
 
-  const snapFallbackToNearest = () => {
-    const el = viewportRef.current;
-    if (!el || visible.length <= 1 || isSmoothScrolling.current) return;
-    const total = el.scrollWidth - el.clientWidth;
-    if (total <= 4) return;
-    const p = el.scrollLeft / total;
-    const idx = getActiveIndex(p);
-    // only snap if not already close to snap point
-    const targetProgress = getProgressForIndex(idx);
-    const targetLeft = targetProgress * total;
-    if (Math.abs(el.scrollLeft - targetLeft) > 4) {
-      isSmoothScrolling.current = true;
-      if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
-      smoothTimer.current = window.setTimeout(flushScrollState, 500);
-      el.scrollTo({ left: targetLeft, behavior: "smooth" });
-    }
-  };
-
-  const scrollBy = (dir: 1 | -1) => {
-    if (isPinned) scrollByPinned(dir);
-    else scrollByFallback(dir);
-  };
-
-  const scrollToIndex = (index: number) => {
-    if (isPinned) scrollToIndexPinned(index);
-    else scrollToIndexFallback(index);
-  };
-
-  // drag only for fallback — with box snap on release
+  // drag — mouse/pen only; touch relies on native momentum (gesture-conflicts, drag-threshold)
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isPinned) return;
+    if (e.pointerType === "touch") return;
     const el = viewportRef.current;
     if (!el) return;
-    gsap.killTweensOf(el);
+    isPointerDown.current = true;
     isDragging.current = false;
     draggedRecently.current = false;
     startX.current = e.clientX;
     scrollStart.current = el.scrollLeft;
+    // interruptible — cancel smooth
+    isSmoothScrolling.current = false;
+    if (smoothTimer.current) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = null;
+    }
+    if (wheelEndTimer.current) {
+      window.clearTimeout(wheelEndTimer.current);
+      wheelEndTimer.current = null;
+    }
   };
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isPinned) return;
+    if (e.pointerType === "touch") return;
+    if (!isPointerDown.current) return;
     const el = viewportRef.current;
     if (!el) return;
     const dx = e.clientX - startX.current;
     if (!isDragging.current) {
-      if (Math.abs(dx) < 8) return;
+      if (Math.abs(dx) < 8) return; // drag-threshold
       isDragging.current = true;
       try {
         el.setPointerCapture(e.pointerId);
       } catch {}
       el.style.cursor = "grabbing";
       el.style.userSelect = "none";
-      gsap.killTweensOf(el);
     }
-    el.scrollLeft = scrollStart.current - dx;
+    const next = scrollStart.current - dx;
+    el.scrollLeft = Math.max(0, Math.min(next, el.scrollWidth - el.clientWidth));
   };
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isPinned) return;
+  const stopDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
     const el = viewportRef.current;
+    const wasDragging = isDragging.current;
+    isPointerDown.current = false;
     if (!el) return;
-    if (isDragging.current) {
+    if (wasDragging) {
       try {
         if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
       } catch {}
@@ -391,16 +280,15 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
       window.setTimeout(() => {
         draggedRecently.current = false;
       }, 220);
-      // snap to nearest box after drag
       requestAnimationFrame(() => {
         scheduleUpdate();
-        window.setTimeout(snapFallbackToNearest, 40);
+        window.setTimeout(snapToNearest, 40);
       });
     }
     isDragging.current = false;
     el.style.cursor = "grab";
     el.style.userSelect = "";
-    scheduleUpdate();
+    if (wasDragging) scheduleUpdate();
   };
   const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
     if (draggedRecently.current) {
@@ -425,38 +313,71 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
     }
   };
 
-  // wheel horizontal intent only for fallback — step one box per wheel tick would be too aggressive, keep direct but snap on end
+  // wheel: vertical scroll → horizontal scroll (spec) without hijacking page
   const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (isPinned) return;
     const el = viewportRef.current;
     if (!el) return;
     if (el.scrollWidth <= el.clientWidth + 4) return;
-    const isHorizontalIntent = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
-    if (!isHorizontalIntent) return;
-    const delta = e.shiftKey && Math.abs(e.deltaX) < 2 ? e.deltaY : e.deltaX || e.deltaY;
-    if (Math.abs(delta) < 2) return;
+    let deltaX = e.deltaX;
+    let deltaY = e.deltaY;
+    if (e.deltaMode === 1) {
+      deltaX *= 16;
+      deltaY *= 16;
+    } else if (e.deltaMode === 2) {
+      deltaX *= el.clientWidth;
+      deltaY *= el.clientHeight;
+    }
+    // scroll down → scroll right, vice versa. Respect horizontal intent vs pure vertical
+    const isHorizontalIntent = Math.abs(deltaX) > Math.abs(deltaY) || e.shiftKey;
+    let delta: number;
+    if (isHorizontalIntent) {
+      delta = e.shiftKey && Math.abs(deltaX) < 2 ? deltaY : deltaX || deltaY;
+    } else {
+      // pure vertical wheel over section converts to horizontal
+      delta = deltaY;
+    }
+    if (Math.abs(delta) < 1) return;
     const atLeft = el.scrollLeft <= 2;
     const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+    // at edge → don't hijack, let page scroll vertically
     if ((delta > 0 && atRight) || (delta < 0 && atLeft)) return;
+    isSmoothScrolling.current = false;
+    if (smoothTimer.current) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = null;
+    }
+    if (wheelEndTimer.current) {
+      window.clearTimeout(wheelEndTimer.current);
+      wheelEndTimer.current = null;
+    }
     e.preventDefault();
-    gsap.killTweensOf(el);
     el.scrollBy({ left: delta, behavior: "auto" });
-  };
-
-  const handleWheelEndSnap = () => {
-    if (isPinned) return;
-    window.clearTimeout((handleWheelEndSnap as unknown as { _t?: number })._t);
-    (handleWheelEndSnap as unknown as { _t: number })._t = window.setTimeout(snapFallbackToNearest, 120);
+    scheduleUpdate();
   };
 
   const hasOverflow = visible.length > 1;
-  const activeIdx = getActiveIndex(progress);
+  // active index for dots/progress derived from nearest card (not fractional progress)
+  const activeIdx = getNearestIndex();
+  // progress for bar still fractional for smooth visual
+  const barProgress = (() => {
+    const el = viewportRef.current;
+    if (!el || visible.length <= 1) return progress;
+    return progress;
+  })();
 
   return (
-    <div className="relative w-full max-w-full overflow-hidden isolate">
-      {/* frameless: no edge fades */}
+    <div className="carousel-root relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint]">
+      {/* edge fade affordances — subtle, palette-matched */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-20 bg-gradient-to-r from-bg-primary via-bg-primary/80 to-transparent transition-opacity duration-200 ${canLeft ? "opacity-100" : "opacity-0"}`}
+      />
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-20 bg-gradient-to-l from-bg-primary via-bg-primary/80 to-transparent transition-opacity duration-200 ${canRight ? "opacity-100" : "opacity-0"}`}
+      />
 
-      {/* arrows — work in both modes (pinned uses vertical scroll) */}
+      {/* arrows — dragging-alternative, touch-target 44px */}
       <button
         type="button"
         aria-label="Scroll projects left"
@@ -464,8 +385,8 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
         onClick={() => scrollBy(-1)}
         disabled={!canLeft}
         aria-disabled={!canLeft}
-        className={`absolute left-2 sm:left-4 lg:left-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
-          ${canLeft ? "bg-bg-surface/90 border-border-strong text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
+        className={`carousel-arrow absolute left-[max(8px,env(safe-area-inset-left))] sm:left-[max(16px,env(safe-area-inset-left))] lg:left-[max(24px,env(safe-area-inset-left))] top-[38%] z-20 -translate-y-1/2 hidden md:inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+          ${canLeft ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100 dark:bg-white/10 dark:border-white/10 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -476,46 +397,41 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
         onClick={() => scrollBy(1)}
         disabled={!canRight}
         aria-disabled={!canRight}
-        className={`absolute right-2 sm:right-4 lg:right-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
-          ${canRight ? "bg-bg-surface/90 border-border-strong text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
+        className={`carousel-arrow absolute right-[max(8px,env(safe-area-inset-right))] sm:right-[max(16px,env(safe-area-inset-right))] lg:right-[max(24px,env(safe-area-inset-right))] top-[38%] z-20 -translate-y-1/2 hidden md:inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+          ${canRight ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100 dark:bg-white/10 dark:border-white/10 dark:text-white dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)]" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
       >
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>
 
-      {/* viewport — frameless */}
+      {/* viewport — fix hover snap-back: disable CSS snap, JS handles snap on drag/arrow only */}
       <div
         ref={viewportRef}
+        data-lenis-prevent
         role="region"
         aria-label="Project carousel"
         aria-roledescription="carousel"
         tabIndex={0}
         onKeyDown={onKeyDown}
-        onWheel={(e) => {
-          onWheel(e);
-          handleWheelEndSnap();
-        }}
+        onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+        onPointerUp={stopDrag}
+        onPointerLeave={stopDrag}
+        onPointerCancel={stopDrag}
         onClickCapture={onClickCapture}
-        className={
-          isPinned
-            ? "w-full max-w-full overflow-hidden overscroll-x-contain py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ps-4 sm:ps-6 lg:ps-8 pe-4 sm:pe-6 lg:pe-8"
-            : "w-full max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain overscroll-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 snap-x snap-mandatory [touch-action:pan-y_pinch-zoom] [scroll-snap-stop:always] ps-4 sm:ps-6 lg:ps-8 pe-4 sm:pe-6 lg:pe-8"
-        }
+        style={{ scrollSnapType: "none" }}
+        className={`carousel-viewport block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
       >
-        {/* track — frameless gap */}
-        <div
-          ref={trackRef}
-          className="flex w-max items-start gap-6 sm:gap-6 lg:gap-8 will-change-transform"
-        >
+        <div ref={trackRef} className="flex w-max max-w-none items-start gap-4 sm:gap-6 lg:gap-8">
           {visible.map((project) => {
             const featured = active === "Best Works" && project.featured;
             return (
               <div
                 key={project.id}
-                className={`shrink-0 will-change-transform ${!isPinned ? "snap-start snap-always" : ""}`}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${project.title} — ${project.category} — slide ${visible.indexOf(project) + 1} of ${visible.length}`}
+                className="shrink-0"
               >
                 <ProjectCard project={project} featured={featured} />
               </div>
@@ -524,43 +440,41 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
         </div>
       </div>
 
-      {/* progress + dots — stepped to box */}
       {hasOverflow && (
         <div className="mx-auto mt-6 flex w-full max-w-xl flex-col items-center gap-3 px-6">
           <div
             role="progressbar"
-            aria-valuenow={Math.round(progress * 100)}
+            aria-valuenow={Math.round(barProgress * 100)}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-label="Carousel progress"
             className="relative h-1 w-full overflow-hidden rounded-pill bg-border"
           >
             <div
-              className="absolute inset-y-0 left-0 rounded-pill bg-accent will-change-[width]"
+              className="absolute inset-y-0 left-0 w-full origin-left rounded-pill bg-accent will-change-transform"
               style={{
-                width: `${progress * 100}%`,
-                transition: isPinned ? "none" : "width 320ms cubic-bezier(0.22,1,0.36,1)",
+                transform: `scaleX(${barProgress})`,
+                transition: prefersReduced ? "none" : "transform 320ms cubic-bezier(0.22,1,0.36,1)",
               }}
               aria-hidden
             />
           </div>
-          <div className="flex justify-center gap-1.5" role="tablist" aria-label="Projects">
+          <div className="flex justify-center gap-1.5" role="group" aria-label="Project navigation">
             {visible.map((_, i) => {
               const isActive = i === activeIdx;
               return (
                 <button
                   key={i}
                   type="button"
-                  role="tab"
-                  aria-selected={isActive}
                   aria-label={`Go to project ${i + 1} of ${visible.length}`}
+                  aria-current={isActive ? "true" : undefined}
                   onClick={() => scrollToIndex(i)}
                   className={`h-1.5 rounded-pill transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
                 />
               );
             })}
           </div>
-          <span className="sr-only" aria-live="polite">
+          <span className="sr-only" aria-live="polite" aria-atomic="true">
             Project {activeIdx + 1} of {visible.length}
             {active ? ` — ${active}` : ""}
           </span>

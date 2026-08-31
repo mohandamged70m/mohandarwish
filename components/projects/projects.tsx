@@ -1,38 +1,351 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import Image from "next/image";
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
-import { ViewTransition } from "react";
-import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FILTER_CATEGORIES, PROJECTS } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
+import { ProjectCard } from "./ProjectCard";
 import type { ReactNode } from "react";
 
 export function Projects(): ReactNode {
   const [active, setActive] = useState<FilterCategory>("Best Works");
 
-  const filtered = useMemo(() => {
-    if (active === "Best Works") return PROJECTS;
+  const filtered = (() => {
+    if (active === "Best Works") return [...PROJECTS];
     return PROJECTS.filter((p) => p.category === active);
-  }, [active]);
+  })();
 
-  const counts = useMemo<Record<FilterCategory, number>>(
-    () => ({
-      "Best Works": PROJECTS.length,
-      Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
-      "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
-      "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
-      Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
-    }),
-    []
+  const counts: Record<FilterCategory, number> = {
+    "Best Works": PROJECTS.length,
+    Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
+    "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
+    "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
+    Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
+  };
+
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollStart = useRef(0);
+  const draggedRecently = useRef(false);
+  const isSmoothScrolling = useRef(false);
+  const smoothTimer = useRef<number | null>(null);
+  const wheelEndTimer = useRef<number | null>(null);
+  const rafId = useRef<number | null>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setPrefersReduced(mql.matches);
+    update();
+    mql.addEventListener?.("change", update);
+    return () => mql.removeEventListener?.("change", update);
+  }, []);
+
+  const canLeftRef = useRef(canLeft);
+  const canRightRef = useRef(canRight);
+  const progressRef = useRef(progress);
+  useEffect(() => {
+    canLeftRef.current = canLeft;
+    canRightRef.current = canRight;
+    progressRef.current = progress;
+  }, [canLeft, canRight, progress]);
+  const updateScrollState = useCallback(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    if (scrollWidth <= clientWidth + 4) {
+      if (canLeftRef.current || canRightRef.current || progressRef.current !== 0) {
+        setCanLeft(false);
+        setCanRight(false);
+        setProgress(0);
+      }
+      return;
+    }
+    const nextCanLeft = scrollLeft > 8;
+    const nextCanRight = scrollLeft + clientWidth < scrollWidth - 8;
+    const nextProgress = scrollLeft / (scrollWidth - clientWidth);
+    if (nextCanLeft !== canLeftRef.current) setCanLeft(nextCanLeft);
+    if (nextCanRight !== canRightRef.current) setCanRight(nextCanRight);
+    if (Math.abs(nextProgress - progressRef.current) > 0.005) setProgress(nextProgress);
+  }, []);
+
+  const scheduleUpdate = useCallback(() => {
+    if (rafId.current) return;
+    rafId.current = window.requestAnimationFrame(() => {
+      rafId.current = null;
+      updateScrollState();
+    });
+  }, [updateScrollState]);
+
+  const flushSmooth = useCallback(() => {
+    isSmoothScrolling.current = false;
+    if (smoothTimer.current) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = null;
+    }
+    updateScrollState();
+  }, [updateScrollState]);
+
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    updateScrollState();
+    const onScroll = () => scheduleUpdate();
+    const onScrollEnd = () => flushSmooth();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    (el as unknown as { addEventListener: (a: string, b: EventListener) => void }).addEventListener(
+      "scrollend",
+      onScrollEnd as EventListener
+    );
+    const ro = new ResizeObserver(scheduleUpdate);
+    ro.observe(el);
+    if (trackRef.current) ro.observe(trackRef.current);
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      (el as unknown as { removeEventListener: (a: string, b: EventListener) => void }).removeEventListener(
+        "scrollend",
+        onScrollEnd as EventListener
+      );
+      window.removeEventListener("resize", scheduleUpdate);
+      ro.disconnect();
+      if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+      if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, [filtered.length, scheduleUpdate, flushSmooth, updateScrollState]);
+
+  const prevActive = useRef(active);
+  useEffect(() => {
+    const el = viewportRef.current;
+    if (!el) return;
+    if (prevActive.current !== active) {
+      prevActive.current = active;
+      isSmoothScrolling.current = false;
+      if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+      if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
+      requestAnimationFrame(() => {
+        el.scrollTo({ left: 0, behavior: "auto" });
+        requestAnimationFrame(updateScrollState);
+      });
+    }
+  }, [active, updateScrollState]);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => updateScrollState(), 80);
+    return () => window.clearTimeout(id);
+  }, [filtered.length, active, updateScrollState]);
+
+  const getNearestIndex = useCallback(() => {
+    const el = viewportRef.current;
+    const track = trackRef.current;
+    if (!el || !track || filtered.length <= 1) return 0;
+    const children = Array.from(track.children) as HTMLElement[];
+    if (children.length === 0) return 0;
+    let best = 0;
+    let bestDist = Infinity;
+    for (let i = 0; i < children.length; i++) {
+      const dist = Math.abs(children[i]!.offsetLeft - el.scrollLeft);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    }
+    return best;
+  }, [filtered.length]);
+
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      const el = viewportRef.current;
+      const track = trackRef.current;
+      if (!el || !track) return;
+      const clamped = Math.max(0, Math.min(filtered.length - 1, index));
+      const children = Array.from(track.children) as HTMLElement[];
+      const targetEl = children[clamped];
+      const behavior: ScrollBehavior = prefersReduced ? "auto" : "smooth";
+      if (targetEl) {
+        isSmoothScrolling.current = false;
+        if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+        if (wheelEndTimer.current) window.clearTimeout(wheelEndTimer.current);
+        const dest = targetEl.offsetLeft;
+        if (!prefersReduced) {
+          isSmoothScrolling.current = true;
+          smoothTimer.current = window.setTimeout(flushSmooth, 700);
+        }
+        el.scrollTo({ left: dest, behavior });
+        return;
+      }
+      const fallback = (el.scrollWidth - el.clientWidth) * (filtered.length <= 1 ? 0 : clamped / (filtered.length - 1));
+      if (!prefersReduced) {
+        isSmoothScrolling.current = true;
+        smoothTimer.current = window.setTimeout(flushSmooth, 700);
+      }
+      el.scrollTo({ left: fallback, behavior });
+    },
+    [filtered.length, flushSmooth, prefersReduced]
   );
 
+  const scrollBy = useCallback(
+    (dir: 1 | -1) => {
+      scrollToIndex(getNearestIndex() + dir);
+    },
+    [getNearestIndex, scrollToIndex]
+  );
+
+  const snapToNearest = useCallback(() => {
+    if (prefersReduced) return;
+    if (isSmoothScrolling.current) return;
+    if (isDragging.current) return;
+    const el = viewportRef.current;
+    if (!el || filtered.length <= 1) return;
+    const total = el.scrollWidth - el.clientWidth;
+    if (total <= 4) return;
+    const idx = getNearestIndex();
+    const children = Array.from(trackRef.current?.children ?? []) as HTMLElement[];
+    const target = children[idx];
+    if (!target) return;
+    const dest = target.offsetLeft;
+    if (Math.abs(el.scrollLeft - dest) < 4) return;
+    isSmoothScrolling.current = true;
+    if (smoothTimer.current) window.clearTimeout(smoothTimer.current);
+    smoothTimer.current = window.setTimeout(flushSmooth, 500);
+    el.scrollTo({ left: dest, behavior: "smooth" });
+  }, [filtered.length, flushSmooth, getNearestIndex, prefersReduced]);
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
+    const el = viewportRef.current;
+    if (!el) return;
+    isDragging.current = false;
+    draggedRecently.current = false;
+    startX.current = e.clientX;
+    scrollStart.current = el.scrollLeft;
+    isSmoothScrolling.current = false;
+    if (smoothTimer.current) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = null;
+    }
+    if (wheelEndTimer.current) {
+      window.clearTimeout(wheelEndTimer.current);
+      wheelEndTimer.current = null;
+    }
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
+    const el = viewportRef.current;
+    if (!el) return;
+    const dx = e.clientX - startX.current;
+    if (!isDragging.current) {
+      if (Math.abs(dx) < 8) return;
+      isDragging.current = true;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {}
+      el.style.cursor = "grabbing";
+      el.style.userSelect = "none";
+    }
+    el.scrollLeft = scrollStart.current - dx;
+  };
+  const stopDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === "touch") return;
+    const el = viewportRef.current;
+    if (!el) return;
+    const wasDragging = isDragging.current;
+    if (wasDragging) {
+      try {
+        if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      } catch {}
+      draggedRecently.current = true;
+      window.setTimeout(() => {
+        draggedRecently.current = false;
+      }, 220);
+      requestAnimationFrame(() => {
+        scheduleUpdate();
+        window.setTimeout(snapToNearest, 40);
+      });
+    }
+    isDragging.current = false;
+    el.style.cursor = "grab";
+    el.style.userSelect = "";
+    if (wasDragging) scheduleUpdate();
+  };
+  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (draggedRecently.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      scrollBy(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      scrollBy(1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      scrollToIndex(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      scrollToIndex(filtered.length - 1);
+    }
+  };
+
+  // wheel: vertical scroll → horizontal scroll (spec) without hijacking page
+  const onWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = viewportRef.current;
+    if (!el) return;
+    if (el.scrollWidth <= el.clientWidth + 4) return;
+    let deltaX = e.deltaX;
+    let deltaY = e.deltaY;
+    if (e.deltaMode === 1) {
+      deltaX *= 16;
+      deltaY *= 16;
+    } else if (e.deltaMode === 2) {
+      deltaX *= el.clientWidth;
+      deltaY *= el.clientHeight;
+    }
+    const isHorizontalIntent = Math.abs(deltaX) > Math.abs(deltaY) || e.shiftKey;
+    let delta: number;
+    if (isHorizontalIntent) {
+      delta = e.shiftKey && Math.abs(deltaX) < 2 ? deltaY : deltaX || deltaY;
+    } else {
+      delta = deltaY; // pure vertical over section converts to horizontal
+    }
+    if (Math.abs(delta) < 1) return;
+    const atLeft = el.scrollLeft <= 2;
+    const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+    if ((delta > 0 && atRight) || (delta < 0 && atLeft)) return; // at edge → let page scroll vertically
+    isSmoothScrolling.current = false;
+    if (smoothTimer.current) {
+      window.clearTimeout(smoothTimer.current);
+      smoothTimer.current = null;
+    }
+    if (wheelEndTimer.current) {
+      window.clearTimeout(wheelEndTimer.current);
+      wheelEndTimer.current = null;
+    }
+    e.preventDefault();
+    el.scrollBy({ left: delta, behavior: "auto" });
+    scheduleUpdate();
+  };
+
+  const hasOverflow = filtered.length > 1;
+  const activeIdx = getNearestIndex();
+
   return (
-    <section aria-label="All projects" className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12">
+    <section
+      aria-label="All projects"
+      className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 overflow-hidden"
+    >
       <div className="flex w-full flex-col items-center gap-8">
         <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={counts} />
         <p className="sr-only" aria-live="polite">
@@ -45,108 +358,115 @@ export function Projects(): ReactNode {
             <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured projects.</p>
           </div>
         ) : (
-          <motion.div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {filtered.map((project, idx) => (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: Math.min(idx * 0.04, 0.2) }}
-                  className="min-w-0"
+          <div className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint]">
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-12 sm:w-16 bg-gradient-to-r from-bg-primary via-bg-primary/80 to-transparent transition-opacity duration-200 ${canLeft ? "opacity-100" : "opacity-0"}`}
+            />
+            <div
+              aria-hidden
+              className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-12 sm:w-16 bg-gradient-to-l from-bg-primary via-bg-primary/80 to-transparent transition-opacity duration-200 ${canRight ? "opacity-100" : "opacity-0"}`}
+            />
+
+            <button
+              type="button"
+              aria-label="Scroll projects left"
+              tabIndex={canLeft ? 0 : -1}
+              onClick={() => scrollBy(-1)}
+              disabled={!canLeft}
+              aria-disabled={!canLeft}
+              className={`absolute left-1 sm:left-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+                ${canLeft ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="Scroll projects right"
+              tabIndex={canRight ? 0 : -1}
+              onClick={() => scrollBy(1)}
+              disabled={!canRight}
+              aria-disabled={!canRight}
+              className={`absolute right-1 sm:right-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+                ${canRight ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+            </button>
+
+            <div
+              ref={viewportRef}
+              data-lenis-prevent
+              role="region"
+              aria-label="Project list"
+              aria-roledescription="carousel"
+              tabIndex={0}
+              onKeyDown={onKeyDown}
+              onWheel={onWheel}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={stopDrag}
+              onPointerLeave={stopDrag}
+              onPointerCancel={stopDrag}
+              onClickCapture={onClickCapture}
+              style={{ scrollSnapType: "none" }}
+              className={`block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
+            >
+              <div ref={trackRef} className="flex w-max max-w-none items-start gap-4 sm:gap-6 lg:gap-8">
+                {filtered.map((project) => (
+                  <div
+                    key={project.id}
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`${project.title} — ${project.category}`}
+                    className="shrink-0"
+                  >
+                    <ProjectCard project={project} featured={project.featured} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {hasOverflow && (
+              <div className="mx-auto mt-6 flex w-full max-w-xl flex-col items-center gap-3 px-2">
+                <div
+                  role="progressbar"
+                  aria-valuenow={Math.round(progress * 100)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Carousel progress"
+                  className="relative h-1 w-full overflow-hidden rounded-pill bg-border"
                 >
-                <Link
-                  href={project.href}
-                  aria-label={`${project.title} — ${project.category}`}
-                  className="group relative flex w-full min-w-0 flex-col overflow-hidden rounded-[18px] border border-border bg-bg-surface shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-[transform,box-shadow,border-color,background-color] duration-300 hover:-translate-y-1 hover:border-border-strong hover:bg-bg-surface-hover hover:shadow-[0_12px_32px_rgba(0,0,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
-                >
-                  <span
+                  <div
+                    className="absolute inset-y-0 left-0 w-full origin-left rounded-pill bg-accent will-change-transform"
+                    style={{
+                      transform: `scaleX(${progress})`,
+                      transition: prefersReduced ? "none" : "transform 320ms cubic-bezier(0.22,1,0.36,1)",
+                    }}
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   />
-                  <div className="relative mx-2 mt-2 overflow-hidden rounded-[12px] border border-border/60 bg-bg-primary">
-                    <div className="flex items-center gap-1.5 border-b border-border/40 bg-bg-surface/40 px-3 py-2.5">
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56] border border-black/10" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e] border border-black/10" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f] border border-black/10" />
-                      <span className="ml-3 hidden sm:inline-flex h-5 flex-1 max-w-[180px] items-center gap-2 truncate rounded-full border border-border bg-bg-primary px-2.5 font-body text-[11px] text-text-muted">
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                        {project.title}
-                      </span>
-                    </div>
-                    <ViewTransition name={`project-${project.id}`} share="morph">
-                      <div className="relative aspect-[16/10] w-full overflow-hidden bg-bg-primary">
-                        <Image
-                          src={project.image}
-                          alt={project.title}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          className="object-cover will-change-transform transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.06]"
-                        />
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent opacity-70" />
-                        <div className="absolute left-3 top-3 flex items-center gap-2">
-                          <Badge variant="default" className="bg-bg-surface/90 backdrop-blur border-border text-[11px] px-2.5 py-1 shadow-sm">
-                            {project.category}
-                          </Badge>
-                          {project.year && (
-                            <Badge variant="soft" className="text-[11px] px-2.5 py-1 shadow-sm">
-                              {project.year}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                          <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface border border-border px-3 py-1.5 font-heading text-xs text-text-primary shadow-md">
-                            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
-                          </span>
-                        </div>
-                      </div>
-                    </ViewTransition>
-                  </div>
-                  <div className="flex flex-col gap-2 px-3 pb-3 pt-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-heading text-[15px] font-semibold leading-tight text-text-primary transition-colors group-hover:text-accent line-clamp-1">
-                        {project.title}
-                      </h3>
-                      <span className="hidden sm:inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted transition-colors group-hover:text-accent">
-                        View <ArrowUpRight className="h-3 w-3" />
-                      </span>
-                    </div>
-                    {project.description && (
-                      <p className="font-body text-[13px] leading-relaxed text-text-secondary line-clamp-2">
-                        {project.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <div className="flex flex-wrap gap-1.5">
-                        {project.stack?.slice(0, 2).map((s) => (
-                          <span
-                            key={s}
-                            className="inline-flex items-center rounded-pill border border-border bg-bg-primary px-2 py-1 font-body text-[11px] leading-none text-text-secondary"
-                          >
-                            {s}
-                          </span>
-                        ))}
-                        {project.year && (
-                          <span className="inline-flex items-center rounded-pill border border-border bg-accent-soft px-2 py-1 font-heading text-[11px] leading-none text-accent-soft-text">{project.year}</span>
-                        )}
-                      </div>
-                      <div className="hidden sm:flex items-center gap-1.5">
-                        {project.githubUrl && project.githubUrl !== "#" && (
-                          <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary font-heading text-[10px] leading-none text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent">GH</span>
-                        )}
-                        {project.liveUrl && project.liveUrl !== "#" && (
-                          <span aria-hidden className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-border bg-bg-primary text-text-muted transition-colors group-hover:border-accent/30 group-hover:text-accent"><ExternalLink className="h-3.5 w-3.5" /></span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                </div>
+                <div className="flex justify-center gap-1.5" role="group" aria-label="Project navigation">
+                  {filtered.map((_, i) => {
+                    const isActive = i === activeIdx;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        aria-label={`Go to project ${i + 1} of ${filtered.length}`}
+                        aria-current={isActive ? "true" : undefined}
+                        onClick={() => scrollToIndex(i)}
+                        className={`h-1.5 rounded-pill transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
+                      />
+                    );
+                  })}
+                </div>
+                <span className="sr-only" aria-live="polite" aria-atomic="true">
+                  Project {activeIdx + 1} of {filtered.length}
+                  {active ? ` — ${active}` : ""}
+                </span>
+              </div>
+            )}
+          </div>
         )}
 
         <span className="font-heading text-[11px] uppercase tracking-[0.14em] text-text-muted">

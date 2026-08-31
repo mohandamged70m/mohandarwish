@@ -30,10 +30,10 @@
   --subnav-bg: rgba(255,255,255,0.35);
   --info: var(--accent-primary);
 
-  /* Text */
+  /* Text — contrast tuned for 4.5:1 on --bg-surface #151515 and --bg-primary #0a0a0a */
   --text-primary: #f5f5f5;
-  --text-secondary: #a1a1a1;
-  --text-muted: #737373;
+  --text-secondary: #b5b5b5;
+  --text-muted: #8a8a8a;
   --text-on-accent: #0a0a0a;
 
   /* Fonts — will be set via next/font variables */
@@ -69,8 +69,8 @@ html.light {
   --accent-soft-text: #365314;
 
   --text-primary: #1c1917;
-  --text-secondary: #78716c;
-  --text-muted: #a8a29e;
+  --text-secondary: #57534e;
+  --text-muted: #79716b;
   --text-on-accent: #ffffff;
 
   --background: var(--bg-primary);
@@ -132,11 +132,12 @@ html.light {
   --radius-pill: 9999px;
 }
 
-/* Base */
+/* Base — strict page h-scroll lock (horizontal-scroll rule) */
 html {
   scrollbar-gutter: stable;
-  overflow-x: clip;
+  overflow-x: hidden;
   max-width: 100%;
+  width: 100%;
   overscroll-behavior-x: none;
   /* smooth theme transition for non-reduced-motion */
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -155,8 +156,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
-  overflow-x: clip;
+  overflow-x: hidden;
   max-width: 100%;
+  width: 100%;
   overscroll-behavior-x: none;
   overscroll-behavior-y: auto;
 }
@@ -167,10 +169,65 @@ html.lenis body {
   overscroll-behavior-x: none;
 }
 
-/* Carousel & filtered scrollers — isolate scroll chaining */
+/* Carousel & filtered scrollers — ui-ux: dragging-alternative, keep Lenis isolated but allow inline chaining */
 [data-lenis-prevent] {
-  overscroll-behavior-x: contain;
+  overscroll-behavior-x: auto;
   overscroll-behavior-y: auto;
+  overscroll-behavior-inline: none;
+}
+
+/* Frameless carousel — full-bleed gutter system (8pt) + h-scroll fix
+   — NEVER use 100vw for padding (includes scrollbar → page overflow on Win)
+   — XL gutters align to header via 100% calc; fallback to fixed 32px if calc <32 */
+#projects {
+  overflow-x: clip;
+  overflow-y: visible;
+  contain: layout paint;
+  max-width: 100%;
+  width: 100%;
+}
+#projects .carousel-root {
+  overflow: clip;
+  contain: layout paint;
+  max-width: 100%;
+  width: 100%;
+}
+.carousel-viewport {
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: auto;
+  overscroll-behavior-y: auto;
+  overscroll-behavior-inline: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* fix hover snap-back: CSS snap disabled, JS handles snap */
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: 16px;
+}
+.carousel-viewport::-webkit-scrollbar { display: none; width: 0; height: 0; }
+@media (min-width: 640px) {
+  .carousel-viewport { padding-inline: 24px; }
+}
+@media (min-width: 1024px) {
+  .carousel-viewport { padding-inline: 32px; }
+}
+@media (min-width: 1280px) {
+  .carousel-viewport {
+    /* 100% = section width (100% of body), not 100vw → no scrollbar delta */
+    padding-inline: max(32px, calc((100% - 1280px) / 2 + 32px));
+  }
+}
+/* Motion-safe: respect reduced motion globally for carousel */
+@media (prefers-reduced-motion: reduce) {
+  .carousel-viewport { scroll-behavior: auto !important; scroll-snap-type: none !important; }
+  .carousel-viewport * { transition: none !important; animation: none !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -335,3 +392,56 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .btn-icon:hover { background-color: var(--input-bg); color: var(--text-primary); }
 .flex-row-between { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
 .text-info { color: var(--info); }
+
+/* ── Full-screen + fit-any-screen ── */
+#hero {
+  min-height: 100svh;
+}
+@supports (min-height: 100dvh) {
+  #hero {
+    min-height: 100dvh;
+  }
+  #hero > section {
+    min-height: 100dvh;
+  }
+}
+#projects,
+#contact {
+  max-width: 100%;
+  overflow-x: clip;
+}
+section[id="hero"],
+section[id="projects"],
+section[id="contact"] {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+/* Short viewports (e.g., 1366x768, landscape phones) — tighten hero so it still fits without scroll */
+@media (max-height: 780px) and (min-width: 1024px) {
+  .hero-grid {
+    gap: 1.5rem !important;
+  }
+}
+@media (max-height: 700px) {
+  .hero-grid {
+    gap: 1.1rem !important;
+  }
+}
+@media (max-height: 600px) {
+  .hero-grid {
+    gap: 0.85rem !important;
+  }
+  #hero > section {
+    padding-block: 0.75rem;
+  }
+}
+
+/* Ultra-wide / 4K: cap content but keep section full-width */
+@media (min-width: 1920px) {
+  #hero > section,
+  #projects,
+  #contact {
+    max-width: 100vw;
+  }
+}

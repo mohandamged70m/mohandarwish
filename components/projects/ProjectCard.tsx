@@ -14,17 +14,18 @@ export function ProjectCard({ project, featured = false }: Props) {
     <Link
       href={project.href}
       aria-label={`${project.title} — ${project.category}`}
-      className="group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary w-[min(88vw,340px)] sm:w-[420px] lg:w-[520px]"
+      className="group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary w-[min(82vw,360px)] sm:w-[420px] md:w-[440px] lg:w-[520px] xl:w-[560px]"
     >
       {/* frameless media - no border, no chrome, just image */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[16px] bg-bg-primary">
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[16px] md:rounded-[20px] bg-bg-primary">
         <Image
           src={project.image}
           alt={project.title}
           fill
-          sizes="(max-width: 640px) 88vw, (max-width: 1024px) 42vw, 520px"
-          className="object-cover will-change-transform transition-transform duration-700 ease-[0.22,1,0.36,1] group-hover:scale-[1.04] group-focus-visible:scale-[1.04]"
+          sizes="(max-width: 640px) 82vw, (max-width: 768px) 420px, (max-width: 1024px) 440px, (max-width: 1440px) 520px, 560px"
+          className="object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[0.22,1,0.36,1] motion-safe:group-hover:scale-[1.04] motion-safe:group-focus-visible:scale-[1.04]"
           priority={featured}
+          unoptimized
         />
         {/* soft vignette only - no frame */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
@@ -44,9 +45,9 @@ export function ProjectCard({ project, featured = false }: Props) {
           )}
         </div>
 
-        {/* frameless hover hint - reveals without boxed chrome */}
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary">
+        {/* frameless hover hint — motion-safe, always visible on touch (no hover trap) */}
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 motion-safe:translate-y-1 opacity-100 sm:opacity-0 motion-safe:transition-all motion-safe:duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-visible:translate-y-0 sm:group-focus-visible:opacity-100">
+          <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
             View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
           </span>
         </div>

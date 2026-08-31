@@ -20,7 +20,6 @@ interface Props {
 
 const normalize = (o: SelectOption | string): SelectOption => typeof o === "string" ? { value: o, label: o } : o;
 const GAP = 6;
-const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 function useAutoDark(forced?: boolean): boolean {
   const [dark, setDark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
@@ -70,7 +69,7 @@ export function RevilSelect({ value, options, onChange, placeholder = "Select…
     exit: { opacity: 0, scaleY: grow, y: pos.flipUp ? shift : -shift },
   };
 
-  useIsoLayoutEffect(() => {
+  useEffect(() => {
     if (!open) return;
     const c = listRef.current, el = selectedRef.current;
     if (c && el) c.scrollTo({ top: el.offsetTop - (c.clientHeight - el.offsetHeight) / 2, behavior: "instant" });

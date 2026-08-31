@@ -31,7 +31,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
+      <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         <Providers>
           <PathMemory />
           <Nav />
