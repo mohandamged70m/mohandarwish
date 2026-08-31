@@ -327,20 +327,21 @@ export function ProjectsCarousel({ projects, active }: Props) {
       deltaX *= el.clientWidth;
       deltaY *= el.clientHeight;
     }
-    // scroll down → scroll right, vice versa. Respect horizontal intent vs pure vertical
+    // scroll down → scroll right; scroll up now skips horizontal and lets page go up
     const isHorizontalIntent = Math.abs(deltaX) > Math.abs(deltaY) || e.shiftKey;
     let delta: number;
     if (isHorizontalIntent) {
       delta = e.shiftKey && Math.abs(deltaX) < 2 ? deltaY : deltaX || deltaY;
     } else {
-      // pure vertical wheel over section converts to horizontal
       delta = deltaY;
     }
     if (Math.abs(delta) < 1) return;
+    // user requested: scroll up skips horizontal (goes to previous section)
+    if (!isHorizontalIntent && delta < 0) return;
     const atLeft = el.scrollLeft <= 2;
     const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
-    // at edge → don't hijack, let page scroll vertically
-    if ((delta > 0 && atRight) || (delta < 0 && atLeft)) return;
+    if (delta > 0 && atRight) return;
+    if (!isHorizontalIntent && delta < 0 && atLeft) return;
     isSmoothScrolling.current = false;
     if (smoothTimer.current) {
       window.clearTimeout(smoothTimer.current);

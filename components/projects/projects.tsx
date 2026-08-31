@@ -318,12 +318,14 @@ export function Projects(): ReactNode {
     if (isHorizontalIntent) {
       delta = e.shiftKey && Math.abs(deltaX) < 2 ? deltaY : deltaX || deltaY;
     } else {
-      delta = deltaY; // pure vertical over section converts to horizontal
+      delta = deltaY;
     }
     if (Math.abs(delta) < 1) return;
+    if (!isHorizontalIntent && delta < 0) return; // scroll up skips horizontal
     const atLeft = el.scrollLeft <= 2;
     const atRight = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
-    if ((delta > 0 && atRight) || (delta < 0 && atLeft)) return; // at edge → let page scroll vertically
+    if (delta > 0 && atRight) return;
+    if (!isHorizontalIntent && delta < 0 && atLeft) return;
     isSmoothScrolling.current = false;
     if (smoothTimer.current) {
       window.clearTimeout(smoothTimer.current);
