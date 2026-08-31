@@ -50,13 +50,6 @@ export function SmoothScroll({
     gsap.ticker.add(gsapTickerCb);
     gsap.ticker.lagSmoothing(0);
 
-    let rafId = 0;
-    function raf(): void {
-      rafId = requestAnimationFrame(raf);
-    }
-
-    rafId = requestAnimationFrame(raf);
-
     function handleAnchorClick(e: MouseEvent): void {
       const target = e.target as HTMLElement;
       const anchor = target.closest('a[href^="#"]');
@@ -76,7 +69,6 @@ export function SmoothScroll({
 
     return () => {
       document.removeEventListener("click", handleAnchorClick);
-      cancelAnimationFrame(rafId);
       gsap.ticker.remove(gsapTickerCb);
       lenis.off("scroll", ScrollTrigger.update);
       try {

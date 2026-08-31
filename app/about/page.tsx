@@ -17,7 +17,7 @@ export const metadata: Metadata = createMetadata({
 export default function AboutPage(): ReactNode {
   return (
     <main id="main-content" className="flex flex-1 flex-col">
-      <section className="mx-auto w-full max-w-160 px-6 pt-20 pb-16 sm:px-10 sm:pt-28 sm:pb-24">
+      <section className="mx-auto w-full max-w-3xl px-6 pt-24 pb-12 sm:px-6 lg:px-8 sm:pt-28 sm:pb-16 lg:pt-32">
         <FadeIn delay={0.5}>
           <div className="rounded-[20px] border border-border bg-bg-surface p-8 sm:p-12">
             <h1 className="font-heading text-[1.75rem] font-semibold tracking-tight text-text-primary sm:text-[2rem]">
@@ -43,7 +43,7 @@ export default function AboutPage(): ReactNode {
         </FadeIn>
       </section>
 
-      <section className="mx-auto w-full max-w-[40rem] px-6 pb-20 sm:px-10 sm:pb-28">
+      <section className="mx-auto w-full max-w-3xl px-6 pb-20 sm:px-6 lg:px-8 sm:pb-28">
         <FadeIn delay={0.1}>
           <div className="flex flex-col gap-10">
             <Experience />

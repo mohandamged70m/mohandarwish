@@ -36,7 +36,7 @@ export default function Alert({ type, message, onClose, duration = 4000 }: Alert
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       role={type === "error" || type === "warning" ? "alert" : "status"}
       aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
-      className="fixed right-6 top-6 z-[10050] flex min-w-[300px] max-w-[400px] items-center gap-3 rounded-md p-4 shadow-lg backdrop-blur-md"
+      className="fixed left-4 right-4 top-4 z-[10050] flex items-center gap-3 rounded-md p-4 shadow-lg backdrop-blur-md sm:left-auto sm:right-6 sm:top-6 sm:min-w-[320px] sm:max-w-[420px] sm:w-auto"
       style={{ backgroundColor: "var(--bg-surface, #ffffff)", borderLeft: `4px solid ${border}` }}
     >
       <div className="flex items-center justify-center" style={{ color: border }}>

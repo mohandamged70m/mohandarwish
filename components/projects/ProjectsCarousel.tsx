@@ -460,26 +460,26 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
       <button
         type="button"
         aria-label="Scroll projects left"
-        aria-hidden={!canLeft}
         tabIndex={canLeft ? 0 : -1}
         onClick={() => scrollBy(-1)}
         disabled={!canLeft}
-        className={`absolute left-2 sm:left-4 lg:left-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform
+        aria-disabled={!canLeft}
+        className={`absolute left-2 sm:left-4 lg:left-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
           ${canLeft ? "bg-bg-surface/90 border-border-strong text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-5 w-5" aria-hidden="true" />
       </button>
       <button
         type="button"
         aria-label="Scroll projects right"
-        aria-hidden={!canRight}
         tabIndex={canRight ? 0 : -1}
         onClick={() => scrollBy(1)}
         disabled={!canRight}
-        className={`absolute right-2 sm:right-4 lg:right-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform
+        aria-disabled={!canRight}
+        className={`absolute right-2 sm:right-4 lg:right-6 top-[38%] z-20 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-md focus-ring transition-opacity duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
           ${canRight ? "bg-bg-surface/90 border-border-strong text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
       >
-        <ChevronRight className="h-5 w-5" />
+        <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>
 
       {/* viewport — frameless */}
@@ -544,17 +544,18 @@ export function ProjectsCarousel({ projects, active, sectionRef }: Props) {
               aria-hidden
             />
           </div>
-          <div className="flex justify-center gap-1.5">
+          <div className="flex justify-center gap-1.5" role="tablist" aria-label="Projects">
             {visible.map((_, i) => {
               const isActive = i === activeIdx;
               return (
                 <button
                   key={i}
                   type="button"
-                  aria-label={`Go to project ${i + 1}`}
-                  aria-current={isActive ? "true" : undefined}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`Go to project ${i + 1} of ${visible.length}`}
                   onClick={() => scrollToIndex(i)}
-                  className={`h-1.5 rounded-pill transition-all duration-300 focus-ring outline-none ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
+                  className={`h-1.5 rounded-pill transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
                 />
               );
             })}

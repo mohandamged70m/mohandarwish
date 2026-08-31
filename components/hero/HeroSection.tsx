@@ -72,7 +72,8 @@ const HeroSection = () => {
               <Button
                 variant="secondary"
                 size="lg"
-                className="min-w-[152px]"
+                className="min-w-[152px] w-full sm:w-auto"
+                aria-label="View projects — scroll to work"
                 onClick={() => {
                   document
                     .getElementById("projects")

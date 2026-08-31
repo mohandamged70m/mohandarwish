@@ -81,26 +81,27 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
   }, [close]);
 
   return (
-    <Ctx.Provider value={{ activeMedia, setActiveMedia, isMobile }}>
-      <motion.div
-        role="dialog"
-        aria-modal="true"
-        data-marker={marker}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        className="fixed inset-0 z-[100] flex justify-center overflow-y-auto overscroll-contain p-0 sm:p-4"
-        style={{ fontFamily: "var(--font-body)", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-        data-lenis-prevent
-      >
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      data-marker={marker}
+      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+      transition={{ duration: prefersReducedMotion ? 0.01 : 0.25 }}
+      className="fixed inset-0 z-[100] flex justify-center overflow-y-auto overscroll-contain p-0 sm:p-4"
+      style={{ fontFamily: "var(--font-body)", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+      data-lenis-prevent
+    >
+      <Ctx.Provider value={{ activeMedia, setActiveMedia, isMobile }}>
         {/* backdrop */}
         <motion.div
           aria-hidden
           onClick={close}
-          initial={{ opacity: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: prefersReducedMotion ? 0.01 : 0.25, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 bg-black/85"
           style={{ backdropFilter: "blur(2px)" }}
         />
@@ -152,9 +153,10 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
 
         {/* cinema container - 90vw/90vh - this is the scroll container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.98 }}
+          transition={{ duration: prefersReducedMotion ? 0.01 : 0.35, ease: [0.22, 1, 0.36, 1] }}
           data-lenis-prevent
           className="relative flex w-full flex-col overflow-y-auto overscroll-contain focus-ring outline-none cinema-scroll my-auto"
           style={{
@@ -175,8 +177,8 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
             {children}
           </div>
         </motion.div>
-      </motion.div>
-    </Ctx.Provider>
+      </Ctx.Provider>
+    </motion.div>
   );
 }
 

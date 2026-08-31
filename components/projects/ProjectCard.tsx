@@ -45,9 +45,9 @@ export function ProjectCard({ project, featured = false }: Props) {
         </div>
 
         {/* frameless hover hint - reveals without boxed chrome */}
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 translate-y-1 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary">
-            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" />
+            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
           </span>
         </div>
       </div>
@@ -58,8 +58,8 @@ export function ProjectCard({ project, featured = false }: Props) {
           <h3 className="font-heading font-semibold text-[16px] leading-tight text-text-primary group-hover:text-accent transition-colors line-clamp-1">
             {project.title}
           </h3>
-          <span className="hidden sm:inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted group-hover:text-accent transition-colors">
-            {project.year ?? ""} <ArrowUpRight className="h-3 w-3" />
+          <span className="hidden sm:inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted group-hover:text-accent transition-colors" aria-hidden="true">
+            {project.year ?? ""} <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
           </span>
         </div>
         {project.description && (

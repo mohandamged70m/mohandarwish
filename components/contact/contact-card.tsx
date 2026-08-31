@@ -33,7 +33,7 @@ export function ContactCard(): ReactNode {
   };
 
   return (
-    <section id="contact" aria-label="Contact" className="mx-auto my-12 w-full max-w-275 px-6 sm:my-20 sm:px-10">
+    <section id="contact" aria-label="Contact" className="mx-auto my-12 w-full max-w-7xl px-4 sm:my-20 sm:px-6 lg:px-8">
       <FadeIn>
         <div className="relative w-full overflow-hidden rounded-[20px] border border-border bg-bg-surface p-1.5 shadow-sm">
           <div className="relative w-full overflow-hidden rounded-[16px]">
@@ -63,7 +63,7 @@ export function ContactCard(): ReactNode {
                     onClick={copyEmail}
                     aria-label={copied ? "Email copied to clipboard" : `Copy email ${ME.email}`}
                     aria-live="polite"
-                    className="focus-ring inline-flex h-11 cursor-pointer items-center gap-2 rounded-pill border border-border bg-bg-primary px-5 font-heading text-sm font-medium text-text-primary transition-colors hover:border-accent hover:text-accent"
+                    className="focus-ring inline-flex h-11 cursor-pointer items-center gap-2 rounded-pill border border-border bg-bg-primary px-5 font-heading text-sm font-medium text-text-primary transition-colors hover:border-accent hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface"
                   >
                     {copied ? <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden /> : <Copy className="h-4 w-4 shrink-0" aria-hidden />}
                     <span className="hidden sm:inline tabular-nums">{ME.email}</span>
@@ -156,7 +156,7 @@ function SocialIcon({
     <Link
       href={href}
       aria-label={label}
-      className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-accent"
+      className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
       {...props}
     >
       {LucideIcon ? (

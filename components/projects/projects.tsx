@@ -40,7 +40,10 @@ export function Projects(): ReactNode {
         </p>
 
         {filtered.length === 0 ? (
-          <p className="font-body text-sm text-text-muted">No projects in this category.</p>
+          <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
+            <p className="font-heading text-sm font-medium text-text-primary">No projects in {active} — try Best Works</p>
+            <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured projects.</p>
+          </div>
         ) : (
           <motion.div className="grid w-full gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <AnimatePresence mode="popLayout" initial={false}>

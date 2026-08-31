@@ -33,7 +33,7 @@ export function Button({
 }): ReactNode {
   return (
     <button
-      className={`focus-ring inline-flex items-center justify-center rounded-pill font-heading font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={`focus-ring inline-flex items-center justify-center rounded-pill font-heading font-medium transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {children}

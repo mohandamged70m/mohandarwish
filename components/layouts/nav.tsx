@@ -34,10 +34,11 @@ function useIsMounted(): boolean {
   );
 }
 
-function NavThemeToggle(): ReactNode {
+function NavThemeToggle({ size = "default" }: { size?: "default" | "large" }): ReactNode {
   const mounted = useIsMounted();
   const { setTheme, resolvedTheme } = useTheme();
   const isDark = mounted && resolvedTheme === "dark";
+  const sizeClass = size === "large" ? "h-11 w-11" : "h-8 w-8 sm:h-9 sm:w-9";
 
   const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>): void => {
     const next = isDark ? "light" : "dark";
@@ -90,7 +91,7 @@ function NavThemeToggle(): ReactNode {
           : "Toggle theme"
       }
       aria-pressed={mounted ? isDark : undefined}
-      className="focus-ring relative inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors sm:h-9 sm:w-9"
+      className={`focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
     >
       <span aria-hidden="true" className="relative h-4 w-4">
         <Sun
@@ -313,11 +314,7 @@ export function Nav(): ReactNode {
       <div className="lg:hidden">
         {/* floating action cluster — just theme + hamburger, no brand bar */}
         <div className="fixed top-4 right-4 z-[60] flex items-center gap-2">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-bg-surface/80 backdrop-blur-xl shadow-sm supports-[backdrop-filter]:bg-bg-surface/70">
-            <div className="scale-[1.05] [&_button]:!h-8 [&_button]:!w-8 [&_button]:!border-0 [&_button]:!bg-transparent [&_button]:!shadow-none">
-              <NavThemeToggle />
-            </div>
-          </div>
+          <NavThemeToggle size="large" />
           <button
             type="button"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
