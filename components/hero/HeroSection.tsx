@@ -6,8 +6,8 @@ import { ScaleUnblur } from "../ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 import { BookButton } from "@/components/booking/BookButton";
 
-const PORTRAIT_SRC = "/josh.webp";
-const PORTRAIT_HOVER_SRC = "/josh_wave.webp";
+const PORTRAIT_SRC = "/me/mohand-darwish.jpeg";
+const PORTRAIT_HOVER_SRC = "/me/mohandarwish.jpeg";
 
 const HeroSection = () => {
   return (
