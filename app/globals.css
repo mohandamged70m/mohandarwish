@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (next-themes toggles .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   /* Backgrounds — Dark (default) */
   --bg-primary: #0a0a0a;
@@ -18,6 +21,11 @@
   /* Revil compat aliases — mapped to lime palette */
   --accent: var(--accent-primary);
   --accent-rgb: 163,230,53;
+  --navbar-bg: rgba(10, 10, 10, 0.72);
+  --navbar-border: rgba(255, 255, 255, 0.08);
+  --danger: #f43f5e;
+  --danger-rgb: 244,63,94;
+  --bg-secondary: #151515;
   --card-bg: rgba(255,255,255,0.9);
   --card-border: rgba(0,0,0,0.05);
   --card-shadow: 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5);
@@ -73,6 +81,12 @@ html.light {
   --text-muted: #79716b;
   --text-on-accent: #ffffff;
 
+  --navbar-bg: rgba(255, 255, 255, 0.72);
+  --navbar-border: #e7e5e4;
+  --danger: #e11d48;
+  --danger-rgb: 225,29,72;
+  --bg-secondary: #f5f5f5;
+
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
   --shadow-accent: 0 0 20px rgba(101, 163, 13, 0.12);
@@ -82,6 +96,11 @@ html.dark {
   color-scheme: dark;
   --accent: #a3e635;
   --accent-rgb: 163,230,53;
+  --navbar-bg: rgba(10, 10, 10, 0.72);
+  --navbar-border: rgba(255, 255, 255, 0.08);
+  --danger: #f43f5e;
+  --danger-rgb: 244,63,94;
+  --bg-secondary: #151515;
   --card-bg: rgba(0,0,0,0.6);
   --card-border: rgba(255,255,255,0.1);
   --card-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
@@ -106,6 +125,13 @@ html.light {
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
 
+  /* Legacy dashboard aliases (old Revil theme names) */
+  --color-primary: var(--text-primary);
+  --color-sec: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+
   --color-accent: var(--accent-primary);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
@@ -123,6 +149,7 @@ html.light {
   /* Fonts */
   --font-heading: var(--font-jetbrains);
   --font-body: var(--font-inter);
+  --font-inter: var(--font-inter);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains);
 
@@ -445,3 +472,30 @@ section[id="contact"] {
     max-width: 100vw;
   }
 }
+
+/* ── Legacy dashboard compat (copy-pasted dashboard/ components) ── */
+.tnum { font-variant-numeric: tabular-nums; }
+.glass-surface {
+  background: var(--glass-bg-deep);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: 16px;
+}
+/* Assistant markdown (.md) — theme-aware GFM rendering */
+.md { font-size: 0.85rem; line-height: 1.6; color: var(--text-primary); word-break: break-word; }
+.md > *:first-child { margin-top: 0; }
+.md > *:last-child { margin-bottom: 0; }
+.md p { margin: 0.4em 0; }
+.md h1, .md h2, .md h3, .md h4 { font-weight: 700; margin: 0.7em 0 0.3em; line-height: 1.3; }
+.md h1 { font-size: 1.1rem; } .md h2 { font-size: 1.02rem; } .md h3 { font-size: 0.95rem; }
+.md ul, .md ol { margin: 0.4em 0; padding-left: 1.3em; }
+.md li { margin: 0.15em 0; }
+.md code { font-family: var(--font-mono); font-size: 0.8em; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 0.1em 0.35em; }
+.md pre { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 0.7em 0.9em; overflow-x: auto; margin: 0.5em 0; }
+.md pre code { background: transparent; border: 0; padding: 0; }
+.md a { color: var(--accent-primary); }
+.md table { border-collapse: collapse; margin: 0.5em 0; width: 100%; font-size: 0.8rem; }
+.md th, .md td { border: 1px solid var(--input-border); padding: 0.35em 0.6em; text-align: left; }
+.md blockquote { border-left: 3px solid var(--accent-primary); margin: 0.5em 0; padding: 0.2em 0 0.2em 0.8em; color: var(--text-secondary); }

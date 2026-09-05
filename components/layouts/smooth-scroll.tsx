@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import gsap from "gsap";
@@ -25,8 +26,15 @@ export function SmoothScroll({
 }: {
   children: ReactNode;
 }): ReactNode {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (!features.smoothScroll) return;
+
+    // The dashboard is an app-like UI with its own nested scroll containers
+    // (main column, modals). Lenis hijacks wheel events at window level, which
+    // leaves those inner scrollers dead — so it stays off on /dashboard.
+    if (pathname?.startsWith("/dashboard")) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -76,7 +84,7 @@ export function SmoothScroll({
       } catch {}
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return <>{children}</>;
 }

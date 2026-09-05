@@ -1,15 +1,55 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import TextAnimated from "./TextAnimated";
 import { Button } from "@/components/ui/button";
 import { ScaleUnblur } from "../ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 import { BookButton } from "@/components/booking/BookButton";
+import { doc, onSnapshot } from "@/lib/dash-db";
+import { db } from "@/lib/dash-db";
 
-const PORTRAIT_SRC = "/me/mohand-darwish.jpeg";
-const PORTRAIT_HOVER_SRC = "/me/mohandarwish.jpeg";
+const FALLBACK_A = "/me/mohandarish.jpg";
+const FALLBACK_B = "/me/mohand-darwish.jpg";
+
+// The template's stock hero image — never treat it as an owner upload.
+const STOCK_HERO = "images.unsplash.com";
 
 const HeroSection = () => {
+  const { resolvedTheme } = useTheme();
+  // Whatever photo the owner last saved in the dashboard (Settings → Account:
+  // profile photo, or the light/dark hero image) wins over the static files.
+  const [accountPhoto, setAccountPhoto] = useState<string | null>(null);
+  const [heroLight, setHeroLight] = useState<string | null>(null);
+  const [heroDark, setHeroDark] = useState<string | null>(null);
+
+  useEffect(() => {
+    const unsub = onSnapshot(
+      doc(db, "Settings", "Account"),
+      (snap) => {
+        if (!snap.exists()) return;
+        const data = snap.data() as Record<string, unknown>;
+        const pick = (v: unknown) =>
+          typeof v === "string" && v.trim() && !v.includes(STOCK_HERO) ? v.trim() : null;
+        setAccountPhoto(pick(data.imageUrl));
+        setHeroLight(pick(data.heroImageUrl));
+        setHeroDark(pick(data.heroImageUrlDark));
+      },
+      () => {
+        // Public read failed (offline?) — static portraits stay in place.
+      },
+    );
+    return () => unsub();
+  }, []);
+
+  const isDark = resolvedTheme !== "light";
+  // The hero-image uploader is the explicit "photo for the hero" slot; the
+  // account profile photo is the fallback. One upload => both morph frames,
+  // so hover has nothing stale to blend into.
+  const uploaded = (isDark ? heroDark : heroLight) ?? accountPhoto ?? null;
+  const srcA = uploaded ?? FALLBACK_A;
+  const srcB = uploaded ?? FALLBACK_B;
   return (
     <section
       aria-label="Introduction"
@@ -105,8 +145,9 @@ const HeroSection = () => {
               <div className="relative aspect-square w-full max-h-[inherit] overflow-hidden rounded-[28px]">
                 <div className="relative h-full w-full max-h-[inherit] overflow-hidden rounded-[28px] bg-bg-primary">
                   <PortraitMorph
-                    srcA={PORTRAIT_SRC}
-                    srcB={PORTRAIT_HOVER_SRC}
+                    key={srcA}
+                    srcA={srcA}
+                    srcB={srcB}
                     alt="Mohand portrait"
                   />
                 </div>

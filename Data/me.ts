@@ -9,7 +9,7 @@ export const ME = {
   cvUrl: "/cv.pdf",
   socials: {
     linkedin: "https://www.linkedin.com/in/mohand-darwish",
-    github: "https://github.com/mohand-darwish",
+    github: "https://github.com/mohandamged70m",
     x: "https://x.com/mohand_darwish",
   },
 } as const;

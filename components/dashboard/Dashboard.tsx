@@ -1,0 +1,337 @@
+"use client";
+
+import { useState, useEffect } from 'react';
+import anime from 'animejs';
+import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import DProjects from './D-Projects';
+import DTags from './D-Tags';
+import DTrails from './D-Trails';
+import DSettings from './D-Settings';
+import DCanary from './D-Canary';
+import DDeveloper from './D-Developer';
+import DTreasury from './D-Treasury';
+import Assistant from './Assistant';
+import { doc, onSnapshot } from '@/lib/dash-db';
+import { onAuthStateChanged } from '@/lib/dash-auth';
+import { db } from '@/lib/dash-db';
+import { appAuth } from '@/lib/dash-auth';
+
+// The parameter name in the function type would trigger `no-unused-vars` in some
+// ESLint configurations, so we suppress that rule for the following type alias.
+type OnNavigate = (section: 'home' | 'stack' | 'projects' | 'secret' | 'dashboard' | 'view_link') => void;
+
+interface DashboardProps {
+    onNavigate?: OnNavigate;
+}
+
+const Dashboard = ({ onNavigate }: DashboardProps) => {
+    // theme observation removed here; not used directly in this component
+    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+    const [activeTab, setActiveTab] = useState('projects');
+    const [profileImage, setProfileImage] = useState<string>('');
+    // In-dashboard AI copilot ("Spark") can be switched off from Settings → MCP.
+    // Defaults on; only skips mounting when explicitly disabled in Settings/MCP.
+    const [aiEnabled, setAiEnabled] = useState(true);
+
+    // Responsive breakpoints
+    const isExtraSmall = windowWidth < 400;  // 320px - 399px
+    const isSmall = windowWidth < 640;        // 400px - 639px
+    const isMobile = windowWidth < 768;       // 640px - 767px
+
+    // Auth gate: the dashboard is admin-only. If there's no signed-in user (e.g.
+    // it was restored on refresh without a session), bounce home so we never fire
+    // admin-only reads/writes that Firestore would reject with permission-denied.
+    useEffect(() => {
+        const off = onAuthStateChanged(appAuth(), (user) => {
+            if (!user) onNavigate?.('home');
+        });
+        return () => off();
+    }, [onNavigate]);
+
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'Settings', 'Account'), (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.imageUrl) setProfileImage(data.imageUrl);
+            }
+        });
+        return () => unsub();
+    }, []);
+
+    // Watch the AI assistant toggle (Settings/MCP.assistantEnabled).
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, 'Settings', 'MCP'), (snap) => {
+            const data = snap.exists() ? snap.data() : {};
+            setAiEnabled(data.assistantEnabled !== false);
+        }, () => { /* admin-only; ignore transient errors */ });
+        return () => unsub();
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        // no theme observer needed here
+
+        // Staggered Sidebar Entrance Animation
+        anime({
+            targets: '.sidebar-item',
+            translateX: [-16, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(30, { start: 50 }),
+            easing: 'easeOutQuint',
+            duration: 350
+        });
+
+        // Logo Entrance
+        anime({
+            targets: '.dashboard-logo',
+            scale: [0.85, 1],
+            opacity: [0, 1],
+            duration: 400,
+            easing: 'easeOutQuint'
+        });
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
+
+
+    const menuItems = [
+        { id: 'projects', label: 'Projects', icon: Layout },
+        { id: 'tags', label: 'Tags', icon: Tag },
+        { id: 'trails', label: 'Trails', icon: Footprints },
+        { id: 'developer', label: 'Developer', icon: GitBranch },
+        { id: 'treasury', label: 'Treasury', icon: Landmark },
+        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'canary', label: 'Canary', icon: Bird },
+    ];
+
+    const sidebarWidth = isExtraSmall ? '56px' : (isMobile ? '72px' : '260px');
+    const iconSize = isExtraSmall ? 18 : 20;
+    const avatarSize = isExtraSmall ? '28px' : '32px';
+
+    const activeItem = menuItems.find(i => i.id === activeTab);
+    const ActiveIcon = activeItem?.icon;
+    const headerIconBoxSize = isExtraSmall ? 'w-8 h-8 rounded-lg' : isSmall ? 'w-9 h-9 rounded-xl' : 'w-11 h-11 rounded-2xl';
+    const headerIconSize = isExtraSmall ? 16 : isSmall ? 18 : 22;
+
+    return (
+        <div
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            className="w-full h-screen flex bg-bg-primary relative overflow-hidden touch-pan-y"
+            // Belt-and-braces with the SmoothScroll /dashboard guard: Lenis must
+            // never hijack wheel events inside the dashboard's own scrollers.
+            data-lenis-prevent
+            style={{ ['--sidebar-width']: sidebarWidth } as unknown as React.CSSProperties}
+        >
+
+
+            {/* Sidebar */}
+            <aside
+                className={`
+                    h-full flex flex-col z-10 transition-all duration-300
+                    bg-[var(--navbar-bg)] backdrop-blur-xl border-r border-[var(--navbar-border)]
+                    ${isExtraSmall ? 'p-[12px_8px] gap-1' : isMobile ? 'p-[16px_12px] gap-2' : 'p-[24px_16px] gap-2'}
+                `}
+                style={{
+                    width: sidebarWidth,
+                    minWidth: sidebarWidth,
+                }}
+            >
+                {/* Logo Area */}
+                <div
+                    className={`
+                        dashboard-logo flex items-center opacity-0
+                        ${isMobile ? 'justify-center' : 'justify-start gap-3 px-3'}
+                        ${isExtraSmall ? 'mb-5 px-1' : 'mb-8'}
+                    `}
+                >
+                    <div
+                        className="rounded-lg overflow-hidden flex items-center justify-center bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)]"
+                        style={{
+                            width: avatarSize,
+                            height: avatarSize,
+                            minWidth: avatarSize,
+                        }}
+                    >
+                        {profileImage ? (
+                            <img
+                                src={profileImage}
+                                alt="User Avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <User className="text-muted/50" size={isExtraSmall ? 16 : 20} />
+                        )}
+                    </div>
+                    {!isMobile && (
+                        <span className="text-xl font-bold text-primary font-inter">
+                            Mohand
+                        </span>
+                    )}
+                </div>
+
+                {/* Navigation Items - Scrollable if needed */}
+                <nav className={`flex-1 flex flex-col ${isExtraSmall ? 'gap-1' : 'gap-2'} overflow-y-auto`}>
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`
+                                    sidebar-item relative w-full flex items-center transition-all duration-200 border-0 cursor-pointer
+                                    ${isMobile ? 'justify-center' : 'justify-start'}
+                                    ${isExtraSmall ? 'p-2.5 rounded-[10px]' : 'p-3 rounded-xl gap-3'}
+                                    ${isActive ? 'bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.1)] text-primary' : 'bg-transparent text-sec hover:bg-[rgba(0,0,0,0.02)] dark:hover:bg-[rgba(255,255,255,0.05)] hover:text-primary'}
+                                `}
+                                onMouseEnter={(e) => {
+                                    if (!isActive) {
+                                        anime({
+                                            targets: e.currentTarget.querySelector('svg'),
+                                            scale: 1.2,
+                                            duration: 200,
+                                            easing: 'easeOutQuad'
+                                        });
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isActive) {
+                                        anime({
+                                            targets: e.currentTarget.querySelector('svg'),
+                                            scale: 1,
+                                            duration: 200,
+                                            easing: 'easeOutQuad'
+                                        });
+                                    }
+                                }}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="active-sidebar-pill"
+                                        className="active-sidebar-pill absolute left-0 w-1 h-[60%] bg-accent rounded-r"
+                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                    />
+                                )}
+                                <Icon size={iconSize} />
+                                {!isMobile && (
+                                    <span className="text-[0.95rem] font-medium font-inter">
+                                        {item.label}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </nav>
+
+                {/* Bottom Actions - Locked at the end */}
+                <div className="pt-4 mt-2 border-t border-[var(--section-border)]">
+                    <button
+                        onClick={() => onNavigate && onNavigate('home')}
+                        className={`
+                            sidebar-item w-full flex items-center transition-all duration-200 border-0 cursor-pointer bg-transparent text-sec
+                            hover:bg-red-500/5 dark:hover:bg-red-500/10 hover:text-red-500
+                            ${isMobile ? 'justify-center px-0' : 'justify-start px-3 gap-3'}
+                            ${isExtraSmall ? 'py-2 rounded-[10px]' : 'py-3 rounded-xl'}
+                        `}
+                    >
+                        <LogOut size={iconSize} />
+                        {!isMobile && (
+                            <span className="text-[0.95rem] font-medium font-inter">
+                                Logout
+                            </span>
+                        )}
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main
+                className={`
+                    flex-1 h-full overflow-y-auto overflow-x-hidden relative min-w-0
+                    ${isExtraSmall ? 'p-3' : isSmall ? 'p-4' : 'p-8'}
+                `}
+            >
+                {/* Wide screens get a wider page: at 1200px the dashboard left a few hundred
+                    pixels of dead margin on either side that no panel could reach. */}
+                <div className="max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto h-full flex flex-col w-full">
+                    {/* Header */}
+                    <div
+                        className={`
+                            flex items-center justify-between
+                            ${isExtraSmall ? 'mb-4' : isSmall ? 'mb-5' : 'mb-8'}
+                        `}
+                    >
+                        <div className={`flex items-center ${isExtraSmall ? 'gap-2' : 'gap-3'}`}>
+                            {ActiveIcon && (
+                                <span className={`${headerIconBoxSize} flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0`}>
+                                    <ActiveIcon size={headerIconSize} />
+                                </span>
+                            )}
+                            <h1
+                                className={`
+                                    font-extrabold text-primary font-inter m-0
+                                    ${isExtraSmall ? 'text-xl' : isSmall ? 'text-2xl' : 'text-[2rem]'}
+                                `}
+                            >
+                                {activeItem?.label}
+                            </h1>
+                        </div>
+                    </div>
+
+                    {/* Content Viewport */}
+                    <div className="dashboard-content-area flex-1 relative min-h-0">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -6 }}
+                                transition={{ duration: 0.15, ease: 'easeInOut' }}
+                                className="w-full h-full flex flex-col"
+                            >
+                                {activeTab === 'projects' ? (
+                                    <DProjects />
+                                ) : activeTab === 'tags' ? (
+                                    <DTags />
+                                ) : activeTab === 'trails' ? (
+                                    <DTrails />
+                                ) : activeTab === 'developer' ? (
+                                    <DDeveloper />
+                                ) : activeTab === 'treasury' ? (
+                                    <DTreasury />
+                                ) : activeTab === 'settings' ? (
+                                    <DSettings />
+                                ) : activeTab === 'canary' ? (
+                                    <DCanary />
+                                ) : (
+                                    <div className={`
+                                        w-full h-[90%] flex items-center justify-center text-center p-4
+                                        border-2 border-dashed border-input-border text-sec font-inter
+                                        ${isExtraSmall ? 'rounded-2xl text-sm' : 'rounded-3xl text-base'}
+                                    `}>
+                                        <span>Content for {activeItem?.label} will go here</span>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </main>
+
+            {/* AI co-pilot - floating orb, can navigate, click, and read/write data.
+                Gated by Settings → MCP → "Dashboard AI assistant". */}
+            {aiEnabled && (
+                <Assistant onNavigate={(page) => setActiveTab(page)} currentPage={activeTab} />
+            )}
+        </div >
+    );
+};
+
+export default Dashboard;

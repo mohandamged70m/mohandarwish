@@ -7,7 +7,7 @@ import { ChevronDown, Check, Search } from "lucide-react";
 export interface SelectOption { value: string; label: string; hint?: string; disabled?: boolean; }
 
 interface Props {
-  value: string;
+  value: string | undefined;
   options: Array<SelectOption | string>;
   onChange: (value: string) => void;
   placeholder?: string;
