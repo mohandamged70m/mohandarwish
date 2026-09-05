@@ -417,6 +417,34 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-primary) 40%, transparent); }
 .btn-icon { padding: 8px; border-radius: 8px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 .btn-icon:hover { background-color: var(--input-bg); color: var(--text-primary); }
+.btn-secondary { background-color: var(--input-bg); color: var(--text-primary); border: 1px solid var(--input-border); }
+.btn-secondary:not(:disabled):hover { background-color: var(--bg-surface-hover); border-color: var(--border-strong); transform: translateY(-1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+/* ── Dashboard modal primitives (M-TagForm, M-ContributorForm, M-FirebaseStorage) ── */
+.modal-backdrop { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.2s ease; }
+.modal-backdrop.open { opacity: 1; }
+.modal-content { width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 20px; background: var(--glass-bg-deep); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); border: 1px solid var(--card-border); box-shadow: var(--card-shadow), 0 24px 64px rgba(0, 0, 0, 0.25); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; background: inherit; z-index: 1; }
+.modal-form { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+/* ── Dashboard inputs ── */
+.input-field { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-primary); outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; font-family: inherit; font-size: 0.9rem; }
+.input-field::placeholder { color: var(--text-muted); }
+.input-field:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-ring); background-color: var(--bg-surface); }
+.input-field:disabled { opacity: 0.6; cursor: not-allowed; }
+/* ── Dashboard glass + icon boxes + entrance animations ── */
+.glass-panel { background: var(--glass-bg-deep); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); border: 1px solid var(--card-border); box-shadow: var(--card-shadow); border-radius: 20px; }
+.icon-box { display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; color: #fff; flex-shrink: 0; }
+.icon-box-md { width: 48px; height: 48px; }
+@keyframes dash-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dash-scale-in { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+@keyframes dash-pop { from { opacity: 0; transform: scale(0.9) translateY(-6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.animate-fade-in { animation: dash-fade-in 0.2s ease both; }
+.animate-scale-in { animation: dash-scale-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-pop { animation: dash-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-scale-in, .animate-pop { animation: none; }
+}
 .flex-row-between { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; }
 .text-info { color: var(--info); }
 

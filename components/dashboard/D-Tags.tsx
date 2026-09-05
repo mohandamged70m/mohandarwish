@@ -699,8 +699,8 @@ const DTags = () => {
                 document.body
             )}
 
-            <MTagForm isOpen={tagModalOpen} onClose={() => setTagModalOpen(false)} onSave={handleSaveTag} initialData={editingTag} />
-            <MContributorForm isOpen={contribModalOpen} onClose={() => { setContribModalOpen(false); setEditingContributor(null); }} onSave={handleSaveContributor} initialData={editingContributor!} />
+            <MTagForm isOpen={tagModalOpen} onClose={() => { setTagModalOpen(false); setEditingTag(null); }} onSave={handleSaveTag} initialData={editingTag} />
+            <MContributorForm isOpen={contribModalOpen} onClose={() => { setContribModalOpen(false); setEditingContributor(null); }} onSave={handleSaveContributor} initialData={editingContributor} />
 
             <MConfirmModal
                 isOpen={confirmConfig.isOpen}
