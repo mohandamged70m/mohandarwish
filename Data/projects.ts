@@ -19,6 +19,7 @@ export type Project = {
   highlights?: readonly string[];
   images?: readonly string[];
   videos?: readonly string[];
+  listing?: number;
 };
 
 export const FILTER_CATEGORIES: readonly FilterCategory[] = [
@@ -29,281 +30,116 @@ export const FILTER_CATEGORIES: readonly FilterCategory[] = [
   "Tooling",
 ] as const;
 
-export const PROJECTS: readonly Project[] = [
-  {
-    id: "p1",
-    title: "Token Studio — Design System Manager",
-    category: "Design System",
-    image: "https://picsum.photos/seed/mohand-p1/800/500",
-    href: "/projects/p1",
-    year: "2025",
-    stack: ["Next.js", "Tailwind", "Storybook", "TypeScript"],
-    description: "Token-driven manager that builds, versions and ships design tokens to Figma + code.",
-    problem: "Design-to-code drift slowed releases and broke consistency.",
-    role: "Frontend Engineer — tokens pipeline, a11y components, CI.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p1-a/1200/675",
-      "https://picsum.photos/seed/mohand-p1-b/1200/675",
-      "https://picsum.photos/seed/mohand-p1-c/1200/675",
-    ],
-    metrics: [
-      { label: "Build time", value: "1.2s for 120 tokens" },
-      { label: "Adoption", value: "6 products" },
-    ],
-    highlights: ["Figma sync via REST", "Style-dictionary pipeline", "A11y-checked primitives"],
-  },
-  {
-    id: "p2",
-    title: "WriteFlow — AI Writing Assistant",
-    category: "Full-Stack",
-    image: "https://picsum.photos/seed/mohand-p2/800/500",
-    href: "/projects/p2",
-    year: "2025",
-    stack: ["Next.js", "tRPC", "Prisma", "AI SDK"],
-    description: "Streaming writing copilot with context-aware prompts and inline edits.",
-    problem: "Writers needed low-latency, steerable AI without vendor lock-in.",
-    role: "Full-Stack — streaming API, editor UX, persistence.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p2-a/1200/675",
-      "https://picsum.photos/seed/mohand-p2-b/1200/675",
-      "https://picsum.photos/seed/mohand-p2-c/1200/675",
-    ],
-    metrics: [
-      { label: "Stream p95", value: "180ms" },
-      { label: "Retention", value: "+22% W4" },
-    ],
-    highlights: ["Edge streaming", "Prompt versioning", "Offline draft sync"],
-  },
-  {
-    id: "p3",
-    title: "MapAtlas — Travel Discovery",
-    category: "Frontend",
-    image: "https://picsum.photos/seed/mohand-p3/800/500",
-    href: "/projects/p3",
-    year: "2025",
-    stack: ["Next.js", "Mapbox", "Motion", "TypeScript"],
-    description: "Immersive map discovery with clustered pins and itinerary builder.",
-    problem: "Destination browsing felt flat; context and geography were missing.",
-    role: "Frontend — map perf, interaction, motion.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p3-a/1200/675",
-      "https://picsum.photos/seed/mohand-p3-b/1200/675",
-      "https://picsum.photos/seed/mohand-p3-c/1200/675",
-    ],
-    metrics: [
-      { label: "Pins", value: "5k @ 60fps" },
-      { label: "LCP", value: "1.8s" },
-    ],
-    highlights: ["Cluster + viewport culling", "URL-synced filters", "Offline tiles"],
-  },
-  {
-    id: "p4",
-    title: "Ledger — Finance Command Center",
-    category: "Full-Stack",
-    image: "https://picsum.photos/seed/mohand-p4/800/500",
-    href: "/projects/p4",
-    year: "2024",
-    stack: ["Next.js", "tRPC", "Prisma", "Recharts"],
-    description: "Reconciliation workspace with command palette and audit trail.",
-    problem: "Month-end close required reconciling 10k+ rows across sheets.",
-    role: "Full-Stack — tables, command palette, data layer.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p4-a/1200/675", "https://picsum.photos/seed/mohand-p4-b/1200/675"],
-    metrics: [
-      { label: "Reconcile", value: "10k rows <1s" },
-      { label: "Close time", value: "-40%" },
-    ],
-    highlights: ["Virtualized data grid", "Keyboard-first", "CSV diff engine"],
-  },
-  {
-    id: "p5",
-    title: "Docs Engine — Knowledge Base",
-    category: "Tooling",
-    image: "https://picsum.photos/seed/mohand-p5/800/500",
-    href: "/projects/p5",
-    year: "2024",
-    stack: ["Next.js", "MDX", "Algolia", "ISR"],
-    description: "Search-first docs with command palette and versioned content.",
-    problem: "Docs search was slow and content drifted between versions.",
-    role: "Frontend — MDX pipeline, search UX, ISR.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p5-a/1200/675",
-      "https://picsum.photos/seed/mohand-p5-b/1200/675",
-      "https://picsum.photos/seed/mohand-p5-c/1200/675",
-    ],
-    metrics: [
-      { label: "Search", value: "45ms" },
-      { label: "Builds", value: "3.2s for 400 pages" },
-    ],
-    highlights: ["Contentlayer + MDX", "Algolia instantsearch", "Version switcher"],
-  },
-  {
-    id: "p6",
-    title: "Pulse — Realtime Analytics & Alerts",
-    category: "Full-Stack",
-    image: "https://picsum.photos/seed/mohand-p6/800/500",
-    href: "/projects/p6",
-    year: "2024",
-    stack: ["Next.js", "WebSockets", "Prisma", "Node.js"],
-    description: "Live analytics with tailing logs and threshold alerts.",
-    problem: "Ops needed live visibility without noisy paging.",
-    role: "Full-Stack — realtime, alerts, observability.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p6-a/1200/675",
-      "https://picsum.photos/seed/mohand-p6-b/1200/675",
-      "https://picsum.photos/seed/mohand-p6-c/1200/675",
-    ],
-    metrics: [
-      { label: "Ingest", value: "1M events/day" },
-      { label: "Alert noise", value: "-62%" },
-    ],
-    highlights: ["WS fanout", "Rule engine", "On-call rota"],
-  },
-  {
-    id: "p7",
-    title: "AuthKit — Headless Auth & Billing",
-    category: "Tooling",
-    image: "https://picsum.photos/seed/mohand-p7/800/500",
-    href: "/projects/p7",
-    year: "2023",
-    stack: ["Next.js", "Stripe", "NextAuth", "Postgres"],
-    description: "Drop-in auth + billing with webhooks and entitlements.",
-    problem: "Every new product re-implemented auth and Stripe logic.",
-    role: "Full-Stack — auth flows, webhooks, entitlements.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p7-a/1200/675", "https://picsum.photos/seed/mohand-p7-b/1200/675"],
-    metrics: [
-      { label: "Checkout", value: "99.2% success" },
-      { label: "Setup", value: "<15 min" },
-    ],
-    highlights: ["Row-level entitlements", "Webhook replay", "Test mode"],
-  },
-  {
-    id: "p8",
-    title: "Canvas — Realtime Whiteboard",
-    category: "Frontend",
-    image: "https://picsum.photos/seed/mohand-p8/800/500",
-    href: "/projects/p8",
-    year: "2023",
-    stack: ["Next.js", "Yjs", "Canvas", "TypeScript"],
-    description: "CRDT whiteboard with presence and infinite canvas.",
-    problem: "Remote ideation needed low-latency co-editing.",
-    role: "Frontend — canvas, CRDT, presence.",
-    featured: true,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: [
-      "https://picsum.photos/seed/mohand-p8-a/1200/675",
-      "https://picsum.photos/seed/mohand-p8-b/1200/675",
-      "https://picsum.photos/seed/mohand-p8-c/1200/675",
-    ],
-    metrics: [
-      { label: "Sync", value: "<80ms" },
-      { label: "Cursors", value: "50 concurrent" },
-    ],
-    highlights: ["Yjs CRDT", "Viewport culling", "Export to PNG/SVG"],
-  },
-  {
-    id: "p9",
-    title: "Bloom — Wellness Tracker",
-    category: "Frontend",
-    image: "https://picsum.photos/seed/mohand-p9/800/500",
-    href: "/projects/p9",
-    year: "2022",
-    stack: ["Next.js", "Motion", "Tailwind"],
-    description: "Habit tracker with progress rings and streak mechanics.",
-    problem: "Habit apps lost users after week one.",
-    role: "Frontend — motion, streak logic, PWA.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p9-a/1200/675", "https://picsum.photos/seed/mohand-p9-b/1200/675"],
-    metrics: [
-      { label: "W4 retention", value: "+18%" },
-      { label: "PWA score", value: "100" },
-    ],
-    highlights: ["Spring progress rings", "Offline queue", "Share cards"],
-  },
-  {
-    id: "p10",
-    title: "OpsView — Infra Dashboard",
-    category: "Full-Stack",
-    image: "https://picsum.photos/seed/mohand-p10/800/500",
-    href: "/projects/p10",
-    year: "2022",
-    stack: ["Next.js", "tRPC", "Prisma", "Tailwind"],
-    description: "Infra overview with deploy logs and rollback controls.",
-    problem: "Deploys lacked visibility for non-platform engineers.",
-    role: "Full-Stack — deploy timeline, logs, RBAC.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p10-a/1200/675", "https://picsum.photos/seed/mohand-p10-b/1200/675"],
-    metrics: [
-      { label: "MTTR", value: "-31%" },
-      { label: "Deploys/week", value: "240" },
-    ],
-    highlights: ["Log tail via SSE", "RBAC scopes", "Rollback one-click"],
-  },
-  {
-    id: "p11",
-    title: "CLI — Release Automator",
-    category: "Tooling",
-    image: "https://picsum.photos/seed/mohand-p11/800/500",
-    href: "/projects/p11",
-    year: "2022",
-    stack: ["Node.js", "TypeScript", "Changesets"],
-    description: "CLI that versions, changelogs and publishes across workspaces.",
-    problem: "Monorepo releases were manual and error-prone.",
-    role: "Tooling — CLI DX, CI integration.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p11-a/1200/675", "https://picsum.photos/seed/mohand-p11-b/1200/675"],
-    metrics: [
-      { label: "Release time", value: "8m → 45s" },
-      { label: "Mistakes", value: "-90%" },
-    ],
-    highlights: ["Interactive prompts", "Dry-run diff", "GitHub action"],
-  },
-  {
-    id: "p12",
-    title: "Studio — Component Lab",
-    category: "Design System",
-    image: "https://picsum.photos/seed/mohand-p12/800/500",
-    href: "/projects/p12",
-    year: "2021",
-    stack: ["Storybook", "React", "Playwright"],
-    description: "Lab for isolated component development and visual QA.",
-    problem: "UI regressions shipped between design and prod.",
-    role: "Frontend — lab, visual QA, a11y.",
-    featured: false,
-    liveUrl: "#",
-    githubUrl: "#",
-    images: ["https://picsum.photos/seed/mohand-p12-a/1200/675", "https://picsum.photos/seed/mohand-p12-b/1200/675"],
-    metrics: [
-      { label: "Coverage", value: "94% visual" },
-      { label: "A11y issues", value: "-55%" },
-    ],
-    highlights: ["Chromatic diff", "Axe integration", "Token playground"],
-  },
+const CATEGORIES: readonly ProjectCategory[] = [
+  "Frontend",
+  "Full-Stack",
+  "Design System",
+  "Tooling",
 ] as const;
+
+const FALLBACK_IMAGE = "/me/mohand-darwish.jpeg";
+
+function isVideoSrc(src: string): boolean {
+  const clean = src.split("?")[0].toLowerCase();
+  return /\.(mp4|webm|ogg|mov)$/.test(clean) || src.includes("/videos/");
+}
+
+function toArrayStrings(v: unknown): string[] {
+  if (!v) return [];
+  if (Array.isArray(v)) return v.map((x) => String(x)).filter(Boolean);
+  if (typeof v === "object") return Object.values(v as Record<string, unknown>).map((x) => String(x)).filter(Boolean);
+  return [];
+}
+
+function inferCategory(stack: string[]): ProjectCategory {
+  for (const name of stack) {
+    const hit = CATEGORIES.find((c) => c.toLowerCase() === name.trim().toLowerCase());
+    if (hit) return hit;
+  }
+  return "Full-Stack";
+}
+
+/** Raw dashboard_docs row data for path `Projects/<name>` (see D-Projects handleSaveProject). */
+export type DashboardProjectRow = {
+  Description?: unknown;
+  "Live Link"?: unknown;
+  "Download Link"?: unknown;
+  "Project Icon"?: unknown;
+  "Repository Link"?: unknown;
+  Tags?: unknown;
+  Stack?: unknown;
+  Contributors?: unknown;
+  "Project Images"?: unknown;
+  Views?: unknown;
+  Listing?: unknown;
+  listing?: unknown;
+};
+
+export function mapDashboardDocToProject(docId: string, data: DashboardProjectRow): Project {
+  const title = docId;
+  const description = typeof data.Description === "string" ? data.Description : "";
+  const liveUrl = typeof data["Live Link"] === "string" ? data["Live Link"] : undefined;
+  const githubUrl = typeof data["Repository Link"] === "string" ? data["Repository Link"] : undefined;
+  const icon = typeof data["Project Icon"] === "string" ? data["Project Icon"] : "";
+
+  const tagNames = toArrayStrings(data.Tags);
+  // Handle string- and object-form ({Name, Color, Icon}) stack entries.
+  const rawStack = data.Stack;
+  let stack: string[] = [];
+  if (Array.isArray(rawStack)) {
+    stack = rawStack
+      .map((t) => (typeof t === "string" ? t : (t as { Name?: string })?.Name ?? ""))
+      .filter(Boolean);
+  } else if (rawStack && typeof rawStack === "object") {
+    stack = Object.values(rawStack as Record<string, unknown>)
+      .map((t) => (typeof t === "string" ? t : (t as { Name?: string })?.Name ?? ""))
+      .filter(Boolean);
+  }
+  const merged = Array.from(new Set([...tagNames, ...stack].filter(Boolean)));
+
+  const rawImages = Array.isArray(data["Project Images"])
+    ? (data["Project Images"] as unknown[]).map((x) => String(x)).filter(Boolean)
+    : toArrayStrings(data["Project Images"]);
+  const videos = rawImages.filter(isVideoSrc);
+  const images = rawImages.filter((s) => !isVideoSrc(s));
+
+  const listingRaw = data.Listing ?? data.listing;
+  const listing = Number(listingRaw) || 0;
+
+  const category = inferCategory(merged);
+  const image = icon || images[0] || FALLBACK_IMAGE;
+
+  return {
+    id: docId,
+    title,
+    category,
+    image,
+    href: `/projects/${encodeURIComponent(docId)}`,
+    stack: merged,
+    description,
+    featured: listing > 0 ? listing <= 6 : true,
+    liveUrl,
+    githubUrl,
+    images: images.length ? images : icon ? [icon] : [],
+    videos: videos.length ? videos : [],
+    listing,
+  };
+}
+
+export function sortProjects<T extends { listing?: number; title: string }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const al = a.listing && a.listing > 0 ? a.listing : 999999;
+    const bl = b.listing && b.listing > 0 ? b.listing : 999999;
+    if (al !== bl) return al - bl;
+    return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
+  });
+}
+
+/** Decode a `/projects/[id]` param back to the dashboard doc id. */
+export function decodeProjectId(param: string): string {
+  try {
+    return decodeURIComponent(param);
+  } catch {
+    return param;
+  }
+}

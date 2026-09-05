@@ -557,8 +557,14 @@ const DProjects = () => {
     const handleSaveProject = async (data: ProjectFormData) => {
         try {
             setIsLoading(true);
-            const projectName = data.name;
+            // Doc ids double as storage folder names: "/" would nest the path so
+            // the project becomes invisible to the direct-children listing.
+            const projectName = data.name.trim().replace(/\//g, "-");
             const oldName = editingProject?.name;
+            if (!projectName) {
+                showAlert({ type: 'error', message: 'Project name is required.' });
+                return;
+            }
             const isNameChanged = oldName && oldName !== projectName;
 
             let iconUrl = typeof data.icon === 'string' ? data.icon : '';

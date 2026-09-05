@@ -4,31 +4,33 @@ import { useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FILTER_CATEGORIES, PROJECTS } from "@/Data/projects";
+import { FILTER_CATEGORIES } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectsCarousel } from "./ProjectsCarousel";
 import { ProjectsHeader } from "./ProjectsHeader";
+import { useProjects } from "@/hooks/useProjects";
 
 export default function ProjectsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState<FilterCategory>("Best Works");
+  const { projects, loading } = useProjects();
 
-  // Homepage shows only featured (top 6) for "Best Works", not the full archive
+  // Homepage shows only featured (top 6 by Listing) for "Best Works"
   const filtered = useMemo(() => {
-    if (active === "Best Works") return PROJECTS.filter((p) => p.featured);
-    return PROJECTS.filter((p) => p.category === active);
-  }, [active]);
+    if (active === "Best Works") return projects.filter((p) => p.featured);
+    return projects.filter((p) => p.category === active);
+  }, [active, projects]);
 
   const filterCounts = useMemo<Record<FilterCategory, number>>(
     () => ({
-      "Best Works": PROJECTS.filter((p) => p.featured).length,
-      Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
-      "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
-      "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
-      Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
+      "Best Works": projects.filter((p) => p.featured).length,
+      Frontend: projects.filter((p) => p.category === "Frontend").length,
+      "Full-Stack": projects.filter((p) => p.category === "Full-Stack").length,
+      "Design System": projects.filter((p) => p.category === "Design System").length,
+      Tooling: projects.filter((p) => p.category === "Tooling").length,
     }),
-    []
+    [projects]
   );
 
   return (
@@ -76,10 +78,23 @@ export default function ProjectsSection() {
           </p>
 
           {/* empty state — stays inside gutter */}
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
-              <p className="font-heading text-sm font-medium text-text-primary">No projects in {active} — try Best Works</p>
-              <p className="font-body text-sm text-text-muted mt-1">Switch filter to see featured engineering mocks.</p>
+              <p className="font-heading text-sm font-medium text-text-primary">
+                {projects.length === 0
+                  ? "No projects yet — add one from the dashboard"
+                  : `No projects in ${active} — try Best Works`}
+              </p>
+              <p className="font-body text-sm text-text-muted mt-1">
+                {projects.length === 0
+                  ? "Dashboard → Projects → Add Project, it appears here live."
+                  : "Switch filter to see featured projects."}
+              </p>
+            </div>
+          )}
+          {loading && (
+            <div className="w-full rounded-[16px] border border-border bg-bg-surface px-6 py-10 text-center">
+              <p className="font-heading text-sm font-medium text-text-primary">Loading projects…</p>
             </div>
           )}
         </div>

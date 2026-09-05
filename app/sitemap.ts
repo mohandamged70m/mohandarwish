@@ -1,8 +1,10 @@
 import type { MetadataRoute } from "next";
-import { PROJECTS } from "@/Data/projects";
 import { siteConfig } from "@/lib/metadata";
+import { getProjectsServer } from "@/lib/projects-server";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.url.replace(/\/$/, "");
   const now = new Date();
   const routes: MetadataRoute.Sitemap = [
@@ -10,8 +12,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/projects`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
   ];
-  for (const p of PROJECTS) {
-    routes.push({ url: `${base}${p.href}`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
+  try {
+    const projects = await getProjectsServer();
+    for (const p of projects) {
+      routes.push({ url: `${base}${p.href}`, lastModified: now, changeFrequency: "monthly", priority: 0.6 });
+    }
+  } catch {
+    // sitemap stays valid with static routes only when DB is unreachable
   }
   return routes;
 }

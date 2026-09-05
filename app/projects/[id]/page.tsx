@@ -5,12 +5,21 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { createMetadata } from "@/lib/metadata";
-import { PROJECTS } from "@/Data/projects";
+import { decodeProjectId } from "@/Data/projects";
+import { getProjectServer, getProjectsServer } from "@/lib/projects-server";
 
 type Params = Promise<{ id: string }>;
 
-export function generateStaticParams() {
-  return PROJECTS.map((project) => ({ id: project.id }));
+export const dynamicParams = true;
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const projects = await getProjectsServer();
+    return projects.map((project) => ({ id: encodeURIComponent(project.id) }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -19,15 +28,20 @@ export async function generateMetadata({
   params: Params;
 }): Promise<Metadata> {
   const { id } = await params;
-  const project = PROJECTS.find((p) => p.id === id);
-  if (!project) return {};
-  return createMetadata({
-    title: project.title,
-    description:
-      project.description ??
-      `Project details for ${project.title} — ${project.category}.`,
-    path: `/projects/${project.id}`,
-  });
+  const docId = decodeProjectId(id);
+  try {
+    const project = await getProjectServer(docId);
+    if (!project) return {};
+    return createMetadata({
+      title: project.title,
+      description:
+        project.description ??
+        `Project details for ${project.title} — ${project.category}.`,
+      path: `/projects/${encodeURIComponent(project.id)}`,
+    });
+  } catch {
+    return {};
+  }
 }
 
 export default async function ProjectPage({
@@ -36,7 +50,13 @@ export default async function ProjectPage({
   params: Params;
 }): Promise<ReactNode> {
   const { id } = await params;
-  const project = PROJECTS.find((p) => p.id === id);
+  const docId = decodeProjectId(id);
+  let project = null;
+  try {
+    project = await getProjectServer(docId);
+  } catch {
+    project = null;
+  }
   if (!project) notFound();
 
   return (
@@ -44,7 +64,6 @@ export default async function ProjectPage({
       <section className="mx-auto w-full max-w-3xl px-4 pt-32 pb-16 sm:px-6 sm:pt-40 sm:pb-20">
         <Link
           href="/projects"
-          transitionTypes={["nav-back"]}
           className="mb-6 inline-flex items-center gap-2 font-heading text-sm text-text-secondary transition-colors duration-300 hover:text-accent focus-ring outline-none"
         >
           <ArrowLeft className="h-4 w-4" />

@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { PROJECTS, type FilterCategory } from "@/Data/projects";
+import { type FilterCategory } from "@/Data/projects";
 
 type Props = {
   categories: readonly FilterCategory[];
@@ -12,11 +12,11 @@ type Props = {
 };
 
 const defaultCounts: Record<FilterCategory, number> = {
-  "Best Works": PROJECTS.filter((p) => p.featured).length,
-  Frontend: PROJECTS.filter((p) => p.category === "Frontend").length,
-  "Full-Stack": PROJECTS.filter((p) => p.category === "Full-Stack").length,
-  "Design System": PROJECTS.filter((p) => p.category === "Design System").length,
-  Tooling: PROJECTS.filter((p) => p.category === "Tooling").length,
+  "Best Works": 0,
+  Frontend: 0,
+  "Full-Stack": 0,
+  "Design System": 0,
+  Tooling: 0,
 };
 
 export function ProjectFilter({ categories, active, onChange, counts = defaultCounts }: Props) {
