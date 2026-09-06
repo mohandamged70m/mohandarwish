@@ -6,7 +6,6 @@ import { Nav } from "@/components/layouts/nav";
 import { PathMemory } from "@/components/layouts/path-memory";
 import { Providers } from "@/components/layouts/providers";
 import { ModalViewport } from "@/components/layouts/modal-viewport";
-import { CvModalHandler } from "@/components/cv/CvModalHandler";
 import { RouteCurtain } from "@/components/transitions";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -46,7 +45,6 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
           <RouteCurtain />
           {children}
           <ModalViewport modal={modal} />
-          <CvModalHandler />
         </Providers>
         <Analytics />
       </body>

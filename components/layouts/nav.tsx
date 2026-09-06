@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { openCvModal } from "@/components/cv/CvModal";
+import { ME } from "@/Data/me";
 import { requestSectionNavigate } from "@/components/transitions";
 import {
   useEffect,
@@ -118,15 +118,16 @@ function NavThemeToggle({ size = "default" }: { size?: "default" | "large" }): R
 function NavDocLink({ size = "default" }: { size?: "default" | "large" }): ReactNode {
   const sizeClass = size === "large" ? "h-11 w-11" : "h-8 w-8 sm:h-9 sm:w-9";
   return (
-    <button
-      type="button"
-      onClick={openCvModal}
-      aria-label="View CV (opens CV modal)"
+    <Link
+      href={ME.cvUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="View CV (opens in new tab)"
       title="View CV"
       className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
     >
       <FileText className="h-4 w-4" aria-hidden="true" />
-    </button>
+    </Link>
   );
 }
 
