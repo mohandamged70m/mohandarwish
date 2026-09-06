@@ -7,14 +7,20 @@ import type { Project } from "@/Data/projects";
 type Props = {
   project: Project;
   featured?: boolean;
+  // Grid showcase: card fills its column instead of fixed carousel widths.
+  fluid?: boolean;
 };
 
-export function ProjectCard({ project, featured = false }: Props) {
+export function ProjectCard({ project, featured = false, fluid = false }: Props) {
   return (
     <Link
       href={project.href}
       aria-label={`${project.title} — ${project.category}`}
-      className="group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary w-[min(82vw,360px)] sm:w-[420px] md:w-[440px] lg:w-[520px] xl:w-[560px]"
+      className={`group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary ${
+        fluid
+          ? "w-full min-w-0"
+          : "w-[min(82vw,360px)] sm:w-[420px] md:w-[440px] lg:w-[520px] xl:w-[560px]"
+      }`}
     >
       {/* frameless media - no border, no chrome, just image */}
       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[16px] md:rounded-[20px] bg-bg-primary">
@@ -22,7 +28,11 @@ export function ProjectCard({ project, featured = false }: Props) {
           src={project.image}
           alt={project.title}
           fill
-          sizes="(max-width: 640px) 82vw, (max-width: 768px) 420px, (max-width: 1024px) 440px, (max-width: 1440px) 520px, 560px"
+          sizes={
+            fluid
+              ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              : "(max-width: 640px) 82vw, (max-width: 768px) 420px, (max-width: 1024px) 440px, (max-width: 1440px) 520px, 560px"
+          }
           className="object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[0.22,1,0.36,1] motion-safe:group-hover:scale-[1.04] motion-safe:group-focus-visible:scale-[1.04]"
           priority={featured}
           unoptimized

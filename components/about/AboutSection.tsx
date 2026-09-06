@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
-import { useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useRef, useState, type ReactNode } from "react";
 import { ME } from "@/Data/me";
 import { Education } from "@/components/about/education";
 import { Experience } from "@/components/about/experience";
@@ -28,6 +28,36 @@ type Tab = (typeof TABS)[number];
 
 export function AboutSection(): ReactNode {
   const [active, setActive] = useState<Tab>("Experience");
+  const reduceMotion = useReducedMotion() ?? false;
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // Roving tabindex + arrow-key activation (WAI-APG tabs): every action
+  // stays keyboard-reachable, tab order matches visual order.
+  const activateTab = (index: number): void => {
+    const total = TABS.length;
+    const next = (index + total) % total;
+    const tab = TABS[next];
+    if (!tab) return;
+    setActive(tab);
+    tabRefs.current[next]?.focus();
+  };
+
+  const onTablistKeyDown = (e: React.KeyboardEvent): void => {
+    const idx = TABS.indexOf(active);
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      activateTab(idx + 1);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      activateTab(idx - 1);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      activateTab(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      activateTab(TABS.length - 1);
+    }
+  };
 
   return (
     <section
@@ -41,20 +71,24 @@ export function AboutSection(): ReactNode {
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
       </div>
 
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <div className="grid w-full items-start gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-12">
-          {/* ── left : condensed intro (stays short so Contact isn't pushed far) ── */}
+      <div className="about-shell relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-12">
+        <div className="about-grid grid w-full items-start gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-10">
+            {/* ── left : condensed intro — sticky on desktop so the story
+              stays visible while tab content scrolls beside it.
+              Height budget: eyebrow + h2 + copy + chips + links ≈ 370px,
+              right column ≈ 375px → section ≈ 470px, fits ≥520px viewports.
+              Shorter screens get .about-shell tightening in globals.css. */}
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-start gap-5"
+            className="flex flex-col items-start gap-5 lg:sticky lg:top-28 lg:self-start"
           >
             <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
               About
             </p>
-            <h2 className="font-heading text-[clamp(1.75rem,3vw+1rem,2.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-text-primary">
+            <h2 data-pager-focus tabIndex={-1} className="font-heading text-[clamp(1.75rem,3vw+1rem,2.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-text-primary">
               Frontend craft,
               <br />
               full-stack ownership.
@@ -109,28 +143,52 @@ export function AboutSection(): ReactNode {
             <div
               role="tablist"
               aria-label="About details"
+              onKeyDown={onTablistKeyDown}
               className="inline-flex max-w-full items-center gap-1 self-start overflow-x-auto rounded-full border border-border bg-bg-surface p-1.5 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
-              {TABS.map((tab) => {
+              {TABS.map((tab, idx) => {
                 const isActive = tab === active;
                 return (
                   <button
                     key={tab}
+                    ref={(el) => {
+                      tabRefs.current[idx] = el;
+                    }}
                     type="button"
                     role="tab"
+                    id={`about-tab-${tab}`}
                     aria-selected={isActive}
+                    aria-controls="about-panel"
+                    tabIndex={isActive ? 0 : -1}
                     onClick={() => setActive(tab)}
                     className={`relative shrink-0 cursor-pointer rounded-full px-4 py-2 font-heading text-[13px] font-medium whitespace-nowrap transition-colors sm:text-sm ${
-                      isActive ? "bg-accent text-text-on-accent shadow-[0_0_20px_var(--accent-ring)]" : "text-text-secondary hover:text-text-primary"
-                    }`}
+                      isActive
+                        ? "text-text-on-accent"
+                        : "text-text-secondary hover:text-text-primary"
+                    } ${isActive && reduceMotion ? "bg-accent shadow-[0_0_20px_var(--accent-ring)]" : ""}`}
                   >
-                    {tab}
+                    {/* sliding pill — the section's signature micro-motion,
+                        static fill when reduced motion is preferred */}
+                    {isActive && !reduceMotion && (
+                      <motion.span
+                        aria-hidden="true"
+                        layoutId="about-tab-pill"
+                        transition={{ type: "spring", stiffness: 420, damping: 36 }}
+                        className="absolute inset-0 rounded-full bg-accent shadow-[0_0_20px_var(--accent-ring)]"
+                      />
+                    )}
+                    <span className="relative z-10">{tab}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="min-h-[300px]">
+            <div
+              role="tabpanel"
+              id="about-panel"
+              aria-labelledby={`about-tab-${active}`}
+              className="min-h-[280px]"
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active}

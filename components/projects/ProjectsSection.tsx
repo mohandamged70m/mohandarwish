@@ -1,20 +1,19 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FILTER_CATEGORIES } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
-import { ProjectsCarousel } from "./ProjectsCarousel";
+import { ProjectCard } from "./ProjectCard";
 import { DeveloperTab } from "./DeveloperTab";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { useProjects } from "@/hooks/useProjects";
 import { useDeveloperRepos } from "@/hooks/useDeveloperRepos";
 
 export default function ProjectsSection() {
-  const sectionRef = useRef<HTMLElement>(null);
   const [active, setActive] = useState<FilterCategory>("Projects");
   const { projects, loading } = useProjects();
   const { repos: devRepos } = useDeveloperRepos();
@@ -39,7 +38,6 @@ export default function ProjectsSection() {
 
   return (
     <section
-      ref={sectionRef}
       id="projects"
       aria-label="Projects"
       className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary scroll-mt-20"
@@ -97,17 +95,38 @@ export default function ProjectsSection() {
           )}
         </div>
 
-        {/* carousel — FULL BLEED frameless: viewport owns gutters, not section container */}
+        {/* showcase grid — Swiss minimal, zero horizontal scroll: 1 / 2 / 3
+            columns with a lead card spanning two for editorial rhythm */}
         {!isDeveloper && filtered.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
-            className="w-full max-w-full min-w-0 overflow-hidden"
-          >
-            <ProjectsCarousel projects={filtered} active={active} sectionRef={sectionRef} />
-          </motion.div>
+          <div className="mx-auto w-full max-w-7xl min-w-0 px-4 sm:px-6 lg:px-8">
+            <div
+              role="list"
+              aria-label="Featured projects"
+              className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {filtered.map((project, i) => (
+                <motion.div
+                  key={project.id}
+                  role="listitem"
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{
+                    duration: 0.6,
+                    ease: [0.22, 1, 0.36, 1],
+                    delay: (i % 3) * 0.08,
+                  }}
+                  className={i === 0 && filtered.length >= 4 ? "sm:col-span-2" : undefined}
+                >
+                  <ProjectCard
+                    project={project}
+                    featured={active === "Projects" && project.featured}
+                    fluid
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* developer — full profile from components/developer/ (stats, graph, streak, repos) */}

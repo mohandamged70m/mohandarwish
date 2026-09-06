@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ScaleUnblur } from "../ui/motion-primitives";
 import { PortraitMorph } from "./portrait-morph";
 import { BookButton } from "@/components/booking/BookButton";
+import { requestSectionNavigate, useSectionTransition } from "@/components/transitions";
 import { doc, onSnapshot } from "@/lib/dash-db";
 import { db } from "@/lib/dash-db";
 
@@ -18,6 +19,9 @@ const STOCK_HERO = "images.unsplash.com";
 
 const HeroSection = () => {
   const { resolvedTheme } = useTheme();
+  const { activeId, cycle } = useSectionTransition();
+  // Replays the split-text entrance whenever the pager returns to hero.
+  const heroReplayKey = activeId === "hero" ? cycle : undefined;
   // Whatever photo the owner last saved in the dashboard (Settings → Account:
   // profile photo, or the light/dark hero image) wins over the static files.
   const [accountPhoto, setAccountPhoto] = useState<string | null>(null);
@@ -71,9 +75,10 @@ const HeroSection = () => {
           <div className="flex flex-col items-start gap-6 text-left lg:pr-2">
             {/* heading */}
             <div className="w-full space-y-4">
-              <h1 className="font-heading font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
+              <h1 data-pager-focus tabIndex={-1} className="font-heading font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
                 <TextAnimated
                   text="Hi, I'm Mohand Darwish"
+                  replayKey={heroReplayKey}
                   className="block text-left font-bold leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,5vw+0.75rem,3.75rem)]"
                   stagger={18}
                   duration={260}
@@ -91,6 +96,7 @@ const HeroSection = () => {
               <p className="pt-1 font-heading text-base text-text-secondary sm:text-lg">
                 <TextAnimated
                   text="Full-stack engineer, frontend-leaning — clean architecture, fast UIs, systems that scale."
+                  replayKey={heroReplayKey}
                   className="block text-left font-heading font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
                   startDelay={280}
                   stagger={16}
@@ -114,10 +120,10 @@ const HeroSection = () => {
                 size="lg"
                 className="min-w-[152px] w-full sm:w-auto"
                 aria-label="View projects — scroll to work"
-                onClick={() => {
-                  document
-                    .getElementById("projects")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                onClick={(e) => {
+                  // Keyboard Enter (detail 0) moves focus to the section
+                  // heading; pointer users keep focus where it is.
+                  requestSectionNavigate("projects", e.detail === 0);
                 }}
               >
                 View projects

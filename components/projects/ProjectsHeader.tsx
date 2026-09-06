@@ -36,7 +36,7 @@ export function ProjectsHeader({ active = "Projects", projectsCount, devCount }:
               )}
             </span>
           </Eyebrow>
-          <h2 className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
+          <h2 data-pager-focus tabIndex={-1} className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
             Code in the open<span aria-hidden className="text-accent">.</span>
           </h2>
           <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
@@ -58,7 +58,7 @@ export function ProjectsHeader({ active = "Projects", projectsCount, devCount }:
               )}
             </span>
           </Eyebrow>
-          <h2 className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
+          <h2 data-pager-focus tabIndex={-1} className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
             Selected work<span aria-hidden className="text-accent">.</span>
           </h2>
           <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">

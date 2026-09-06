@@ -45,7 +45,7 @@ export function SmoothScroll({
     gsap.registerPlugin(ScrollTrigger);
 
     const lenis = new Lenis(LENIS_OPTIONS as never);
-    // expose for vertical→horizontal sync (ProjectsCarousel) — optional velocity scaling
+    // expose for section components that need programmatic scroll — optional velocity scaling
     (window as unknown as { __lenis?: unknown }).__lenis = lenis;
 
     // Sync Lenis → ScrollTrigger so pinned scrub stays in sync with smooth scroll

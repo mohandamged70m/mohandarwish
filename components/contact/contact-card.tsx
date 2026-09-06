@@ -49,7 +49,7 @@ export function ContactCard(): ReactNode {
               <div className="relative grid gap-8 p-6 sm:gap-10 sm:p-7 md:grid-cols-[1.25fr_0.9fr] md:items-stretch md:gap-6 md:p-6">
                 <div className="flex flex-col gap-5">
                   <div className="space-y-3">
-                    <h2 className="font-heading font-semibold leading-[0.95] tracking-tight text-text-primary text-[clamp(2rem,4vw+1rem,3.25rem)]">
+                    <h2 data-pager-focus tabIndex={-1} className="font-heading font-semibold leading-[0.95] tracking-tight text-text-primary text-[clamp(2rem,4vw+1rem,3.25rem)]">
                       Let&rsquo;s build
                     </h2>
                     <p className="max-w-[36ch] font-body text-[16px] leading-[1.5] tracking-tight text-text-secondary sm:text-[17px]">
