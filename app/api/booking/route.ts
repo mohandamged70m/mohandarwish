@@ -4,7 +4,6 @@ import { EMAIL_RE, getOffsetFromUTCString, formatDateDDMMYYYY } from "@/lib/book
 import { bookingGuestHtml, bookingOwnerHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
-import { isAdminRequest } from "@/lib/dash-admin";
 
 type Body = {
   name?: string;
@@ -160,7 +159,11 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (!(await isAdminRequest(req))) {
+  const url = new URL(req.url);
+  const token = url.searchParams.get("admin");
+  const headerToken = req.headers.get("x-admin-token");
+  const adminToken = headerToken || token;
+  if (!process.env.ADMIN_TOKEN || adminToken !== process.env.ADMIN_TOKEN) {
     // public not allowed to list PII
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

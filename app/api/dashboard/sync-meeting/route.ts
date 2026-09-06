@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { isAdminRequest } from "@/lib/dash-admin";
 
 // Callable: syncMeeting — calendar sync via the Apps Script bridge
 // (same protocol the booking API route already uses).
@@ -8,8 +7,13 @@ import { isAdminRequest } from "@/lib/dash-admin";
 //   update: { action:'update', eventId?, name?, email?, reason?, startTime, endTime }
 //   create: { action:'create', name?, email?, reason?, startTime, endTime }
 
+function checkAuth(req: Request): boolean {
+  const token = req.headers.get("x-admin-token");
+  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
+}
+
 export async function POST(req: Request) {
-  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body?.action) return NextResponse.json({ error: "action required" }, { status: 400 });
 

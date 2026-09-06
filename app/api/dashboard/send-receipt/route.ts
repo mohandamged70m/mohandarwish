@@ -2,14 +2,18 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFrom } from "@/lib/resend";
 import { supabaseServer } from "@/lib/supabase/server";
-import { isAdminRequest } from "@/lib/dash-admin";
 
 // Callable: sendReceipt — { to, subject, html, meta:{receiptNo,currency,total,balance,projectIds,projectNames} }
 // Sends via Resend, then appends the sent-receipt row to Treasury/receipts
 // (the dashboard_docs doc the Treasury tab reads).
 
+function checkAuth(req: Request): boolean {
+  const token = req.headers.get("x-admin-token");
+  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
+}
+
 export async function POST(req: Request) {
-  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => null)) as {
     to?: string;
     subject?: string;

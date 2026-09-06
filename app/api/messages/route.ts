@@ -4,7 +4,6 @@ import { EMAIL_RE } from "@/lib/booking";
 import { emailTemplate, escHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
-import { isAdminRequest } from "@/lib/dash-admin";
 
 export async function POST(req: Request) {
   let body: { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean; files?: { name: string; url: string }[] } | null = null;
@@ -56,7 +55,8 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const token = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
+  if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const supabase = supabaseServer();
   const { data, error } = await supabase.from("messages").select("*").order("created_at", { ascending: false });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

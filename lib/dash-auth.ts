@@ -1,9 +1,8 @@
-// Firebase-auth compatible shim over the NextAuth dashboard session.
+// Firebase-auth compatible shim over the ADMIN_TOKEN session.
 //
-// The dashboard components were written against Firebase Auth. The dashboard
-// now logs in with email+password via NextAuth (see lib/auth.ts); this module
-// lets the copy-pasted components keep calling onAuthStateChanged(appAuth(), cb)
-// unchanged — the session is verified against NextAuth's session endpoint.
+// The old dashboard gated everything on Firebase Auth. Here the dashboard page
+// verifies ADMIN_TOKEN against /api/booking; this module lets the copy-pasted
+// components keep calling onAuthStateChanged(appAuth(), cb) unchanged.
 
 export interface DashUser {
   uid: string;
@@ -14,15 +13,14 @@ export function appAuth(): { __dash: true } {
   return { __dash: true };
 }
 
-async function verifySession(): Promise<DashUser | null> {
+async function verifyToken(): Promise<boolean> {
   try {
-    const r = await fetch("/api/auth/session");
-    if (!r.ok) return null;
-    const s = (await r.json()) as { user?: { email?: string } };
-    if (!s?.user) return null;
-    return { uid: "admin", email: s.user.email ?? null };
+    const token = localStorage.getItem("dashboard_token") ?? "";
+    if (!token) return false;
+    const r = await fetch("/api/booking", { headers: { "x-admin-token": token } });
+    return r.ok;
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -32,20 +30,20 @@ export function onAuthStateChanged(
   cb: (user: DashUser | null) => void
 ): () => void {
   let alive = true;
-  verifySession().then((user) => {
+  verifyToken().then((ok) => {
     if (!alive) return;
-    cb(user);
+    cb(ok ? { uid: "admin", email: null } : null);
   });
-  // Re-verify when the tab regains focus (login/logout in another tab).
-  const onFocus = () => {
-    verifySession().then((user) => {
+  const onStorage = (e: StorageEvent) => {
+    if (e.key !== "dashboard_token") return;
+    verifyToken().then((ok) => {
       if (!alive) return;
-      cb(user);
+      cb(ok ? { uid: "admin", email: null } : null);
     });
   };
-  window.addEventListener("focus", onFocus);
+  window.addEventListener("storage", onStorage);
   return () => {
     alive = false;
-    window.removeEventListener("focus", onFocus);
+    window.removeEventListener("storage", onStorage);
   };
 }
