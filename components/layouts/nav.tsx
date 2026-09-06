@@ -185,11 +185,42 @@ export function Nav(): ReactNode {
         return;
       }
       if (pathname !== "/") return;
-      setCurrentHash(window.location.hash || "#hero");
     };
     syncFromLocation();
     window.addEventListener("hashchange", syncFromLocation);
     return () => window.removeEventListener("hashchange", syncFromLocation);
+  }, [pathname]);
+
+  // Clean-URL compat: if we land with a legacy section hash (bookmark or
+  // cross-page link), scroll to it once then strip it from the address bar.
+  // Cross-page nav stores its target in sessionStorage instead (see below).
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const pending = sessionStorage.getItem("scroll-target");
+    const rawHash = window.location.hash.replace("#", "");
+    const target = pending || rawHash;
+    if (
+      !target ||
+      (target !== "hero" &&
+        target !== "projects" &&
+        target !== "about" &&
+        target !== "booking")
+    ) {
+      return;
+    }
+    sessionStorage.removeItem("scroll-target");
+    if (target === "booking") return; // BookingHashHandler owns this one
+    // Wait a tick so sections are mounted, then scroll without touching the URL.
+    const id = requestAnimationFrame(() => {
+      document
+        .getElementById(target)
+        ?.scrollIntoView({ behavior: "instant" as ScrollBehavior, block: "start" });
+      setCurrentHash(`#${target}`);
+    });
+    if (rawHash) {
+      history.replaceState(null, "", window.location.pathname);
+    }
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   // scroll-spy on the one-pager — pill moves as hero/projects/about pass by
@@ -263,27 +294,30 @@ export function Nav(): ReactNode {
     e: React.MouseEvent<HTMLAnchorElement>,
     item: NavItem
   ): void => {
-    // All nav items are now one-page anchors. #booking opens the booking
-    // modal via BookingHashHandler; the rest smooth-scroll to sections.
+    // Clean URLs: nav never writes to the address bar. Sections scroll
+    // silently (pill follows via scroll-spy); booking opens via event.
     e.preventDefault();
     setMobileOpen(false);
     const id = item.href.slice(1);
     if (id === "booking") {
       if (pathname !== "/") {
-        window.location.href = `/#booking`;
+        // cross-page: land on "/" then open the modal, URL stays "/"
+        sessionStorage.setItem("pending-booking", "1");
+        window.location.href = "/";
         return;
       }
-      window.location.hash = "#booking";
+      window.dispatchEvent(new CustomEvent("open-booking"));
       return;
     }
     if (pathname !== "/") {
-      window.location.href = `/${item.href}`;
+      // cross-page: land on "/" then scroll, URL stays "/"
+      sessionStorage.setItem("scroll-target", id);
+      window.location.href = "/";
       return;
     }
     document
       .getElementById(id)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.history.pushState(null, "", item.href);
     setCurrentHash(item.href);
   };
 
