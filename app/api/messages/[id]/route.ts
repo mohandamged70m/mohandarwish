@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { isAdminRequest } from "@/lib/dash-admin";
 
-function checkAuth(req: Request): boolean {
-  const t = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
-  return !!process.env.ADMIN_TOKEN && t === process.env.ADMIN_TOKEN;
-}
 export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
   const supabase = supabaseServer();
   const { error } = await supabase.from("messages").delete().eq("id", id);

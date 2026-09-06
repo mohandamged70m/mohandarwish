@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFrom } from "@/lib/resend";
+import { isAdminRequest } from "@/lib/dash-admin";
 
 // Callable: sendReply — { to, subject, html, attachments:[{name,url}], meta }
 // Sends via Resend. Attachments are fetched server-side (best-effort); if a
 // fetch fails the file link is appended to the body instead.
 
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
-
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => null)) as {
     to?: string;
     subject?: string;

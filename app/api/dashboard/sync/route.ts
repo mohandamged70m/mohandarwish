@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { isAdminRequest } from "@/lib/dash-admin";
 
 // Admin: mirror the site's real tables (bookings, messages, availability)
 // into the dashboard_docs the copy-pasted Canary UI reads:
 //   Settings/Canary { Meetings, Emails }  (extra doc fields preserved)
 //   Settings/Availability { workingDays, hours }
 // Called by the dashboard shell on mount + interval.
-
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
 
 type Booking = {
   id: string;
@@ -36,7 +32,7 @@ type Message = {
 };
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const supabase = supabaseServer();
 
   const [{ data: bookings }, { data: messages }, { data: avail }] = await Promise.all([

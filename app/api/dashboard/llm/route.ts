@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
 import { TOOL_SCHEMAS, type Provider } from "@/lib/llm";
+import { isAdminRequest } from "@/lib/dash-admin";
 
 // Server proxy for Spark (holds LLM_API_KEY so it never ships to the bundle).
 // Env: LLM_API_KEY (required), LLM_PROVIDER=openai|gemini (auto-detected from
 // key prefix when unset), LLM_MODEL (default per provider).
-
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
 
 function serverProvider(): Provider | null {
   const key = process.env.LLM_API_KEY;
@@ -25,7 +21,7 @@ function defaultModel(prov: Provider): string {
 }
 
 export async function GET(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const prov = serverProvider();
   const url = new URL(req.url);
   if (url.searchParams.get("action") === "models") {
@@ -63,7 +59,7 @@ type Body = {
 };
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const prov = serverProvider();
   const key = process.env.LLM_API_KEY;
   if (!prov || !key) {
