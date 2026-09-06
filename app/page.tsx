@@ -1,5 +1,6 @@
 import HeroSection from "@/components/hero/HeroSection";
 import ProjectsSection from "@/components/projects/ProjectsSection";
+import { AboutSection } from "@/components/about/AboutSection";
 import { ContactCard } from "@/components/contact/contact-card";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 
@@ -11,6 +12,9 @@ export default function Home() {
       </div>
       <div id="projects-wrap" className="flex min-h-0 w-full max-w-full min-w-0 flex-col justify-center overflow-hidden">
         <ProjectsSection />
+      </div>
+      <div id="about-wrap" className="flex w-full max-w-full min-w-0 flex-col justify-center overflow-hidden">
+        <AboutSection />
       </div>
       <div id="contact-wrap" className="flex w-full max-w-full min-w-0 flex-col justify-center overflow-hidden">
         <ContactCard />

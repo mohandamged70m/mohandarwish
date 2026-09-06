@@ -21,9 +21,9 @@ type NavItem = {
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "Projects", href: "/projects" },
-  { label: "About", href: "/about" },
+  { label: "Home", href: "#hero" },
+  { label: "Projects", href: "#projects" },
+  { label: "About", href: "#about" },
   { label: "Contact", href: "#booking" },
 ];
 
@@ -169,11 +169,52 @@ export function Nav(): ReactNode {
   const [hasMeasured, setHasMeasured] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const activeIndex = NAV_ITEMS.findIndex((item) =>
-    item.href === "/"
-      ? pathname === "/"
-      : pathname === item.href || pathname.startsWith(`${item.href}/`)
-  );
+  // One-pager: active pill follows the visible section (#hero/#projects/#about)
+  // via hash + scroll-spy. Full /projects and /about pages still exist, so map
+  // those paths back to their section for the pill.
+  const [currentHash, setCurrentHash] = useState<string>("#hero");
+
+  useEffect(() => {
+    const syncFromLocation = (): void => {
+      if (pathname === "/projects") {
+        setCurrentHash("#projects");
+        return;
+      }
+      if (pathname === "/about") {
+        setCurrentHash("#about");
+        return;
+      }
+      if (pathname !== "/") return;
+      setCurrentHash(window.location.hash || "#hero");
+    };
+    syncFromLocation();
+    window.addEventListener("hashchange", syncFromLocation);
+    return () => window.removeEventListener("hashchange", syncFromLocation);
+  }, [pathname]);
+
+  // scroll-spy on the one-pager — pill moves as hero/projects/about pass by
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const ids = ["hero", "projects", "about"];
+    const els = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (els.length === 0) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.target.id) {
+            setCurrentHash(`#${entry.target.id}`);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -55% 0px", threshold: 0 }
+    );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [pathname]);
+
+  const activeIndex = NAV_ITEMS.findIndex((item) => item.href === currentHash);
 
   // desktop pill measurement
   useLayoutEffect(() => {
@@ -222,11 +263,8 @@ export function Nav(): ReactNode {
     e: React.MouseEvent<HTMLAnchorElement>,
     item: NavItem
   ): void => {
-    const isHash = item.href.startsWith("#");
-    if (!isHash) {
-      setMobileOpen(false);
-      return;
-    }
+    // All nav items are now one-page anchors. #booking opens the booking
+    // modal via BookingHashHandler; the rest smooth-scroll to sections.
     e.preventDefault();
     setMobileOpen(false);
     const id = item.href.slice(1);
@@ -246,6 +284,7 @@ export function Nav(): ReactNode {
       .getElementById(id)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
     window.history.pushState(null, "", item.href);
+    setCurrentHash(item.href);
   };
 
   return (
@@ -273,7 +312,6 @@ export function Nav(): ReactNode {
             )}
             {NAV_ITEMS.map((item, index) => {
               const isActive = index === activeIndex;
-              const isHash = item.href.startsWith("#");
               return (
                 <li
                   key={item.href}
@@ -285,28 +323,7 @@ export function Nav(): ReactNode {
                   <Link
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
-                    onClick={(e) => {
-                      if (isHash) {
-                        e.preventDefault();
-                        const id = item.href.slice(1);
-                        if (id === "booking") {
-                          if (pathname !== "/") {
-                            window.location.href = `/#booking`;
-                            return;
-                          }
-                          window.location.hash = "#booking";
-                          return;
-                        }
-                        if (pathname !== "/") {
-                          window.location.href = `/${item.href}`;
-                          return;
-                        }
-                        document
-                          .getElementById(id)
-                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        window.history.pushState(null, "", item.href);
-                      }
-                    }}
+                    onClick={(e) => handleNavClick(e, item)}
                     className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1.5 text-sm font-medium font-heading transition-colors duration-300"
                   >
                     <span

@@ -42,7 +42,7 @@ export default function ProjectsSection() {
       ref={sectionRef}
       id="projects"
       aria-label="Projects"
-      className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary"
+      className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary scroll-mt-20"
     >
       {/* backdrop — lime glow + grid — true frameless: no border, max-width contained */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
