@@ -40,6 +40,9 @@ interface RawFirestoreContributor {
 interface ProjectContributorEntry {
     "Contributor Name"?: string;
     "Role at Project"?: string;
+    Image?: string;
+    "Social Accounts"?: Record<string, string>;
+    Id?: string | number;
 }
 
 interface ResolvedTag {
@@ -464,15 +467,27 @@ const DProjects = () => {
                         const name = c["Contributor Name"] || '';
                         const projectRole = c["Role at Project"];
 
-                        // Find full contributor data from availableContributors for images/links
+                        // Find full contributor data from availableContributors for images/links,
+                        // falling back to the snapshot embedded in the project doc itself
+                        // (so DB rows stay self-contained even if the global profile is deleted).
                         const fullContrib = availableContributors.find(cont =>
                             cont.name?.trim().toLowerCase() === name?.trim().toLowerCase()
                         );
+                        const embeddedSocials = c["Social Accounts"] || {};
 
                         contributors.push({
                             ...(fullContrib || {}),
+                            id: fullContrib?.id ?? c.Id ?? name,
                             name,
                             role: projectRole || (fullContrib ? fullContrib.role : 'Contributor'),
+                            image: fullContrib?.image || c.Image || undefined,
+                            socials: {
+                                github: (fullContrib?.links as Record<string, string> | undefined)?.Github ?? (fullContrib?.links as Record<string, string> | undefined)?.github ?? embeddedSocials.Github ?? '',
+                                linkedin: (fullContrib?.links as Record<string, string> | undefined)?.Linkedin ?? (fullContrib?.links as Record<string, string> | undefined)?.linkedin ?? embeddedSocials.Linkedin ?? '',
+                                facebook: (fullContrib?.links as Record<string, string> | undefined)?.Facebook ?? (fullContrib?.links as Record<string, string> | undefined)?.facebook ?? embeddedSocials.Facebook ?? '',
+                                instagram: (fullContrib?.links as Record<string, string> | undefined)?.Instagram ?? (fullContrib?.links as Record<string, string> | undefined)?.instagram ?? embeddedSocials.Instagram ?? '',
+                                portfolio: (fullContrib?.links as Record<string, string> | undefined)?.Portfolio ?? (fullContrib?.links as Record<string, string> | undefined)?.portfolio ?? embeddedSocials.Portfolio ?? '',
+                            },
                             // The "Real Role" from their profile
                             jobTitle: fullContrib ? fullContrib.role : 'Contributor'
                         });
@@ -672,22 +687,57 @@ const DProjects = () => {
                 }
             }
 
-            // 4. Prepare Tags Map
+            // 4. Prepare Tags Map (names only, backward-compat) + full Stack snapshot
+            // so the public site gets colors/icons without an extra Tags lookup.
             const tagsMap: Record<string, string> = {};
             data.tags.forEach((tag: TagData, idx: number) => {
                 tagsMap[(idx + 1).toString()] = tag.name;
             });
+            const stackSnapshot = data.tags.map((tag: TagData) => ({
+                Name: tag.name,
+                Color: tag.color || getTechColor(tag.name),
+                Icon: tag.iconSvg || getStackIcon(tag.name) || '',
+            }));
 
-            // 5. Prepare Contributors Map
-            const contributorsMap: Record<string, { "Contributor Name": string; "Role at Project": string }> = {};
+            // 5. Prepare Contributors Map — full snapshot (name + project role +
+            // profile image/socials/id) so the portfolio page can render
+            // contributors straight from the Projects/* doc in the database.
+            const contributorsMap: Record<
+                string,
+                {
+                    "Contributor Name": string;
+                    "Role at Project": string;
+                    Image?: string;
+                    "Social Accounts"?: Record<string, string>;
+                    Id?: string | number;
+                }
+            > = {};
             data.contributors.forEach((contrib: ContributorData, idx: number) => {
+                const image = typeof contrib.image === 'string' ? contrib.image : '';
+                const socials = contrib.socials as unknown as Record<string, string> | undefined;
+                const links = contrib.links as unknown as Record<string, string> | undefined;
                 contributorsMap[(idx + 1).toString()] = {
                     "Contributor Name": contrib.name,
-                    "Role at Project": contrib.role
+                    "Role at Project": contrib.role,
+                    ...(image ? { Image: image } : {}),
+                    ...((socials || links)
+                        ? {
+                            "Social Accounts": {
+                                Github: socials?.github ?? links?.github ?? '',
+                                Linkedin: socials?.linkedin ?? links?.linkedin ?? '',
+                                Facebook: socials?.facebook ?? links?.facebook ?? '',
+                                Instagram: socials?.instagram ?? links?.instagram ?? '',
+                                Portfolio: socials?.portfolio ?? links?.portfolio ?? '',
+                            },
+                        }
+                        : {}),
+                    ...(contrib.id !== undefined ? { Id: contrib.id } : {}),
                 };
             });
 
-            // 6. Construct Document Data
+            // 6. Construct Document Data — everything the dashboard holds for this
+            // project (tags, contributors, links, media, views, ordering) lands in
+            // the `dashboard_docs` row `Projects/<name>` + Supabase Storage files.
             const projectDoc = {
                 "Description": data.description,
                 "Live Link": data.liveLink,
@@ -696,6 +746,7 @@ const DProjects = () => {
                 "Repository Link": data.repoLink,
                 "Contributors": contributorsMap,
                 "Tags": tagsMap,
+                "Stack": stackSnapshot,
                 "Project Images": imageUrls,
                 "Views": {
                     "Github": Number(data.githubViews) || 0,

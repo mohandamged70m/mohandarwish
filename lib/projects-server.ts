@@ -2,9 +2,26 @@ import { supabaseServer } from "@/lib/supabase/server";
 import {
   mapDashboardDocToProject,
   sortProjects,
+  type ContributorDirectory,
   type DashboardProjectRow,
   type Project,
+  type TagDirectory,
 } from "@/Data/projects";
+
+async function getDirectories(): Promise<{ tags?: TagDirectory; contributors?: ContributorDirectory }> {
+  const supabase = supabaseServer();
+  const { data } = await supabase
+    .from("dashboard_docs")
+    .select("path,data")
+    .in("path", ["Tags/Tags", "Tags/Contributors"]);
+  let tags: TagDirectory | undefined;
+  let contributors: ContributorDirectory | undefined;
+  for (const row of (data ?? []) as { path: string; data: Record<string, unknown> }[]) {
+    if (row.path === "Tags/Tags") tags = (row.data ?? {}) as TagDirectory;
+    if (row.path === "Tags/Contributors") contributors = (row.data ?? {}) as ContributorDirectory;
+  }
+  return { tags, contributors };
+}
 
 export async function getProjectsServer(): Promise<Project[]> {
   const supabase = supabaseServer();
@@ -27,9 +44,10 @@ export async function getProjectsServer(): Promise<Project[]> {
     if (batch.length < page) break;
     from += page;
   }
+  const dirs = await getDirectories();
   const mapped = rows.map((r) => {
     const id = r.path.slice("Projects/".length);
-    return mapDashboardDocToProject(id, r.data ?? {});
+    return mapDashboardDocToProject(id, r.data ?? {}, dirs);
   });
   return sortProjects(mapped);
 }
@@ -43,5 +61,6 @@ export async function getProjectServer(id: string): Promise<Project | null> {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return mapDashboardDocToProject(id, (data.data ?? {}) as DashboardProjectRow);
+  const dirs = await getDirectories();
+  return mapDashboardDocToProject(id, (data.data ?? {}) as DashboardProjectRow, dirs);
 }

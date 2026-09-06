@@ -373,8 +373,43 @@ export function ProjectDetailContent({ project }: Props) {
               <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Category:</span> {project.category}</div>
               {project.year && <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Year:</span> {project.year}</div>}
               <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>ID:</span> {project.id}</div>
+              {typeof project.views === "number" && project.views > 0 && (
+                <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Views:</span> {project.views}</div>
+              )}
+              {project.downloadUrl && (
+                <div>
+                  <a href={project.downloadUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-primary)", fontWeight: 700, textDecoration: "none" }}>
+                    Download build
+                  </a>
+                </div>
+              )}
             </div>
           </GlassPanel>
+
+          {project.contributors && project.contributors.length > 0 && (
+            <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
+              <h4 style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
+                Team ({project.contributors.length})
+              </h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {project.contributors.map((c) => (
+                  <div key={`${c.name}-${c.role}`} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
+                    ) : (
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(163,230,53,0.15)", color: "var(--accent-primary)", fontWeight: 800 }}>
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
+                      <p style={{ margin: 0, fontSize: "0.75rem", color: "rgba(255,255,255,0.55)" }}>{c.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </GlassPanel>
+          )}
         </div>
       </div>
     </div>
