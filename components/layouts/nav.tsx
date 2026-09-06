@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ME } from "@/Data/me";
+import { requestSectionNavigate } from "@/components/transitions";
 import {
   useEffect,
   useLayoutEffect,
@@ -294,10 +295,14 @@ export function Nav(): ReactNode {
     e: React.MouseEvent<HTMLAnchorElement>,
     item: NavItem
   ): void => {
-    // Clean URLs: nav never writes to the address bar. Sections scroll
-    // silently (pill follows via scroll-spy); booking opens via event.
+    // Clean URLs: nav never writes to the address bar. Sections transition
+    // via the pager (curtain + slide); booking opens via event.
     e.preventDefault();
+    // Keep the Lenis anchor handler from racing the pager glide.
+    e.stopPropagation();
     setMobileOpen(false);
+    // Swallow section jumps while a curtain wipe is running.
+    if (document.documentElement.dataset.sectionTransition === "1") return;
     const id = item.href.slice(1);
     if (id === "booking") {
       if (pathname !== "/") {
@@ -315,9 +320,7 @@ export function Nav(): ReactNode {
       window.location.href = "/";
       return;
     }
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestSectionNavigate(id, e.detail === 0);
     setCurrentHash(item.href);
   };
 

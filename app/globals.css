@@ -492,6 +492,17 @@ section[id="contact"] {
   }
 }
 
+/* Short viewports — keep About fitted in one screen (pairs with the pager):
+   tighten shell padding + grid gap so the ~470px budget holds ~560px screens */
+@media (max-height: 720px) and (min-width: 1024px) {
+  #about .about-shell {
+    padding-block: 1.5rem !important;
+  }
+  #about .about-grid {
+    gap: 1.5rem !important;
+  }
+}
+
 /* Ultra-wide / 4K: cap content but keep section full-width */
 @media (min-width: 1920px) {
   #hero > section,
