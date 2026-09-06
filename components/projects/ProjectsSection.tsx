@@ -8,30 +8,34 @@ import { FILTER_CATEGORIES } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectsCarousel } from "./ProjectsCarousel";
+import { DeveloperTab } from "./DeveloperTab";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { useProjects } from "@/hooks/useProjects";
+import { useDeveloperRepos } from "@/hooks/useDeveloperRepos";
 
 export default function ProjectsSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [active, setActive] = useState<FilterCategory>("Best Works");
+  const [active, setActive] = useState<FilterCategory>("Projects");
   const { projects, loading } = useProjects();
+  const { repos: devRepos } = useDeveloperRepos();
 
-  // Homepage shows only featured (top 6 by Listing) for "Best Works"
+  // Homepage: Projects = featured (top 6 by Listing), Developer = GitHub featured repos
   const filtered = useMemo(() => {
-    if (active === "Best Works") return projects.filter((p) => p.featured);
-    return projects.filter((p) => p.category === active);
+    if (active === "Projects") return projects.filter((p) => p.featured);
+    return [];
   }, [active, projects]);
 
   const filterCounts = useMemo<Record<FilterCategory, number>>(
     () => ({
-      "Best Works": projects.filter((p) => p.featured).length,
-      Frontend: projects.filter((p) => p.category === "Frontend").length,
-      "Full-Stack": projects.filter((p) => p.category === "Full-Stack").length,
-      "Design System": projects.filter((p) => p.category === "Design System").length,
-      Tooling: projects.filter((p) => p.category === "Tooling").length,
+      Projects: projects.filter((p) => p.featured).length,
+      Developer: devRepos.length,
     }),
-    [projects]
+    [projects, devRepos]
   );
+
+  const isDeveloper = active === "Developer";
+  const showEmpty = !isDeveloper && !loading && filtered.length === 0;
+  const isLoading = isDeveloper ? false : loading;
 
   return (
     <section
@@ -51,39 +55,33 @@ export default function ProjectsSection() {
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
         {/* header block — constrained */}
         <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
-          {/* filter */}
+          {/* header — swaps copy with the tab so Projects / Developer each own their headline */}
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="flex w-full min-w-0 justify-center"
-          >
-            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
-          </motion.div>
-
-          {/* header */}
-          <motion.div
+            key={active}
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
             className="w-full min-w-0 overflow-hidden"
           >
-            <ProjectsHeader />
+            <ProjectsHeader
+              active={active}
+              projectsCount={projects.filter((p) => p.featured).length}
+              devCount={devRepos.length}
+            />
           </motion.div>
 
           <p className="sr-only" aria-live="polite">
-            Showing {filtered.length} projects for {active}
+            Showing {isDeveloper ? "developer profile" : `${filtered.length} projects`} for {active}
           </p>
 
-          {/* empty state — stays inside gutter */}
-          {!loading && filtered.length === 0 && (
+          {/* empty state — stays inside gutter (projects only; developer handles its own) */}
+          {showEmpty && (
             <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
               <p className="font-heading text-sm font-medium text-text-primary">
                 {projects.length === 0
                   ? "No projects yet — add one from the dashboard"
-                  : `No projects in ${active} — try Best Works`}
+                  : `No projects in ${active} — try Projects`}
               </p>
               <p className="font-body text-sm text-text-muted mt-1">
                 {projects.length === 0
@@ -92,7 +90,7 @@ export default function ProjectsSection() {
               </p>
             </div>
           )}
-          {loading && (
+          {isLoading && (
             <div className="w-full rounded-[16px] border border-border bg-bg-surface px-6 py-10 text-center">
               <p className="font-heading text-sm font-medium text-text-primary">Loading projects…</p>
             </div>
@@ -100,7 +98,7 @@ export default function ProjectsSection() {
         </div>
 
         {/* carousel — FULL BLEED frameless: viewport owns gutters, not section container */}
-        {filtered.length > 0 && (
+        {!isDeveloper && filtered.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -112,14 +110,31 @@ export default function ProjectsSection() {
           </motion.div>
         )}
 
-        {/* CTA — constrained */}
+        {/* developer — full profile from components/developer/ (stats, graph, streak, repos) */}
+        {isDeveloper && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
+            className="w-full max-w-full min-w-0 overflow-hidden"
+          >
+            <DeveloperTab />
+          </motion.div>
+        )}
+
+        {/* CTA + filter — constrained, centered bottom navbar */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.22 }}
-          className="mx-auto flex w-full max-w-7xl flex-col items-center gap-3 px-4 sm:px-6 lg:px-8 pt-2"
+          className="mx-auto flex w-full max-w-7xl flex-col items-center gap-5 px-4 sm:px-6 lg:px-8 pt-2"
         >
+          {/* filter navbar — center bottom */}
+          <div className="flex w-full min-w-0 justify-center">
+            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
+          </div>
           <Link href="/projects" aria-label="See all projects">
             <Button
               variant="secondary"

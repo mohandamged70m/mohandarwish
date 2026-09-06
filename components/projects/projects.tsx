@@ -6,25 +6,27 @@ import { FILTER_CATEGORIES } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectCard } from "./ProjectCard";
+import { DeveloperTab } from "./DeveloperTab";
 import { useProjects } from "@/hooks/useProjects";
+import { useDeveloperRepos } from "@/hooks/useDeveloperRepos";
 import type { ReactNode } from "react";
 
 export function Projects(): ReactNode {
-  const [active, setActive] = useState<FilterCategory>("Best Works");
+  const [active, setActive] = useState<FilterCategory>("Projects");
   const { projects, loading } = useProjects();
+  const { repos: devRepos } = useDeveloperRepos();
 
   const filtered = (() => {
-    if (active === "Best Works") return [...projects];
-    return projects.filter((p) => p.category === active);
+    if (active === "Projects") return [...projects];
+    return [];
   })();
 
   const counts: Record<FilterCategory, number> = {
-    "Best Works": projects.length,
-    Frontend: projects.filter((p) => p.category === "Frontend").length,
-    "Full-Stack": projects.filter((p) => p.category === "Full-Stack").length,
-    "Design System": projects.filter((p) => p.category === "Design System").length,
-    Tooling: projects.filter((p) => p.category === "Tooling").length,
+    Projects: projects.length,
+    Developer: devRepos.length,
   };
+
+  const isDeveloper = active === "Developer";
 
   const sectionRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -320,10 +322,12 @@ export function Projects(): ReactNode {
       <div className="flex w-full flex-col items-center gap-8">
         <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={counts} />
         <p className="sr-only" aria-live="polite">
-          Showing {filtered.length} projects for {active}
+          Showing {isDeveloper ? "developer profile" : `${filtered.length} projects`} for {active}
         </p>
 
-        {loading ? (
+        {isDeveloper ? (
+          <DeveloperTab />
+        ) : loading ? (
           <div className="w-full rounded-[16px] border border-border bg-bg-surface px-6 py-10 text-center">
             <p className="font-heading text-sm font-medium text-text-primary">Loading projects…</p>
           </div>
@@ -332,12 +336,12 @@ export function Projects(): ReactNode {
             <p className="font-heading text-sm font-medium text-text-primary">
               {projects.length === 0
                 ? "No projects yet — add one from the dashboard"
-                : `No projects in ${active} — try Best Works`}
+                : `No projects in ${active} — try Projects`}
             </p>
             <p className="font-body text-sm text-text-muted mt-1">
               {projects.length === 0
                 ? "Dashboard → Projects → Add Project, it appears here live."
-                : "Switch filter to see featured projects."}
+                : "Switch filter to see projects."}
             </p>
           </div>
         ) : (
@@ -447,7 +451,7 @@ export function Projects(): ReactNode {
         )}
 
         <span className="font-heading text-[11px] uppercase tracking-[0.14em] text-text-muted">
-          {filtered.length} projects · {active}
+          {isDeveloper ? devRepos.length : filtered.length} projects · {active}
         </span>
       </div>
     </section>

@@ -12,11 +12,8 @@ type Props = {
 };
 
 const defaultCounts: Record<FilterCategory, number> = {
-  "Best Works": 0,
-  Frontend: 0,
-  "Full-Stack": 0,
-  "Design System": 0,
-  Tooling: 0,
+  Projects: 0,
+  Developer: 0,
 };
 
 export function ProjectFilter({ categories, active, onChange, counts = defaultCounts }: Props) {

@@ -527,3 +527,49 @@ section[id="contact"] {
 .md table { border-collapse: collapse; margin: 0.5em 0; width: 100%; font-size: 0.8rem; }
 .md th, .md td { border: 1px solid var(--input-border); padding: 0.35em 0.6em; text-align: left; }
 .md blockquote { border-left: 3px solid var(--accent-primary); margin: 0.5em 0; padding: 0.2em 0 0.2em 0.8em; color: var(--text-secondary); }
+
+/* ── Developer tab (components/developer/) ── */
+.page-padding { width: 100%; max-width: 80rem; margin-inline: auto; padding-inline: 1rem; }
+@media (min-width: 640px) { .page-padding { padding-inline: 1.5rem; } }
+@media (min-width: 1024px) { .page-padding { padding-inline: 2rem; } }
+
+.dev-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 768px) { .dev-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.dev-repos-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 640px) { .dev-repos-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .dev-repos-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+.dev-bottom-row { display: flex; flex-direction: column; gap: 32px; }
+@media (min-width: 900px) { .dev-bottom-row { flex-direction: row; align-items: flex-start; } }
+.dev-streak-col { display: flex; flex-direction: column; align-items: center; }
+@media (min-width: 900px) { .dev-streak-col { width: 180px; } }
+
+.github-stat-card { background: var(--section-bg); border: 1px solid var(--section-border); box-shadow: var(--section-shadow); }
+.featured-repo-card:hover { background: var(--section-bg); border-color: var(--accent-primary); transform: translateY(-2px); box-shadow: var(--section-shadow); }
+.featured-repo-card:hover .repo-rank-watermark { opacity: 0.1; }
+.featured-repo-card:hover .repo-arrow-box { background: var(--accent-primary); border-color: var(--accent-primary); }
+.featured-repo-card:hover .repo-arrow-icon { color: var(--text-on-accent); transform: translate(1px, -1px); }
+
+.commits-cell-skeleton { background: var(--input-bg); border: 1px solid var(--input-border); animation: commits-pulse 1.6s ease-in-out infinite; }
+@keyframes commits-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+/* Contribution graph levels — green scale that also reads on lime theme */
+:root, html.dark {
+  --commits-l0: rgba(128, 128, 128, 0.14);
+  --commits-l1: rgba(101, 163, 13, 0.28);
+  --commits-l2: rgba(101, 163, 13, 0.5);
+  --commits-l3: rgba(163, 230, 53, 0.72);
+  --commits-l4: #a3e635;
+  --tooltip-bg: rgba(20, 20, 22, 0.92);
+  --tooltip-text: #f5f5f5;
+}
+html.light {
+  --commits-l0: rgba(0, 0, 0, 0.07);
+  --commits-l1: rgba(101, 163, 13, 0.25);
+  --commits-l2: rgba(101, 163, 13, 0.48);
+  --commits-l3: rgba(101, 163, 13, 0.7);
+  --commits-l4: #4d7c0f;
+  --tooltip-bg: rgba(255, 255, 255, 0.96);
+  --tooltip-text: #1c1917;
+}

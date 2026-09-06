@@ -379,7 +379,7 @@ export function ProjectsCarousel({ projects, active }: Props) {
       >
         <div ref={trackRef} className="flex w-max max-w-none items-start gap-4 sm:gap-6 lg:gap-8">
           {visible.map((project) => {
-            const featured = active === "Best Works" && project.featured;
+            const featured = active === "Projects" && project.featured;
             return (
               <div
                 key={project.id}

@@ -1,29 +1,72 @@
-export function ProjectsHeader() {
+import type { FilterCategory } from "@/Data/projects";
+
+type Props = {
+  active?: FilterCategory;
+  projectsCount?: number;
+  devCount?: number;
+};
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-3 sm:gap-4 w-full max-w-full min-w-0 overflow-hidden">
-      <h2
-        className="font-heading font-black uppercase text-center leading-[0.9] tracking-[-0.055em] select-none [text-wrap:balance] break-words [overflow-wrap:anywhere] w-full max-w-full min-w-0 overflow-hidden
-                   text-[clamp(1.9rem,8vw,2rem)] sm:text-[3.2rem] lg:text-[4.6rem] xl:text-[5.4rem]"
-        aria-label="Personal Projects"
-      >
-        <span
-          className="relative inline max-w-full break-words [overflow-wrap:anywhere]"
-          style={{ WebkitTextStroke: "1px var(--border-strong)" }}
-        >
-          <span
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-r from-text-primary/[0.06] via-text-primary/[0.03] to-transparent bg-clip-text text-transparent opacity-60 dark:opacity-100"
-          >
-            PERSONAL PROJECTS
-          </span>
-          <span className="relative inline bg-gradient-to-b from-text-primary via-text-primary to-text-primary/75 bg-clip-text break-words [overflow-wrap:anywhere]">
-            PERSONAL PROJECTS
-          </span>
-        </span>
-      </h2>
-      <p className="font-body text-[13px] sm:text-sm leading-relaxed text-text-secondary text-center max-w-[52ch] text-pretty px-2 w-full">
-        A frameless, edge-to-edge selection — featured work peeks to hint there&apos;s more to explore.
-      </p>
+    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-bg-surface px-3 py-1.5 font-heading text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+      <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+      {children}
+    </span>
+  );
+}
+
+export function ProjectsHeader({ active = "Projects", projectsCount, devCount }: Props) {
+  const isDeveloper = active === "Developer";
+
+  return (
+    <div className="flex w-full min-w-0 flex-col items-center gap-4 text-center sm:gap-5">
+      {isDeveloper ? (
+        <>
+          <Eyebrow>
+            <span className="truncate">
+              <span className="text-text-secondary">~/developer</span>
+              <span aria-hidden className="mx-1.5 text-border-strong">
+                ·
+              </span>
+              <span>live from GitHub</span>
+              {typeof devCount === "number" && devCount > 0 && (
+                <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em] text-accent">
+                  {devCount} repos
+                </span>
+              )}
+            </span>
+          </Eyebrow>
+          <h2 className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
+            Code in the open<span aria-hidden className="text-accent">.</span>
+          </h2>
+          <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
+            Commits, streaks and handpicked repos — synced from GitHub and updated daily.
+          </p>
+        </>
+      ) : (
+        <>
+          <Eyebrow>
+            <span className="truncate">
+              <span className="text-text-secondary">~/projects</span>
+              {typeof projectsCount === "number" && projectsCount > 0 && (
+                <>
+                  <span aria-hidden className="mx-1.5 text-border-strong">
+                    ·
+                  </span>
+                  <span>{projectsCount} selected</span>
+                </>
+              )}
+            </span>
+          </Eyebrow>
+          <h2 className="max-w-[16ch] font-heading text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
+            Selected work<span aria-hidden className="text-accent">.</span>
+          </h2>
+          <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
+            Production apps, design systems and tooling — each with a live demo, source code and
+            build notes.
+          </p>
+        </>
+      )}
     </div>
   );
 }

@@ -15,12 +15,21 @@ export default function ProjectsPage(): ReactNode {
   return (
     <main id="main-content" className="flex flex-1 flex-col">
       <section className="mx-auto w-full max-w-7xl px-6 pt-24 pb-12 sm:px-6 lg:px-8 sm:pt-28 sm:pb-16 lg:pt-32">
-        <FadeIn className="flex flex-col items-center gap-4 text-center">
-          <h1 className="font-heading text-[2.5rem] font-bold leading-[0.95] tracking-[-0.02em] text-text-primary md:text-[3.25rem] lg:text-[3.5rem]">
-            All projects
+        <FadeIn className="flex flex-col items-center gap-4 text-center sm:gap-5">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-surface px-3 py-1.5 font-heading text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+            <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+            <span className="text-text-secondary">~/projects</span>
+            <span aria-hidden className="text-border-strong">
+              ·
+            </span>
+            <span>full archive</span>
+          </span>
+          <h1 className="max-w-[16ch] font-heading text-[clamp(2.25rem,6vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary">
+            Every build<span aria-hidden className="text-accent">.</span>
           </h1>
-          <p className="max-w-[42ch] font-body text-[16px] leading-[1.5] tracking-tight text-text-secondary sm:text-[17px]">
-            Full archive — not just the top 6. Every project, filterable by category.
+          <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] tracking-normal text-pretty text-text-secondary sm:text-base">
+            The complete archive — experiments, collaborations and production work, filterable by
+            category.
           </p>
         </FadeIn>
       </section>

@@ -1,5 +1,5 @@
 export type ProjectCategory = "Frontend" | "Full-Stack" | "Design System" | "Tooling";
-export type FilterCategory = "Best Works" | ProjectCategory;
+export type FilterCategory = "Projects" | "Developer";
 
 export type ProjectTag = {
   name: string;
@@ -44,11 +44,8 @@ export type Project = {
 };
 
 export const FILTER_CATEGORIES: readonly FilterCategory[] = [
-  "Best Works",
-  "Frontend",
-  "Full-Stack",
-  "Design System",
-  "Tooling",
+  "Projects",
+  "Developer",
 ] as const;
 
 const CATEGORIES: readonly ProjectCategory[] = [
