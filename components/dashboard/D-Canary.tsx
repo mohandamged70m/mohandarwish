@@ -940,7 +940,7 @@ const DCanary = () => {
         // auto-fit rather than a breakpoint: the two panels pair up as soon as there is
         // room for both and fall back to one column when there isn't, with no dead rail
         // down the side of the tab at any width.
-        <div className="canary-section w-full" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
+        <div className="canary-section w-full min-w-0" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.5rem', alignItems: 'start' }}>
             <div
                 className="canary-panel w-full flex flex-col gap-7 p-6 min-[460px]:p-8 rounded-[24px] min-[460px]:rounded-[32px] border shadow-sm"
                 style={{ backgroundColor: containerBg, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
@@ -1049,7 +1049,7 @@ const DCanary = () => {
         <div className="w-full h-full flex flex-col gap-6" style={{ opacity: 1 }}>
             <Loader isOpen={isLoading} isFullScreen={true} />
             {/* Header Navbar */}
-            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0 w-fit self-center min-[960px]:self-start">
+            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0 w-fit max-w-full self-center min-[960px]:self-start">
                 <button
                     onClick={() => handleTabChange('bookings')}
                     className={`

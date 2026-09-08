@@ -21,11 +21,11 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
     if (!show) return null;
     return (
         <div
-            className="fixed bottom-10 z-[5000] flex animate-slide-up pointer-events-none"
+            className="fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom))] z-[5000] flex animate-slide-up pointer-events-none max-w-[100vw] px-4"
             style={{ left: '50%', transform: 'translateX(calc(-50% + (var(--sidebar-width, 0px) / 2)))' }}
         >
             <div
-                className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-4 rounded-full shadow-2xl border pointer-events-auto"
+                className="flex items-center justify-center flex-wrap gap-3 sm:gap-4 p-2.5 sm:p-4 rounded-3xl sm:rounded-full shadow-2xl border pointer-events-auto max-w-[calc(100vw-2rem)]"
                 style={{
                     background: isDark ? 'rgba(10, 10, 12, 0.95)' : 'rgba(255, 255, 255, 0.95)',
                     backdropFilter: 'blur(32px)',

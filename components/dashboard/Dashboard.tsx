@@ -123,7 +123,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
-            className="w-full h-screen flex bg-bg-primary relative overflow-hidden touch-pan-y"
+            className="w-full h-dvh max-w-[100vw] flex bg-bg-primary relative overflow-hidden"
             // Belt-and-braces with the SmoothScroll /dashboard guard: Lenis must
             // never hijack wheel events inside the dashboard's own scrollers.
             data-lenis-prevent
@@ -134,9 +134,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             {/* Sidebar */}
             <aside
                 className={`
-                    h-full flex flex-col z-10 transition-all duration-300
+                    h-full flex flex-col shrink-0 z-10 transition-all duration-300
                     bg-[var(--navbar-bg)] backdrop-blur-xl border-r border-[var(--navbar-border)]
-                    ${isExtraSmall ? 'p-[12px_8px] gap-1' : isMobile ? 'p-[16px_12px] gap-2' : 'p-[24px_16px] gap-2'}
+                    ${isExtraSmall ? 'p-[12px_8px] gap-1 pb-[calc(12px+env(safe-area-inset-bottom))]' : isMobile ? 'p-[16px_12px] gap-2 pb-[calc(16px+env(safe-area-inset-bottom))]' : 'p-[24px_16px] gap-2'}
                 `}
                 style={{
                     width: sidebarWidth,
@@ -254,13 +254,13 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             {/* Main Content Area */}
             <main
                 className={`
-                    flex-1 h-full overflow-y-auto overflow-x-hidden relative min-w-0
-                    ${isExtraSmall ? 'p-3' : isSmall ? 'p-4' : 'p-8'}
+                    flex-1 h-full min-h-0 w-full overflow-y-auto overflow-x-hidden relative min-w-0 overscroll-contain
+                    ${isExtraSmall ? 'p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]' : isSmall ? 'p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]' : 'p-8'}
                 `}
             >
                 {/* Wide screens get a wider page: at 1200px the dashboard left a few hundred
                     pixels of dead margin on either side that no panel could reach. */}
-                <div className="max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto h-full flex flex-col w-full">
+                <div className="max-w-[1200px] xl:max-w-[1440px] 2xl:max-w-[1600px] mx-auto h-full flex flex-col w-full min-w-0">
                     {/* Header */}
                     <div
                         className={`
@@ -268,7 +268,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                             ${isExtraSmall ? 'mb-4' : isSmall ? 'mb-5' : 'mb-8'}
                         `}
                     >
-                        <div className={`flex items-center ${isExtraSmall ? 'gap-2' : 'gap-3'}`}>
+                        <div className={`flex items-center min-w-0 ${isExtraSmall ? 'gap-2' : 'gap-3'}`}>
                             {ActiveIcon && (
                                 <span className={`${headerIconBoxSize} flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0`}>
                                     <ActiveIcon size={headerIconSize} />
@@ -276,7 +276,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                             )}
                             <h1
                                 className={`
-                                    font-extrabold text-primary font-inter m-0
+                                    font-extrabold text-primary font-inter m-0 truncate min-w-0
                                     ${isExtraSmall ? 'text-xl' : isSmall ? 'text-2xl' : 'text-[2rem]'}
                                 `}
                             >

@@ -279,11 +279,11 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                        className={`project-modal-container w-full max-w-[95vw] lg:max-w-[1200px] h-[95vh] rounded-xl overflow-hidden flex flex-row shadow-2xl ${isDark ? 'bg-[#0a0a0a]' : 'bg-white'} border ${isDark ? 'border-white/10' : 'border-gray-200'}`}
+                        className={`project-modal-container w-full max-w-[95vw] lg:max-w-[1200px] h-[92dvh] lg:h-[95vh] rounded-xl overflow-hidden flex flex-col lg:flex-row shadow-2xl ${isDark ? 'bg-[#0a0a0a]' : 'bg-white'} border ${isDark ? 'border-white/10' : 'border-gray-200'}`}
                         style={{ transformOrigin: 'center' }}
                     >
                 {/* LEFT PANEL - Form (Hidden on mobile when preview is active) */}
-                <div className={`project-form-left ${activeView === 'preview' ? 'hidden-mobile' : ''} min-w-0 flex-1 flex flex-col overflow-hidden ${isDark ? 'bg-[#0a0a0a]' : 'bg-gray-50'}`}>
+                <div className={`project-form-left ${activeView === 'preview' ? 'hidden lg:flex' : 'flex'} min-w-0 flex-1 flex-col overflow-hidden ${isDark ? 'bg-[#0a0a0a]' : 'bg-gray-50'}`}>
                     {/* Header */}
                     <div className={`px-4 lg:px-8 py-4 lg:py-6 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}
                         style={{ background: isDark ? 'linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)' : 'linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)' }}>
@@ -305,7 +305,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                 </div>
 
                                 {/* Mobile View Toggle */}
-                                <div className="project-mobile-toggle flex">
+                                <div className="project-mobile-toggle flex lg:hidden">
                                     <button
                                         onClick={() => setActiveView('preview')}
                                         className={`px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-white/10 text-gray-400 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
@@ -619,8 +619,8 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                     </div>
 
                     {/* Footer */}
-                    <div className={`px-4 lg:px-8 py-4 border-t ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-50'}`}>
-                        <div className="flex items-center justify-between gap-3">
+                    <div className={`px-4 lg:px-8 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-50'}`}>
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
                             <button
                                 type="button"
                                 onClick={onClose}
@@ -641,7 +641,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 </div>
 
                 {/* RIGHT PANEL - Live Preview */}
-                <div className={`project-form-right ${activeView === 'edit' ? 'hidden-mobile' : ''} flex-col border-l min-w-0 ${isDark ? 'border-white/10 bg-[#080808]' : 'border-gray-200 bg-gray-100'}`}>
+                <div className={`project-form-right ${activeView === 'edit' ? 'hidden lg:flex' : 'flex'} flex-col flex-1 min-w-0 border-t lg:border-t-0 lg:border-l ${isDark ? 'border-white/10 bg-[#080808]' : 'border-gray-200 bg-gray-100'}`}>
                     <div className={`px-4 lg:px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}>
                         <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center`}
@@ -653,7 +653,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             </h3>
                         </div>
                         {activeView === 'preview' && (
-                            <div className="project-preview-edit-btn flex">
+                            <div className="project-preview-edit-btn flex lg:hidden">
                                 <button
                                     onClick={() => setActiveView('edit')}
                                     className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 bg-blue-500 text-white hover:scale-105"

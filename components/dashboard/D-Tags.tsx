@@ -432,7 +432,7 @@ const DTags = () => {
     const iconSize = isExtraSmall ? 16 : 18;
 
     return (
-        <div className="h-[85vh] flex flex-col" style={{ gap: gap, touchAction: 'pan-y' }}>
+        <div className="h-[85dvh] flex flex-col min-w-0" style={{ gap: gap, touchAction: 'pan-y' }}>
             <Loader isOpen={isLoading} isFullScreen={true} />
             {/* Header Actions */}
             <div className="flex justify-between items-center" style={{
@@ -535,7 +535,7 @@ const DTags = () => {
                                         {searchQuery ? "No tags match your search." : "No tags yet. Click the + button to add one."}
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 pb-12 overflow-visible">
+                                    <div className="grid grid-cols-1 min-[480px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 pb-12 overflow-visible">
                                         {filteredTags.map((tag: TagData) => (
                                             <div
                                                 key={tag.id}
@@ -599,7 +599,7 @@ const DTags = () => {
                                         {searchQuery ? "No contributors match your search." : "No contributors yet."}
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 pb-12 overflow-visible">
+                                    <div className="grid grid-cols-1 min-[480px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 pb-12 overflow-visible">
                                         {filteredContributors.map((contributor) => (
                                             <div
                                                 key={contributor.id}

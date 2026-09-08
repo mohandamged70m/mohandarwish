@@ -821,9 +821,9 @@ const DTreasury = () => {
     );
 
     return (
-        <div className="h-[85vh] flex flex-col gap-5 relative">
+        <div className="h-[85dvh] flex flex-col gap-5 relative min-w-0">
             {/* Navbar */}
-            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0">
+            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0 max-w-full">
                 {TABS.map(t => {
                     const Icon = t.icon;
                     const active = tab === t.id;

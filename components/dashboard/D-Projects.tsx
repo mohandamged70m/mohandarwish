@@ -851,8 +851,8 @@ const DProjects = () => {
                 </button>
             </div>
             {/* Projects Table */}
-            <div className="flex-1 glass-panel flex flex-col overflow-hidden">
-                <div className="flex-1 overflow-auto custom-scrollbar">
+            <div className="flex-1 glass-panel flex flex-col overflow-hidden min-w-0">
+                <div className="flex-1 overflow-auto custom-scrollbar overscroll-x-contain [touch-action:pan-x_pan-y] [-webkit-overflow-scrolling:touch]">
                     {/* Header */}
                     <div className="grid p-4 border-b text-sec font-semibold text-sm" style={{
                         gridTemplateColumns: `${dragWidth} ${tableColumns}`,

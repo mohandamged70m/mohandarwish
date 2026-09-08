@@ -1179,7 +1179,7 @@ export default function DSettings() {
             )}
 
             {/* Tabs */}
-            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0">
+            <div className="glass-surface p-1.5 rounded-xl flex gap-2 overflow-x-auto shrink-0 max-w-full">
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;

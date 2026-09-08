@@ -580,7 +580,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             <button
                 onClick={() => setOpen(o => !o)}
                 aria-label="AI assistant"
-                className={`fixed bottom-5 right-5 z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[#15151c]/90 border-white/10' : 'bg-white/90 border-black/10'} backdrop-blur-xl`}
+                className={`fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-[max(1.25rem,calc(1.25rem+env(safe-area-inset-right)))] z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[#15151c]/90 border-white/10' : 'bg-white/90 border-black/10'} backdrop-blur-xl`}
                 style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}
             >
                 <Sparkles ref={iconRef} size={26} style={{ filter: 'drop-shadow(0 0 7px)' }} />
@@ -597,7 +597,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
             {/* Chat modal */}
             {open && createPortal(
-                <div className="fixed bottom-24 right-5 z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-3xl border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100vh - 8rem))', background: isDark ? 'rgba(15,15,20,0.96)' : 'rgba(255,255,255,0.97)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', backdropFilter: 'blur(20px)' }}>
+                <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-[max(1.25rem,calc(1.25rem+env(safe-area-inset-right)))] z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-3xl border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100dvh - 8rem))', background: isDark ? 'rgba(15,15,20,0.96)' : 'rgba(255,255,255,0.97)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', backdropFilter: 'blur(20px)' }}>
                     {/* Header */}
                     <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--section-border)]">
                         <div className="flex items-center gap-2.5 min-w-0">
