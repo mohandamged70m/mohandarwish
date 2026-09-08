@@ -61,7 +61,7 @@ const HeroSection = () => {
     >
       {/* ── background ── */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        {/* lime glow — left */}
+        {/* wine glow — left */}
         <div className="absolute inset-y-0 left-0 w-[68%] bg-[radial-gradient(ellipse_at_18%_52%,var(--accent-ring)_0%,transparent_62%)] opacity-70" />
         {/* subtle grid — masked to left side only */}
         <div className="absolute inset-0 opacity-[0.035] [mask-image:radial-gradient(ellipse_at_22%_50%,black_42%,transparent_72%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:32px_32px]" />
@@ -75,7 +75,7 @@ const HeroSection = () => {
           <div className="flex flex-col items-start gap-6 text-left lg:pr-2">
             {/* heading */}
             <div className="w-full space-y-4">
-              <h1 data-pager-focus tabIndex={-1} className="font-heading font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
+              <h1 data-pager-focus tabIndex={-1} className="font-display font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
                 <TextAnimated
                   text="Hi, I'm Mohand Darwish"
                   replayKey={heroReplayKey}
@@ -93,11 +93,11 @@ const HeroSection = () => {
                 />
               </div>
 
-              <p className="pt-1 font-heading text-base text-text-secondary sm:text-lg">
+              <p className="pt-1 font-body text-base text-text-secondary sm:text-lg">
                 <TextAnimated
                   text="Full-stack engineer, frontend-leaning — clean architecture, fast UIs, systems that scale."
                   replayKey={heroReplayKey}
-                  className="block text-left font-heading font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
+                  className="block text-left font-body font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
                   startDelay={280}
                   stagger={16}
                   duration={260}
@@ -132,7 +132,7 @@ const HeroSection = () => {
 
             {/* meta */}
             <div className="flex flex-wrap justify-start gap-2 pt-2 font-heading text-xs text-text-muted">
-              <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-bg-surface px-3 py-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-bg-surface px-3 py-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 Alexandria, Egypt
               </span>

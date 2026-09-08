@@ -85,10 +85,10 @@ export function AboutSection(): ReactNode {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-start gap-5 lg:sticky lg:top-28 lg:self-start"
           >
-            <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">
+            <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-text">
               About
             </p>
-            <h2 data-pager-focus tabIndex={-1} className="font-heading text-[clamp(1.75rem,3vw+1rem,2.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-text-primary">
+            <h2 data-pager-focus tabIndex={-1} className="font-display text-[clamp(1.75rem,3vw+1rem,2.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-text-primary">
               Frontend craft,
               <br />
               full-stack ownership.
@@ -105,18 +105,18 @@ export function AboutSection(): ReactNode {
               </p>
             </div>
             <div className="flex flex-wrap gap-2 font-heading text-xs text-text-muted">
-              <span className="inline-flex items-center gap-1.5 rounded-pill border border-border bg-bg-surface px-3 py-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-bg-surface px-3 py-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 {ME.location} · {ME.timezone}
               </span>
-              <span className="inline-flex items-center rounded-pill border border-border bg-bg-surface px-3 py-1.5">
+              <span className="inline-flex items-center rounded-sm border border-border bg-bg-surface px-3 py-1.5">
                 {ME.availability}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-4 pt-1 font-heading text-sm">
               <Link
                 href="/about"
-                className="focus-ring group inline-flex items-center gap-1.5 font-medium text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent"
+                className="focus-ring group inline-flex items-center gap-1.5 font-medium text-accent-text underline decoration-accent/30 underline-offset-4 hover:decoration-accent"
               >
                 Read full story
                 <span aria-hidden className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">→</span>
@@ -125,7 +125,7 @@ export function AboutSection(): ReactNode {
                 href={ME.cvUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="focus-ring text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                className="focus-ring text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent"
               >
                 Download CV
               </a>
@@ -144,7 +144,7 @@ export function AboutSection(): ReactNode {
               role="tablist"
               aria-label="About details"
               onKeyDown={onTablistKeyDown}
-              className="inline-flex max-w-full items-center gap-1 self-start overflow-x-auto rounded-full border border-border bg-bg-surface p-1.5 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="inline-flex max-w-full items-center gap-1 self-start overflow-x-auto rounded-md border border-border bg-bg-surface p-1.5 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             >
               {TABS.map((tab, idx) => {
                 const isActive = tab === active;
@@ -161,7 +161,7 @@ export function AboutSection(): ReactNode {
                     aria-controls="about-panel"
                     tabIndex={isActive ? 0 : -1}
                     onClick={() => setActive(tab)}
-                    className={`relative shrink-0 cursor-pointer rounded-full px-4 py-2 font-heading text-[13px] font-medium whitespace-nowrap transition-colors sm:text-sm ${
+                    className={`relative shrink-0 cursor-pointer rounded-sm px-4 py-2 font-heading text-[13px] font-medium whitespace-nowrap transition-colors sm:text-sm ${
                       isActive
                         ? "text-text-on-accent"
                         : "text-text-secondary hover:text-text-primary"

@@ -30,7 +30,7 @@ const ROW_HEIGHT = 64;
 export function Education(): ReactNode {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
+      <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
         Education
       </h3>
       <div className="border-border bg-bg-surface relative rounded-[20px] border p-2 sm:p-4">

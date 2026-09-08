@@ -19,7 +19,7 @@ export function Badge({
 }): ReactNode {
   return (
     <span
-      className={`inline-flex items-center rounded-pill px-2.5 py-0.5 text-xs font-medium font-heading border ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-medium font-heading border ${variantClasses[variant]} ${className}`}
       {...props}
     >
       {children}

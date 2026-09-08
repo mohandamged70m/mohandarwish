@@ -362,7 +362,7 @@ export function Projects(): ReactNode {
               onClick={() => scrollBy(-1)}
               disabled={!canLeft}
               aria-disabled={!canLeft}
-              className={`absolute left-1 sm:left-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+              className={`absolute left-1 sm:left-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-md border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
                 ${canLeft ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
             >
               <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -374,7 +374,7 @@ export function Projects(): ReactNode {
               onClick={() => scrollBy(1)}
               disabled={!canRight}
               aria-disabled={!canRight}
-              className={`absolute right-1 sm:right-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
+              className={`absolute right-1 sm:right-2 top-[38%] z-20 hidden -translate-y-1/2 md:inline-flex h-10 w-10 items-center justify-center rounded-md border backdrop-blur-xl focus-ring transition-all duration-200 ease-out will-change-transform focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2
                 ${canRight ? "bg-bg-surface/80 border-border text-text-primary shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-accent hover:border-accent hover:text-text-on-accent hover:shadow-[0_0_20px_var(--accent-ring)] hover:scale-[1.04] active:scale-[0.98] cursor-pointer opacity-100" : "bg-bg-surface/40 border-border text-text-muted opacity-0 pointer-events-none"}`}
             >
               <ChevronRight className="h-5 w-5" aria-hidden="true" />
@@ -415,10 +415,10 @@ export function Projects(): ReactNode {
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-label="Carousel progress"
-                  className="relative h-1 w-full overflow-hidden rounded-pill bg-border"
+                  className="relative h-1 w-full overflow-hidden rounded-sm bg-border"
                 >
                   <div
-                    className="absolute inset-y-0 left-0 w-full origin-left rounded-pill bg-accent will-change-transform"
+                    className="absolute inset-y-0 left-0 w-full origin-left rounded-sm bg-accent will-change-transform"
                     style={{
                       transform: `scaleX(${progress})`,
                       transition: prefersReduced ? "none" : "transform 320ms cubic-bezier(0.22,1,0.36,1)",
@@ -436,7 +436,7 @@ export function Projects(): ReactNode {
                         aria-label={`Go to project ${i + 1} of ${filtered.length}`}
                         aria-current={isActive ? "true" : undefined}
                         onClick={() => scrollToIndex(i)}
-                        className={`h-1.5 rounded-pill transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
+                        className={`h-1.5 rounded-sm transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${isActive ? "w-6 bg-accent" : "w-1.5 bg-border-strong hover:bg-text-muted"}`}
                       />
                     );
                   })}

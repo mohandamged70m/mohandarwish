@@ -17,7 +17,7 @@ const ENTRIES: Entry[] = [
     company: "Freelance",
     role: "Frontend Engineer (Full-Stack)",
     period: "Jan 2023 – Present",
-    brand: "#A3E635",
+    brand: "#AD2831",
   },
   {
     company: "Open Source",
@@ -48,7 +48,7 @@ export function Experience(): ReactNode {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
+      <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
         Experience
       </h3>
       <div

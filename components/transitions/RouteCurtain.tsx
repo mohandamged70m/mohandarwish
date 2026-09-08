@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Awwwards-style curtain wipe: lime panel + dark trailing panel sweep up
+// Awwwards-style curtain wipe: wine panel + dark trailing panel sweep up
 // to reveal the new route. Enter-only (App Router has no exit hooks) —
 // on pathname change we cover instantly then slide away.
 export function RouteCurtain() {
@@ -49,7 +49,7 @@ export function RouteCurtain() {
             transition={{ duration: 0.4, ease: EASE, delay: 0.05 }}
             className='absolute inset-0 bg-bg-surface'
           />
-          {/* signature lime curtain */}
+          {/* signature wine curtain */}
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: '0%' }}

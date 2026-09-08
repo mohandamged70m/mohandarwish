@@ -81,14 +81,14 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
                     keeps its own H1 in the same terminal-eyebrow system. */}
                 {!embedded && (
                     <header className="flex flex-col items-start gap-4" style={{ marginBottom: 44 }}>
-                        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-surface px-3 py-1.5 font-heading text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
+                        <span className="inline-flex items-center gap-2 rounded-sm border border-border bg-bg-surface px-3 py-1.5 font-heading text-[11px] font-medium uppercase tracking-[0.18em] text-text-muted">
                             <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
                             <span className="text-text-secondary">~/developer</span>
                             <span aria-hidden className="text-border-strong">·</span>
                             <span>live from GitHub</span>
                         </span>
-                        <h1 className="font-heading text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-balance text-text-primary">
-                            Code in the open<span aria-hidden className="text-accent">.</span>
+                        <h1 className="font-display text-[clamp(2.25rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-balance text-text-primary">
+                            Code in the open<span aria-hidden className="text-accent-text">.</span>
                         </h1>
                         <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
                             Commits, streaks and handpicked repos — synced from GitHub and updated daily.

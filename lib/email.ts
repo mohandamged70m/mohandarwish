@@ -4,8 +4,8 @@ export function escHtml(s: string): string {
 
 export function emailTemplate(title: string, bodyHtml: string): string {
   return `<!doctype html><html><body style="margin:0;padding:32px;background:#0a0a0a;font-family:Inter,system-ui,sans-serif;color:#f5f5f5">
-  <div style="max-width:560px;margin:0 auto;background:#151515;border:1px solid #1f1f1f;border-radius:16px;overflow:hidden">
-    <div style="height:3px;background:linear-gradient(90deg,#a3e635,#65a30d)"></div>
+  <div style="max-width:560px;margin:0 auto;background:#250902;border:1px solid #640d14;border-radius:8px;overflow:hidden">
+    <div style="height:3px;background:linear-gradient(90deg,#ad2831,#800e13)"></div>
     <div style="padding:28px">
       <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#a1a1a1;margin-bottom:8px">Mohand Darwish</div>
       <h1 style="margin:0 0 12px;font-size:20px;line-height:1.2;color:#f5f5f5">${escHtml(title)}</h1>
@@ -24,20 +24,20 @@ export function bookingOwnerHtml(b: {
   meetingLink?: string;
 }): string {
   const linkBtn = b.meetingLink
-    ? `<a href="${escHtml(b.meetingLink)}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#a3e635;color:#0a0a0a;text-decoration:none;border-radius:9999px;font-weight:600;font-size:13px">Join Meet</a>`
+    ? `<a href="${escHtml(b.meetingLink)}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#ad2831;color:#fff7ed;text-decoration:none;border-radius:4px;font-weight:600;font-size:13px">Join Meet</a>`
     : "";
   return emailTemplate(
     `New booking: ${b.date} ${b.time}`,
     `<div><strong>${escHtml(b.name)}</strong> &lt;${escHtml(b.email)}&gt; booked <strong>${escHtml(b.date)} at ${escHtml(b.time)}</strong>.</div>
      ${b.reason ? `<div style="margin-top:8px">Reason: ${escHtml(b.reason)}</div>` : ""}
      ${linkBtn}
-     <div style="margin-top:12px"><a href="mailto:${escHtml(b.email)}" style="color:#a3e635">Reply to guest</a></div>`
+     <div style="margin-top:12px"><a href="mailto:${escHtml(b.email)}" style="color:#e8624a">Reply to guest</a></div>`
   );
 }
 
 export function bookingGuestHtml(b: { name: string; date: string; time: string; meetingLink?: string }): string {
   const linkBtn = b.meetingLink
-    ? `<a href="${escHtml(b.meetingLink)}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#a3e635;color:#0a0a0a;text-decoration:none;border-radius:9999px;font-weight:600;font-size:13px">Join Google Meet</a>`
+    ? `<a href="${escHtml(b.meetingLink)}" style="display:inline-block;margin-top:12px;padding:10px 16px;background:#ad2831;color:#fff7ed;text-decoration:none;border-radius:4px;font-weight:600;font-size:13px">Join Google Meet</a>`
     : "";
   return emailTemplate(
     "Your call is booked",

@@ -42,7 +42,7 @@ export default function ProjectsSection() {
       aria-label="Projects"
       className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary scroll-mt-20"
     >
-      {/* backdrop — lime glow + grid — true frameless: no border, max-width contained */}
+      {/* backdrop — wine glow + grid — true frameless: no border, max-width contained */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 mx-auto max-w-[1600px] bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-60" />
         <div className="absolute inset-0 opacity-[0.032] [mask-image:radial-gradient(ellipse_at_50%_12%,black_38%,transparent_78%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:28px_28px]" />
@@ -158,7 +158,7 @@ export default function ProjectsSection() {
             <Button
               variant="secondary"
               size="md"
-              className="group rounded-pill border-border px-8 min-h-11 hover:border-accent hover:text-accent hover:shadow-[0_0_20px_var(--accent-ring)] transition-all"
+              className="group rounded-sm border-border px-8 min-h-11 hover:border-accent hover:text-accent-text hover:shadow-[0_0_20px_var(--accent-ring)] transition-all"
             >
               See all
               <span

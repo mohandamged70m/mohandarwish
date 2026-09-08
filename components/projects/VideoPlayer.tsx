@@ -251,8 +251,8 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
                       top: 0,
                       height: "100%",
                       width: `${progress}%`,
-                      background: "linear-gradient(90deg, #a3e635 0%, #84cc16 100%)",
-                      boxShadow: "0 0 15px rgba(163,230,53,0.4)",
+                      background: "linear-gradient(90deg, #ad2831 0%, #800e13 100%)",
+                      boxShadow: "0 0 15px rgba(173,40,49,0.4)",
                       transition: isDragging ? "none" : "width 0.1s linear",
                       borderRadius: 4,
                     }}

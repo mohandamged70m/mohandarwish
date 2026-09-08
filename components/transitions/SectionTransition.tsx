@@ -389,7 +389,7 @@ function SectionCurtain({
         transition={{ duration: exiting ? 0.18 : 0.2, ease: EASE }}
         className="absolute inset-0 flex items-center justify-center overflow-hidden bg-accent"
       />
-      {/* signature lime curtain */}
+      {/* signature wine curtain */}
       <motion.div
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
