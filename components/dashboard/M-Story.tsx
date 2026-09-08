@@ -183,12 +183,12 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                     <Radio size={10} className="animate-pulse" /> READING NOW
                                 </span>
                             )}
-                            {story.Link && (
+                            {story.Link?.Id ? (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
                                     style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}>
-                                    <Link2 size={10} /> {story.Link.Name}
+                                    <Link2 size={10} /> {story.Link.Name || 'Shared link'}
                                 </span>
-                            )}
+                            ) : null}
                             {story.Legacy && (
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
                                     style={{ background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)', color: 'var(--text-muted)' }}>

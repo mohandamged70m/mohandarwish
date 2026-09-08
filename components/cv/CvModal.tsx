@@ -294,6 +294,8 @@ export function CvModal({ open, onClose }: { open: boolean; onClose: () => void 
                   <a
                     href={ME.cvUrl}
                     download
+                    data-track="cv"
+                    data-value="download"
                     className="focus-ring inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-bg-surface px-3 py-2 font-heading text-xs font-medium text-text-secondary transition-colors hover:border-border-strong hover:text-text-primary"
                   >
                     <Download className="h-3.5 w-3.5" aria-hidden="true" />

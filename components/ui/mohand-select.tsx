@@ -35,7 +35,7 @@ function useAutoDark(forced?: boolean): boolean {
   return forced ?? dark;
 }
 
-export function RevilSelect({ value, options, onChange, placeholder = "Select…", searchable, isDark: forcedDark, disabled = false, className = "", "aria-label": ariaLabel }: Props) {
+export function MohandSelect({ value, options, onChange, placeholder = "Select…", searchable, isDark: forcedDark, disabled = false, className = "", "aria-label": ariaLabel }: Props) {
   const isDark = useAutoDark(forcedDark);
   const opts = useMemo(() => options.map(normalize), [options]);
   const selected = opts.find((o) => o.value === value);
@@ -141,4 +141,4 @@ export function RevilSelect({ value, options, onChange, placeholder = "Select…
     </>
   );
 }
-export default RevilSelect;
+export default MohandSelect;

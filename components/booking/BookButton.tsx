@@ -8,7 +8,7 @@ export function BookButton({ variant = "primary", label = "Book a call" }: { var
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant={variant} onClick={() => setOpen(true)}>
+      <Button variant={variant} onClick={() => setOpen(true)} data-track="contact-open">
         {label}
       </Button>
       <BookingModal open={open} onClose={() => setOpen(false)} />

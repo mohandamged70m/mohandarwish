@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Briefcase, FileText, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   collection,
   doc,
@@ -13,20 +14,36 @@ import {
   where,
 } from "@/lib/dash-db";
 import { db } from "@/lib/dash-db";
-import { TrackView } from "@/components/dashboard/TrackView";
+import { requestCvOpen } from "@/components/cv/CvModal";
 import type { LinkDoc } from "@/lib/analytics-types";
 
-type Status = "loading" | "found" | "missing";
+type Status = "loading" | "redirecting" | "missing";
+
+// HR / recruiter audiences come to read the CV, not the portfolio.
+// Matches "HR", "HR Manager", "Recruiter", "Talent Acquisition", "Hiring Manager"
+// (word-boundary on HR so names like "Christina" don't match).
+const HR_RE = /\bhr\b|human resources|recruit\w*|talent acquisition|talent|hiring manager|hiring/i;
+
+/** A link pops the CV modal (on top of the portfolio) when toggled, or when it's for HR. */
+export function wantsAutoCv(link: LinkDoc): boolean {
+  if (link.Tailor?.AutoCv === true) return true;
+  return HR_RE.test(link.Name || "") || HR_RE.test(link.For || "");
+}
 
 /**
- * Personalised landing for a Trails share link (/mohanddarwish/[code]).
- * Looks the link up by its Code, counts the open, and renders the owner's
- * greeting + pinned projects. Unknown codes get a graceful fallback home.
+ * Share-link resolver (/mohanddarwish/[code]).
+ *
+ * Every link opens the portfolio itself: the code is looked up, the open is
+ * counted, the visit is attributed to the link (so Trails shows exactly who
+ * came from which link), then the visitor is handed to `/` — with the CV
+ * modal popped on top for HR / AutoCv links. Unknown codes get a graceful
+ * fallback home.
  */
 export default function TailoredLanding({ code }: { code: string }) {
+  const router = useRouter();
   const [status, setStatus] = useState<Status>("loading");
-  const [link, setLink] = useState<LinkDoc | null>(null);
-  const [pinned, setPinned] = useState<string[]>([]);
+  // Handoff must fire once per link open (StrictMode double-invokes effects).
+  const fired = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,9 +59,6 @@ export default function TailoredLanding({ code }: { code: string }) {
           return;
         }
         const data = hit.data() as LinkDoc;
-        setLink(data);
-        setPinned(Array.isArray(data.Tailor?.Pinned) ? data.Tailor.Pinned.slice(0, 12) : []);
-        setStatus("found");
         // Count the open (best-effort; never blocks the page).
         try {
           await updateDoc(doc(db, "Analytics", "Links", "Items", hit.id), {
@@ -59,6 +73,53 @@ export default function TailoredLanding({ code }: { code: string }) {
         } catch {
           // analytics must never break the page
         }
+        if (cancelled) return;
+        // Attribute this visit to the link: backup in sessionStorage (the
+        // tracker picks it up on init) + a live handoff with retries (this
+        // page effect runs before the layout tracker's mount effect).
+        const linkJson = JSON.stringify({
+          Id: code,
+          Name: data.Name || "",
+          For: data.For || "",
+        });
+        try {
+          sessionStorage.setItem("trails_link", linkJson);
+        } catch {
+          // private mode — the live handoff below still covers us
+        }
+        const attribute = (tries: number) => {
+          try {
+            const api = (
+              window as unknown as { __trails?: { track: (k: string, v?: string) => void } }
+            ).__trails;
+            if (api) api.track("link", linkJson);
+            else if (tries > 0) {
+              window.setTimeout(() => {
+                if (!cancelled) attribute(tries - 1);
+              }, 500);
+            }
+          } catch {
+            // never break the page
+          }
+        };
+        attribute(3);
+        // Everyone lands on the portfolio. HR / AutoCv links get the CV
+        // modal on top of it. The layout (CvModalHost + TrailsTracker)
+        // persists across the client-side navigation, so the modal opens on
+        // the portfolio and the visit keeps its link attribution.
+        const autoCv = !fired.current && wantsAutoCv(data);
+        if (autoCv) fired.current = true;
+        setStatus("redirecting");
+        window.setTimeout(() => {
+          if (cancelled) return;
+          router.replace("/");
+          if (autoCv) {
+            // Let the portfolio mount before popping the modal.
+            window.setTimeout(() => {
+              if (!cancelled) requestCvOpen();
+            }, 700);
+          }
+        }, 450);
       } catch {
         if (!cancelled) setStatus("missing");
       }
@@ -66,16 +127,16 @@ export default function TailoredLanding({ code }: { code: string }) {
     return () => {
       cancelled = true;
     };
-  }, [code]);
+  }, [code, router]);
 
   return (
     <div className="mx-auto flex min-h-[80svh] w-full max-w-2xl flex-col items-center justify-center px-6 py-20 text-center">
-      <TrackView path={`/mohanddarwish/${code}`} />
+      {/* page-view + link-open counted by the global TrailsTracker in layout */}
 
-      {status === "loading" && (
+      {(status === "loading" || status === "redirecting") && (
         <div className="flex items-center gap-2 text-sm text-text-muted">
           <Loader2 size={16} className="animate-spin" />
-          Opening your link…
+          {status === "loading" ? "Opening your link…" : "Opening your portfolio…"}
         </div>
       )}
 
@@ -94,61 +155,6 @@ export default function TailoredLanding({ code }: { code: string }) {
             <ArrowLeft size={16} />
             Back to the portfolio
           </Link>
-        </>
-      )}
-
-      {status === "found" && link && (
-        <>
-          <p className="font-heading text-xs uppercase tracking-widest text-text-muted">
-            Mohand Darwish {link.For ? `· for ${link.For}` : ""}
-          </p>
-          <h1 className="mt-3 font-heading text-3xl font-bold leading-tight text-text-primary sm:text-4xl">
-            {link.Tailor?.Greeting || `Hello${link.For ? `, ${link.For}` : ""} — glad you're here.`}
-          </h1>
-
-          {pinned.length > 0 && (
-            <div className="mt-8 flex w-full flex-col gap-2">
-              <p className="font-heading text-[11px] font-bold uppercase tracking-widest text-text-muted">
-                Hand-picked for you
-              </p>
-              {pinned.map((id) => (
-                <Link
-                  key={id}
-                  href={`/projects/${encodeURIComponent(id)}`}
-                  className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-bg-surface px-4 py-3 text-left transition-colors hover:border-accent"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <Briefcase size={16} className="shrink-0 text-accent" />
-                    <span className="truncate text-sm font-bold text-text-primary">{id}</span>
-                  </span>
-                  <ArrowUpRight
-                    size={16}
-                    className="shrink-0 text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </Link>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-text-on-accent"
-            >
-              Explore the full portfolio
-            </Link>
-            {link.Tailor?.AutoCv && (
-              <a
-                href="/cv.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-bg-surface px-6 py-3 text-sm font-bold text-text-primary"
-              >
-                <FileText size={16} />
-                Attached CV
-              </a>
-            )}
-          </div>
         </>
       )}
     </div>

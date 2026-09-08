@@ -29,7 +29,9 @@ import { STORY_KEY } from '@/components/dash/Algorithm';
  *
  * Three views over one dataset: every visit as its own story, the shape of
  * traffic over time, and the share links that produced some of it. All of it
- * reads `Analytics/*`, which only the trackSession Cloud Function writes.
+ * reads `Analytics/*`, which the site writes via POST /api/track (the global
+ * TrailsTracker in layout keeps one live session per visit; the legacy
+ * TrackView ping remains as a fallback for pages outside the layout).
  *
  * This replaced a tab that could only ever show one merged blob per link, and
  * nothing at all for a visitor who arrived without one.
@@ -732,6 +734,11 @@ const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
     { id: 'contacted', label: 'Reached contact' },
 ];
 
+// HR / recruiter audiences come to read the CV: the tailored landing pops the
+// CV modal on arrival for these links (see wantsAutoCv in landing.tsx).
+// Word-boundary on HR so names like "Christina" don't match.
+const HR_LINK_RE = /\bhr\b|human resources|recruit\w*|talent acquisition|talent|hiring manager|hiring/i;
+
 const DTrails = () => {
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
     const [isDark, setIsDark] = useState(false);
@@ -893,7 +900,7 @@ const DTrails = () => {
             if (s.Owner) return false;                       // the owner's own browser
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
             if (storyFilter === 'live' && !isLive(s)) return false;
-            if (storyFilter === 'links' && !s.Link) return false;
+            if (storyFilter === 'links' && !s.Link?.Id) return false;
             if (storyFilter === 'contacted' && !(s.Contact?.Opens || s.Contact?.Sent)) return false;
             if (!needle) return true;
             return [
@@ -1001,7 +1008,9 @@ const DTrails = () => {
                 Sessions: 0,
                 LastOpenAt: null,
                 Notify: true,
-                Tailor: { AutoCv: false, Greeting: '', Pinned: [] },
+                // HR / recruiter links open the CV modal on arrival, so default
+                // the toggle on for them (still switchable in the editor).
+                Tailor: { AutoCv: HR_LINK_RE.test(`${name} ${forField}`), Greeting: '', Pinned: [] },
             } satisfies LinkDoc);
             setName('');
             setForField('');
@@ -1299,12 +1308,12 @@ const DTrails = () => {
                                                                 <span className="text-sm font-bold truncate" style={{ color: isDark ? '#fff' : '#000' }}>
                                                                     {story.Geo?.Country || 'Somewhere'}
                                                                 </span>
-                                                                {story.Link && (
+                                                                {story.Link?.Id ? (
                                                                     <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black tracking-wide shrink-0"
                                                                         style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}>
-                                                                        {story.Link.Name.toUpperCase()}
+                                                                        {(story.Link.Name || 'Shared link').toUpperCase()}
                                                                     </span>
-                                                                )}
+                                                                ) : null}
                                                                 {live && (
                                                                     <span className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{ background: '#22c55e' }} />
                                                                 )}
@@ -1703,7 +1712,7 @@ const DTrails = () => {
                                     {
                                         key: 'AutoCv' as const,
                                         title: 'Open the CV by itself',
-                                        note: 'Pops once the hero finishes, for people here to read it.',
+                                        note: 'Lands on the portfolio with the CV modal on top — auto-on for HR / recruiter links.',
                                         value: draft.AutoCv,
                                     },
                                 ].map(row => (

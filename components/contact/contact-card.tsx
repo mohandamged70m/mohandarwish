@@ -61,6 +61,8 @@ export function ContactCard(): ReactNode {
                     <button
                       type="button"
                       onClick={copyEmail}
+                      data-track="copy"
+                      data-value="email"
                       aria-label={copied ? "Email copied to clipboard" : `Copy email ${ME.email}`}
                       aria-live="polite"
                       className="focus-ring inline-flex h-11 cursor-pointer items-center gap-2 rounded-sm border border-border bg-bg-primary px-5 font-heading text-sm font-medium text-text-primary transition-colors hover:border-accent hover:text-accent-text disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface"
@@ -86,6 +88,8 @@ export function ContactCard(): ReactNode {
                       href={ME.cvUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      data-track="cv"
+                      data-value="download"
                       className="focus-ring inline-flex items-center gap-1.5 text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
                     >
                       <FileText className="h-3.5 w-3.5" aria-hidden />

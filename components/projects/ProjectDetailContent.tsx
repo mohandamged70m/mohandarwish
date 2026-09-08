@@ -27,7 +27,7 @@ export function ProjectDetailContent({ project }: Props) {
   const media: string[] = (() => {
     const vids = project.videos ?? [];
     const imgs = project.images ?? [project.image];
-    // videos first like Revil
+    // videos first like Mohand
     const all = [...vids, ...imgs];
     // dedupe
     return Array.from(new Set(all));
@@ -298,6 +298,9 @@ export function ProjectDetailContent({ project }: Props) {
                     href={project.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track="project-out"
+                    data-out="live"
+                    data-id={project.id}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -323,6 +326,9 @@ export function ProjectDetailContent({ project }: Props) {
                     href={project.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-track="project-out"
+                    data-out="github"
+                    data-id={project.id}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
@@ -378,7 +384,7 @@ export function ProjectDetailContent({ project }: Props) {
               )}
               {project.downloadUrl && (
                 <div>
-                  <a href={project.downloadUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent-primary)", fontWeight: 700, textDecoration: "none" }}>
+                  <a href={project.downloadUrl} target="_blank" rel="noopener noreferrer" data-track="project-out" data-out="download" data-id={project.id} style={{ color: "var(--accent-primary)", fontWeight: 700, textDecoration: "none" }}>
                     Download build
                   </a>
                 </div>

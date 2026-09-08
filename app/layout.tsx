@@ -6,6 +6,7 @@ import { Nav } from "@/components/layouts/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
 import { PathMemory } from "@/components/layouts/path-memory";
 import { Providers } from "@/components/layouts/providers";
+import { TrailsTracker } from "@/components/dashboard/TrailsTracker";
 import { ModalViewport } from "@/components/layouts/modal-viewport";
 import { RouteCurtain } from "@/components/transitions";
 import { Analytics } from "@vercel/analytics/next";
@@ -54,6 +55,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
           {`try{window.history.scrollRestoration="manual"}catch(e){}`}
         </Script>
         <Providers>
+          <TrailsTracker />
           <PathMemory />
           <Nav />
           <CvModalHost />
