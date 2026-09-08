@@ -44,6 +44,8 @@ function ProjectMediaImage({ src, index }: { src: string; index: number }) {
         src={src}
         onLoad={() => setLoaded(true)}
         alt={`Project image ${index + 1}`}
+        loading={index === 0 ? "eager" : "lazy"}
+        decoding="async"
         style={{
           width: "100%",
           height: "100%",
@@ -135,7 +137,14 @@ export function ProjectMediaCarousel({ media, onIndexChange, isMobile }: Props) 
       }}
     >
       <div style={{ position: "absolute", inset: 0 }}>
-        {sorted.map((src, i) => (
+        {sorted.map((src, i) => {
+          // Only mount the active slide + immediate neighbours. Far slides
+          // render an empty placeholder with identical layout — visible UI
+          // unchanged, but inactive <VideoPlayer> instances (autoPlay,
+          // per-frame setProgress) never mount or download until needed.
+          const distance = Math.abs(i - current);
+          const near = distance <= 1 || (sorted.length > 2 && distance === sorted.length - 1);
+          return (
           <div
             key={`${src}-${i}`}
             role="group"
@@ -152,9 +161,12 @@ export function ProjectMediaCarousel({ media, onIndexChange, isMobile }: Props) 
             }}
             className="motion-safe:transition-all motion-safe:duration-[400ms] motion-safe:ease-[0.22,1,0.36,1]"
           >
-            {isVideoFile(src) ? <VideoPlayer src={src} isActive={i === current} isMobile={isMobile} /> : <ProjectMediaImage src={src} index={i} />}
+            {near ? (
+              isVideoFile(src) ? <VideoPlayer src={src} isActive={i === current} isMobile={isMobile} /> : <ProjectMediaImage src={src} index={i} />
+            ) : null}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {sorted.length > 1 && (

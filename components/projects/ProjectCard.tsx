@@ -7,11 +7,14 @@ import type { Project } from "@/Data/projects";
 type Props = {
   project: Project;
   featured?: boolean;
+  // Only the first (LCP) card should be eager — the rest stay lazy.
+  // `featured` keeps driving the badge only, so visuals are unchanged.
+  eager?: boolean;
   // Grid showcase: card fills its column instead of fixed carousel widths.
   fluid?: boolean;
 };
 
-export function ProjectCard({ project, featured = false, fluid = false }: Props) {
+export function ProjectCard({ project, featured = false, eager = false, fluid = false }: Props) {
   return (
     <Link
       href={project.href}
@@ -34,8 +37,7 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
               : "(max-width: 640px) 82vw, (max-width: 768px) 420px, (max-width: 1024px) 440px, (max-width: 1440px) 520px, 560px"
           }
           className="object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[0.22,1,0.36,1] motion-safe:group-hover:scale-[1.04] motion-safe:group-focus-visible:scale-[1.04]"
-          priority={featured}
-          unoptimized
+          priority={eager}
         />
         {/* soft vignette only - no frame */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />

@@ -144,10 +144,11 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
       <video
         ref={videoRef}
         src={src}
+        preload="metadata"
         loop={userInteracted}
         muted={muted}
         playsInline
-        autoPlay
+        autoPlay={isActive}
         onTimeUpdate={handleTimeUpdate}
         onClick={togglePlay}
         style={{

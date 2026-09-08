@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import anime from 'animejs';
 import { Activity, Flame, FolderGit2 } from 'lucide-react';
 import GitHubCommitsGraph from './GitHubCommitsGraph';
 import StreakCircle from './StreakCircle';
@@ -58,15 +57,27 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
 
     // Staggered entrance: visible by default (no opacity-0), enhanced with
     // anime only when motion is allowed — content never hides without JS.
+    // animejs is dynamically imported so it never lands in the initial
+    // bundle (per docs/01-app/02-guides/lazy-loading.md). Same targets,
+    // same easing/delays — visuals unchanged.
     useEffect(() => {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        const base = { easing: 'easeOutExpo' as const };
-        const instances = [
-            anime({ targets: statsRef.current, opacity: [0, 1], translateY: [20, 0], duration: 700, delay: 100, ...base }),
-            anime({ targets: activityRef.current, opacity: [0, 1], translateY: [24, 0], duration: 750, delay: 220, ...base }),
-            anime({ targets: bottomRef.current, opacity: [0, 1], translateY: [24, 0], duration: 750, delay: 340, ...base }),
-        ];
-        return () => instances.forEach(inst => inst?.pause());
+        let cancelled = false;
+        let instances: { pause: () => void }[] = [];
+        (async () => {
+            const { default: anime } = await import('animejs');
+            if (cancelled) return;
+            const base = { easing: 'easeOutExpo' as const };
+            instances = [
+                anime({ targets: statsRef.current, opacity: [0, 1], translateY: [20, 0], duration: 700, delay: 100, ...base }),
+                anime({ targets: activityRef.current, opacity: [0, 1], translateY: [24, 0], duration: 750, delay: 220, ...base }),
+                anime({ targets: bottomRef.current, opacity: [0, 1], translateY: [24, 0], duration: 750, delay: 340, ...base }),
+            ];
+        })();
+        return () => {
+            cancelled = true;
+            instances.forEach(inst => inst?.pause());
+        };
     }, []);
 
     return (

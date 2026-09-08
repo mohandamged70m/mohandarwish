@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/g
 import Script from "next/script";
 import "./globals.css";
 import { Nav } from "@/components/layouts/nav";
+import { CvModalHost } from "@/components/cv/CvModal";
 import { PathMemory } from "@/components/layouts/path-memory";
 import { Providers } from "@/components/layouts/providers";
 import { ModalViewport } from "@/components/layouts/modal-viewport";
@@ -55,6 +56,7 @@ export default function RootLayout({ children, modal }: LayoutProps<"/">) {
         <Providers>
           <PathMemory />
           <Nav />
+          <CvModalHost />
           <RouteCurtain />
           {children}
           <ModalViewport modal={modal} />

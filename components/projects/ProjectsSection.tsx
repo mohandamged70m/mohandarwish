@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,10 +9,18 @@ import { FILTER_CATEGORIES } from "@/Data/projects";
 import type { FilterCategory } from "@/Data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectCard } from "./ProjectCard";
-import { DeveloperTab } from "./DeveloperTab";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { useProjects } from "@/hooks/useProjects";
 import { useDeveloperRepos } from "@/hooks/useDeveloperRepos";
+
+// Developer tab (animejs + GitHub graph) is hidden until the user clicks
+// the Developer filter — split it out so animejs never lands in the
+// initial Projects bundle. Same UI, just loaded on demand per
+// docs/01-app/02-guides/lazy-loading.md (next/dynamic, Client Component).
+const DeveloperTab = dynamic(
+  () => import("./DeveloperTab").then((m) => m.DeveloperTab),
+  { ssr: false, loading: () => null }
+);
 
 export default function ProjectsSection() {
   const [active, setActive] = useState<FilterCategory>("Projects");
@@ -121,6 +130,7 @@ export default function ProjectsSection() {
                   <ProjectCard
                     project={project}
                     featured={active === "Projects" && project.featured}
+                    eager={i === 0}
                     fluid
                   />
                 </motion.div>
