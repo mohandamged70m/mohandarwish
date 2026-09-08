@@ -2,10 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "lenis";
 import "lenis/dist/lenis.css";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { features } from "@/lib/config";
 
 const LENIS_OPTIONS = {
@@ -40,47 +37,67 @@ export function SmoothScroll({
 
     if (prefersReducedMotion) return;
 
-    gsap.registerPlugin(ScrollTrigger);
+    // Dynamically import Lenis + GSAP so they never land in the initial
+    // bundle (per docs/01-app/02-guides/lazy-loading.md). Same LENIS_OPTIONS,
+    // same GSAP ticker sync — behavior unchanged, just code-split.
+    let cancelled = false;
+    let cleanup: (() => void) | undefined;
 
-    const lenis = new Lenis(LENIS_OPTIONS as never);
-    // expose for section components that need programmatic scroll — optional velocity scaling
-    (window as unknown as { __lenis?: unknown }).__lenis = lenis;
+    (async () => {
+      const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import("lenis"),
+        import("gsap"),
+        import("gsap/ScrollTrigger"),
+      ]);
+      if (cancelled) return;
 
-    // Sync Lenis → ScrollTrigger so pinned scrub stays in sync with smooth scroll
-    lenis.on("scroll", ScrollTrigger.update);
-    // Use GSAP ticker for Lenis raf to keep both in same tick (prevents jitter)
-    const gsapTickerCb = (time: number) => {
-      // gsap ticker time is seconds, lenis expects ms
-      lenis.raf(time * 1000);
-    };
-    gsap.ticker.add(gsapTickerCb);
-    gsap.ticker.lagSmoothing(0);
+      gsap.registerPlugin(ScrollTrigger);
 
-    function handleAnchorClick(e: MouseEvent): void {
-      const target = e.target as HTMLElement;
-      const anchor = target.closest('a[href^="#"]');
-      if (!anchor) return;
+      const lenis = new Lenis(LENIS_OPTIONS as never);
+      // expose for section components that need programmatic scroll — optional velocity scaling
+      (window as unknown as { __lenis?: unknown }).__lenis = lenis;
 
-      const href = anchor.getAttribute("href");
-      if (!href || href === "#") return;
+      // Sync Lenis → ScrollTrigger so pinned scrub stays in sync with smooth scroll
+      lenis.on("scroll", ScrollTrigger.update);
+      // Use GSAP ticker for Lenis raf to keep both in same tick (prevents jitter)
+      const gsapTickerCb = (time: number) => {
+        // gsap ticker time is seconds, lenis expects ms
+        lenis.raf(time * 1000);
+      };
+      gsap.ticker.add(gsapTickerCb);
+      gsap.ticker.lagSmoothing(0);
 
-      const element = document.querySelector(href);
-      if (!element) return;
+      function handleAnchorClick(e: MouseEvent): void {
+        const target = e.target as HTMLElement;
+        const anchor = target.closest('a[href^="#"]');
+        if (!anchor) return;
 
-      e.preventDefault();
-      lenis.scrollTo(element as HTMLElement, { offset: -100 });
-    }
+        const href = anchor.getAttribute("href");
+        if (!href || href === "#") return;
 
-    document.addEventListener("click", handleAnchorClick);
+        const element = document.querySelector(href);
+        if (!element) return;
+
+        e.preventDefault();
+        lenis.scrollTo(element as HTMLElement, { offset: -100 });
+      }
+
+      document.addEventListener("click", handleAnchorClick);
+
+      cleanup = () => {
+        document.removeEventListener("click", handleAnchorClick);
+        gsap.ticker.remove(gsapTickerCb);
+        lenis.off("scroll", ScrollTrigger.update);
+        try {
+          delete (window as unknown as { __lenis?: unknown }).__lenis;
+        } catch {}
+        lenis.destroy();
+      };
+    })();
 
     return () => {
-      document.removeEventListener("click", handleAnchorClick);
-      gsap.ticker.remove(gsapTickerCb);
-      lenis.off("scroll", ScrollTrigger.update);
-      try {
-        delete (window as unknown as { __lenis?: unknown }).__lenis;
-      } catch {}
-      lenis.destroy();
+      cancelled = true;
+      cleanup?.();
     };
   }, [pathname]);
 
