@@ -15,7 +15,7 @@ const SKILLS = [
 export function Skills(): ReactNode {
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
+      <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
         What I do — Frontend-leaning Full-Stack
       </h3>
       <div className="rounded-[20px] border border-border bg-bg-surface p-2 sm:p-4">

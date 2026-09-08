@@ -10,12 +10,12 @@ const TECH_COLOR_MAP: Record<string, string> = {
   typescript: "#3178c6",
   tailwind: "#38bdf8",
   tailwindcss: "#38bdf8",
-  motion: "#a3e635",
-  "framer motion": "#a3e635",
+  motion: "#ad2831",
+  "framer motion": "#ad2831",
   storybook: "#ff4785",
   trpc: "#2596be",
   prisma: "#0c344b",
-  "ai sdk": "#a3e635",
+  "ai sdk": "#ad2831",
   mapbox: "#4264fb",
   recharts: "#22b5bf",
   mdx: "#f97316",
@@ -38,7 +38,7 @@ export function getTechColor(tech: string): string {
   const key = tech.toLowerCase().trim();
   if (TECH_COLOR_MAP[key]) return TECH_COLOR_MAP[key];
   // fallback to accent
-  return "#a3e635";
+  return "#ad2831";
 }
 
 export function getStackIcon(_tech: string): string {

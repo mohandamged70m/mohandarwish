@@ -57,8 +57,8 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
 
         {/* frameless hover hint — motion-safe, always visible on touch (no hover trap) */}
         <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 motion-safe:translate-y-1 opacity-100 sm:opacity-0 motion-safe:transition-all motion-safe:duration-300 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-visible:translate-y-0 sm:group-focus-visible:opacity-100">
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+          <span className="inline-flex items-center gap-1.5 rounded-sm bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
+            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
           </span>
         </div>
       </div>
@@ -66,10 +66,10 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
       {/* editorial footer - transparent, no box */}
       <div className="flex flex-col gap-1.5 px-1 pt-4 pb-1">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-heading font-semibold text-[16px] leading-tight text-text-primary group-hover:text-accent transition-colors line-clamp-1">
+          <h3 className="font-display font-semibold text-[16px] leading-tight text-text-primary group-hover:text-accent-text transition-colors line-clamp-1">
             {project.title}
           </h3>
-          <span className="hidden sm:inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted group-hover:text-accent transition-colors" aria-hidden="true">
+          <span className="hidden sm:inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted group-hover:text-accent-text transition-colors" aria-hidden="true">
             {project.year ?? ""} <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
           </span>
         </div>
@@ -82,7 +82,7 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
           {project.stack?.slice(0, 3).map((s) => (
             <span
               key={s}
-              className="inline-flex items-center rounded-pill bg-bg-surface border border-border/60 px-2.5 py-1 font-body text-[11px] leading-none text-text-secondary"
+              className="inline-flex items-center rounded-sm bg-bg-surface border border-border/60 px-2.5 py-1 font-body text-[11px] leading-none text-text-secondary"
             >
               {s}
             </span>

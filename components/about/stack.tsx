@@ -234,7 +234,7 @@ export function Stack(): ReactNode {
   if (prefersReducedMotion) {
     return (
       <div className="flex flex-col gap-3">
-        <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">Stack — Frontend-leaning</h3>
+        <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">Stack — Frontend-leaning</h3>
         <div className="rounded-[20px] border border-border bg-bg-surface p-3 sm:p-4">
           <div className="flex flex-wrap gap-2.5">
             {CHIPS.map((chip) => (
@@ -249,7 +249,7 @@ export function Stack(): ReactNode {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <h3 className="font-heading text-[15px] font-semibold tracking-tight text-text-primary">
+        <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
           Stack — drag & play
         </h3>
         <span className="font-heading text-[11px] uppercase tracking-wide text-text-muted">Playful · Matter.js</span>

@@ -15,7 +15,7 @@ export const PERSONAL_CATEGORY: MeetingCategory = {
 
 export const CATEGORY_COLORS: string[] = [
   "#3b82f6",
-  "#a3e635",
+  "#ad2831",
   "#f59e0b",
   "#ec4899",
   "#8b5cf6",

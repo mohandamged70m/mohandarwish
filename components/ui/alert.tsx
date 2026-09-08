@@ -45,7 +45,7 @@ export default function Alert({ type, message, onClose, duration = 4000 }: Alert
       <div className="flex-1">
         <p className="text-sm font-medium text-text-primary">{message}</p>
       </div>
-      <button onClick={onClose} className="inline-flex h-8 w-8 items-center justify-center rounded-full text-text-muted hover:text-text-primary" aria-label="Close alert">
+      <button onClick={onClose} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-text-muted hover:text-text-primary" aria-label="Close alert">
         <X size={18} />
       </button>
     </motion.div>

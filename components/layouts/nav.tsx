@@ -93,7 +93,7 @@ function NavThemeToggle({ size = "default" }: { size?: "default" | "large" }): R
           : "Toggle theme"
       }
       aria-pressed={mounted ? isDark : undefined}
-      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
+      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
     >
       <span aria-hidden="true" className="relative h-4 w-4">
         <Sun
@@ -124,7 +124,7 @@ function NavDocLink({ size = "default" }: { size?: "default" | "large" }): React
       rel="noopener noreferrer"
       aria-label="View CV (opens in new tab)"
       title="View CV"
-      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
+      className={`focus-ring relative inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md bg-bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors backdrop-blur-xl ${sizeClass}`}
     >
       <FileText className="h-4 w-4" aria-hidden="true" />
     </Link>
@@ -331,7 +331,7 @@ export function Nav(): ReactNode {
         aria-label="Primary"
         className="hidden lg:block fixed left-1/2 top-6 z-50 -translate-x-1/2"
       >
-        <div className="flex items-center gap-1 rounded-full bg-bg-surface p-1.5 shadow-sm border border-border">
+        <div className="flex items-center gap-1 rounded-md bg-bg-surface p-1.5 shadow-sm border border-border">
           <ul ref={listRef} className="relative flex items-center gap-1">
             {pillRect && (
               <motion.span
@@ -344,7 +344,7 @@ export function Nav(): ReactNode {
                     : { duration: 0 }
                 }
                 style={{ left: 0, top: 0, bottom: 0 }}
-                className="absolute rounded-full bg-accent/10 ring-1 ring-accent/20"
+                className="absolute rounded-md bg-accent/10 ring-1 ring-accent/20"
               />
             )}
             {NAV_ITEMS.map((item, index) => {
@@ -361,12 +361,12 @@ export function Nav(): ReactNode {
                     href={item.href}
                     aria-current={isActive ? "page" : undefined}
                     onClick={(e) => handleNavClick(e, item)}
-                    className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1.5 text-sm font-medium font-heading transition-colors duration-300"
+                    className="focus-ring relative inline-flex cursor-pointer items-center justify-center rounded-sm px-4 py-1.5 text-sm font-medium font-heading transition-colors duration-300"
                   >
                     <span
                       className={
                         isActive
-                          ? "relative z-10 text-accent"
+                          ? "relative z-10 text-accent-text"
                           : "relative z-10 text-text-secondary hover:text-text-primary"
                       }
                     >
@@ -395,7 +395,7 @@ export function Nav(): ReactNode {
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-panel"
             onClick={() => setMobileOpen((v) => !v)}
-            className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur-xl shadow-sm transition-all duration-200 cursor-pointer ${
+            className={`focus-ring inline-flex h-11 w-11 items-center justify-center rounded-md border backdrop-blur-xl shadow-sm transition-all duration-200 cursor-pointer ${
               mobileOpen
                 ? "bg-accent text-text-on-accent border-accent shadow-accent rotate-0"
                 : "bg-bg-surface/80 border-border text-text-primary hover:border-border-strong supports-[backdrop-filter]:bg-bg-surface/70"
@@ -464,7 +464,7 @@ export function Nav(): ReactNode {
                             {/* index — mono, muted, fixed width */}
                             <span
                               className={`font-heading text-xs tabular-nums tracking-widest transition-colors ${
-                                isActive ? "text-accent" : "text-text-muted/60 group-hover:text-text-muted"
+                                isActive ? "text-accent-text" : "text-text-muted/60 group-hover:text-text-muted"
                               }`}
                             >
                               0{idx + 1}
@@ -474,8 +474,8 @@ export function Nav(): ReactNode {
                             <span
                               className={`font-heading text-[2.05rem] font-bold leading-none tracking-[-0.02em] transition-colors ${
                                 isActive
-                                  ? "text-accent"
-                                  : "text-text-primary group-hover:text-accent group-active:text-accent"
+                                  ? "text-accent-text"
+                                  : "text-text-primary group-hover:text-accent-text group-active:text-accent-text"
                               }`}
                             >
                               {item.label}
@@ -514,7 +514,7 @@ export function Nav(): ReactNode {
                       onClick={(e) =>
                         handleNavClick(e, { label: "Contact", href: "#booking" })
                       }
-                      className="font-heading text-sm font-medium text-text-secondary hover:text-accent underline underline-offset-4 decoration-border hover:decoration-accent/50 transition-colors"
+                      className="font-heading text-sm font-medium text-text-secondary hover:text-accent-text underline underline-offset-4 decoration-border hover:decoration-accent/50 transition-colors"
                     >
                       Book a call →
                     </Link>

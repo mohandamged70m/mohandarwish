@@ -101,7 +101,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
 
   return (
     <div
-      className="inline-flex max-w-[calc(100vw-2rem)] sm:max-w-full items-center gap-2 rounded-full bg-bg-surface border border-border p-1.5 shadow-sm overflow-hidden"
+      className="inline-flex max-w-[calc(100vw-2rem)] sm:max-w-full items-center gap-2 rounded-md bg-bg-surface border border-border p-1.5 shadow-sm overflow-hidden"
       role="tablist"
       aria-label="Project categories"
       onKeyDown={onKeyDown}
@@ -121,7 +121,7 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
                 ? { type: "spring", stiffness: 380, damping: 32 }
                 : { duration: 0 }
             }
-            className="absolute inset-y-0 left-0 rounded-full bg-accent shadow-[0_0_20px_var(--accent-ring)] will-change-transform"
+            className="absolute inset-y-0 left-0 rounded-sm bg-accent shadow-[0_0_20px_var(--accent-ring)] will-change-transform"
             style={{ top: 0, bottom: 0 }}
           />
         )}
@@ -138,14 +138,14 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(cat)}
-              className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-full px-4 sm:px-5 min-h-11 py-2.5 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface whitespace-nowrap
+              className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-sm px-4 sm:px-5 min-h-11 py-2.5 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface whitespace-nowrap
                 ${isActive ? "text-text-on-accent" : "text-text-secondary hover:text-text-primary"}`}
             >
               {cat}
               {typeof count === "number" && (
                 <span
                   aria-hidden
-                  className={`inline-flex min-w-5 justify-center rounded-full px-1.5 py-0.5 text-[11px] leading-none font-semibold transition-colors ${
+                  className={`inline-flex min-w-5 justify-center rounded-sm px-1.5 py-0.5 text-[11px] leading-none font-semibold transition-colors ${
                     isActive ? "bg-text-on-accent/15 text-text-on-accent" : "bg-bg-primary border border-border text-text-muted"
                   }`}
                 >
