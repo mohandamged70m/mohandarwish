@@ -6,9 +6,7 @@ import Lenis from "lenis";
 import "lenis/dist/lenis.css";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-// Feature flag — local fallback until lib/config exists
-const features = { smoothScroll: true } as const;
+import { features } from "@/lib/config";
 
 const LENIS_OPTIONS = {
   duration: 1.1,

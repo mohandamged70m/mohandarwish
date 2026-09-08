@@ -73,10 +73,16 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
     window.addEventListener("keydown", onKeyDown);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Same Lenis issue as BookingModal: body overflow doesn't stop Lenis,
+    // so stop it while the project modal is open.
+    const lenis = (window as unknown as { __lenis?: { stop: () => void; start: () => void } }).__lenis;
+    lenis?.stop();
     closeRef.current?.focus();
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prev;
+      const lenis = (window as unknown as { __lenis?: { stop: () => void; start: () => void } }).__lenis;
+      lenis?.start();
     };
   }, [close]);
 
