@@ -3,11 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sanitizeSvg } from '@/lib/sanitize';
 import { createPortal } from 'react-dom';
-import { X, Upload, Plus, Image as ImageIcon, ExternalLink, Trash2, Eye, Edit } from 'lucide-react';
+import { X, Upload, Plus, Image as ImageIcon, ExternalLink, Trash2, Search } from 'lucide-react';
 import { Github } from '@/components/dash/icons';
 import { doc, collection, onSnapshot } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
 import { motion, AnimatePresence } from 'motion/react';
+import { useReducedMotion } from '@/lib/motion';
 
 import { ProjectData, TagData, ContributorData } from '@/types';
 import FileImage from '@/components/dash/FileImage';
@@ -72,7 +73,56 @@ const LivePreviewItem = ({
     return <img src={url} alt={alt} style={style} />;
 };
 
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+
+/** Mono section header — brutalist rule, no colored bubbles. */
+const SectionHead = ({ index, title, hint }: { index: string; title: string; hint?: string }) => (
+    <div className="flex items-baseline justify-between gap-3 border-b pb-3"
+        style={{ borderColor: 'var(--border)' }}>
+        <p className="m-0 text-[12px] font-medium uppercase"
+            style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.08em', color: 'var(--text-primary)' }}>
+            <span style={{ color: 'var(--accent-text)' }}>{index}</span>
+            <span style={{ color: 'var(--text-muted)' }}> / </span>
+            {title}
+        </p>
+        {hint && (
+            <p className="m-0 hidden text-[12px] sm:block"
+                style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>
+                {hint}
+            </p>
+        )}
+    </div>
+);
+
+/** Mono field label with required marker + optional hint. */
+const FieldLabel = ({
+    htmlFor,
+    children,
+    required,
+    hint,
+}: {
+    htmlFor: string;
+    children: React.ReactNode;
+    required?: boolean;
+    hint?: string;
+}) => (
+    <div className="mb-2 flex items-baseline justify-between gap-2">
+        <label htmlFor={htmlFor}
+            className="text-[12px] font-medium uppercase"
+            style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.06em', color: 'var(--text-secondary)' }}>
+            {children}
+            {required && <span aria-hidden="true" style={{ color: 'var(--accent-text)' }}> *</span>}
+        </label>
+        {hint && (
+            <span className="text-[11px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>
+                {hint}
+            </span>
+        )}
+    </div>
+);
+
 const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFormProps, 'initialData'> & { initialData?: MProjectFormProps['initialData'] }) => {
+    const prefersReducedMotion = useReducedMotion();
     // --- STATE ---
     const [formData, setFormData] = useState<ProjectFormData>(initialData || {
         name: '',
@@ -87,24 +137,19 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
         listing: 0
     });
 
-    const [isDark, setIsDark] = useState(true);
     const [selectTagOpen, setSelectTagOpen] = useState(false);
     const [selectContribOpen, setSelectContribOpen] = useState(false);
+    const [tagQuery, setTagQuery] = useState('');
+    const [contribQuery, setContribQuery] = useState('');
     const [availableTags, setAvailableTags] = useState<TagData[]>([]);
     const [availableContributors, setAvailableContributors] = useState<ContributorData[]>([]);
     const [activeView, setActiveView] = useState<'edit' | 'preview'>('edit');
 
     const iconInputRef = useRef<HTMLInputElement>(null);
     const imagesInputRef = useRef<HTMLInputElement>(null);
-
-    // --- EFFECTS ---
-    useEffect(() => {
-        const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
-        checkTheme();
-        const observer = new MutationObserver(checkTheme);
-        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-        return () => observer.disconnect();
-    }, []);
+    const closeRef = useRef<HTMLButtonElement>(null);
+    const tagSearchRef = useRef<HTMLInputElement>(null);
+    const contribSearchRef = useRef<HTMLInputElement>(null);
 
     // Fetch Tags and Contributors from Firebase
     useEffect(() => {
@@ -179,6 +224,41 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
         };
     }, []);
 
+    // Escape to close + scroll lock + initial focus (a11y: keyboard, focus)
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (selectTagOpen) setSelectTagOpen(false);
+                else if (selectContribOpen) setSelectContribOpen(false);
+                else onClose();
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const t = window.setTimeout(() => closeRef.current?.focus(), 60);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.body.style.overflow = prev;
+            window.clearTimeout(t);
+        };
+    }, [isOpen, onClose, selectTagOpen, selectContribOpen]);
+
+    useEffect(() => {
+        if (selectTagOpen) {
+            const t = window.setTimeout(() => tagSearchRef.current?.focus(), 60);
+            return () => window.clearTimeout(t);
+        }
+    }, [selectTagOpen]);
+
+    useEffect(() => {
+        if (selectContribOpen) {
+            const t = window.setTimeout(() => contribSearchRef.current?.focus(), 60);
+            return () => window.clearTimeout(t);
+        }
+    }, [selectContribOpen]);
+
     // --- HANDLERS ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target as HTMLInputElement;
@@ -252,537 +332,629 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
         onClose();
     };
 
-    // Calculate completion percentage
+    // Completion — 6 fields, tabular mono readout
     const completionFields = [
-        !!formData.name,
-        !!formData.description,
+        !!formData.name.trim(),
+        !!formData.description.trim(),
         formData.tags.length > 0,
         formData.contributors.length > 0,
         !!formData.repoLink || !!formData.liveLink,
         formData.images.length > 0 || !!formData.icon
     ];
-    const completionPercentage = Math.round((completionFields.filter(Boolean).length / completionFields.length) * 100);
+    const doneCount = completionFields.filter(Boolean).length;
+    const completionPercentage = Math.round((doneCount / completionFields.length) * 100);
+
+    const filteredTags = tagQuery.trim()
+        ? availableTags.filter(t => t.name.toLowerCase().includes(tagQuery.trim().toLowerCase()))
+        : availableTags;
+    const filteredContribs = contribQuery.trim()
+        ? availableContributors.filter(c =>
+            c.name.toLowerCase().includes(contribQuery.trim().toLowerCase()) ||
+            (c.role || '').toLowerCase().includes(contribQuery.trim().toLowerCase()))
+        : availableContributors;
+
+    const motionOff = !!prefersReducedMotion;
 
     return createPortal(
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    initial={{ opacity: 0 }}
+                    initial={motionOff ? { opacity: 1 } : { opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className={`fixed inset-0 z-[1000] flex items-center justify-center p-4 ${isDark ? 'bg-black/80' : 'bg-black/60'} backdrop-blur-sm`}
+                    exit={motionOff ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ duration: motionOff ? 0.01 : 0.2 }}
+                    className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4"
+                    style={{ backgroundColor: 'rgba(0,0,0,0.66)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}
+                    onClick={onClose}
+                    aria-hidden={false}
                 >
-                    {/* Main Modal Container */}
+                    {/* Panel */}
                     <motion.div
-                        initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                        transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                        className={`project-modal-container w-full max-w-[95vw] lg:max-w-[1200px] h-[92dvh] lg:h-[95vh] rounded-xl overflow-hidden flex flex-col lg:flex-row shadow-2xl ${isDark ? 'bg-[#0a0a0a]' : 'bg-white'} border ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-                        style={{ transformOrigin: 'center' }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={initialData ? 'Edit project' : 'New project'}
+                        initial={motionOff ? { opacity: 1 } : { opacity: 0, y: 14, scale: 0.985 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={motionOff ? { opacity: 1 } : { opacity: 0, y: 8, scale: 0.985 }}
+                        transition={motionOff ? { duration: 0.01 } : { duration: 0.3, ease: [...EASE_OUT] }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex w-full flex-col overflow-hidden lg:flex-row"
+                        style={{
+                            maxWidth: 1180,
+                            width: '100%',
+                            height: 'min(92dvh, 860px)',
+                            background: 'var(--bg-primary)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 8,
+                            boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+                            fontFamily: 'var(--font-body)',
+                            transformOrigin: 'center',
+                        }}
                     >
-                {/* LEFT PANEL - Form (Hidden on mobile when preview is active) */}
-                <div className={`project-form-left ${activeView === 'preview' ? 'hidden lg:flex' : 'flex'} min-w-0 flex-1 flex-col overflow-hidden ${isDark ? 'bg-[#0a0a0a]' : 'bg-gray-50'}`}>
-                    {/* Header */}
-                    <div className={`px-4 lg:px-8 py-4 lg:py-6 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-                        style={{ background: isDark ? 'linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)' : 'linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)' }}>
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3 lg:gap-4 flex-1">
-                                <div className="relative shrink-0">
-                                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center shadow-lg`}
-                                        style={{ background: 'linear-gradient(135deg, #3395ff 0%, rgb(99, 102, 241) 100%)' }}>
-                                        <Edit className="text-white" size={window.innerWidth < 1024 ? 20 : 24} />
+                        {/* LEFT — form */}
+                        <div className={`${activeView === 'preview' ? 'hidden lg:flex' : 'flex'} min-w-0 flex-1 flex-col overflow-hidden`}>
+                            {/* Header */}
+                            <div className="shrink-0 px-5 pt-5 sm:px-6">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
+                                        <p className="m-0 text-[11px] font-medium uppercase"
+                                            style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                                            Dashboard — Projects <span style={{ color: 'var(--accent-text)' }}>{initialData ? '// edit' : '// new'}</span>
+                                        </p>
+                                        <h2 className="mt-1.5 truncate text-[20px] font-semibold leading-tight"
+                                            style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
+                                            {initialData ? `Edit — ${initialData.name || 'project'}` : 'New project'}
+                                        </h2>
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-3">
+                                        <span className="tnum text-[12px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }} aria-label={`${doneCount} of 6 fields complete`}>
+                                            {doneCount}/6
+                                        </span>
+                                        <button
+                                            ref={closeRef}
+                                            type="button"
+                                            onClick={onClose}
+                                            aria-label="Close project form"
+                                            className="inline-flex h-10 w-10 items-center justify-center cursor-pointer"
+                                            style={{
+                                                borderRadius: 4,
+                                                border: '1px solid var(--border)',
+                                                background: 'transparent',
+                                                color: 'var(--text-secondary)',
+                                                transition: 'border-color .18s ease, background .18s ease, color .18s ease',
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.borderColor = 'var(--border-strong)';
+                                                e.currentTarget.style.background = 'var(--bg-surface-hover)';
+                                                e.currentTarget.style.color = 'var(--text-primary)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.borderColor = 'var(--border)';
+                                                e.currentTarget.style.background = 'transparent';
+                                                e.currentTarget.style.color = 'var(--text-secondary)';
+                                            }}
+                                        >
+                                            <X size={17} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h2 className={`text-lg lg:text-2xl font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                        {initialData ? 'Edit Project' : 'Create Project'}
-                                    </h2>
-                                    <p className={`text-xs lg:text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        {completionPercentage}% Complete
-                                    </p>
+                                {/* progress hairline */}
+                                <div className="mt-4 h-[2px] w-full overflow-hidden" style={{ background: 'var(--bg-surface)' }} role="progressbar" aria-valuenow={completionPercentage} aria-valuemin={0} aria-valuemax={100} aria-label="Form completion">
+                                    <div className="h-full" style={{ width: `${completionPercentage}%`, background: 'var(--accent-primary)', transition: 'width .35s cubic-bezier(0.22,1,0.36,1)' }} />
                                 </div>
-
-                                {/* Mobile View Toggle */}
-                                <div className="project-mobile-toggle flex lg:hidden">
+                                {/* mobile preview switch */}
+                                <div className="flex py-3 lg:hidden">
                                     <button
+                                        type="button"
                                         onClick={() => setActiveView('preview')}
-                                        className={`px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-white/10 text-gray-400 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        className="text-[12px] font-medium uppercase cursor-pointer"
+                                        style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.08em', color: 'var(--accent-text)', background: 'none', border: 'none', padding: 0 }}
                                     >
-                                        <Eye size={14} />
-                                        Preview
+                                        Preview → 
                                     </button>
                                 </div>
                             </div>
-                            <button
-                                onClick={onClose}
-                                className={`shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-900'}`}
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
 
-                        {/* Progress Bar */}
-                        <div className={`mt-3 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-gray-200'}`}>
-                            <div
-                                className="h-full transition-all duration-500 ease-out"
-                                style={{ width: `${completionPercentage}%`, background: 'linear-gradient(135deg, #3395ff 0%, rgb(99, 102, 241) 100%)' }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Form Content */}
-                    <div className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 custom-scrollbar">
-                        <form id="projectForm" onSubmit={handleSubmit} className="flex flex-col gap-6">
-                            {/* Basic Info Card */}
-                            <div className="dashboard-card shadow-lg">
-                                <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.15)', color: '#14b8a6' }}>
-                                        <span>1</span>
-                                    </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Basic Information</h3>
-                                </div>
-
-                                <div className="flex flex-col gap-6">
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <div>
-                                            <label className="dashboard-label">Project Name *</label>
-                                            <input
-                                                type="text"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleInputChange}
-                                                placeholder="My Awesome Project"
-                                                className="dashboard-input"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="dashboard-label">Description *</label>
-                                        <textarea
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleInputChange}
-                                            placeholder="Describe your project in a few sentences..."
-                                            className="dashboard-textarea"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="dashboard-label">
-                                                <Github size={14} className="inline mr-1" />
-                                                Repository Link
-                                            </label>
-                                            <input
-                                                type="url"
-                                                name="repoLink"
-                                                value={formData.repoLink}
-                                                onChange={handleInputChange}
-                                                placeholder="https://github.com/..."
-                                                className="dashboard-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="dashboard-label">
-                                                <ExternalLink size={14} className="inline mr-1" />
-                                                Live Link
-                                            </label>
-                                            <input
-                                                type="url"
-                                                name="liveLink"
-                                                value={formData.liveLink}
-                                                onChange={handleInputChange}
-                                                placeholder="https://..."
-                                                className="dashboard-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="dashboard-label">
-                                                <Upload size={14} className="inline mr-1" />
-                                                Download Link
-                                            </label>
-                                            <input
-                                                type="url"
-                                                name="downloadLink"
-                                                value={formData.downloadLink}
-                                                onChange={handleInputChange}
-                                                placeholder="https://..."
-                                                className="dashboard-input"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Media Card */}
-                            <div className="dashboard-card shadow-lg">
-                                <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.15)', color: 'rgb(99, 102, 241)' }}>
-                                        <span>2</span>
-                                    </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Media & Assets</h3>
-                                </div>
-
-                                <div className="flex flex-col gap-6">
-                                    {/* Icon Upload */}
-                                    <div>
-                                        <label className="dashboard-label">Project Icon</label>
-                                        <div className="flex items-center gap-4">
-                                            <div
-                                                onClick={() => iconInputRef.current?.click()}
-                                                className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer group relative border-2 border-dashed transition-all`}
-                                                style={{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)', backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}
-                                            >
-                                                {formData.icon ? (
-                                                    <FileImage
-                                                        src={formData.icon}
-                                                        className="w-full h-full object-cover"
-                                                        alt="Icon"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <Upload size={20} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
-                                                    </div>
-                                                )}
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <Upload size={16} className="text-white" />
+                            {/* Body */}
+                            <div className="mpf-scroll min-w-0 flex-1 overflow-y-auto px-5 pb-6 sm:px-6" data-lenis-prevent>
+                                <form id="projectForm" onSubmit={handleSubmit} className="flex flex-col gap-8 pt-5">
+                                    {/* 01 BASICS */}
+                                    <section aria-label="Basics">
+                                        <SectionHead index="01" title="Basics" hint="name + links" />
+                                        <div className="mt-4 flex flex-col gap-4">
+                                            <div>
+                                                <FieldLabel htmlFor="mpf-name" required hint="keep it short">Project name</FieldLabel>
+                                                <input
+                                                    id="mpf-name"
+                                                    type="text"
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleInputChange}
+                                                    placeholder="Atlas billing dashboard"
+                                                    className="mpf-input"
+                                                    required
+                                                    aria-required="true"
+                                                    autoComplete="off"
+                                                    maxLength={80}
+                                                />
+                                            </div>
+                                            <div>
+                                                <FieldLabel htmlFor="mpf-desc" required hint={`${formData.description.length}/240`}>Description</FieldLabel>
+                                                <textarea
+                                                    id="mpf-desc"
+                                                    name="description"
+                                                    value={formData.description}
+                                                    onChange={handleInputChange}
+                                                    placeholder="What it does, who it's for — one or two lines."
+                                                    className="mpf-input mpf-area"
+                                                    required
+                                                    aria-required="true"
+                                                    maxLength={240}
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                                <div>
+                                                    <FieldLabel htmlFor="mpf-repo">Repo link</FieldLabel>
+                                                    <input id="mpf-repo" type="url" name="repoLink" value={formData.repoLink} onChange={handleInputChange} placeholder="https://github.com/…" className="mpf-input mpf-mono" inputMode="url" />
+                                                </div>
+                                                <div>
+                                                    <FieldLabel htmlFor="mpf-live">Live link</FieldLabel>
+                                                    <input id="mpf-live" type="url" name="liveLink" value={formData.liveLink} onChange={handleInputChange} placeholder="https://…" className="mpf-input mpf-mono" inputMode="url" />
                                                 </div>
                                             </div>
-                                            <div className="flex-1">
-                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Upload icon</p>
-                                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Square, min 400x400px</p>
+                                            <div className="md:max-w-[50%] md:pr-2">
+                                                <FieldLabel htmlFor="mpf-dl" hint="optional">Download link</FieldLabel>
+                                                <input id="mpf-dl" type="url" name="downloadLink" value={formData.downloadLink || ''} onChange={handleInputChange} placeholder="https://… (.zip / store)" className="mpf-input mpf-mono" inputMode="url" />
                                             </div>
-                                            <input ref={iconInputRef} type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
                                         </div>
-                                    </div>
+                                    </section>
 
-                                    {/* Gallery Upload */}
-                                    <div>
-                                        <label className="dashboard-label">Project Gallery</label>
-                                        {formData.images.length > 0 ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                                {formData.images.map((file, idx) => (
-                                                    <div key={idx} className={`aspect-video rounded-lg overflow-hidden relative group ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                                                        {isVideo(file) ? (
-                                                            <GalleryVideoPreview file={file} />
-                                                        ) : (
-                                                            <FileImage
-                                                                src={file}
-                                                                className="w-full h-full object-cover"
-                                                                alt={`Gallery ${idx + 1}`}
-                                                            />
-                                                        )}
-                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeFile(idx)}
-                                                                className="w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors"
-                                                            >
-                                                                <Trash2 size={16} className="text-white" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                    {/* 02 MEDIA */}
+                                    <section aria-label="Media">
+                                        <SectionHead index="02" title="Media" hint="icon + gallery" />
+                                        <div className="mt-4 flex flex-col gap-5">
+                                            <div className="flex items-center gap-4">
                                                 <button
                                                     type="button"
-                                                    onClick={() => imagesInputRef.current?.click()}
-                                                    className={`aspect-video rounded-lg border-2 border-dashed flex items-center justify-center transition-all hover:border-[#3395ff]`}
-                                                    style={{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}
+                                                    onClick={() => iconInputRef.current?.click()}
+                                                    aria-label={formData.icon ? 'Change project icon' : 'Upload project icon'}
+                                                    className="group relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden"
+                                                    style={{ borderRadius: 4, border: '1px dashed var(--border-strong)', background: 'var(--bg-surface)' }}
                                                 >
-                                                    <Plus size={24} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+                                                    {formData.icon ? (
+                                                        <FileImage src={formData.icon} className="h-full w-full object-cover" alt="Project icon" />
+                                                    ) : (
+                                                        <Upload size={18} style={{ color: 'var(--text-muted)' }} />
+                                                    )}
+                                                    <span className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                                        <Upload size={15} color="#fff" />
+                                                    </span>
                                                 </button>
-                                            </div>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => imagesInputRef.current?.click()}
-                                                className={`w-full py-8 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all hover:border-[#3395ff]`}
-                                                style={{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}
-                                            >
-                                                <ImageIcon size={28} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
-                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Click to upload</p>
-                                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>PNG, JPG, GIF, MP4 up to 50MB</p>
-                                            </button>
-                                        )}
-                                        <input ref={imagesInputRef} type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Tech Stack Card */}
-                            <div className="dashboard-card shadow-lg">
-                                <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)', color: 'rgb(16, 185, 129)' }}>
-                                        <span>3</span>
-                                    </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Tech Stack</h3>
-                                </div>
-
-                                <div className="flex flex-wrap gap-2">
-                                    {formData.tags.map((tag, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-white/10 border border-white/20' : 'bg-gray-100 border border-gray-200'} group hover:scale-105 transition-all`}
-                                        >
-                                            {tag.iconSvg && (
-                                                tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
-                                                    <img src={tag.iconSvg} className="w-4 h-4 object-contain" alt={tag.name} />
-                                                ) : (
-                                                    <span className="w-4 h-4 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
-                                                )
-                                            )}
-                                            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{tag.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeTag(idx)}
-                                                className={`ml-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectTagOpen(true)}
-                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-all hover:border-[#3395ff]`}
-                                        style={{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}
-                                    >
-                                        <Plus size={16} />
-                                        <span className="text-sm font-medium">Add Tech</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Team Card */}
-                            <div className="dashboard-card shadow-lg">
-                                <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)', color: 'rgb(245, 158, 11)' }}>
-                                        <span>4</span>
-                                    </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Team Members</h3>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    {formData.contributors.map((contrib, idx) => (
-                                        <div
-                                            key={idx}
-                                            className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'} group`}
-                                        >
-                                            {contrib.image ? (
-                                                <FileImage
-                                                    src={contrib.image}
-                                                    className="w-10 h-10 rounded-lg object-cover"
-                                                    alt={contrib.name}
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                                                    style={{ background: 'linear-gradient(135deg, #3395ff 0%, rgb(99, 102, 241) 100%)' }}>
-                                                    {contrib.name.charAt(0)}
+                                                <div className="min-w-0">
+                                                    <p className="m-0 text-[14px] font-medium" style={{ color: 'var(--text-primary)' }}>Project icon</p>
+                                                    <p className="m-0 mt-0.5 text-[12px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>Square works best — 512px+</p>
                                                 </div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{contrib.name}</p>
-                                                <input
-                                                    type="text"
-                                                    value={contrib.role}
-                                                    onChange={(e) => updateContributorRole(idx, e.target.value)}
-                                                    placeholder="Role in project..."
-                                                    className="dashboard-input text-xs py-1 mt-1"
-                                                />
+                                                {formData.icon && (
+                                                    <button type="button" onClick={() => setFormData(p => ({ ...p, icon: undefined }))} aria-label="Remove project icon"
+                                                        className="ml-auto inline-flex h-8 items-center gap-1.5 px-2.5 text-[12px] cursor-pointer"
+                                                        style={{ fontFamily: 'var(--font-heading)', borderRadius: 4, border: '1px solid var(--border)', color: 'var(--text-secondary)', background: 'transparent' }}>
+                                                        <Trash2 size={13} /> Remove
+                                                    </button>
+                                                )}
+                                                <input ref={iconInputRef} type="file" accept="image/*" onChange={handleIconChange} className="hidden" aria-hidden tabIndex={-1} />
                                             </div>
+
+                                            <div>
+                                                <FieldLabel htmlFor="mpf-gallery" hint={`${formData.images.length} file${formData.images.length === 1 ? '' : 's'}`}>Gallery</FieldLabel>
+                                                {formData.images.length > 0 ? (
+                                                    <div id="mpf-gallery" className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
+                                                        {formData.images.map((file, idx) => (
+                                                            <div key={idx} className="group relative aspect-video overflow-hidden" style={{ borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                                                                {isVideo(file) ? (
+                                                                    <GalleryVideoPreview file={file} />
+                                                                ) : (
+                                                                    <FileImage src={file} className="h-full w-full object-cover" alt={`Gallery frame ${idx + 1}`} />
+                                                                )}
+                                                                <span className="tnum absolute left-1.5 top-1.5 px-1.5 py-0.5 text-[10px]" style={{ fontFamily: 'var(--font-heading)', background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: 4 }}>
+                                                                    {String(idx + 1).padStart(2, '0')}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeFile(idx)}
+                                                                    aria-label={`Remove gallery frame ${idx + 1}`}
+                                                                    className="absolute bottom-1.5 right-1.5 inline-flex h-8 w-8 items-center justify-center cursor-pointer"
+                                                                    style={{ borderRadius: 4, background: 'var(--accent-primary)', color: 'var(--text-on-accent)', border: 'none' }}
+                                                                >
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => imagesInputRef.current?.click()}
+                                                            aria-label="Add more gallery files"
+                                                            className="flex aspect-video cursor-pointer items-center justify-center"
+                                                            style={{ borderRadius: 4, border: '1px dashed var(--border-strong)', background: 'transparent', color: 'var(--text-muted)', transition: 'border-color .18s ease, color .18s ease' }}
+                                                        >
+                                                            <Plus size={20} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => imagesInputRef.current?.click()}
+                                                        className="flex w-full cursor-pointer flex-col items-center justify-center gap-1.5 px-4 py-8"
+                                                        style={{ borderRadius: 4, border: '1px dashed var(--border-strong)', background: 'var(--bg-surface)' }}
+                                                    >
+                                                        <ImageIcon size={20} style={{ color: 'var(--text-muted)' }} />
+                                                        <span className="text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>Add screenshots or a short clip</span>
+                                                        <span className="text-[12px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>PNG · JPG · MP4 — first frame becomes the cover</span>
+                                                    </button>
+                                                )}
+                                                <input ref={imagesInputRef} id="mpf-gallery" type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="hidden" aria-hidden tabIndex={-1} />
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    {/* 03 STACK */}
+                                    <section aria-label="Tech stack">
+                                        <SectionHead index="03" title="Stack" hint={`${formData.tags.length} selected`} />
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {formData.tags.map((tag, idx) => (
+                                                <span key={`${tag.id ?? tag.name}-${idx}`}
+                                                    className="inline-flex items-center gap-2 py-1.5 pl-2.5 pr-1.5 text-[12px] font-medium"
+                                                    style={{
+                                                        fontFamily: 'var(--font-heading)',
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.04em',
+                                                        borderRadius: 4,
+                                                        border: '1px solid var(--border)',
+                                                        background: 'var(--accent-soft)',
+                                                        color: 'var(--accent-soft-text)',
+                                                    }}>
+                                                    {tag.iconSvg && (
+                                                        tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
+                                                            <img src={tag.iconSvg} className="h-3.5 w-3.5 object-contain" alt="" aria-hidden />
+                                                        ) : (
+                                                            <span className="flex h-3.5 w-3.5 items-center justify-center" aria-hidden dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
+                                                        )
+                                                    )}
+                                                    {tag.name}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTag(idx)}
+                                                        aria-label={`Remove ${tag.name}`}
+                                                        className="inline-flex h-6 w-6 items-center justify-center cursor-pointer"
+                                                        style={{ borderRadius: 4, border: 'none', background: 'transparent', color: 'inherit', opacity: 0.75 }}
+                                                    >
+                                                        <X size={13} />
+                                                    </button>
+                                                </span>
+                                            ))}
                                             <button
                                                 type="button"
-                                                onClick={() => removeContributor(idx)}
-                                                className={`opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'}`}
+                                                onClick={() => { setTagQuery(''); setSelectTagOpen(true); }}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium uppercase cursor-pointer"
+                                                style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.04em', borderRadius: 4, border: '1px dashed var(--border-strong)', background: 'transparent', color: 'var(--text-secondary)' }}
                                             >
-                                                <X size={18} />
+                                                <Plus size={13} /> Add tech
                                             </button>
                                         </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectContribOpen(true)}
-                                        className={`py-3 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all hover:border-[#3395ff]`}
-                                        style={{ borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}
-                                    >
-                                        <Plus size={18} />
-                                        <span className="font-medium text-sm">Add Member</span>
-                                    </button>
+                                        {formData.tags.length === 0 && (
+                                            <p className="m-0 mt-2.5 text-[13px]" style={{ color: 'var(--text-muted)' }}>Pick from your tag library — colors and icons come along automatically.</p>
+                                        )}
+                                    </section>
+
+                                    {/* 04 TEAM */}
+                                    <section aria-label="Team">
+                                        <SectionHead index="04" title="Team" hint={`${formData.contributors.length} member${formData.contributors.length === 1 ? '' : 's'}`} />
+                                        <div className="mt-4 flex flex-col gap-2.5">
+                                            {formData.contributors.map((contrib, idx) => (
+                                                <div key={`${contrib.id ?? contrib.name}-${idx}`}
+                                                    className="flex items-center gap-3 p-2.5"
+                                                    style={{ borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-surface)' }}>
+                                                    {contrib.image ? (
+                                                        <FileImage src={contrib.image} className="h-9 w-9 shrink-0 object-cover" alt="" />
+                                                    ) : (
+                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center text-[13px] font-semibold"
+                                                            style={{ borderRadius: 4, background: 'var(--accent-primary)', color: 'var(--text-on-accent)' }}>
+                                                            {contrib.name.charAt(0).toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="m-0 truncate text-[14px] font-medium" style={{ color: 'var(--text-primary)' }}>{contrib.name}</p>
+                                                        <input
+                                                            type="text"
+                                                            value={contrib.role}
+                                                            onChange={(e) => updateContributorRole(idx, e.target.value)}
+                                                            placeholder="Role on this project…"
+                                                            aria-label={`Role for ${contrib.name}`}
+                                                            className="mpf-input mpf-small mt-1"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeContributor(idx)}
+                                                        aria-label={`Remove ${contrib.name}`}
+                                                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center cursor-pointer"
+                                                        style={{ borderRadius: 4, border: 'none', background: 'transparent', color: 'var(--text-muted)' }}
+                                                    >
+                                                        <X size={15} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <button
+                                                type="button"
+                                                onClick={() => { setContribQuery(''); setSelectContribOpen(true); }}
+                                                className="flex items-center justify-center gap-1.5 px-3 py-3 text-[12px] font-medium uppercase cursor-pointer"
+                                                style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.04em', borderRadius: 4, border: '1px dashed var(--border-strong)', background: 'transparent', color: 'var(--text-secondary)' }}
+                                            >
+                                                <Plus size={14} /> Add member
+                                            </button>
+                                        </div>
+                                    </section>
+                                </form>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="shrink-0 px-5 py-4 sm:px-6" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-surface)', paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+                                <div className="flex flex-wrap items-center justify-between gap-3">
+                                    <p className="tnum m-0 text-[11px] uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+                                        {initialData ? 'Unsaved changes stay here' : 'Draft — saves on create'} · {doneCount}/6
+                                    </p>
+                                    <div className="flex items-center gap-2.5">
+                                        <button
+                                            type="button"
+                                            onClick={onClose}
+                                            className="px-4 text-[13px] font-medium uppercase cursor-pointer"
+                                            style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.06em', height: 40, borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)' }}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            form="projectForm"
+                                            className="px-5 text-[13px] font-semibold uppercase cursor-pointer"
+                                            style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.06em', height: 40, borderRadius: 4, border: '1px solid var(--accent-primary)', background: 'var(--accent-primary)', color: 'var(--text-on-accent)', boxShadow: 'var(--shadow-accent)' }}
+                                        >
+                                            {initialData ? 'Save changes' : 'Create project'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-
-                    {/* Footer */}
-                    <div className={`px-4 lg:px-8 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-50'}`}>
-                        <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="btn btn-secondary px-4 py-2 text-sm font-bold"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="projectForm"
-                                className="btn btn-primary px-6 py-2 shadow-lg hover:scale-105 text-sm font-bold"
-                                style={{ background: 'linear-gradient(135deg, #3395ff 0%, rgb(99, 102, 241) 100%)' }}
-                            >
-                                {initialData ? 'Update' : 'Create'} Project
-                            </button>
                         </div>
-                    </div>
-                </div>
 
-                {/* RIGHT PANEL - Live Preview */}
-                <div className={`project-form-right ${activeView === 'edit' ? 'hidden lg:flex' : 'flex'} flex-col flex-1 min-w-0 border-t lg:border-t-0 lg:border-l ${isDark ? 'border-white/10 bg-[#080808]' : 'border-gray-200 bg-gray-100'}`}>
-                    <div className={`px-4 lg:px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}>
-                        <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center`}
-                                style={{ background: 'linear-gradient(135deg, #3395ff 0%, rgb(99, 102, 241) 100%)' }}>
-                                <Eye className="text-white" size={16} />
-                            </div>
-                            <h3 className={`text-xs lg:text-sm font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
-                                Live Preview
-                            </h3>
-                        </div>
-                        {activeView === 'preview' && (
-                            <div className="project-preview-edit-btn flex lg:hidden">
+                        {/* RIGHT — preview */}
+                        <aside className={`${activeView === 'edit' ? 'hidden lg:flex' : 'flex'} min-w-0 flex-1 flex-col overflow-hidden`} style={{ borderLeft: '1px solid var(--border)', background: 'var(--bg-surface)' }} aria-label="Live preview">
+                            <div className="flex shrink-0 items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                                <p className="m-0 text-[11px] font-medium uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>
+                                    Preview <span style={{ color: 'var(--accent-text)' }}>● live</span>
+                                </p>
                                 <button
+                                    type="button"
                                     onClick={() => setActiveView('edit')}
-                                    className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 bg-blue-500 text-white hover:scale-105"
+                                    className="px-3 text-[12px] font-medium uppercase cursor-pointer lg:hidden"
+                                    style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.06em', height: 36, borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)' }}
                                 >
-                                    <Edit size={14} />
-                                    Edit
+                                    ← Edit
                                 </button>
                             </div>
+                            <div className="flex flex-1 items-start justify-center overflow-y-auto px-5 py-6" data-lenis-prevent>
+                                <div className="w-full" style={{ maxWidth: 340 }}>
+                                    <LiveProjectCard project={formData} />
+                                    <p className="m-0 mt-4 text-[12px] leading-relaxed" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>
+                                        Updates as you type. Cover = first gallery frame.
+                                    </p>
+                                </div>
+                            </div>
+                        </aside>
+                    </motion.div>
+
+                    {/* TAG PICKER */}
+                    <AnimatePresence>
+                        {selectTagOpen && (
+                            <motion.div
+                                initial={motionOff ? { opacity: 1 } : { opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={motionOff ? { opacity: 1 } : { opacity: 0 }}
+                                transition={{ duration: motionOff ? 0.01 : 0.16 }}
+                                className="fixed inset-0 z-[1200] flex items-center justify-center p-4"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+                                onClick={() => setSelectTagOpen(false)}
+                            >
+                                <motion.div
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-label="Choose tech stack"
+                                    initial={motionOff ? { opacity: 1 } : { opacity: 0, y: 10, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={motionOff ? { opacity: 1 } : { opacity: 0, y: 8, scale: 0.98 }}
+                                    transition={motionOff ? { duration: 0.01 } : { duration: 0.24, ease: [...EASE_OUT] }}
+                                    className="flex max-h-[82vh] w-full flex-col overflow-hidden"
+                                    style={{ maxWidth: 560, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="shrink-0 px-5 pb-4 pt-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="m-0 text-[11px] font-medium uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Library — Tags</p>
+                                                <h3 className="m-0 mt-1 text-[17px] font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>Choose tech</h3>
+                                            </div>
+                                            <button type="button" onClick={() => setSelectTagOpen(false)} aria-label="Close tech picker"
+                                                className="inline-flex h-9 w-9 items-center justify-center cursor-pointer"
+                                                style={{ borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)' }}>
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                        <div className="relative mt-3.5">
+                                            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                                            <input ref={tagSearchRef} type="text" value={tagQuery} onChange={(e) => setTagQuery(e.target.value)} placeholder="Filter tags…" aria-label="Filter tags"
+                                                className="mpf-input" style={{ paddingLeft: 36 }} />
+                                        </div>
+                                    </div>
+                                    <div className="mpf-scroll grid flex-1 grid-cols-1 gap-2 overflow-y-auto p-4 sm:grid-cols-2" data-lenis-prevent>
+                                        {filteredTags.map((tag) => {
+                                            const added = formData.tags.some(t => t.id === tag.id || t.name === tag.name);
+                                            return (
+                                                <button
+                                                    key={tag.id ?? tag.name}
+                                                    type="button"
+                                                    onClick={() => selectTag(tag)}
+                                                    disabled={added}
+                                                    className="flex items-center gap-3 p-3 text-left cursor-pointer"
+                                                    style={{
+                                                        borderRadius: 4,
+                                                        border: added ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
+                                                        background: added ? 'var(--accent-soft)' : 'var(--bg-surface)',
+                                                        opacity: added ? 0.85 : 1,
+                                                        cursor: added ? 'default' : 'pointer',
+                                                    }}
+                                                >
+                                                    {tag.iconSvg && (
+                                                        tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
+                                                            <img src={tag.iconSvg} className="h-6 w-6 shrink-0 object-contain" alt="" aria-hidden />
+                                                        ) : (
+                                                            <span className="flex h-6 w-6 shrink-0 items-center justify-center" aria-hidden dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
+                                                        )
+                                                    )}
+                                                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium" style={{ color: 'var(--text-primary)' }}>{tag.name}</span>
+                                                    {added && (
+                                                        <span className="shrink-0 text-[10px] font-medium uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.08em', color: 'var(--accent-text)' }}>Added</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                        {filteredTags.length === 0 && (
+                                            <p className="m-0 col-span-full px-1 py-6 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>No tags match “{tagQuery}”.</p>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </motion.div>
                         )}
-                    </div>
+                    </AnimatePresence>
 
-                    <div className="flex-1 overflow-y-auto p-4 lg:p-6 flex items-center justify-center bg-dots-pattern">
-                        <div className="w-full max-w-sm transform scale-90 sm:scale-95 lg:scale-100">
-                            <LiveProjectCard project={formData} isDark={isDark} />
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Selection Modals */}
-            <AnimatePresence>
-                {selectTagOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-[2100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setSelectTagOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 15 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 15 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-200'} shadow-2xl`}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Tech Stack</h3>
-                                <button type="button" onClick={() => setSelectTagOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto">
-                                {availableTags.map((tag) => (
-                                    <button
-                                        key={tag.id}
-                                        type="button"
-                                        onClick={() => selectTag(tag)}
-                                        className={`p-4 rounded-lg border text-left transition-all hover:border-[#3395ff]`}
-                                        style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {tag.iconSvg && (
-                                                tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
-                                                    <img src={tag.iconSvg} className="w-8 h-8 object-contain" alt={tag.name} />
-                                                ) : (
-                                                    <span className="w-8 h-8 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
-                                                )
-                                            )}
-                                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{tag.name}</span>
+                    {/* CONTRIBUTOR PICKER */}
+                    <AnimatePresence>
+                        {selectContribOpen && (
+                            <motion.div
+                                initial={motionOff ? { opacity: 1 } : { opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={motionOff ? { opacity: 1 } : { opacity: 0 }}
+                                transition={{ duration: motionOff ? 0.01 : 0.16 }}
+                                className="fixed inset-0 z-[1200] flex items-center justify-center p-4"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
+                                onClick={() => setSelectContribOpen(false)}
+                            >
+                                <motion.div
+                                    role="dialog"
+                                    aria-modal="true"
+                                    aria-label="Choose contributors"
+                                    initial={motionOff ? { opacity: 1 } : { opacity: 0, y: 10, scale: 0.98 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={motionOff ? { opacity: 1 } : { opacity: 0, y: 8, scale: 0.98 }}
+                                    transition={motionOff ? { duration: 0.01 } : { duration: 0.24, ease: [...EASE_OUT] }}
+                                    className="flex max-h-[82vh] w-full flex-col overflow-hidden"
+                                    style={{ maxWidth: 560, background: 'var(--bg-primary)', border: '1px solid var(--border)', borderRadius: 8, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="shrink-0 px-5 pb-4 pt-5" style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div>
+                                                <p className="m-0 text-[11px] font-medium uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.1em', color: 'var(--text-muted)' }}>Library — People</p>
+                                                <h3 className="m-0 mt-1 text-[17px] font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>Choose members</h3>
+                                            </div>
+                                            <button type="button" onClick={() => setSelectContribOpen(false)} aria-label="Close member picker"
+                                                className="inline-flex h-9 w-9 items-center justify-center cursor-pointer"
+                                                style={{ borderRadius: 4, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)' }}>
+                                                <X size={16} />
+                                            </button>
                                         </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-                {selectContribOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-[2100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                        onClick={() => setSelectContribOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 15 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 15 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-200'} shadow-2xl`}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Contributors</h3>
-                                <button type="button" onClick={() => setSelectContribOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
-                                    <X size={20} />
-                                </button>
-                            </div>
-                            <div className="grid gap-3 max-h-[60vh] overflow-y-auto">
-                                {availableContributors.map((contrib) => (
-                                    <button
-                                        key={contrib.id}
-                                        type="button"
-                                        onClick={() => selectContributor(contrib)}
-                                        className={`flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:border-[#3395ff]`}
-                                        style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-                                    >
-                                        <img src={contrib.image as string} className="w-12 h-12 rounded-lg object-cover" alt="" />
-                                        <div>
-                                            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{contrib.name}</p>
-                                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{contrib.role}</p>
+                                        <div className="relative mt-3.5">
+                                            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
+                                            <input ref={contribSearchRef} type="text" value={contribQuery} onChange={(e) => setContribQuery(e.target.value)} placeholder="Filter people…" aria-label="Filter contributors"
+                                                className="mpf-input" style={{ paddingLeft: 36 }} />
                                         </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                    </div>
+                                    <div className="mpf-scroll flex flex-1 flex-col gap-2 overflow-y-auto p-4" data-lenis-prevent>
+                                        {filteredContribs.map((contrib) => {
+                                            const added = formData.contributors.some(c => c.id === contrib.id || c.name === contrib.name);
+                                            return (
+                                                <button
+                                                    key={contrib.id ?? contrib.name}
+                                                    type="button"
+                                                    onClick={() => selectContributor(contrib)}
+                                                    disabled={added}
+                                                    className="flex items-center gap-3 p-2.5 text-left cursor-pointer"
+                                                    style={{
+                                                        borderRadius: 4,
+                                                        border: added ? '1px solid var(--accent-primary)' : '1px solid var(--border)',
+                                                        background: added ? 'var(--accent-soft)' : 'var(--bg-surface)',
+                                                        opacity: added ? 0.85 : 1,
+                                                        cursor: added ? 'default' : 'pointer',
+                                                    }}
+                                                >
+                                                    {contrib.image ? (
+                                                        <FileImage src={contrib.image as string} className="h-9 w-9 shrink-0 object-cover" alt="" />
+                                                    ) : (
+                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center text-[13px] font-semibold"
+                                                            style={{ borderRadius: 4, background: 'var(--accent-primary)', color: 'var(--text-on-accent)' }}>
+                                                            {(contrib.name || '?').charAt(0).toUpperCase()}
+                                                        </span>
+                                                    )}
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block truncate text-[13.5px] font-medium" style={{ color: 'var(--text-primary)' }}>{contrib.name}</span>
+                                                        {!!contrib.role && (
+                                                            <span className="block truncate text-[12px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>{contrib.role}</span>
+                                                        )}
+                                                    </span>
+                                                    {added && (
+                                                        <span className="shrink-0 text-[10px] font-medium uppercase" style={{ fontFamily: 'var(--font-heading)', letterSpacing: '0.08em', color: 'var(--accent-text)' }}>Added</span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                        {filteredContribs.length === 0 && (
+                                            <p className="m-0 px-1 py-6 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>Nobody matches “{contribQuery}”.</p>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-            <style>{`
-                @keyframes scaleIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-                .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: ${isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'};
-                    border-radius: 20px;
-                }
-            `}</style>
+                    <style>{`
+                        .mpf-input {
+                            width: 100%;
+                            padding: 11px 13px;
+                            border-radius: 4px;
+                            border: 1px solid var(--input-border);
+                            background: var(--input-bg);
+                            color: var(--text-primary);
+                            outline: none;
+                            font-family: var(--font-body);
+                            font-size: 14px;
+                            line-height: 1.45;
+                            transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+                        }
+                        .mpf-input::placeholder { color: var(--text-muted); }
+                        .mpf-input:hover { border-color: var(--border-strong); }
+                        .mpf-input:focus {
+                            border-color: var(--border-strong);
+                            background: var(--bg-surface);
+                            box-shadow: 0 0 0 3px var(--accent-ring);
+                        }
+                        .mpf-mono { font-family: var(--font-heading); font-size: 13px; }
+                        .mpf-area { min-height: 96px; resize: vertical; }
+                        .mpf-small { padding: 7px 10px; font-size: 13px; }
+                        .mpf-scroll { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+                        .mpf-scroll::-webkit-scrollbar { width: 8px; }
+                        .mpf-scroll::-webkit-scrollbar-track { background: transparent; }
+                        .mpf-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+                        .mpf-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+                        @media (prefers-reduced-motion: reduce) {
+                            .mpf-input { transition: none; }
+                        }
+                    `}</style>
                 </motion.div>
             )}
         </AnimatePresence>,
@@ -790,10 +962,9 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
     );
 };
 
-// Live Preview Component
-const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData; isDark: boolean }) => {
+// Live Preview — flat card in the same system (no glass, no dots, no scale gimmick)
+const LiveProjectCard = ({ project }: { project: ProjectFormData }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [showContributors, setShowContributors] = useState(false);
 
     const sortedImages = [...project.images].sort((a, b) => {
         const isVidA = typeof a === 'string'
@@ -807,53 +978,38 @@ const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData; isDark
         return 0;
     });
 
+    const safeIndex = sortedImages.length ? currentImageIndex % sortedImages.length : 0;
+
     useEffect(() => {
-        if (sortedImages.length > 1) {
-            const interval = setInterval(() => {
-                setCurrentImageIndex((prev) => (prev + 1) % sortedImages.length);
-            }, 3000);
-            return () => clearInterval(interval);
-        }
+        if (sortedImages.length < 2) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prev) => (prev + 1) % sortedImages.length);
+        }, 3600);
+        return () => clearInterval(interval);
     }, [sortedImages.length]);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setShowContributors(prev => !prev);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const visibleStack = project.tags.slice(0, 2);
-    const remainingStackCount = project.tags.length - 2;
-
     return (
-        <div
-            className="group flex flex-col w-full max-w-sm"
+        <div className="flex w-full flex-col overflow-hidden"
             style={{
-                backgroundColor: 'var(--card-bg)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                borderRadius: '20px',
-                overflow: 'hidden',
-                boxShadow: 'var(--card-shadow)',
-                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'}`,
-                transition: 'all 0.3s ease',
+                background: 'var(--bg-primary)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
             }}
         >
-            {/* Image Section */}
-            <div style={{ position: 'relative', height: '200px', overflow: 'hidden' }}>
+            {/* cover */}
+            <div style={{ position: 'relative', height: 190, overflow: 'hidden', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)' }}>
                 {sortedImages.length > 0 ? (
                     sortedImages.map((img, i) => {
                         const isVid = typeof img === 'string'
                             ? (img.split('?')[0].toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || img.includes('/videos/'))
                             : img.type.startsWith('video/');
-
                         return (
                             <LivePreviewItem
                                 key={i}
                                 img={img}
                                 isVid={!!isVid}
-                                alt={project.name}
+                                alt={project.name || 'Project cover'}
                                 style={{
                                     position: 'absolute',
                                     top: 0,
@@ -861,56 +1017,36 @@ const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData; isDark
                                     width: '100%',
                                     height: '100%',
                                     objectFit: 'cover',
-                                    opacity: i === currentImageIndex ? 1 : 0,
-                                    transition: 'opacity 0.5s ease, transform 0.5s ease',
+                                    opacity: i === safeIndex ? 1 : 0,
+                                    transition: 'opacity .5s ease',
                                 }}
                             />
                         );
                     })
                 ) : (
-                    <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                        <ImageIcon size={48} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
+                    <div className="flex h-full w-full items-center justify-center">
+                        <ImageIcon size={30} style={{ color: 'var(--border-strong)' }} />
                     </div>
                 )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-
-                <div className="absolute top-[15px] left-[15px] w-[calc(100%-30px)] h-[40px] overflow-hidden pointer-events-none">
-                    {/* Stack Container */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            opacity: showContributors ? 0 : 1,
-                            transform: showContributors ? 'translateY(-20px)' : 'translateY(0)',
-                            transition: 'opacity 0.5s ease, transform 0.5s ease'
-                        }}
-                    >
-                        {visibleStack.map((tech, i) => (
-                            <span key={i} style={{
-                                padding: '6px 14px',
-                                backgroundColor: tech.color ? `${tech.color}40` : 'rgba(59, 130, 246, 0.25)',
-                                color: 'white',
-                                borderRadius: '20px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                backdropFilter: 'blur(12px)',
-                                WebkitBackdropFilter: 'blur(12px)',
-                                border: `1px solid ${tech.color ? tech.color : 'rgba(255, 255, 255, 0.2)'}`,
-                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px'
-                            }}>
+                {/* stack chips */}
+                {project.tags.length > 0 && (
+                    <div className="absolute left-3 top-3 flex max-w-[calc(100%-24px)] flex-wrap gap-1.5">
+                        {project.tags.slice(0, 2).map((tech, i) => (
+                            <span key={i} className="inline-flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium uppercase"
+                                style={{
+                                    fontFamily: 'var(--font-heading)',
+                                    letterSpacing: '0.05em',
+                                    borderRadius: 4,
+                                    background: 'rgba(10,10,10,0.72)',
+                                    border: '1px solid var(--border-strong)',
+                                    color: 'var(--accent-soft-text)',
+                                    backdropFilter: 'blur(6px)',
+                                }}>
                                 {tech.iconSvg && (
                                     tech.iconSvg.startsWith('http') || tech.iconSvg.startsWith('data:image') ? (
-                                        <img src={tech.iconSvg} className="w-3.5 h-3.5 object-contain" alt={tech.name} />
+                                        <img src={tech.iconSvg} className="h-3 w-3 object-contain" alt="" aria-hidden />
                                     ) : (
-                                        <span className="w-3.5 h-3.5 flex items-center justify-center"
+                                        <span className="flex h-3 w-3 items-center justify-center" aria-hidden
                                             style={{ filter: 'brightness(0) invert(1)' }}
                                             dangerouslySetInnerHTML={{ __html: sanitizeSvg(tech.iconSvg) }} />
                                     )
@@ -918,99 +1054,77 @@ const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData; isDark
                                 {tech.name}
                             </span>
                         ))}
-                        {remainingStackCount > 0 && (
-                            <span style={{
-                                padding: '6px 14px',
-                                backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                                color: 'white',
-                                borderRadius: '20px',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                backdropFilter: 'blur(12px)',
-                                WebkitBackdropFilter: 'blur(12px)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)'
-                            }}>
-                                +{remainingStackCount}
+                        {project.tags.length > 2 && (
+                            <span className="tnum px-2 py-1 text-[10px] font-medium"
+                                style={{ fontFamily: 'var(--font-heading)', borderRadius: 4, background: 'rgba(10,10,10,0.72)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}>
+                                +{project.tags.length - 2}
                             </span>
                         )}
                     </div>
-
-                    {/* Contributors Container */}
-                    <div
-                        style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            opacity: showContributors ? 1 : 0,
-                            transform: showContributors ? 'translateY(0)' : 'translateY(20px)',
-                            transition: 'opacity 0.5s ease, transform 0.5s ease',
-                            pointerEvents: 'auto'
-                        }}
-                    >
-                        <span style={{
-                            padding: '6px 14px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                            color: 'white',
-                            borderRadius: '20px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            backdropFilter: 'blur(12px)',
-                            WebkitBackdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            marginRight: '4px',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-                        }}>
-                            Contributors
-                        </span>
-                        <div className="flex ml-1">
-                            {project.contributors.slice(0, 3).map((contributor, i) => (
-                                <div key={i} className={`w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-gray-200 ${i > 0 ? '-ml-4' : ''}`} style={{ transform: `translateX(${i * -12}px)` }}>
-                                    {typeof contributor.image === 'string' ? (
-                                        <img src={contributor.image} alt={contributor.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-xs font-bold">
-                                            {contributor.name.charAt(0)}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                            {project.contributors.length > 3 && (
-                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-gray-800 text-white flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
-                                    +{project.contributors.length - 3}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                )}
+                {sortedImages.length > 1 && (
+                    <span className="tnum absolute bottom-2.5 right-3 px-1.5 py-0.5 text-[10px]"
+                        style={{ fontFamily: 'var(--font-heading)', background: 'rgba(0,0,0,0.65)', color: '#fff', borderRadius: 4 }}>
+                        {String(safeIndex + 1).padStart(2, '0')}/{String(sortedImages.length).padStart(2, '0')}
+                    </span>
+                )}
             </div>
 
-            {/* Content Section */}
-            <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <h3 className="font-inter font-extrabold text-2xl mb-2 text-[var(--text-primary)]">
-                    {project.name || 'Untitled Project'}
-                </h3>
-                <p className="font-inter text-base text-[var(--text-secondary)] leading-relaxed flex-1 line-clamp-3">
-                    {project.description || 'Project description will appear here...'}
+            {/* body */}
+            <div style={{ padding: '16px 16px 14px' }}>
+                <div className="flex items-center gap-2.5">
+                    {project.icon ? (
+                        <span className="block h-8 w-8 shrink-0 overflow-hidden" style={{ borderRadius: 4, border: '1px solid var(--border)' }}>
+                            <FileImage src={project.icon} className="h-full w-full object-cover" alt="" />
+                        </span>
+                    ) : (
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[13px] font-semibold"
+                            style={{ borderRadius: 4, background: 'var(--accent-primary)', color: 'var(--text-on-accent)', fontFamily: 'var(--font-display)' }}>
+                            {(project.name || '?').charAt(0).toUpperCase()}
+                        </span>
+                    )}
+                    <h3 className="m-0 truncate text-[16px] font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+                        {project.name || 'Untitled project'}
+                    </h3>
+                </div>
+                <p className="m-0 mt-2.5 text-[13.5px] leading-relaxed" style={{ color: 'var(--text-secondary)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {project.description || 'A line about what this project does will show up here.'}
                 </p>
-
-                {/* Links */}
-                {(project.repoLink || project.liveLink) && (
-                    <div className="mt-6 flex gap-3">
-                        {project.repoLink && (
-                            <div className="flex items-center gap-2 text-sm font-semibold text-blue-500">
-                                <Github size={16} /> Code
-                            </div>
+                <div className="mt-3.5 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                    <div className="flex items-center gap-3 text-[12px] font-medium" style={{ fontFamily: 'var(--font-heading)' }}>
+                        {project.repoLink ? (
+                            <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}><Github size={13} /> Code</span>
+                        ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>— code</span>
                         )}
-                        {project.liveLink && (
-                            <div className="flex items-center gap-2 text-sm font-semibold text-green-500">
-                                <ExternalLink size={16} /> Live
-                            </div>
+                        {project.liveLink ? (
+                            <span className="inline-flex items-center gap-1.5" style={{ color: 'var(--accent-text)' }}><ExternalLink size={13} /> Live</span>
+                        ) : (
+                            <span style={{ color: 'var(--text-muted)' }}>— live</span>
                         )}
                     </div>
-                )}
+                    {project.contributors.length > 0 && (
+                        <div className="flex items-center" aria-label={`${project.contributors.length} contributors`}>
+                            {project.contributors.slice(0, 3).map((c, i) => (
+                                <span key={i} className="block h-6 w-6 overflow-hidden" title={c.name}
+                                    style={{ borderRadius: 4, border: '1px solid var(--border-strong)', background: 'var(--bg-surface)', marginLeft: i === 0 ? 0 : -8 }}>
+                                    {typeof c.image === 'string' && c.image ? (
+                                        <img src={c.image} alt="" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <span className="flex h-full w-full items-center justify-center text-[10px] font-bold" style={{ background: 'var(--accent-soft)', color: 'var(--accent-soft-text)' }}>
+                                            {c.name.charAt(0).toUpperCase()}
+                                        </span>
+                                    )}
+                                </span>
+                            ))}
+                            {project.contributors.length > 3 && (
+                                <span className="tnum ml-1.5 text-[11px]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text-muted)' }}>
+                                    +{project.contributors.length - 3}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
