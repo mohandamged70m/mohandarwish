@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import Alert from "@/components/ui/alert";
 import useSafeAlert from "@/hooks/useSafeAlert";
 import { AvailabilityConfig, DEFAULT_AVAILABILITY, parseAvailabilityConfig, buildHostSlots, isWorkingDay } from "@/lib/availability";
-import { RevilSelect } from "@/components/ui/revil-select";
+import { MohandSelect } from "@/components/ui/mohand-select";
 import CustomTimePicker from "@/components/booking/CustomTimePicker";
 import HintTooltip from "@/components/ui/hint-tooltip";
 import useTheme from "@/hooks/useTheme";
@@ -344,7 +344,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                                   <>
                                     <div style={{ position: "relative", marginBottom: "24px" }}>
                                       <div><label className="label-help flex items-center gap-2 mb-2" style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-muted)" }}><Globe size={14} className="opacity-70" /> User Timezone<HintTooltip text="We've detected your timezone automatically, but you can adjust it here. Available slots will update to match your local area's time." isDark={isDark} /></label></div>
-                                      <RevilSelect value={String(userTimezone)} options={timezones.map((t) => ({ value: String(t.value), label: t.label }))} onChange={(v) => setUserTimezone(Number(v))} isDark={isDark} searchable aria-label="Your timezone" />
+                                      <MohandSelect value={String(userTimezone)} options={timezones.map((t) => ({ value: String(t.value), label: t.label }))} onChange={(v) => setUserTimezone(Number(v))} isDark={isDark} searchable aria-label="Your timezone" />
                                     </div>
                                     <div>
                                       <h3 className="heading-sm mb-3 flex items-center gap-2"><Clock size={16} /> Available Slots</h3>

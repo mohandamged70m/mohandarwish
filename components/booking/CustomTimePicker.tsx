@@ -3,7 +3,7 @@ import { useId, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence, LayoutGroup } from "motion/react";
 import { Clock, X, Plus } from "lucide-react";
-import { RevilSelect } from "@/components/ui/revil-select";
+import { MohandSelect } from "@/components/ui/mohand-select";
 
 interface Props {
   isDark: boolean;
@@ -136,15 +136,15 @@ export default function CustomTimePicker({ isDark, active, value, onApply, valid
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                     <div>
                       <label className="text-xs font-semibold" style={{ color: "var(--text-primary)", fontSize: "0.72rem" }}>Hour</label>
-                      <RevilSelect value={h} onChange={setH} isDark={isDark} searchable={false} aria-label="Hour" options={hourOpts} />
+                      <MohandSelect value={h} onChange={setH} isDark={isDark} searchable={false} aria-label="Hour" options={hourOpts} />
                     </div>
                     <div>
                       <label className="text-xs font-semibold" style={{ color: "var(--text-primary)", fontSize: "0.72rem" }}>Minute</label>
-                      <RevilSelect value={m} onChange={setM} isDark={isDark} aria-label="Minute" options={minuteOpts} />
+                      <MohandSelect value={m} onChange={setM} isDark={isDark} aria-label="Minute" options={minuteOpts} />
                     </div>
                     <div>
                       <label className="text-xs font-semibold" style={{ color: "var(--text-primary)", fontSize: "0.72rem" }}>Period</label>
-                      <RevilSelect value={p} onChange={setP} isDark={isDark} aria-label="AM or PM" options={periodOpts} />
+                      <MohandSelect value={p} onChange={setP} isDark={isDark} aria-label="AM or PM" options={periodOpts} />
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
