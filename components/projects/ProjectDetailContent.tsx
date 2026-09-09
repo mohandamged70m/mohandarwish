@@ -5,11 +5,117 @@ import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/Data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
+import { sanitizeSvg } from "@/lib/sanitize";
 import { GlassPanel } from "./GlassPanel";
 import { ProjectMediaCarousel } from "./ProjectMediaCarousel";
 import { useProjectModal } from "./ProjectModal";
 
 const isRealUrl = (url?: string) => Boolean(url) && url !== "#";
+
+// simpleicons.org slugs for common stack names (dashboard tag icons win
+// whenever the owner set one; this is the no-config fallback).
+const TECH_SLUG_MAP: Record<string, string> = {
+  "next.js": "nextdotjs",
+  next: "nextdotjs",
+  react: "react",
+  typescript: "typescript",
+  javascript: "javascript",
+  tailwind: "tailwindcss",
+  tailwindcss: "tailwindcss",
+  "node.js": "nodedotjs",
+  nodejs: "nodedotjs",
+  postgres: "postgresql",
+  postgresql: "postgresql",
+  prisma: "prisma",
+  trpc: "trpc",
+  motion: "framer",
+  "framer motion": "framer",
+  storybook: "storybook",
+  firebase: "firebase",
+  supabase: "supabase",
+  stripe: "stripe",
+  mapbox: "mapbox",
+  recharts: "recharts",
+  mdx: "mdx",
+  algolia: "algolia",
+  electron: "electron",
+  yjs: "yjs",
+  canvas: "canvas",
+  websockets: "websockets",
+  nextauth: "nextauth",
+  "ai sdk": "vercel",
+  vercel: "vercel",
+  github: "github",
+  figma: "figma",
+  gsap: "gsap",
+  "shadcn/ui": "shadcnui",
+  cursor: "cursor",
+};
+
+function slugifyTech(tech: string): string {
+  const key = tech.toLowerCase().trim();
+  if (TECH_SLUG_MAP[key]) return TECH_SLUG_MAP[key];
+  return key.replace(/[^a-z0-9]/g, "");
+}
+
+/** Brand logo for one stack chip: dashboard icon → simpleicons → color dot. */
+function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconSvg?: string }) {
+  const [failed, setFailed] = useState(false);
+  const icon = (iconSvg || "").trim();
+  // Owner-provided icon (URL / data-URI / inline SVG from Tags dashboard).
+  if (icon && !failed) {
+    if (/^(https?:|data:image)/.test(icon)) {
+      return (
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95">
+          <img
+            src={icon}
+            alt=""
+            aria-hidden="true"
+            width={18}
+            height={18}
+            loading="lazy"
+            className="h-[18px] w-[18px] object-contain"
+            onError={() => setFailed(true)}
+            draggable={false}
+          />
+        </span>
+      );
+    }
+    const clean = sanitizeSvg(icon);
+    if (clean) {
+      return (
+        <span
+          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95 [&>svg]:h-[18px] [&>svg]:w-[18px]"
+          aria-hidden="true"
+          dangerouslySetInnerHTML={{ __html: clean }}
+        />
+      );
+    }
+  }
+  const slug = slugifyTech(tech);
+  if (slug && !failed) {
+    return (
+      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95">
+        <img
+          src={`https://cdn.simpleicons.org/${slug}`}
+          alt=""
+          aria-hidden="true"
+          width={18}
+          height={18}
+          loading="lazy"
+          className="h-[18px] w-[18px] object-contain"
+          onError={() => setFailed(true)}
+          draggable={false}
+        />
+      </span>
+    );
+  }
+  return (
+    <span
+      style={{ width: 10, height: 10, borderRadius: "50%", background: color, boxShadow: `0 0 10px ${color}`, flexShrink: 0 }}
+    />
+  );
+}
 
 type Props = { project: Project };
 
@@ -237,6 +343,10 @@ export function ProjectDetailContent({ project }: Props) {
               <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 140 : 170}px, 1fr))`, gap: 12 }}>
                 {project.stack.map((tech) => {
                   const color = getTechColor(tech);
+                  const detail = project.tagsDetailed?.find(
+                    (t) => t.name.trim().toLowerCase() === tech.trim().toLowerCase()
+                  );
+                  const chipColor = detail?.color || color;
                   return (
                     <div
                       key={tech}
@@ -245,26 +355,26 @@ export function ProjectDetailContent({ project }: Props) {
                         alignItems: "center",
                         gap: 12,
                         padding: "14px 16px",
-                        background: `${color}14`,
+                        background: `${chipColor}14`,
                         borderRadius: 20,
-                        border: `1px solid ${color}33`,
+                        border: `1px solid ${chipColor}33`,
                         transition: "all 0.3s cubic-bezier(0.16,1,0.3,1)",
                         cursor: "default",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = `${color}22`;
-                        e.currentTarget.style.borderColor = color;
+                        e.currentTarget.style.background = `${chipColor}22`;
+                        e.currentTarget.style.borderColor = chipColor;
                         e.currentTarget.style.transform = "translateY(-4px)";
-                        e.currentTarget.style.boxShadow = `0 10px 20px -10px ${color}88`;
+                        e.currentTarget.style.boxShadow = `0 10px 20px -10px ${chipColor}88`;
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.background = `${color}14`;
-                        e.currentTarget.style.borderColor = `${color}33`;
+                        e.currentTarget.style.background = `${chipColor}14`;
+                        e.currentTarget.style.borderColor = `${chipColor}33`;
                         e.currentTarget.style.transform = "translateY(0)";
                         e.currentTarget.style.boxShadow = "none";
                       }}
                     >
-                      <span style={{ width: 10, height: 10, borderRadius: "50%", background: color, boxShadow: `0 0 10px ${color}`, flexShrink: 0 }} />
+                      <TechIcon tech={tech} color={chipColor} iconSvg={detail?.iconSvg} />
                       <span style={{ fontSize: isMobile ? "0.85rem" : "0.92rem", fontWeight: 800, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontFamily: "var(--font-heading)" }}>{tech}</span>
                     </div>
                   );
