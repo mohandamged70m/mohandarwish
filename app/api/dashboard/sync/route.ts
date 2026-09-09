@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { isAdminRequest } from "@/lib/admin";
 
 // Admin: mirror the site's real tables (bookings, messages, availability)
 // into the dashboard_docs the copy-pasted Canary UI reads:
@@ -8,8 +9,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 // Called by the dashboard shell on mount + interval.
 
 function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
+  return isAdminRequest(req);
 }
 
 type Booking = {

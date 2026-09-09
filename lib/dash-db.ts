@@ -79,14 +79,12 @@ function joinSegs(segs: string[]): string {
     .join("/");
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function doc(_db: unknown, ...segs: string[]): DocRef {
   const path = joinSegs(segs);
   const parts = path.split("/");
   return { kind: "doc", path, id: parts[parts.length - 1] ?? "" };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function collection(_db: unknown, ...segs: string[]): ColRef {
   return { kind: "col", path: joinSegs(segs) };
 }
@@ -390,7 +388,17 @@ async function upsertDoc(path: string, data: Record<string, unknown>): Promise<v
 
 function adminToken(): string {
   if (typeof window === "undefined") return "";
-  return localStorage.getItem("dashboard_token") ?? "";
+  const saved = localStorage.getItem("dashboard_token");
+  if (saved) return saved;
+  // Cookie fallback (set by the dashboard shell alongside localStorage so
+  // server routes + middleware can also read it). Kept for compat.
+  const m = document.cookie.match(/(?:^|;\s*)dashboard_token=([^;]+)/);
+  if (!m) return "";
+  try {
+    return decodeURIComponent(m[1]);
+  } catch {
+    return m[1];
+  }
 }
 
 // Mirror dashboard availability edits into the site's availability table,
@@ -506,7 +514,6 @@ interface Batch {
   commit: () => Promise<void>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function writeBatch(_db: unknown): Batch {
   const ops: (() => Promise<void>)[] = [];
   const batch: Batch = {

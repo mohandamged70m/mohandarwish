@@ -3,9 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { sanitizeSvg } from '@/lib/sanitize';
 import { createPortal } from 'react-dom';
-import { X, HardDrive, Trash2 } from 'lucide-react';
-import MFirebaseStorage from './M-FirebaseStorage';
-const firebaseIcon = '/svgs/firebase.svg'; // served from public/ (see M-StackItem note)
+import { X, HardDrive, Trash2, Link2 } from 'lucide-react';
 import { TagFormData } from '@/types';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -30,7 +28,9 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
     const [iconSvg, setIconSvg] = useState<string>('');
     const [iconFile, setIconFile] = useState<File | null>(null);
     const [fileError, setFileError] = useState<string | null>(null);
-    const [firebaseBrowserOpen, setFirebaseBrowserOpen] = useState(false);
+    const [showUrlInput, setShowUrlInput] = useState(false);
+    const [urlInput, setUrlInput] = useState('');
+    const [urlError, setUrlError] = useState<string | null>(null);
 
     const nameInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,14 +43,21 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                     setColor(normalizeColor(initialData.color));
                     setIconSvg(initialData.iconSvg || '');
                     setIconFile(null);
+                    const initial = (initialData.iconSvg || '').trim();
+                    const isUrl = /^https?:\/\//i.test(initial);
+                    setShowUrlInput(isUrl);
+                    setUrlInput(isUrl ? initial : '');
                 } else {
                     setName('');
                     setColor(FALLBACK_COLOR);
                     setIconSvg('');
                     setIconFile(null);
+                    setShowUrlInput(false);
+                    setUrlInput('');
                 }
                 setHexTouched(false);
                 setFileError(null);
+                setUrlError(null);
             });
         }
     }, [isOpen, initialData]);
@@ -59,7 +66,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
     useEffect(() => {
         if (!isOpen) return;
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && !firebaseBrowserOpen) onClose();
+            if (e.key === 'Escape') onClose();
         };
         document.addEventListener('keydown', onKey);
         const prevOverflow = document.body.style.overflow;
@@ -71,7 +78,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
             document.body.style.overflow = prevOverflow;
             clearTimeout(t);
         };
-    }, [isOpen, firebaseBrowserOpen, onClose]);
+    }, [isOpen, onClose]);
 
     const handleHexChange = (raw: string) => {
         const val = raw.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
@@ -88,10 +95,12 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
         if (!file) return;
         const isSvg = file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
         if (!isSvg) {
-            setFileError('Only .svg files are supported for tag icons. PNG/JPG can be picked via Firebase Storage.');
+            setFileError('Only .svg files are supported for tag icons.');
             return;
         }
         setFileError(null);
+        setUrlError(null);
+        setShowUrlInput(false);
         setIconFile(file);
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -104,6 +113,25 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
         setIconSvg('');
         setIconFile(null);
         setFileError(null);
+        setUrlError(null);
+        setUrlInput('');
+        setShowUrlInput(false);
+    };
+
+    const applyUrl = () => {
+        const url = urlInput.trim();
+        if (!url) {
+            setUrlError('Paste an SVG image URL first.');
+            return;
+        }
+        if (!/^https?:\/\/.+/i.test(url)) {
+            setUrlError('URL must start with http:// or https://');
+            return;
+        }
+        setUrlError(null);
+        setFileError(null);
+        setIconFile(null);
+        setIconSvg(url);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -323,13 +351,46 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
 
                             <button
                                 type="button"
-                                onClick={() => setFirebaseBrowserOpen(true)}
-                                className="flex-1 border-2 border-dashed border-amber-500/30 rounded-xl p-4 text-center cursor-pointer bg-amber-500/5 hover:bg-amber-500/10 flex flex-col items-center gap-2 transition-all group"
+                                onClick={() => setShowUrlInput((v) => !v)}
+                                aria-expanded={showUrlInput}
+                                className="flex-1 border-2 border-dashed border-sky-500/30 rounded-xl p-4 text-center cursor-pointer bg-sky-500/5 hover:bg-sky-500/10 flex flex-col items-center gap-2 transition-all group"
                             >
-                                <img src={firebaseIcon} alt="" aria-hidden="true" className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all" />
-                                <span className="text-xs text-amber-600/70 group-hover:text-amber-600 transition-colors">Firebase Storage</span>
+                                <Link2 size={24} className="text-sky-600/70 group-hover:text-sky-600 transition-colors" aria-hidden="true" />
+                                <span className="text-xs text-sky-600/70 group-hover:text-sky-600 transition-colors">Online SVG URL</span>
                             </button>
                         </div>
+
+                        {showUrlInput && (
+                            <div className="mt-3 rounded-xl border border-input-border bg-input-bg p-3">
+                                <label htmlFor="tag-icon-url" className="text-xs font-medium text-sec">
+                                    Paste a public .svg URL (e.g. https://cdn.simpleicons.org/react)
+                                </label>
+                                <div className="mt-2 flex gap-2">
+                                    <input
+                                        id="tag-icon-url"
+                                        type="url"
+                                        inputMode="url"
+                                        value={urlInput}
+                                        onChange={(e) => { setUrlInput(e.target.value); if (urlError) setUrlError(null); }}
+                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyUrl(); } }}
+                                        placeholder="https://..."
+                                        autoComplete="off"
+                                        spellCheck={false}
+                                        className="input-field flex-1 font-mono text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={applyUrl}
+                                        className="btn btn-secondary px-4 shrink-0"
+                                    >
+                                        Apply
+                                    </button>
+                                </div>
+                                {urlError && (
+                                    <p role="alert" className="text-sm text-red-500 mt-2">{urlError}</p>
+                                )}
+                            </div>
+                        )}
                         {fileError && (
                             <p role="alert" className="text-sm text-red-500 mt-2">{fileError}</p>
                         )}
@@ -337,15 +398,6 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                             <p className="text-xs text-sec mt-2 truncate">Selected: {iconFile.name}</p>
                         )}
                     </div>
-
-                    {/* Firebase Storage Browser */}
-                    <MFirebaseStorage
-                        isOpen={firebaseBrowserOpen}
-                        onClose={() => setFirebaseBrowserOpen(false)}
-                        onSelect={(url) => { setIconSvg(url); setIconFile(null); setFileError(null); }}
-                        fileTypes={['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp']}
-                        title="Select Icon from Firebase"
-                    />
 
                     <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-[var(--card-border)]">
                         <button

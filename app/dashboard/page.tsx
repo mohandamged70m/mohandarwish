@@ -10,7 +10,15 @@ import Dashboard from "@/components/dashboard/Dashboard";
 // reads, and keeps them fresh while the dashboard is open.
 
 function useDashboardToken() {
-  const [token, setToken] = useState("");
+  // Lazy init from storage so the mount effect below only verifies —
+  // no setState-in-effect (react-hooks/set-state-in-effect).
+  const [token, setToken] = useState(() => {
+    try {
+      return localStorage.getItem("dashboard_token") ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [authed, setAuthed] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -19,15 +27,24 @@ function useDashboardToken() {
     if (r.ok) {
       setAuthed(true);
       localStorage.setItem("dashboard_token", t);
+      // Mirror into a cookie so server routes/middleware (lib/admin.ts) can
+      // read the same session. localStorage stays canonical for dash-db.
+      document.cookie = `dashboard_token=${encodeURIComponent(t)}; Path=/; Max-Age=86400; SameSite=Lax`;
       return true;
     }
     return false;
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem("dashboard_token");
+    // Token field is prefilled by lazy useState init above; here we only
+    // verify the persisted session (async callback, no sync setState).
+    let saved = "";
+    try {
+      saved = localStorage.getItem("dashboard_token") ?? "";
+    } catch {
+      saved = "";
+    }
     if (saved) {
-      setToken(saved);
       verify(saved).catch(() => {});
     }
   }, [verify]);
@@ -42,6 +59,7 @@ function useDashboardToken() {
 
   const logout = () => {
     localStorage.removeItem("dashboard_token");
+    document.cookie = "dashboard_token=; Path=/; Max-Age=0; SameSite=Lax";
     setAuthed(false);
     setToken("");
   };

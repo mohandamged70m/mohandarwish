@@ -111,7 +111,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
           className="fixed inset-0 bg-black/85"
           style={{ backdropFilter: "blur(2px)" }}
         />
-        {/* ambient bleed - Revil style */}
+        {/* ambient bleed - Mohand style */}
         {activeMedia && !isVideo(activeMedia) && (
           <div
             aria-hidden
@@ -128,7 +128,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
             }}
           />
         )}
-        {/* floating close - Revil */}
+        {/* floating close - Mohand */}
         <button
           ref={closeRef}
           type="button"

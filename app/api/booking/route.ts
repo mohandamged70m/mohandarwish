@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { EMAIL_RE, getOffsetFromUTCString, formatDateDDMMYYYY } from "@/lib/booking";
+import { sanitizeText } from "@/lib/sanitize";
+import { isAdminRequest } from "@/lib/admin";
+import { parseJsonBody } from "@/lib/validate";
 import { bookingGuestHtml, bookingOwnerHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
@@ -15,18 +18,14 @@ type Body = {
   selectedTime?: string;
 };
 
-const RATE_LIMIT_MS = 5 * 60 * 1000; // global 5 min like revil 300s
+const RATE_LIMIT_MS = 5 * 60 * 1000; // global 5 min window
 
 export async function POST(req: Request) {
-  let body: Body;
-  try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
-  const name = body.name?.trim() ?? "";
+  const body = await parseJsonBody<Body>(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  const name = sanitizeText(body.name, 120);
   const email = body.email?.trim() ?? "";
-  const reason = body.reason?.trim() ?? "";
+  const reason = sanitizeText(body.reason, 2000);
   const startTime = body.startTime?.trim() ?? "";
   const endTime = body.endTime?.trim() ?? "";
   const selectedTime = body.selectedTime?.trim() ?? "";
@@ -159,11 +158,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const token = url.searchParams.get("admin");
-  const headerToken = req.headers.get("x-admin-token");
-  const adminToken = headerToken || token;
-  if (!process.env.ADMIN_TOKEN || adminToken !== process.env.ADMIN_TOKEN) {
+  if (!isAdminRequest(req)) {
     // public not allowed to list PII
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

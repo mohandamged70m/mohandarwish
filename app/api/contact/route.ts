@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { sanitizeText } from "@/lib/sanitize";
+import { isValidEmail, parseJsonBody } from "@/lib/validate";
 
 type Body = {
   name?: string;
@@ -9,7 +11,6 @@ type Body = {
   timezone?: string;
 };
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
@@ -36,22 +37,18 @@ const ALLOWED_TIMES = new Set<string>([
 ]);
 
 export async function POST(req: Request) {
-  let body: Body;
-  try {
-    body = (await req.json()) as Body;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
-  }
+  const body = await parseJsonBody<Body>(req);
+  if (!body) return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
 
-  const name = body.name?.trim() ?? "";
+  const name = sanitizeText(body.name, 120);
   const email = body.email?.trim() ?? "";
-  const message = body.message?.trim() ?? "";
+  const message = sanitizeText(body.message, 5000);
   const preferredDate = body.preferredDate?.trim() ?? "";
   const preferredTime = body.preferredTime?.trim() ?? "";
   const timezone = body.timezone?.trim() ?? "";
 
   if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
-  if (!email || !EMAIL_RE.test(email))
+  if (!isValidEmail(email))
     return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
   if (!message || message.length < 10)
     return NextResponse.json({ error: "Message must be at least 10 characters." }, { status: 400 });

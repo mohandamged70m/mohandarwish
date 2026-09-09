@@ -73,7 +73,8 @@ export function setModel(m: string): void {
 }
 
 function detectProvider(key: string): Provider {
-  return key.startsWith("AIza") ? "gemini" : "openai";
+  if (key.startsWith("AIza") || key.startsWith("AQ.")) return "gemini";
+  return "openai";
 }
 
 export async function resolveProvider(): Promise<Provider | null> {
@@ -90,7 +91,7 @@ export async function resolveProvider(): Promise<Provider | null> {
 
 const FALLBACK_MODELS: Record<Provider, string[]> = {
   openai: ["gpt-4o-mini", "gpt-4o"],
-  gemini: ["gemini-2.0-flash", "gemini-1.5-flash"],
+  gemini: ["gemini-2.5-flash", "gemini-3.6-flash"],
 };
 
 export async function listModels(): Promise<string[]> {

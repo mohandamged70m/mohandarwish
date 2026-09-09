@@ -1,5 +1,7 @@
-// Minimal SVG sanitizer (replaces the old lib/sanitize).
-// Strips scripts, event-handler attributes, javascript: URLs and foreignObject.
+// Minimal sanitizers (replaces the old lib/sanitize).
+// `sanitizeSvg` is for tag/contributor icons. `sanitizeText` is for contact/
+// booking free-text: strips control chars + caps length (HTML-escaping happens
+// at render via `escHtml` in lib/email.ts, so we never store entities here).
 
 export function sanitizeSvg(input: string): string {
   if (!input || typeof input !== "string") return "";
@@ -10,4 +12,10 @@ export function sanitizeSvg(input: string): string {
   // javascript: / data:text/html URLs in href/xlink:href/src
   out = out.replace(/\s+(href|xlink:href|src)\s*=\s*("javascript:[^"]*"|'javascript:[^']*'|"data:text\/html[^"]*"|'data:text\/html[^']*')/gi, "");
   return out.trim();
+}
+
+export function sanitizeText(input: unknown, max = 2000): string {
+  if (typeof input !== "string") return "";
+  // Strip ASCII control chars (keep \t \n), collapse nothing else.
+  return input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim().slice(0, max);
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { DEFAULT_AVAILABILITY, parseAvailabilityConfig } from "@/lib/availability";
+import { isAdminRequest } from "@/lib/admin";
 
 export async function GET() {
   try {
@@ -28,8 +29,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const token = req.headers.get("x-admin-token");
-  if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) {
+  if (!isAdminRequest(req)) {
     // also allow OWNER email check via body? simple token guard
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

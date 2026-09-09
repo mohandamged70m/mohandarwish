@@ -15,13 +15,14 @@ function serverProvider(): Provider | null {
   if (!key) return null;
   const env = process.env.LLM_PROVIDER;
   if (env === "gemini" || env === "openai") return env;
-  return key.startsWith("AIza") ? "gemini" : "openai";
+  if (key.startsWith("AIza") || key.startsWith("AQ.")) return "gemini";
+  return "openai";
 }
 
 function defaultModel(prov: Provider): string {
   const env = process.env.LLM_MODEL;
   if (env) return env;
-  return prov === "gemini" ? "gemini-2.0-flash" : "gpt-4o-mini";
+  return prov === "gemini" ? "gemini-2.5-flash" : "gpt-4o-mini";
 }
 
 export async function GET(req: Request) {
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
       const ids = (j.models ?? [])
         .map((m) => m.name.replace(/^models\//, ""))
         .filter((id) => /gemini/i.test(id));
-      return NextResponse.json({ models: ids.length ? ids : ["gemini-2.0-flash"] });
+      return NextResponse.json({ models: ids.length ? ids : ["gemini-2.5-flash"] });
     } catch {
       return NextResponse.json({ models: [] });
     }

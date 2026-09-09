@@ -15,7 +15,9 @@ export function appAuth(): { __dash: true } {
 
 async function verifyToken(): Promise<boolean> {
   try {
-    const token = localStorage.getItem("dashboard_token") ?? "";
+    const saved = localStorage.getItem("dashboard_token") ?? "";
+    const cookie = document.cookie.match(/(?:^|;\s*)dashboard_token=([^;]+)/)?.[1] ?? "";
+    const token = saved || (cookie ? decodeURIComponent(cookie) : "");
     if (!token) return false;
     const r = await fetch("/api/booking", { headers: { "x-admin-token": token } });
     return r.ok;
@@ -25,7 +27,6 @@ async function verifyToken(): Promise<boolean> {
 }
 
 export function onAuthStateChanged(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _auth: unknown,
   cb: (user: DashUser | null) => void
 ): () => void {

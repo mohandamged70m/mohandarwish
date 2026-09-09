@@ -42,6 +42,6 @@ export function getTechColor(tech: string): string {
 }
 
 export function getStackIcon(_tech: string): string {
-  // Revil uses per-tag iconSvg from Firestore; we return empty and let caller show dot fallback.
+  // Mohand uses per-tag iconSvg from the dashboard; we return empty and let caller show dot fallback.
   return "";
 }

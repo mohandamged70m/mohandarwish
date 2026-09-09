@@ -19,7 +19,7 @@
   --accent-ring: rgba(173, 40, 49, 0.35);
   --accent-soft-text: #ffd9cc;
 
-  /* Revil compat aliases — mapped to wine palette */
+  /* Mohand compat aliases — mapped to wine palette */
   --accent: var(--accent-primary);
   --accent-rgb: 173,40,49;
   --navbar-bg: rgba(10, 10, 10, 0.72);
@@ -128,7 +128,7 @@ html.light {
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
 
-  /* Legacy dashboard aliases (old Revil theme names) */
+  /* Legacy dashboard aliases (old Mohand theme names) */
   --color-primary: var(--text-primary);
   --color-sec: var(--text-secondary);
   --color-muted: var(--text-muted);
@@ -360,7 +360,7 @@ html[data-theme-anim="1"]::view-transition-new(root) {
   }
 }
 
-/* Revil cinema modal — keyframes */
+/* Mohand cinema modal — keyframes */
 @keyframes shimmer-fast {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -388,7 +388,7 @@ html[data-theme-anim="1"]::view-transition-new(root) {
   [style*="scrollWheel"], [style*="shimmer-fast"] { animation: none !important; }
 }
 
-/* Revil booking modal — glass panels & scrollbars */
+/* Mohand booking modal — glass panels & scrollbars */
 .glass-panel-deep {
   background: var(--glass-bg-deep);
   backdrop-filter: blur(20px) saturate(1.8);

@@ -257,13 +257,18 @@ const DTags = () => {
                 : 1;
             const id = data.id || nextIndex.toString();
 
-            let iconUrl = data.iconSvg || '';
+            // Local SVG is stored inline as markup, Online SVG is stored as URL.
+            // No Firebase Storage upload for tags.
+            const iconUrl = (data.iconSvg || '').trim();
 
-            // Handle file upload if a new file was provided
-            if (data.iconFile) {
-                const storageRef = ref(storage, `src/svgs/${id}_${data.iconFile.name}`);
-                await uploadBytes(storageRef, data.iconFile);
-                iconUrl = await getDownloadURL(storageRef);
+            // Best-effort cleanup: if replacing a previous Firebase-hosted icon, delete the old file.
+            const prevIcon = tags.find(t => t.id?.toString() === id.toString())?.iconSvg || '';
+            if (prevIcon.includes('firebasestorage.googleapis.com') && prevIcon !== iconUrl) {
+                try {
+                    await deleteObject(ref(storage, prevIcon));
+                } catch {
+                    // Old file may already be gone — ignore.
+                }
             }
 
             const tagPayload = {

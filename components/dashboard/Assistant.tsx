@@ -5,9 +5,7 @@ import { createPortal } from 'react-dom';
 import anime from 'animejs';
 import { Sparkles, X, Send, Settings2, Loader2, MousePointer2, Check, Database, ArrowRight, Zap, HelpCircle, Mic, Volume2, VolumeX, Brain } from 'lucide-react';
 import { doc, collection, getDoc, getDocs, setDoc, deleteDoc, serverTimestamp } from '@/lib/dash-db';
-import { onAuthStateChanged } from '@/lib/dash-auth';
 import { db } from '@/lib/dash-db';
-import { appAuth } from '@/lib/dash-auth';
 import {
     chat, getApiKey, setKeyOverride, getModel, setModel, resolveProvider, listModels,
     userMessage, toolResultMessage, PROVIDER_LABEL, Provider, ToolCall, ToolResult,
@@ -225,21 +223,38 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     useEffect(() => { if (!open) { convoRef.current = false; stopVoice(); } }, [open]);
     useEffect(() => () => { convoRef.current = false; stopVoice(); }, []);
 
-    // Spark's persistent memory (Firestore: Spark/Memory). Loaded once authed.
+    // Spark's persistent memory (Supabase: dashboard_docs Spark/Memory). Loaded on
+    // mount + when the panel opens — NOT gated on auth (the dashboard shell
+    // itself is already behind ADMIN_TOKEN, and the extra verify round-trip
+    // was the reason memory looked "unsaved" after reload).
     const [memory, setMemory] = useState<SparkMemory>({});
     const memoryRef = useRef<SparkMemory>(memory);
     useEffect(() => { memoryRef.current = memory; }, [memory]);
-    useEffect(() => {
-        const off = onAuthStateChanged(appAuth(), user => {
-            if (!user) return;
-            getDoc(MEMORY_DOC).then(s => { if (s.exists()) setMemory(s.data() as SparkMemory); }).catch(() => { });
-        });
-        return () => off();
+    const loadMemory = useCallback(async () => {
+        try {
+            const s = await getDoc(MEMORY_DOC);
+            if (s.exists()) {
+                const data = s.data() as SparkMemory;
+                setMemory(data); memoryRef.current = data;
+            }
+        } catch { /* keep local state; save will surface errors */ }
     }, []);
+    // Loading remote memory into state from an effect is the intended
+    // set-state-in-effect case (syncing React with Supabase).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { void loadMemory(); }, [loadMemory]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => { if (open) void loadMemory(); }, [open, loadMemory]);
     const saveMemory = async (patch: SparkMemory) => {
         const next = { ...memoryRef.current, ...patch };
         setMemory(next); memoryRef.current = next;
-        await setDoc(MEMORY_DOC, { ...next, updatedAt: serverTimestamp() }, { merge: true });
+        try {
+            await setDoc(MEMORY_DOC, { ...next, updatedAt: serverTimestamp() }, { merge: true });
+        } catch (e) {
+            // Roll back the optimistic update so the UI doesn't lie about being saved.
+            await loadMemory();
+            throw e;
+        }
     };
 
     // settings
@@ -651,12 +666,26 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             </div>
                             <p className="text-[10px] text-sec -mt-1">Tip: voices with “Natural”, “Google”, or “Online” in the name sound the most human. The mic button starts a hands-free voice chat.</p>
 
-                            {/* Memory - persists in Firestore (Spark/Memory); Spark can also edit this herself */}
+                            {/* Memory - persists in Supabase (dashboard_docs Spark/Memory); Spark can also edit this herself */}
                             <div className="pt-2 border-t border-[var(--section-border)] flex flex-col gap-2">
                                 <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sec uppercase tracking-wider"><Brain size={13} /> Memory</div>
                                 <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-xl border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec`} />
                                 <textarea value={memory.instructions || ''} onChange={e => setMemory(m => ({ ...m, instructions: e.target.value }))} rows={3} placeholder="Standing instructions for Spark (how she should behave, tone, defaults)…" className={`w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec`} />
-                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions }).then(() => setSettingsMsg('Memory saved')).catch(() => setSettingsMsg('Save failed'))} className="self-end px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 transition-all active:scale-95">Save memory</button>
+                                {!!memory.facts?.length && (
+                                    <div className="flex flex-col gap-1.5">
+                                        {memory.facts.map((f, i) => (
+                                            <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-xl border text-xs ${isDark ? 'bg-white/5 border-white/10 text-primary' : 'bg-black/[0.03] border-black/10 text-primary'}`}>
+                                                <span className="flex-1">{f}</span>
+                                                <button
+                                                    onClick={() => saveMemory({ facts: memory.facts!.filter((_, j) => j !== i) }).then(() => setSettingsMsg('Memory saved')).catch((e) => setSettingsMsg(`Save failed: ${(e as Error).message}`))}
+                                                    className="text-sec hover:text-red-500 transition-colors"
+                                                    title="Forget this fact"
+                                                ><X size={13} /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions, facts: memory.facts }).then(() => setSettingsMsg('Memory saved')).catch((e) => setSettingsMsg(`Save failed: ${(e as Error).message}`))} className="self-end px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 transition-all active:scale-95">Save memory</button>
                             </div>
                         </div>
                     )}
