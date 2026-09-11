@@ -95,7 +95,7 @@ const HeroSection = () => {
 
               <p className="pt-1 font-body text-base text-text-secondary sm:text-lg">
                 <TextAnimated
-                  text="Full-stack engineer, frontend-leaning — clean architecture, fast UIs, systems that scale."
+                  text="Full-stack engineer, frontend leaning. Clean code and fast interfaces."
                   replayKey={heroReplayKey}
                   className="block text-left font-body font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
                   startDelay={280}
@@ -108,7 +108,7 @@ const HeroSection = () => {
             {/* description */}
             <div className="max-w-[48ch] space-y-3">
               <p className="font-body text-sm leading-relaxed text-text-secondary">
-                I turn product ideas into shipped software — Next.js + TypeScript + Node, with a focus on performance, accessibility and DX. Based in Alexandria, working worldwide.
+                I build product ideas into shipped software with Next.js, TypeScript and Node. Based in Alexandria, working worldwide.
               </p>
             </div>
 

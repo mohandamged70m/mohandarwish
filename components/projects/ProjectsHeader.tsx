@@ -62,8 +62,7 @@ export function ProjectsHeader({ active = "Projects", projectsCount, devCount }:
             Selected work<span aria-hidden className="text-accent-text">.</span>
           </h2>
           <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
-            Production apps, design systems and tooling — each with a live demo, source code and
-            build notes.
+            Production apps, design systems and tooling. Each one has a live demo, source code and build notes.
           </p>
         </>
       )}

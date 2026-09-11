@@ -36,13 +36,13 @@ export default async function AboutPage(): Promise<ReactNode> {
             <p className="mt-3 font-heading text-sm tracking-wide text-text-muted">Alexandria, Egypt · GMT+2 · Full-Stack, Frontend-leaning</p>
             <div className="mt-8 space-y-6 font-body text-[17px] leading-[1.7] tracking-tight text-text-secondary sm:text-[18px]">
               <p>
-                A <strong className="font-semibold text-text-primary">software engineer (full-stack, frontend-leaning)</strong> focused on clean architecture, performant web apps, and systems that scale. I ship <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> with attention to perf, a11y and DX.
+                A <strong className="font-semibold text-text-primary">software engineer (full-stack, frontend-leaning)</strong> who keeps architecture simple and web apps fast. I ship <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> and care about speed, accessibility and code others can work in.
               </p>
               <p>
-                I enjoy turning fuzzy product ideas into shipped software — from design tokens and component APIs to tRPC routes and Postgres queries. My sweet spot is where <strong className="font-semibold text-text-primary">frontend craft meets full-stack ownership</strong>.
+                I like taking unclear product ideas to a release, from design tokens and component APIs to tRPC routes and Postgres queries. I do my best work where <strong className="font-semibold text-text-primary">frontend craft meets full-stack ownership</strong>.
               </p>
               <p>
-                Currently building mock engineering projects across <strong className="font-semibold text-text-primary">design systems, tooling and full-stack products</strong> — always open to collaboration. See <a href="/projects" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">projects</a> or{" "}
+                Currently building mock engineering projects across <strong className="font-semibold text-text-primary">design systems, tooling and full-stack products</strong>. Always open to collaboration. See <a href="/projects" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">projects</a> or{" "}
                 <a href="/#booking" className="text-accent underline decoration-accent/30 underline-offset-4 hover:decoration-accent">
                   book a call
                 </a>

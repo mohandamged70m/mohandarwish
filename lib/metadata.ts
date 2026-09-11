@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const siteConfig = {
   name: "Mohand Darwish",
   description:
-    "Mohand Darwish — Software Engineer (Full-Stack, Frontend-leaning) from Alexandria. Clean architecture, performant web apps, delightful UX. Next.js, TypeScript, Node.",
+    "Mohand Darwish, software engineer in Alexandria working worldwide. Next.js, TypeScript and Node, with care for speed and accessibility.",
   url: "https://mohand-darwish.dev",
   ogImage: "/og-image.png",
   creator: "@mohanddarwish",

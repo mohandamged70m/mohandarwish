@@ -31,6 +31,12 @@
       "skillPath": "skills/productivity/grill-me/SKILL.md",
       "computedHash": "5e0c683385eafd83f106ac6c9d67dfbbfe5aa4b3fe65aad114eb1055a99c818f"
     },
+    "humanizer": {
+      "source": "blader/humanizer",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "d1a90f19fa4c39cb8105998bf38a6e6a41788e3b4329be086952efa6a3aa362c"
+    },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
       "sourceType": "github",

@@ -1,7 +1,7 @@
 export const ME = {
   name: "Mohand Darwish",
   role: "Software Engineer — Full-Stack, Frontend-leaning",
-  tagline: "Full-stack engineer leaning frontend: clean architecture, performant web apps, and systems that scale.",
+  tagline: "Full-stack engineer leaning frontend. I build fast web apps that stay easy to change.",
   location: "Alexandria, Egypt",
   availability: "Available for new opportunities",
   timezone: "GMT+2",

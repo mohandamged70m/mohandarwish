@@ -53,7 +53,7 @@ export function ContactCard(): ReactNode {
                       Let&rsquo;s build
                     </h2>
                     <p className="max-w-[36ch] font-body text-[16px] leading-[1.5] tracking-tight text-text-secondary sm:text-[17px]">
-                      Frontend-leaning full-stack — Next.js, TypeScript, Node. Based in {ME.location} (GMT+2), working worldwide.
+                      Frontend-leaning full-stack, working in Next.js, TypeScript and Node. Based in {ME.location} (GMT+2), working worldwide.
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-3 pt-1">

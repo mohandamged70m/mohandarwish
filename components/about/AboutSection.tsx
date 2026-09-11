@@ -97,11 +97,11 @@ export function AboutSection(): ReactNode {
               <p>
                 I&rsquo;m <strong className="font-semibold text-text-primary">Mohand Darwish</strong> — a software
                 engineer (full-stack, frontend-leaning) shipping{" "}
-                <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> with
-                attention to perf, a11y and DX.
+                <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> who
+                keeps an eye on speed, accessibility and readable code.
               </p>
               <p>
-                My sweet spot is where design tokens and component APIs meet tRPC routes and Postgres queries.
+                I take unclear product ideas to a release, from design tokens and component APIs to tRPC routes and Postgres queries.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 font-heading text-xs text-text-muted">
