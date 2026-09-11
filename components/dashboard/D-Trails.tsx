@@ -898,6 +898,7 @@ const DTrails = () => {
         const needle = search.trim().toLowerCase();
         return sessions.filter(s => {
             if (s.Owner) return false;                       // the owner's own browser
+            // linkFilter holds the link Code (sessions store Code in Link.Id).
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
             if (storyFilter === 'live' && !isLive(s)) return false;
             if (storyFilter === 'links' && !s.Link?.Id) return false;
@@ -1054,14 +1055,17 @@ const DTrails = () => {
         }
     };
 
-    /** Throw away every story that came through one link, and zero its counters. */
-    const forgetLinkVisits = async (id: string) => {
+    /** Throw away every story that came through one link, and zero its counters.
+     *  Sessions store the link Code in Link.Id (see landing.tsx handoff), so
+     *  visits are matched by Code while the link doc itself is reset by its
+     *  numeric doc id. */
+    const forgetLinkVisits = async (id: string, code: string) => {
         setActiveMenu(null);
         setIsLoading(true);
         try {
             const found = await getDocs(query(
                 collection(db, 'Analytics', 'Sessions', 'Items'),
-                where('Link.Id', '==', id),
+                where('Link.Id', '==', code),
             ));
             await Promise.all(found.docs.map(d => deleteDoc(d.ref)));
             await updateDoc(doc(db, 'Analytics', 'Links', 'Items', id), { Opens: 0, Sessions: 0, LastOpenAt: null });
@@ -1245,7 +1249,7 @@ const DTrails = () => {
                                                 style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
                                             >
                                                 <Filter size={13} />
-                                                {links.find(l => l.id === linkFilter)?.Name || 'Link'}
+                                                {links.find(l => l.Code === linkFilter || l.id === linkFilter)?.Name || 'Link'}
                                                 <Plus size={13} className="rotate-45" />
                                             </button>
                                         )}
@@ -1594,8 +1598,8 @@ const DTrails = () => {
                                                             </span>
                                                         )}
                                                         <button
-                                                            onClick={() => { setLinkFilter(link.id); setStoryFilter('all'); setView('stories'); }}
-                                                            disabled={!link.Sessions}
+                                                            onClick={() => { setLinkFilter(link.Code); setStoryFilter('all'); setView('stories'); }}
+                                                            disabled={!link.Opens && !link.Sessions}
                                                             className="ml-auto inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default"
                                                             style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
                                                         >
@@ -1629,12 +1633,13 @@ const DTrails = () => {
                         <button
                             onClick={() => {
                                 const id = activeMenu;
+                                const link = links.find(x => x.id === id);
                                 setConfirmConfig({
                                     isOpen: true,
                                     title: 'Forget this link’s visits',
                                     message: 'Every story recorded through this link is deleted and its counters go back to zero. The link itself keeps working.',
                                     type: 'warning',
-                                    onConfirm: () => forgetLinkVisits(id),
+                                    onConfirm: () => forgetLinkVisits(id, link?.Code || ''),
                                 });
                             }}
                             className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-orange-500/10"

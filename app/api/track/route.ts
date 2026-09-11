@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
-// Trails ingest: page-view pings + rich session flushes.
+// Trails ingest: LINK-ONLY page-view pings + rich session flushes.
+// Only visits that arrive through a share link created in Trails > Links
+// (Analytics/Links/Items, matched by Code) are recorded. Direct / organic
+// visits are ignored entirely — no session row, no aggregates.
+//
 // Feeds Analytics/Days/Items, Analytics/Totals, Analytics/Sessions/Items
 // (capped at 300), Analytics/Sources/Items, Analytics/Socials/Items and the
 // Projects/<id> Views maps that D-Trails reads. No PII is stored.
 //
 // Two call shapes (backwards compatible):
-//   legacy ping: { path, referrer, screen, viewport, language }
+//   legacy ping: { path, referrer, screen, viewport, language }  -> ignored
 //   session:     { kind: "init" | "flush", sid, ... }
 
 const MAX_SESSIONS = 300;
@@ -113,6 +117,39 @@ function hostOf(ref: string): string {
   }
 }
 
+// Link-only gate: a tracking code is valid only when a link doc with that
+// Code exists in Analytics/Links/Items. Returns the doc path plus the
+// canonical Name/For (client-supplied values are never trusted).
+async function resolveLink(
+  supa: Supa,
+  code: unknown,
+): Promise<{ path: string; code: string; Name: string; For: string } | null> {
+  if (typeof code !== "string" || !code) return null;
+  const c = code.slice(0, 120);
+  if (!c) return null;
+  try {
+    const { data: rows } = await supa
+      .from("dashboard_docs")
+      .select("path,data")
+      .like("path", "Analytics/Links/Items/%")
+      .limit(1000);
+    for (const r of (rows ?? []) as { path: string; data: Record<string, unknown> }[]) {
+      const d = (r?.data ?? {}) as Record<string, unknown>;
+      if (d.Code === c) {
+        return {
+          path: r.path,
+          code: c,
+          Name: typeof d.Name === "string" ? d.Name.slice(0, 120) : "",
+          For: typeof d.For === "string" ? d.For.slice(0, 120) : "",
+        };
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 // Country from the platform edge (Vercel). Locally / elsewhere this is
 // absent and Geo stays empty — never breaks tracking.
 function edgeGeo(req: Request): { Country: string; Code: string } {
@@ -153,49 +190,17 @@ async function trimSessions(supa: Supa) {
   }
 }
 
-// --- legacy minimal ping (old TrackView): one Ended session per page view ---
-async function legacyPing(supa: Supa, body: Body, path: string, now: number, day: string) {
-  await bumpDay(supa, day, { Sessions: 1 });
-  // ensure day doc exists even when bumpDay short-circuits (never here: Sessions=1)
-  const totals = await readDoc(supa, "Analytics/Totals");
-  await writeDoc(supa, "Analytics/Totals", {
-    ...totals,
-    Sessions: num(totals.Sessions) + 1,
-    Visitors: num(totals.Visitors) + 1,
-  });
-
-  const id = `${now.toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-  await writeDoc(supa, `Analytics/Sessions/Items/${id}`, {
-    StartedAt: now,
-    LastSeenAt: now,
-    Ended: true,
-    ActiveMs: 0,
-    OpenMs: 0,
-    IdleMs: 0,
-    Visit: 1,
-    Entry: { Ref: body.referrer || "Direct", Section: path },
-    Device: {
-      Screen: body.screen || "",
-      Viewport: body.viewport || "",
-      Language: body.language || "",
-    },
-    Sections: { [path]: 1 },
-  });
-  await trimSessions(supa);
-
-  const host = hostOf(body.referrer || "");
-  const srcId = host || "direct";
-  const src = await readDoc(supa, `Analytics/Sources/Items/${srcId}`);
-  await writeDoc(supa, `Analytics/Sources/Items/${srcId}`, {
-    ...src,
-    Name: host || "Direct",
-    Kind: host ? sourceKind(host) : "direct",
-    Sessions: num(src.Sessions) + 1,
-    LastAt: now,
-  });
+// --- legacy minimal ping (old TrackView): link-only mode ignores it ---
+// Direct page-view pings carry no link code, so they are dropped. Kept as a
+// no-op for backwards compatibility (old clients still get { ok: true }).
+async function legacyPing(_supa: Supa, _body: Body, _path: string, _now: number, _day: string) {
+  return;
 }
 
-// --- session init: one live session row per visitor session ---
+// --- session init: one live session row per LINKED visitor session ---
+// Drops anything without a valid share-link code (unknown codes, direct
+// visits, prefetches). Valid inits stamp the canonical link + bump the
+// link's Sessions counter so Trails > Links stays truthful.
 async function sessionInit(
   supa: Supa,
   body: Body,
@@ -206,6 +211,9 @@ async function sessionInit(
 ) {
   const sid = cleanSid(body.sid);
   if (!sid) return;
+  if (body.owner === true) return; // owner's own coding/testing: never track
+  const link = await resolveLink(supa, body.linkId);
+  if (!link) return; // not a share-link visit: ignore completely
   const existing = await readDoc(supa, `Analytics/Sessions/Items/${sid}`);
   if (existing.StartedAt) {
     // Re-init (e.g. HMR / remount): keep it live, don't double-count aggregates.
@@ -219,7 +227,6 @@ async function sessionInit(
 
   const d = body.device ?? {};
   const str = (v: unknown) => (typeof v === "string" ? v.slice(0, 120) : "");
-  const linkStr = (v: unknown) => (typeof v === "string" ? v.slice(0, 120) : "");
   const utm: Record<string, string> = {};
   if (body.utm && typeof body.utm === "object") {
     for (const [k, v] of Object.entries(body.utm)) {
@@ -233,7 +240,7 @@ async function sessionInit(
     ActiveMs: 0,
     OpenMs: 0,
     IdleMs: 0,
-    Owner: body.owner === true,
+    Owner: false, // owner visits return early above: recorded sessions are never owners
     Visit: 1,
     Legacy: false,
     EventsCut: false,
@@ -250,9 +257,9 @@ async function sessionInit(
       Theme: str(d.Theme),
     },
     Link: {
-      Id: linkStr(body.linkId),
-      Name: linkStr(body.linkName),
-      For: linkStr(body.linkFor),
+      Id: link.code,
+      Name: link.Name,
+      For: link.For,
     },
     Entry: { Ref: body.referrer || "Direct", Section: path, Utm: utm },
     Source: { Name: hostOf(body.referrer || "") || "Direct" },
@@ -273,6 +280,20 @@ async function sessionInit(
 
   const dayDoc = await readDoc(supa, `Analytics/Days/Items/${day}`);
   await writeDoc(supa, `Analytics/Days/Items/${day}`, { ...dayDoc, Sessions: num(dayDoc.Sessions) + 1 });
+  // One linked visit started: count it on the link itself (powers the
+  // per-link "visits" + "See visits" in Trails). Best-effort, never fatal.
+  try {
+    const linkDoc = await readDoc(supa, link.path);
+    if (linkDoc && Object.keys(linkDoc).length > 0) {
+      await writeDoc(supa, link.path, {
+        ...linkDoc,
+        Sessions: num(linkDoc.Sessions) + 1,
+        LastOpenAt: now,
+      });
+    }
+  } catch {
+    // link counter must never break tracking
+  }
   const totals = await readDoc(supa, "Analytics/Totals");
   await writeDoc(supa, "Analytics/Totals", {
     ...totals,
@@ -299,6 +320,7 @@ async function sessionFlush(supa: Supa, body: Body, now: number, day: string) {
   if (!sid) return;
   const cur = await readDoc(supa, `Analytics/Sessions/Items/${sid}`);
   if (!cur.StartedAt) return; // unknown session: ignore (client will re-init)
+  if (cur.Owner === true) return; // owner sessions stay frozen, never update
 
   const dz = body.deltas ?? {};
   const sec = (dz.sections ?? {}) as NumMap;
@@ -345,15 +367,19 @@ async function sessionFlush(supa: Supa, body: Body, now: number, day: string) {
 
   const prevContact = (cur.Contact ?? {}) as { Opens?: unknown; Sent?: unknown };
   const contactSent = typeof body.contactSent === "string" && body.contactSent ? body.contactSent.slice(0, 24) : "";
-  // Late link attribution (landing handoff): stamp the session once known.
-  const linkPatch =
-    body.link && typeof body.link.Id === "string" && body.link.Id
-      ? {
-          Id: body.link.Id.slice(0, 120),
-          Name: typeof body.link.Name === "string" ? body.link.Name.slice(0, 120) : "",
-          For: typeof body.link.For === "string" ? body.link.For.slice(0, 120) : "",
-        }
-      : null;
+  // Late link attribution (landing handoff): stamp the session once known —
+  // but only for a code that really exists in Analytics/Links/Items.
+  // Sessions that never gain a valid link are direct traffic: ignore them.
+  const curLinkId =
+    cur.Link && typeof (cur.Link as { Id?: unknown }).Id === "string"
+      ? ((cur.Link as { Id: string }).Id || "")
+      : "";
+  let linkPatch: { Id: string; Name: string; For: string } | null = null;
+  if (body.link && typeof body.link.Id === "string" && body.link.Id) {
+    const resolved = await resolveLink(supa, body.link.Id);
+    if (resolved) linkPatch = { Id: resolved.code, Name: resolved.Name, For: resolved.For };
+  }
+  if (!curLinkId && !linkPatch) return; // linkless visit: do not record
   const prevCv = (cur.Cv ?? {}) as { Opens?: unknown };
   const prevPerf = (cur.Perf ?? {}) as { LoadMs?: unknown; LcpMs?: unknown };
 

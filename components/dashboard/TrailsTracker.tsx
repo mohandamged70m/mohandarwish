@@ -3,8 +3,10 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-// Global Trails tracker: one live session per visitor session.
-// Init/flush against /api/track (additive deltas), heartbeat keeps
+// Global Trails tracker: LINK-ONLY — one live session per share-link visit.
+// Inits/flushes against /api/track (additive deltas) only once a Trails link
+// code is known (URL, sessionStorage backup, or live handoff). Direct visits
+// stay fully dormant: no init, no flush, no beacon. Heartbeat keeps
 // "Reading now" live, pagehide ends the visit. Never breaks the page.
 
 const SID_KEY = "trails_sid";
@@ -156,6 +158,11 @@ export function TrailsTracker(): null {
       let pendingSocial: { name: string; t: number } | null = null;
       let contactCountedFor: string | null = null;
       let pendingLink: { Id: string; Name: string; For: string } | null = null;
+      // Link-only mode: nothing is sent until a share-link code is known.
+      // Assigned below once the init routine exists; the live handoff
+      // (track "link") triggers it for visits that start dormant.
+      let initialized = false;
+      let ensureInit: (id: string, name: string, forWho: string) => void = () => {};
 
       const seenProjects = new Set<string>();
       const openProject = (slug: string) => {
@@ -223,7 +230,8 @@ export function TrailsTracker(): null {
               if (id) projectOut(id, k === "github" ? "github" : k === "download" ? "download" : "live");
             } else if (kind === "link" && value) {
               // Share-link attribution (landing page handoff): stamped onto
-              // the live session with the next flush.
+              // the live session with the next flush. In link-only mode this
+              // is also the wake-up call: a dormant tracker inits now.
               try {
                 const o = JSON.parse(value) as { Id?: unknown; Name?: unknown; For?: unknown };
                 if (o && typeof o.Id === "string" && o.Id) {
@@ -233,6 +241,7 @@ export function TrailsTracker(): null {
                     For: typeof o.For === "string" ? o.For.slice(0, 120) : "",
                   };
                   try { sessionStorage.setItem("trails_link", JSON.stringify(pendingLink)); } catch { /* ignore */ }
+                  if (!initialized) ensureInit(pendingLink.Id, pendingLink.Name, pendingLink.For);
                   push("click", `link:${pendingLink.Id}`);
                   dirty = true;
                 }
@@ -241,6 +250,16 @@ export function TrailsTracker(): null {
               curPath = value.slice(0, 200);
               exitSection = curPath;
               contactCountedFor = null;
+              if (!initialized) {
+                // Wake up when the new path itself carries a link code
+                // (client-side nav into /mohanddarwish/<code>).
+                const m = curPath.match(/^\/mohanddarwish\/([^/?#]+)/);
+                if (m) {
+                  try {
+                    ensureInit(decodeURIComponent(m[1]).slice(0, 120), "", "");
+                  } catch { /* ignore */ }
+                }
+              }
               push("view", curPath);
               const slug = slugOf(curPath);
               if (slug) openProject(slug);
@@ -251,7 +270,11 @@ export function TrailsTracker(): null {
         },
       };
 
-      // --- init ---
+      // --- init (link-only) ---
+      // The tracker stays dormant until a share-link code is known: either
+      // from the URL (/mohanddarwish/<code>), from the sessionStorage backup
+      // the landing page stashed (refresh on `/` after redirect), or from a
+      // live track("link") handoff. Direct visits never init, never flush.
       const entryPath = curPath;
       const linkMatch = entryPath.match(/^\/mohanddarwish\/([^/?#]+)/);
       // Link backup stashed by the landing page (covers refreshes on `/`
@@ -270,41 +293,55 @@ export function TrailsTracker(): null {
           }
         }
       } catch { /* ignore */ }
-      const initBody = {
-        kind: "init",
-        sid, vid, isNewVisitor,
-        path: entryPath,
-        referrer: document.referrer || "",
-        utm: utmOf(),
-        owner: isOwner(),
-        linkId: linkMatch ? decodeURIComponent(linkMatch[1]).slice(0, 120) : (storedLink?.Id || ""),
-        linkName: storedLink?.Name || "",
-        linkFor: storedLink?.For || "",
-        device: detectDevice(),
-        perf: { LoadMs: 0, LcpMs: 0 },
+      ensureInit = (lid: string, lname: string, lfor: string) => {
+        if (initialized || dead) return;
+        if (!lid) return;
+        // Owner/coding visits never track — tracking wakes up only for real
+        // recipients of a share link.
+        if (isOwner()) return;
+        initialized = true;
+        const initBody = {
+          kind: "init",
+          sid, vid, isNewVisitor,
+          path: curPath,
+          referrer: document.referrer || "",
+          utm: utmOf(),
+          owner: isOwner(),
+          linkId: lid.slice(0, 120),
+          linkName: (lname || storedLink?.Name || "").slice(0, 120),
+          linkFor: (lfor || storedLink?.For || "").slice(0, 120),
+          device: detectDevice(),
+          perf: { LoadMs: 0, LcpMs: 0 },
+        };
+        try {
+          if (performance?.getEntriesByType) {
+            const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+            if (nav) (initBody.perf as { LoadMs: number }).LoadMs = Math.round(nav.loadEventEnd || nav.duration || 0);
+          }
+        } catch { /* ignore */ }
+        try {
+          const po = new PerformanceObserver((list) => {
+            try {
+              for (const e of list.getEntries()) {
+                const lcp = e as PerformanceEntry & { startTime: number };
+                (initBody.perf as { LcpMs: number }).LcpMs = Math.round(lcp.startTime);
+              }
+            } catch { /* ignore */ }
+          });
+          po.observe({ type: "largest-contentful-paint", buffered: true });
+          setTimeout(() => { try { po.disconnect(); } catch { /* ignore */ } }, 8000);
+        } catch { /* ignore */ }
+        fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(initBody) }).catch(() => {});
+        // Give init a head start so the first flush finds its session row.
+        lastFlush = Date.now();
+        const slug0 = slugOf(curPath);
+        if (slug0) openProject(slug0);
+        push("view", curPath);
       };
-      try {
-        if (performance?.getEntriesByType) {
-          const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-          if (nav) (initBody.perf as { LoadMs: number }).LoadMs = Math.round(nav.loadEventEnd || nav.duration || 0);
-        }
-      } catch { /* ignore */ }
-      try {
-        const po = new PerformanceObserver((list) => {
-          try {
-            for (const e of list.getEntries()) {
-              const lcp = e as PerformanceEntry & { startTime: number };
-              (initBody.perf as { LcpMs: number }).LcpMs = Math.round(lcp.startTime);
-            }
-          } catch { /* ignore */ }
-        });
-        po.observe({ type: "largest-contentful-paint", buffered: true });
-        setTimeout(() => { try { po.disconnect(); } catch { /* ignore */ } }, 8000);
-      } catch { /* ignore */ }
-      fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(initBody) }).catch(() => {});
-      const slug0 = slugOf(entryPath);
-      if (slug0) openProject(slug0);
-      push("view", entryPath);
+      {
+        const initialId = linkMatch ? decodeURIComponent(linkMatch[1]).slice(0, 120) : (storedLink?.Id || "");
+        if (initialId) ensureInit(initialId, storedLink?.Name || "", storedLink?.For || "");
+      }
 
       // --- section visibility ---
       const visibleSections = new Set<string>();
@@ -456,6 +493,11 @@ export function TrailsTracker(): null {
       // --- 1s timers ---
       const timer = setInterval(() => {
         if (dead) return;
+        // Dormant (no link yet): don't accumulate anything worth flushing.
+        if (!initialized) {
+          lastActivity = Date.now();
+          return;
+        }
         try {
           const now = Date.now();
           const hidden = document.hidden;
@@ -493,6 +535,9 @@ export function TrailsTracker(): null {
 
       async function flush(isEnd: boolean) {
         if (dead && !isEnd) return;
+        // Link-only: never send anything before a link init. The pagehide
+        // beacon for a dormant tracker would create noise, so skip it too.
+        if (!initialized) return;
         let body: Record<string, unknown> | null = null;
         try {
           const dSections = diffMapNum(cum.sections, flushed.sections);
