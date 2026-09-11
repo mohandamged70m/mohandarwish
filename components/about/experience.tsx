@@ -4,15 +4,15 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type ReactNode } from "react";
 
-type Entry = {
+export type ExperienceEntry = {
   company: string;
   role: string;
   period: string;
-  slug?: string;
-  brand?: string;
+  slug?: string | null;
+  brand?: string | null;
 };
 
-const ENTRIES: Entry[] = [
+const DEFAULT_ENTRIES: ExperienceEntry[] = [
   {
     company: "Freelance",
     role: "Frontend Engineer (Full-Stack)",
@@ -38,13 +38,14 @@ const COLLAPSED_COUNT = 2.5;
 const ROW_HEIGHT = 64;
 const ROW_GAP = 8;
 
-export function Experience(): ReactNode {
+export function Experience({ entries }: { entries?: ExperienceEntry[] }): ReactNode {
+  const list = entries && entries.length > 0 ? entries : DEFAULT_ENTRIES;
   const [open, setOpen] = useState(false);
   const collapsedHeight =
     Math.floor(COLLAPSED_COUNT) * ROW_HEIGHT +
     Math.floor(COLLAPSED_COUNT) * ROW_GAP +
     (COLLAPSED_COUNT % 1) * ROW_HEIGHT;
-  const hiddenCount = ENTRIES.length - Math.floor(COLLAPSED_COUNT);
+  const hiddenCount = list.length - Math.floor(COLLAPSED_COUNT);
 
   return (
     <div className="flex flex-col gap-3">
@@ -66,7 +67,7 @@ export function Experience(): ReactNode {
           style={{ overflow: "hidden" }}
         >
           <ul className="flex flex-col gap-2">
-            {ENTRIES.map((entry) => (
+            {list.map((entry) => (
               <li
                 key={`${entry.company}-${entry.period}`}
                 className="bg-bg-primary border-border flex items-center gap-4 rounded-[16px] border p-2"
@@ -137,7 +138,7 @@ export function Experience(): ReactNode {
   );
 }
 
-function CompanyLogo({ entry }: { entry: Entry }): ReactNode {
+function CompanyLogo({ entry }: { entry: ExperienceEntry }): ReactNode {
   const initials = entry.company.charAt(0);
   return (
     <span
@@ -145,7 +146,7 @@ function CompanyLogo({ entry }: { entry: Entry }): ReactNode {
       aria-hidden="true"
       style={{
         borderRadius: 14,
-        ...(entry.slug ? {} : { backgroundColor: entry.brand }),
+        ...(entry.slug ? {} : { backgroundColor: entry.brand ?? undefined }),
       }}
     >
       {entry.slug ? (

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import anime from 'animejs';
-import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark } from 'lucide-react';
+import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark, IdCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import DProjects from './D-Projects';
+import DAbout from './D-About';
 import DTags from './D-Tags';
 import DTrails from './D-Trails';
 import DSettings from './D-Settings';
@@ -101,6 +102,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
     const menuItems = [
         { id: 'projects', label: 'Projects', icon: Layout },
+        { id: 'about', label: 'About', icon: IdCard },
         { id: 'tags', label: 'Tags', icon: Tag },
         { id: 'trails', label: 'Trails', icon: Footprints },
         { id: 'developer', label: 'Developer', icon: GitBranch },
@@ -298,6 +300,8 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                             >
                                 {activeTab === 'projects' ? (
                                     <DProjects />
+                                ) : activeTab === 'about' ? (
+                                    <DAbout />
                                 ) : activeTab === 'tags' ? (
                                     <DTags />
                                 ) : activeTab === 'trails' ? (

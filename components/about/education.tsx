@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 
-type Entry = {
+export type EducationEntry = {
   school: string;
   degree: string;
   period: string;
-  slug?: string;
+  slug?: string | null;
 };
 
-const ENTRIES: Entry[] = [
+const DEFAULT_ENTRIES: EducationEntry[] = [
   {
     school: "Alexandria University",
     degree: "B.Sc. Computer Engineering — Frontend & Systems focus",
@@ -27,7 +27,8 @@ const ENTRIES: Entry[] = [
 
 const ROW_HEIGHT = 64;
 
-export function Education(): ReactNode {
+export function Education({ entries }: { entries?: EducationEntry[] }): ReactNode {
+  const list = entries && entries.length > 0 ? entries : DEFAULT_ENTRIES;
   return (
     <div className="flex flex-col gap-3">
       <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
@@ -35,7 +36,7 @@ export function Education(): ReactNode {
       </h3>
       <div className="border-border bg-bg-surface relative rounded-[20px] border p-2 sm:p-4">
         <ul className="flex flex-col gap-2">
-          {ENTRIES.map((entry) => (
+          {list.map((entry) => (
             <li
               key={`${entry.school}-${entry.period}`}
               className="bg-bg-primary border-border flex items-center gap-4 rounded-[16px] border p-2"
@@ -60,7 +61,7 @@ export function Education(): ReactNode {
   );
 }
 
-function SchoolLogo({ entry }: { entry: Entry }): ReactNode {
+function SchoolLogo({ entry }: { entry: EducationEntry }): ReactNode {
   const initials = entry.school.charAt(0);
   return (
     <span

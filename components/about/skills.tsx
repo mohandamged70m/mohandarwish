@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-const SKILLS = [
+const DEFAULT_SKILLS = [
   "React / Next.js",
   "TypeScript",
   "Tailwind / Storybook",
@@ -12,7 +12,8 @@ const SKILLS = [
   "Design Systems",
 ];
 
-export function Skills(): ReactNode {
+export function Skills({ skills }: { skills?: string[] }): ReactNode {
+  const list = skills && skills.length > 0 ? skills : DEFAULT_SKILLS;
   return (
     <div className="flex flex-col gap-3">
       <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
@@ -20,7 +21,7 @@ export function Skills(): ReactNode {
       </h3>
       <div className="rounded-[20px] border border-border bg-bg-surface p-2 sm:p-4">
         <div className="flex flex-wrap gap-2.5">
-          {SKILLS.map((skill) => (
+          {list.map((skill) => (
             <span
               key={skill}
               className="rounded-full border border-border bg-bg-primary px-3.5 py-2 font-body text-[13px] leading-none tracking-tight text-text-secondary sm:text-[14px]"

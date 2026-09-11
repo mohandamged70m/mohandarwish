@@ -4,15 +4,17 @@ import { RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type Matter from "matter-js";
 
-type Chip = {
+export type StackChip = {
   label: string;
   slug: string;
   bg: string;
   fg: string;
-  iconUrl?: string;
+  iconUrl?: string | null;
 };
 
-const CHIPS: Chip[] = [
+type Chip = StackChip;
+
+const DEFAULT_CHIPS: Chip[] = [
   {
     label: "Figma",
     slug: "figma",
@@ -42,7 +44,8 @@ type ChipState = {
   height: number;
 };
 
-export function Stack(): ReactNode {
+export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
+  const CHIPS = chips && chips.length > 0 ? chips : DEFAULT_CHIPS;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
   const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -229,7 +232,7 @@ export function Stack(): ReactNode {
       cancelled = true;
       cleanup?.();
     };
-  }, [resetKey, prefersReducedMotion, isInView]);
+  }, [resetKey, prefersReducedMotion, isInView, CHIPS]);
 
   if (prefersReducedMotion) {
     return (
