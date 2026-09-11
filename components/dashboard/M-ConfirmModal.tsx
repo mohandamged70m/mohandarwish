@@ -56,10 +56,10 @@ const MConfirmModal = ({
                 };
             case 'info':
                 return {
-                    icon: <Info className="text-blue-500" size={28} />,
-                    bg: 'rgba(59, 130, 246, 0.1)',
-                    border: 'rgba(59, 130, 246, 0.2)',
-                    btn: 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/20'
+                    icon: <Info className="text-red-500" size={28} />,
+                    bg: 'rgba(239,68,68, 0.1)',
+                    border: 'rgba(239,68,68, 0.2)',
+                    btn: 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
                 };
             default:
                 return {

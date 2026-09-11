@@ -272,7 +272,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     >
                         <div className={`flex items-center min-w-0 ${isExtraSmall ? 'gap-2' : 'gap-3'}`}>
                             {ActiveIcon && (
-                                <span className={`${headerIconBoxSize} flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0`}>
+                                <span className={`${headerIconBoxSize} flex items-center justify-center bg-red-500/10 text-red-500 shrink-0`}>
                                     <ActiveIcon size={headerIconSize} />
                                 </span>
                             )}

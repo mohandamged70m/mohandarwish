@@ -19,7 +19,7 @@ type Status = 'idle' | 'connecting' | 'thinking' | 'acting' | 'speaking' | 'erro
 // hue. e.g. thinking = violet→pink→indigo shimmer; acting = amber→green hustle.
 const PALETTES: Record<Status, string[]> = {
     idle: ['#94a3b8', '#cbd5e1', '#a5b4fc'],
-    connecting: ['#06b6d4', '#3b82f6', '#0ea5e9'],
+    connecting: ['#f87171', '#ef4444', '#ef4444'],
     thinking: ['#8b5cf6', '#ec4899', '#6366f1', '#a855f7'],
     acting: ['#f59e0b', '#22c55e', '#10b981', '#eab308'],
     speaking: ['#22c55e', '#34d399', '#10b981'],
@@ -577,12 +577,12 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     // ── render ───────────────────────────────────────────────────────────────
     const bubble = (m: DisplayMsg, i: number) => {
         if (m.role === 'tool') return (
-            <div key={i} className="flex items-center gap-2 text-[11px] text-sec font-mono pl-1 py-0.5"><ArrowRight size={11} className="text-blue-400" /> {m.text}</div>
+            <div key={i} className="flex items-center gap-2 text-[11px] text-sec font-mono pl-1 py-0.5"><ArrowRight size={11} className="text-red-400" /> {m.text}</div>
         );
         const me = m.role === 'user';
         return (
             <div key={i} className={`flex ${me ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm ${me ? 'bg-blue-500 text-white rounded-br-md' : isDark ? 'bg-white/10 text-white rounded-bl-md' : 'bg-black/[0.05] text-gray-900 rounded-bl-md'}`}>
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm ${me ? 'bg-red-500 text-white rounded-br-md' : isDark ? 'bg-white/10 text-white rounded-bl-md' : 'bg-black/[0.05] text-gray-900 rounded-bl-md'}`}>
                     {me ? m.text : <Markdown>{m.text}</Markdown>}
                 </div>
             </div>
@@ -604,8 +604,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             {/* Human-like cursor */}
             {createPortal(
                 <div ref={cursorRef} className="fixed z-[2000] pointer-events-none" style={{ left: 0, top: 0, opacity: 0, transform: 'translate(-2px,-2px)' }}>
-                    <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-blue-400/40" style={{ opacity: 0 }} />
-                    <MousePointer2 size={24} className="text-blue-500 fill-blue-500/30" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }} />
+                    <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-red-400/40" style={{ opacity: 0 }} />
+                    <MousePointer2 size={24} className="text-red-500 fill-red-500/30" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }} />
                 </div>,
                 document.body
             )}
@@ -616,7 +616,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                     {/* Header */}
                     <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--section-border)]">
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <Sparkles size={18} className="text-blue-400" />
+                            <Sparkles size={18} className="text-red-400" />
                             <div className="min-w-0">
                                 <div className="text-sm font-bold text-primary leading-tight">Spark</div>
                                 <div className="text-[11px] text-sec leading-tight flex items-center gap-1.5">
@@ -628,7 +628,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                         <div className="flex items-center gap-1 flex-shrink-0">
                             <button onClick={toggleVoiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-emerald-500 bg-emerald-500/15' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
                             <button onClick={toggleAuto} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-amber-500 bg-amber-500/15' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Zap size={17} className={autoMode ? 'fill-amber-500/40' : ''} /></button>
-                            <button onClick={() => setShowSettings(s => !s)} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-blue-500 bg-blue-500/10' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Settings2 size={17} /></button>
+                            <button onClick={() => setShowSettings(s => !s)} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-red-500 bg-red-500/10' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Settings2 size={17} /></button>
                             <button onClick={() => setOpen(false)} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><X size={17} /></button>
                         </div>
                     </div>
@@ -646,7 +646,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                     <label className="text-[11px] font-semibold text-sec uppercase tracking-wider mb-1.5 block">Model</label>
                                     <Select value={model} options={models} onChange={chooseModel} isDark={isDark} placeholder={models.length ? 'Choose a model' : 'Load models first'} />
                                 </div>
-                                <button onClick={loadModels} disabled={loadingModels} className="px-3 py-2.5 rounded-xl text-sm font-semibold text-blue-500 border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-all disabled:opacity-50 flex items-center gap-1.5">
+                                <button onClick={loadModels} disabled={loadingModels} className="px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all disabled:opacity-50 flex items-center gap-1.5">
                                     {loadingModels ? <Loader2 size={15} className="animate-spin" /> : 'Load'}
                                 </button>
                             </div>
@@ -685,7 +685,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                         ))}
                                     </div>
                                 )}
-                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions, facts: memory.facts }).then(() => setSettingsMsg('Memory saved')).catch((e) => setSettingsMsg(`Save failed: ${(e as Error).message}`))} className="self-end px-4 py-2 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 transition-all active:scale-95">Save memory</button>
+                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions, facts: memory.facts }).then(() => setSettingsMsg('Memory saved')).catch((e) => setSettingsMsg(`Save failed: ${(e as Error).message}`))} className="self-end px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-all active:scale-95">Save memory</button>
                             </div>
                         </div>
                     )}
@@ -694,7 +694,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                     <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-2.5 min-h-[160px]">
                         {messages.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center text-sec gap-2 py-8">
-                                <Sparkles size={28} className="text-blue-400/60" />
+                                <Sparkles size={28} className="text-red-400/60" />
                                 <p className="text-sm font-medium text-primary">Hey, I'm Spark</p>
                                 <p className="text-xs max-w-[260px]">Ask me to navigate, click buttons, or read/change your data. e.g. "open treasury", "how many projects do I have?", "add a tag called VIP".</p>
                             </div>
@@ -715,8 +715,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
                         {/* ask_user quiz */}
                         {quiz && (
-                            <div className={`rounded-2xl border p-3.5 flex flex-col gap-3 ${isDark ? 'bg-blue-500/10 border-blue-500/30' : 'bg-blue-50 border-blue-300'}`}>
-                                <div className="flex items-center gap-2 text-sm font-bold text-primary"><HelpCircle size={15} className="text-blue-500" /> Quick question</div>
+                            <div className={`rounded-2xl border p-3.5 flex flex-col gap-3 ${isDark ? 'bg-red-500/10 border-red-500/30' : 'bg-red-50 border-red-300'}`}>
+                                <div className="flex items-center gap-2 text-sm font-bold text-primary"><HelpCircle size={15} className="text-red-500" /> Quick question</div>
                                 <p className="text-sm text-primary">{quiz.question}</p>
                                 <div className="flex flex-col gap-2">
                                     {quiz.options.map((o, i) => {
@@ -726,7 +726,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                                 key={i}
                                                 onClick={() => quiz.multi ? toggleQuiz(o) : answerQuiz(o)}
                                                 className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all flex items-center gap-2.5
-                                                    ${sel ? 'bg-blue-500 text-white border-blue-500' : isDark ? 'bg-white/5 border-white/10 text-primary hover:border-blue-400/50' : 'bg-white border-black/10 text-primary hover:border-blue-400/50'}`}
+                                                    ${sel ? 'bg-red-500 text-white border-red-500' : isDark ? 'bg-white/5 border-white/10 text-primary hover:border-red-400/50' : 'bg-white border-black/10 text-primary hover:border-red-400/50'}`}
                                             >
                                                 {quiz.multi && <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${sel ? 'bg-white/20 border-white/50' : 'border-current opacity-50'}`}>{sel && <Check size={12} />}</span>}
                                                 <span>{o}</span>
@@ -735,7 +735,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                     })}
                                 </div>
                                 {quiz.multi && (
-                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
+                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
                                 )}
                                 {/* Own answer - when none of the choices fit */}
                                 <div className="flex items-center gap-1.5 pt-1">
@@ -751,7 +751,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                         placeholder="Type your own answer…"
                                         className={`flex-1 px-3 py-2 rounded-xl border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'} text-primary placeholder:text-sec`}
                                     />
-                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} className="p-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
+                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
                                 </div>
                             </div>
                         )}
@@ -761,7 +761,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                     <div className="p-3 border-t border-[var(--section-border)] flex items-center gap-2">
                         <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') send(); }} disabled={busy} placeholder={busy ? 'Working…' : listening ? 'Listening…' : 'Ask Spark…'} className={`flex-1 px-3.5 py-2.5 rounded-xl border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec disabled:opacity-60`} />
                         <button onClick={toggleConvo} title={convoMode ? 'Stop voice chat' : 'Start hands-free voice chat'} className={`p-2.5 rounded-xl transition-all flex-shrink-0 active:scale-95 ${convoMode ? (listening ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-500 text-white') : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Mic size={18} /></button>
-                        <button onClick={() => send()} disabled={busy || !input.trim()} className="p-2.5 rounded-xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-40 transition-all active:scale-95">
+                        <button onClick={() => send()} disabled={busy || !input.trim()} className="p-2.5 rounded-xl bg-red-500 text-white hover:bg-red-600 disabled:opacity-40 transition-all active:scale-95">
                             {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                         </button>
                     </div>

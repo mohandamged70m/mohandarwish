@@ -159,7 +159,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 const tagsData = Object.entries(data).map(([id, val]: [string, RawFirestoreTag]) => ({
                     id,
                     name: val.Name || 'Untitled',
-                    color: val.Color || '#3b82f6',
+                    color: val.Color || '#ef4444',
                     iconSvg: val.Icon || ''
                 }));
                 tagsData.sort((a, b) => a.name.localeCompare(b.name));

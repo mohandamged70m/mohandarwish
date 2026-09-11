@@ -36,7 +36,7 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
                 <button
                     onClick={onApply}
                     disabled={saving}
-                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-blue-500/20 text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:scale-105 transition-all whitespace-nowrap disabled:opacity-60"
+                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-red-500/20 text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:scale-105 transition-all whitespace-nowrap disabled:opacity-60"
                 >
                     <Save size={18} className="sm:w-5 sm:h-5" /> {saving ? 'Saving…' : applyLabel}
                 </button>

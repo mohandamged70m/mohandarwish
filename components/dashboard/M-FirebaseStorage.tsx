@@ -12,10 +12,10 @@ const storage = getStorage(app);
 const Spinner = () => (
     <div className="flex flex-col items-center gap-3">
         <div className="relative w-10 h-10">
-            <div className="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-red-500/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <span className="text-[10px] font-bold text-blue-500/80 uppercase tracking-widest animate-pulse">Syncing...</span>
+        <span className="text-[10px] font-bold text-red-500/80 uppercase tracking-widest animate-pulse">Syncing...</span>
     </div>
 );
 
@@ -264,10 +264,10 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 <div
                                     key={i}
                                     onClick={() => handleFileClick(file)}
-                                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-blue-500' : ''}`}
+                                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-red-500' : ''}`}
                                     style={{
                                         backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                                        border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'rgb(59, 130, 246)' : 'transparent'}`
+                                        border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'rgb(239, 68, 68)' : 'transparent'}`
                                     }}
                                 >
                                     <div className="flex flex-col items-center gap-2">

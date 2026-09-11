@@ -112,7 +112,7 @@ const DTags = () => {
                     const tagsData = Object.entries(data).map(([id, val]: [string, RawFirestoreTag]) => ({
                         id,
                         name: val.Name || 'Untitled',
-                        color: val.Color || '#3b82f6',
+                        color: val.Color || '#ef4444',
                         iconSvg: val.Icon || ''
                     }));
                     // Sort by numeric ID if possible, otherwise by name
@@ -488,9 +488,9 @@ const DTags = () => {
                         padding: tabPadding,
                         borderRadius: isExtraSmall ? '8px' : '10px',
                         backgroundColor: activeSection === 'tags'
-                            ? (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)')
+                            ? (isDark ? 'rgba(239,68,68, 0.2)' : 'rgba(239,68,68, 0.1)')
                             : 'transparent',
-                        color: activeSection === 'tags' ? 'rgb(59, 130, 246)' : 'var(--text-secondary)',
+                        color: activeSection === 'tags' ? 'rgb(239, 68, 68)' : 'var(--text-secondary)',
                         fontSize: tabFontSize,
                         flex: isExtraSmall ? 1 : 'none'
                     }}
@@ -576,7 +576,7 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingTag(tag); setTagModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-none bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-none bg-red-500/10 hover:bg-red-500/20 text-red-500 cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
@@ -629,7 +629,7 @@ const DTags = () => {
                                                             {contributor.image ? (
                                                                 <img src={typeof contributor.image === 'string' ? contributor.image : undefined} alt={contributor.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-purple-500 to-blue-500 bg-clip-text text-transparent">
+                                                                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-purple-500 to-red-500 bg-clip-text text-transparent">
                                                                     {contributor.name.charAt(0).toUpperCase()}
                                                                 </span>
                                                             )}
@@ -638,7 +638,7 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingContributor(contributor); setContribModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-none bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl border-none bg-red-500/10 hover:bg-red-500/20 text-red-500 cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
@@ -689,7 +689,7 @@ const DTags = () => {
                             onClick={() => { setOptionsOpen(false); setEditingTag(null); setTagModalOpen(true); }}
                             className="w-full flex items-center gap-3 p-3 border-none bg-transparent text-primary cursor-pointer rounded-xl text-sm font-medium hover:bg-gray-500/10 transition-colors"
                         >
-                            <Tag size={18} style={{ color: 'rgb(59, 130, 246)' }} />
+                            <Tag size={18} style={{ color: 'rgb(239, 68, 68)' }} />
                             Add Tag
                         </button>
                         <button

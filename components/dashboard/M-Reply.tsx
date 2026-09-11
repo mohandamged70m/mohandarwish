@@ -132,7 +132,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
     };
 
     const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-sec mb-1.5';
-    const inputCls = `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-white/10 focus:border-blue-400/60' : 'bg-black/[0.03] border-black/10 focus:border-blue-400/60'} text-primary`;
+    const inputCls = `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-white/10 focus:border-red-400/60' : 'bg-black/[0.03] border-black/10 focus:border-red-400/60'} text-primary`;
 
     return createPortal(
         <motion.div
@@ -149,7 +149,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)]">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500 shrink-0"><Reply size={18} /></div>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 shrink-0"><Reply size={18} /></div>
                         <div className="min-w-0">
                             <h3 className="text-lg font-bold text-primary font-inter m-0 leading-tight">Reply</h3>
                             <p className="text-xs text-sec m-0 truncate">to {email.name} &middot; {email.email}</p>
@@ -190,7 +190,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`w-full flex items-center justify-center gap-2 rounded-xl border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-white/15 text-sec hover:border-blue-400/50 hover:text-primary' : 'border-black/15 text-sec hover:border-blue-400/50 hover:text-primary'}`}
+                                className={`w-full flex items-center justify-center gap-2 rounded-xl border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-white/15 text-sec hover:border-red-400/50 hover:text-primary' : 'border-black/15 text-sec hover:border-red-400/50 hover:text-primary'}`}
                             >
                                 <Paperclip size={15} /> Attach files
                             </button>
@@ -198,7 +198,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                                 <div className="mt-2 flex flex-col gap-1.5">
                                     {files.map(f => (
                                         <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-white/5' : 'bg-black/[0.04]'}`}>
-                                            <span className="text-blue-500 shrink-0">{iconFor(f.name)}</span>
+                                            <span className="text-red-500 shrink-0">{iconFor(f.name)}</span>
                                             <span className="truncate flex-1 text-primary">{f.name}</span>
                                             <span className="text-sec shrink-0">{humanSize(f.size)}</span>
                                             <button onClick={() => removeFile(f.name, f.size)} className="text-sec hover:text-red-500 transition-colors shrink-0"><X size={13} /></button>
@@ -211,7 +211,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
 
                         <label className="flex items-center gap-2.5 cursor-pointer select-none">
                             <input type="checkbox" checked={includeQuote} onChange={e => setIncludeQuote(e.target.checked)} className="sr-only peer" />
-                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-blue-500 border-blue-500' : isDark ? 'border-white/25' : 'border-black/25'}`}>
+                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-red-500 border-red-500' : isDark ? 'border-white/25' : 'border-black/25'}`}>
                                 {includeQuote && <Check size={11} className="text-white" strokeWidth={3} />}
                             </span>
                             <span className="text-xs text-sec">Quote their original message</span>
@@ -244,7 +244,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                         <button
                             onClick={send}
                             disabled={!canSend}
-                            className="px-5 py-2 rounded-xl bg-blue-500 text-white text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-blue-600 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                            className="px-5 py-2 rounded-xl bg-red-500 text-white text-sm font-bold shadow-lg shadow-red-500/20 hover:bg-red-600 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                             <Send size={15} /> {sending ? 'Sending...' : 'Send reply'}
                         </button>

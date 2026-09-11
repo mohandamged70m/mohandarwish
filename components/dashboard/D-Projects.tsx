@@ -127,7 +127,7 @@ const ProjectRow = ({
                     {project.icon ? (
                         <FileImage src={project.icon} alt={project.name} className="w-full h-full object-cover" />
                     ) : project.images.length > 0 ? (
-                        <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
+                        <div className="w-full h-full bg-red-500 text-white flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
                     ) : (
                         <span className="text-xl"></span>
                     )}
@@ -153,8 +153,8 @@ const ProjectRow = ({
                             <div key={idx} title={tag.name}
                                 className="w-8 h-8 rounded-full flex items-center justify-center border shadow-sm relative transition-all hover:z-20 cursor-help hover:scale-110"
                                 style={{
-                                    backgroundColor: tag.color ? `${tag.color}40` : 'rgba(59, 130, 246, 0.25)',
-                                    borderColor: tag.color || 'rgba(59, 130, 246, 0.5)',
+                                    backgroundColor: tag.color ? `${tag.color}40` : 'rgba(239,68,68, 0.25)',
+                                    borderColor: tag.color || 'rgba(239,68,68, 0.5)',
                                     color: 'white',
                                     zIndex: 10 - idx,
                                     marginLeft: idx === 0 ? 0 : -12,
@@ -239,7 +239,7 @@ const ProjectRow = ({
                         });
                         setActiveMenu(activeMenu === project.id ? null : project.id!);
                     }}
-                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-blue-500 bg-blue-500/10' : 'text-sec hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-red-500 bg-red-500/10' : 'text-sec hover:bg-black/5 dark:hover:bg-white/5'}`}
                 >
                     <MoreVertical size={20} />
                 </button>
@@ -987,11 +987,11 @@ const DProjects = () => {
                                 rel="noopener noreferrer"
                                 className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 no-underline transition-colors"
                                 style={{
-                                    color: isDark ? '#60a5fa' : '#2563eb',
+                                    color: isDark ? '#f87171' : '#dc2626',
                                     fontFamily: "'Inter', sans-serif"
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(37, 99, 235, 0.05)'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(239,68,68, 0.1)' : 'rgba(37, 99, 235, 0.05)'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 <Github size={16} /> View Code

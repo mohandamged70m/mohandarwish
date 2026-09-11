@@ -298,7 +298,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
     };
 
     const fieldBg = isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10';
-    const inputCls = `w-full px-3.5 py-2.5 rounded-xl border ${fieldBg} text-primary text-sm outline-none focus:border-blue-400/50 transition-colors`;
+    const inputCls = `w-full px-3.5 py-2.5 rounded-xl border ${fieldBg} text-primary text-sm outline-none focus:border-red-400/50 transition-colors`;
     const labelCls = 'text-xs font-semibold text-sec uppercase tracking-wider mb-3 block';
 
     const activeCurrency = mode === 'project' ? priceCurrency : kind === 'expense' ? expCurrency : incCurrency;
@@ -307,7 +307,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         <div className={`flex rounded-xl border ${fieldBg} p-1 gap-1`}>
             {CURRENCIES.map(c => (
                 <button key={c} type="button" onClick={() => onChange(c)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-blue-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-red-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
                     {CURRENCY_SYMBOL[c]} {c}
                 </button>
             ))}
@@ -334,7 +334,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'rgba(15,15,20,0.85)' : 'rgba(255,255,255,0.85)' }}>
                     <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${mode === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${mode === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                             <HeaderIcon size={18} />
                         </div>
                         <h3 className="text-lg font-bold text-primary font-inter m-0">{isEdit ? 'Edit' : 'New'} {titleLabel}</h3>
@@ -363,7 +363,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                 <div className={`flex rounded-xl border ${fieldBg} p-1 gap-1`}>
                                     {(['active', 'pending', 'completed'] as ProjectStatus[]).map(s => (
                                         <button key={s} type="button" onClick={() => setStatus(s)}
-                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${status === s ? 'bg-blue-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${status === s ? 'bg-red-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
                                             {s}
                                         </button>
                                     ))}
@@ -443,7 +443,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                 const total = installmentTotal({ priceAmount: price, installmentPercent });
                                                 const per = total / (installmentMonths || 1);
                                                 return (
-                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'rgba(59,130,246,0.10)' }}>
+                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'rgba(239,68,68,0.10)' }}>
                                                         <span className="text-sec">{formatMoney(price, priceCurrency)}</span>
                                                         {installmentPercent > 0 && (
                                                             <span className="text-sec"> + {installmentPercent}% = <span className="font-bold text-primary">{formatMoney(total, priceCurrency)}</span></span>
@@ -527,7 +527,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                     <span className="min-w-0">
                                                         <span className="flex items-center gap-1.5 text-sm font-semibold text-primary truncate">
                                                             {t.label}
-                                                            {t.recurring && <Repeat size={11} className="text-blue-400 shrink-0" />}
+                                                            {t.recurring && <Repeat size={11} className="text-red-400 shrink-0" />}
                                                         </span>
                                                         {(t.category || t.count > 1) && (
                                                             <span className="block text-[11px] text-sec truncate">
@@ -607,7 +607,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'client') === expClientPaid;
                                             return (
                                                 <button key={val} type="button" onClick={() => setExpClientPaid(val === 'client')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-blue-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-red-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
                                                     {lbl}
                                                 </button>
                                             );
@@ -709,10 +709,10 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                 ))}
                                 {uploading > 0 && Array.from({ length: uploading }).map((_, i) => (
                                     <div key={`up-${i}`} className={`w-16 h-16 rounded-xl border border-dashed ${fieldBg} flex items-center justify-center`}>
-                                        <Loader2 size={18} className="animate-spin text-blue-400" />
+                                        <Loader2 size={18} className="animate-spin text-red-400" />
                                     </div>
                                 ))}
-                                <label className={`w-16 h-16 rounded-xl border border-dashed ${fieldBg} flex flex-col items-center justify-center gap-1 cursor-pointer text-sec hover:text-primary hover:border-blue-400/50 transition-colors`}>
+                                <label className={`w-16 h-16 rounded-xl border border-dashed ${fieldBg} flex flex-col items-center justify-center gap-1 cursor-pointer text-sec hover:text-primary hover:border-red-400/50 transition-colors`}>
                                     <ImagePlus size={18} />
                                     <span className="text-[9px] font-bold uppercase tracking-wide">Add</span>
                                     <input type="file" accept="image/*" multiple className="hidden" onChange={e => { addFiles(e.target.files); e.target.value = ''; }} />
@@ -737,7 +737,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                     )}
                     <div className="flex-1" />
                     <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-semibold text-sm text-sec hover:bg-black/5 dark:hover:bg-white/10 transition-all">Cancel</button>
-                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/20' : kind === 'income' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'}`}>
+                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/20' : kind === 'income' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'}`}>
                         {uploading > 0 && <Loader2 size={15} className="animate-spin" />}
                         {uploading > 0 ? 'Uploading…' : isEdit ? 'Save' : 'Add'}
                     </button>

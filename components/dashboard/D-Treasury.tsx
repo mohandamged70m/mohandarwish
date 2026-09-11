@@ -64,7 +64,7 @@ const INSIGHT_ICONS: Record<InsightIcon, typeof Wallet> = {
     outstanding: Clock, invoice: Receipt, ratio: Percent, profit: TrendingUp,
     loss: TrendingDown, noprice: Tag, running: Hourglass, recurring: Repeat, empty: Lightbulb,
 };
-const TONE_COLOR: Record<InsightTone, string> = { warn: '#f59e0b', good: '#22c55e', info: '#3b82f6' };
+const TONE_COLOR: Record<InsightTone, string> = { warn: '#f59e0b', good: '#22c55e', info: '#ef4444' };
 
 // ── D-Views-style frosted tooltip ──────────────────────────────────────────
 const ChartTooltip = ({ active, payload, isDark, cur }: TooltipProps<number, string> & { isDark?: boolean; cur: Currency; payload?: { payload: ChartPoint }[] }) => {
@@ -79,7 +79,7 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipProps<number, str
     const rows = [
         { c: '#10B981', label: 'Earned', v: p.earned || 0 },
         { c: '#F43F5E', label: 'Spent', v: p.spent || 0 },
-        { c: '#3B82F6', label: 'Net', v: net },
+        { c: '#ef4444', label: 'Net', v: net },
     ];
     return (
         <div className={`p-4 rounded-3xl border shadow-2xl backdrop-blur-3xl ${isDark ? 'bg-black/80 border-white/10' : 'bg-white/70 border-black/5 shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}>
@@ -205,7 +205,7 @@ const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                 <div className={`flex p-0.5 rounded-xl border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-slate-100 border-black/5'}`}>
                     {(['daily', 'weekly', 'monthly'] as ChartFilter[]).map(f => (
                         <button key={f} onClick={() => setFilter(f)}
-                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' : isDark ? 'text-[#666] hover:text-[#999]' : 'text-slate-400 hover:text-slate-700'}`}>
+                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-red-600 text-white shadow-lg shadow-red-600/25' : isDark ? 'text-[#666] hover:text-[#999]' : 'text-slate-400 hover:text-slate-700'}`}>
                             {f === 'daily' ? 'Day' : f === 'weekly' ? 'Week' : 'Month'}
                         </button>
                     ))}
@@ -223,7 +223,7 @@ const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                         <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
                         <div className="flex items-center gap-1 ml-1">
                             {pages.map((_, i) => (
-                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-blue-500' : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
+                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-red-500' : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
                             ))}
                         </div>
                     </>
@@ -263,7 +263,7 @@ const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                                     tick={{ fontSize: cw < 480 ? 10 : 11, fontWeight: 700, fill: isDark ? '#6b7280' : '#94a3b8' }}
                                 />
                                 <YAxis hide domain={[0, 'auto']} />
-                                <Tooltip content={<ChartTooltip isDark={isDark} cur={cur} />} cursor={{ stroke: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.12)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Tooltip content={<ChartTooltip isDark={isDark} cur={cur} />} cursor={{ stroke: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.12)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                                 <Area type="monotone" dataKey="spent" stroke="#F43F5E" fill="url(#spentFill)" fillOpacity={1} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: '#F43F5E', strokeWidth: 2, stroke: isDark ? '#0C0C0C' : '#fff' }} animationDuration={500} />
                                 <Area type="monotone" dataKey="earned" stroke="#10B981" fill="url(#earnedFill)" fillOpacity={1} strokeWidth={3} filter="url(#treasuryGlow)" dot={{ r: 2.5, fill: isDark ? '#0C0C0C' : '#fff', strokeWidth: 2, stroke: '#10B981' }} activeDot={{ r: 6, fill: '#10B981', strokeWidth: 2, stroke: isDark ? '#0C0C0C' : '#fff' }} animationDuration={400} />
                             </AreaChart>
@@ -680,7 +680,7 @@ const DTreasury = () => {
         { label: 'Net profit', value: totals.net, icon: Wallet, color: totals.net >= 0 ? '#22c55e' : '#f43f5e' },
     ];
 
-    const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'pending' ? '#f59e0b' : '#3b82f6';
+    const statusColor = (s: string) => s === 'completed' ? '#22c55e' : s === 'pending' ? '#f59e0b' : '#ef4444';
     const payColor: Record<string, string> = { paid: '#22c55e', partial: '#f59e0b', unpaid: '#f43f5e' };
 
     const TABS: { id: Tab; label: string; icon: typeof Wallet }[] = [
@@ -731,7 +731,7 @@ const DTreasury = () => {
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-primary truncate">{e.label}</span>
-                        {e.recurring && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400">monthly</span>}
+                        {e.recurring && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400">monthly</span>}
                         {e.clientPaid && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500">client-paid</span>}
                     </div>
                     <span className="text-xs text-sec truncate block">{e.category ? `${e.category} · ` : ''}{eproj ? `${eproj.name} · ` : ''}{e.date}{eacct ? ` · ← ${eacct.name}` : ''}</span>
@@ -780,11 +780,11 @@ const DTreasury = () => {
         const d = new Date(r.sentAt);
         return (
             <div key={r.id} className="flex items-center gap-3 p-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/10 text-blue-500"><Receipt size={16} /></div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-red-500/10 text-red-500"><Receipt size={16} /></div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-primary truncate">{r.to}</span>
-                        {r.via === 'mcp' && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400">via AI</span>}
+                        {r.via === 'mcp' && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400">via AI</span>}
                     </div>
                     <div className="text-[11px] text-sec truncate">
                         {r.projectNames && r.projectNames.length ? r.projectNames.join(', ') : '—'} · {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
@@ -830,7 +830,7 @@ const DTreasury = () => {
                     return (
                         <button key={t.id} onClick={() => setTab(t.id)}
                             className={`flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
-                                ${active ? 'bg-blue-500/15 text-blue-500' : 'bg-transparent text-gray-500 hover:bg-blue-500/10 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400'}`}>
+                                ${active ? 'bg-red-500/15 text-red-500' : 'bg-transparent text-gray-500 hover:bg-red-500/10 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}`}>
                             <Icon size={18} />
                             <span className={isExtraSmall ? 'hidden' : ''}>{t.label}</span>
                         </button>
@@ -883,9 +883,9 @@ const DTreasury = () => {
                                 {/* Left Column: Active Projects slider (col-span-2) */}
                                 <div className="lg:col-span-2 glass-panel p-5 flex flex-col gap-4">
                                     {sectionTitle(
-                                        <Briefcase size={16} className="text-blue-400" />,
+                                        <Briefcase size={16} className="text-red-400" />,
                                         'Active projects',
-                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Project</button>
+                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"><Plus size={16} /> Project</button>
                                     )}
                                     <p className="text-xs text-sec -mt-2">Drag cards to reorder - active & pending projects. Click a card to focus details.</p>
                                     
@@ -903,7 +903,7 @@ const DTreasury = () => {
                                                         onClick={() => setFocusedProjectId(p.id)}
                                                         className={`group flex-shrink-0 w-[240px] p-4 flex flex-col gap-3 cursor-grab active:cursor-grabbing relative border rounded-2xl backdrop-blur-md shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 select-none
                                                             ${isFocused 
-                                                                ? 'bg-white border-blue-500/50 dark:border-blue-400/50 ring-1 ring-blue-500/30 dark:bg-[#1c1c24]' 
+                                                                ? 'bg-white border-red-500/50 dark:border-red-400/50 ring-1 ring-red-500/30 dark:bg-[#1c1c24]' 
                                                                 : 'bg-slate-50 dark:bg-[#13131a] border-slate-200/80 dark:border-white/5'}`}
                                                     >
                                                         <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full" style={{ background: statusColor(p.status) }} />
@@ -952,7 +952,7 @@ const DTreasury = () => {
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
-                                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-500 font-inter">Project Focus</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-red-500 font-inter">Project Focus</span>
                                                         <h3 className="text-lg font-black text-primary truncate mt-0.5" title={focusedProject.name}>{focusedProject.name}</h3>
                                                         {focusedProject.client && <p className="text-xs text-sec truncate">{focusedProject.client}</p>}
                                                     </div>
@@ -993,7 +993,7 @@ const DTreasury = () => {
                                                             </div>
                                                             {onPlan && (
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                                                                    <span className="inline-flex items-center gap-1.5 font-bold text-blue-500">
+                                                                    <span className="inline-flex items-center gap-1.5 font-bold text-red-500">
                                                                         <CalendarClock size={13} className="shrink-0" />
                                                                         <span className="tnum">{months} installments x {formatMoney(perMonth, focusedProject.priceCurrency)}/mo</span>
                                                                     </span>
@@ -1067,7 +1067,7 @@ const DTreasury = () => {
                                                     <button onClick={() => setModal({ mode: 'expense', expense: { projectId: focusedProject.id, date: new Date().toISOString().slice(0, 10), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '', label: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-rose-500 bg-rose-500/10 hover:bg-rose-500/15 transition-all"><Plus size={14} /> Log expense</button>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    <button onClick={() => markDone(focusedProject)} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${focusedProject.done ? 'bg-green-500/15 text-green-500' : 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/15'}`}><CheckCircle2 size={14} /> {focusedProject.done ? 'Reopen' : 'Mark Done'}</button>
+                                                    <button onClick={() => markDone(focusedProject)} className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold transition-all ${focusedProject.done ? 'bg-green-500/15 text-green-500' : 'bg-red-500/10 text-red-500 hover:bg-red-500/15'}`}><CheckCircle2 size={14} /> {focusedProject.done ? 'Reopen' : 'Mark Done'}</button>
                                                     <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold text-primary bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/[0.09] dark:hover:bg-white/[0.11] transition-all"><Receipt size={14} /> Receipt</button>
                                                 </div>
                                             </div>
@@ -1102,7 +1102,7 @@ const DTreasury = () => {
                                                             <div key={p.id} onClick={() => setFocusedProjectId(p.id)} 
                                                                 className={`p-4 rounded-2xl border flex flex-col gap-2 relative shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 cursor-pointer backdrop-blur-sm
                                                                     ${focusedProject?.id === p.id 
-                                                                        ? 'bg-white border-blue-500/30 ring-1 ring-blue-500/30 dark:bg-[#1c1c24]' 
+                                                                        ? 'bg-white border-red-500/30 ring-1 ring-red-500/30 dark:bg-[#1c1c24]' 
                                                                         : 'bg-slate-50 dark:bg-[#13131a] border-slate-200/80 dark:border-white/5'}`}
                                                             >
                                                                 <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-emerald-500" />
@@ -1118,7 +1118,7 @@ const DTreasury = () => {
                                                                     {received > 0 && <span className="text-[10px] text-emerald-500 font-semibold tnum">paid</span>}
                                                                 </div>
                                                                 <div className="text-[10px] text-sec flex items-center gap-1 mt-1"><Clock size={11} /><span>Completed {p.endDate || '-'}</span></div>
-                                                                <button onClick={(e) => { e.stopPropagation(); markDone(p); }} className="mt-2 py-1.5 rounded-lg text-[10px] font-bold bg-blue-500/10 text-blue-500 hover:bg-blue-500/15 transition-all w-fit px-3">Reopen</button>
+                                                                <button onClick={(e) => { e.stopPropagation(); markDone(p); }} className="mt-2 py-1.5 rounded-lg text-[10px] font-bold bg-red-500/10 text-red-500 hover:bg-red-500/15 transition-all w-fit px-3">Reopen</button>
                                                             </div>
                                                         );
                                                     })}
@@ -1136,7 +1136,7 @@ const DTreasury = () => {
                             {/* Sticky header */}
                             <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--section-border)]" style={{ background: isDark ? 'rgba(15,15,20,0.92)' : 'rgba(255,255,255,0.92)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
                                 {sectionTitle(
-                                    <Wallet size={16} className="text-blue-400" />,
+                                    <Wallet size={16} className="text-red-400" />,
                                     'Money',
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <div className="w-[152px]">
@@ -1168,7 +1168,7 @@ const DTreasury = () => {
                                                 />
                                             </div>
                                         )}
-                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add money</button>
+                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"><Plus size={16} /> Add money</button>
                                     </div>
                                 )}
                                 {/* Day navigator: ‹  date  › */}
@@ -1176,7 +1176,7 @@ const DTreasury = () => {
                                     <button onClick={() => stepDay(-1)} title="Previous day" className="p-2 rounded-xl text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                     <div className="w-44"><DatePicker value={selectedDay} onChange={setSelectedDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
                                     <button onClick={() => stepDay(1)} title="Next day" className="p-2 rounded-xl text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
-                                    {selectedDay && <button onClick={() => setSelectedDay('')} className="text-xs font-semibold text-blue-500 hover:text-blue-600 px-1">Clear</button>}
+                                    {selectedDay && <button onClick={() => setSelectedDay('')} className="text-xs font-semibold text-red-500 hover:text-red-600 px-1">Clear</button>}
                                 </div>
                             </div>
 
@@ -1227,21 +1227,21 @@ const DTreasury = () => {
                             {/* Liquid total + add */}
                             <div className="glass-panel p-5 flex items-center justify-between gap-4 flex-wrap">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <span className="w-11 h-11 rounded-2xl flex items-center justify-center bg-blue-500/12 text-blue-500 shrink-0"><Wallet2 size={22} /></span>
+                                    <span className="w-11 h-11 rounded-2xl flex items-center justify-center bg-red-500/12 text-red-500 shrink-0"><Wallet2 size={22} /></span>
                                     <div className="min-w-0">
                                         <div className="text-[11px] font-bold uppercase tracking-wider text-sec">Total balance · {cur}</div>
                                         <div className="text-2xl sm:text-3xl font-black tnum text-primary leading-tight" style={{ color: liquidTotal >= 0 ? undefined : '#f43f5e' }}>{formatMoney(liquidTotal, cur)}</div>
                                         <div className="text-[11px] text-sec">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
                                     </div>
                                 </div>
-                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Account</button>
+                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"><Plus size={16} /> Account</button>
                             </div>
 
                             {data.accounts.length === 0 ? (
                                 <div className="glass-panel p-10 text-center flex flex-col items-center gap-3">
-                                    <span className="w-14 h-14 rounded-2xl flex items-center justify-center bg-blue-500/10 text-blue-500"><Landmark size={26} /></span>
+                                    <span className="w-14 h-14 rounded-2xl flex items-center justify-center bg-red-500/10 text-red-500"><Landmark size={26} /></span>
                                     <p className="text-sm text-sec max-w-sm">No accounts yet. Add a bank, cash or wallet, then pick it when logging income or an expense to track each balance.</p>
-                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
+                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1313,7 +1313,7 @@ const DTreasury = () => {
                         <div className="glass-panel overflow-hidden">
                             <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--section-border)]" style={{ background: isDark ? 'rgba(15,15,20,0.92)' : 'rgba(255,255,255,0.92)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
                                 {sectionTitle(
-                                    <Receipt size={16} className="text-blue-400" />,
+                                    <Receipt size={16} className="text-red-400" />,
                                     'Receipts',
                                     data.receipts.length > 0 ? (
                                         <div className="flex items-center gap-2 flex-wrap">
@@ -1344,7 +1344,7 @@ const DTreasury = () => {
                                         <button onClick={() => stepReceiptDay(-1)} title="Previous day" className="p-2 rounded-xl text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                         <div className="w-44"><DatePicker value={receiptDay} onChange={setReceiptDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
                                         <button onClick={() => stepReceiptDay(1)} title="Next day" className="p-2 rounded-xl text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
-                                        {receiptDay && <button onClick={() => setReceiptDay('')} className="text-xs font-semibold text-blue-500 hover:text-blue-600 px-1">Clear</button>}
+                                        {receiptDay && <button onClick={() => setReceiptDay('')} className="text-xs font-semibold text-red-500 hover:text-red-600 px-1">Clear</button>}
                                     </div>
                                 )}
                             </div>
@@ -1394,7 +1394,7 @@ const DTreasury = () => {
                                     <label className="text-xs font-semibold text-sec uppercase tracking-wider">Show totals in</label>
                                     <div className={`flex rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-blue-500 text-white shadow' : 'text-sec hover:text-primary'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
+                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-red-500 text-white shadow' : 'text-sec hover:text-primary'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -1418,7 +1418,7 @@ const DTreasury = () => {
                                             {draft.ratesUpdatedAt ? ` Updated ${new Date(draft.ratesUpdatedAt).toLocaleString()}.` : ' Not fetched yet.'}
                                         </p>
                                     </div>
-                                    <button onClick={() => refreshRates(false)} disabled={ratesLoading} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-blue-500 border border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 transition-all disabled:opacity-50">
+                                    <button onClick={() => refreshRates(false)} disabled={ratesLoading} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-red-500 border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-all disabled:opacity-50">
                                         <RefreshCcw size={15} className={ratesLoading ? 'animate-spin' : ''} /> {ratesLoading ? 'Updating…' : 'Update now'}
                                     </button>
                                 </div>
@@ -1437,7 +1437,7 @@ const DTreasury = () => {
                                     <h3 className="heading-sm m-0">Export</h3>
                                     <p className="text-xs text-sec mt-1">Download a styled, self-contained HTML report of all projects & spendings.</p>
                                 </div>
-                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Download size={16} /> Export report</button>
+                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all active:scale-95"><Download size={16} /> Export report</button>
                             </div>
                         </>
                     )}

@@ -14,9 +14,9 @@ interface MTagFormProps {
     initialData?: TagFormData | null;
 }
 
-const FALLBACK_COLOR = '#3b82f6';
+const FALLBACK_COLOR = '#ef4444';
 const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
-const PRESET_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6'];
+const PRESET_COLORS = ['#ef4444', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#14b8a6'];
 
 const normalizeColor = (raw: string | undefined): string =>
     raw && HEX_RE.test(raw.trim()) ? raw.trim() : FALLBACK_COLOR;

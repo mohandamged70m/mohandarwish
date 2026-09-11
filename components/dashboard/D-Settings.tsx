@@ -1069,7 +1069,7 @@ export default function DSettings() {
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 border-b border-white/5">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+                                <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
                                     <ZoomIn size={20} />
                                 </div>
                                 <div>
@@ -1118,9 +1118,9 @@ export default function DSettings() {
                                     max={3}
                                     step={0.01}
                                     onChange={(e) => setZoom(Number(e.target.value))}
-                                    className="flex-1 h-1.5 bg-gray-500/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    className="flex-1 h-1.5 bg-gray-500/20 rounded-lg appearance-none cursor-pointer accent-red-500"
                                 />
-                                <span className="text-xs font-mono text-blue-500 w-10 text-right font-bold">
+                                <span className="text-xs font-mono text-red-500 w-10 text-right font-bold">
                                     {Math.round(zoom * 100)}%
                                 </span>
                             </div>
@@ -1143,7 +1143,7 @@ export default function DSettings() {
                                         <button
                                             type="button"
                                             onClick={handleSkipCrop}
-                                            className="btn btn-secondary text-xs px-4 py-2 bg-blue-500/5 border-blue-500/10 text-blue-500 hover:bg-blue-500/10"
+                                            className="btn btn-secondary text-xs px-4 py-2 bg-red-500/5 border-red-500/10 text-red-500 hover:bg-red-500/10"
                                         >
                                             Skip
                                         </button>
@@ -1152,7 +1152,7 @@ export default function DSettings() {
                                     <button
                                         type="button"
                                         onClick={handleCropSave}
-                                        className="btn btn-primary text-xs px-6 py-2 shadow-lg shadow-blue-500/20"
+                                        className="btn btn-primary text-xs px-6 py-2 shadow-lg shadow-red-500/20"
                                     >
                                         Save Changes
                                     </button>
@@ -1189,7 +1189,7 @@ export default function DSettings() {
                             onClick={() => handleTabChange(tab.id)}
                             className={`
                                 settings-tab-btn flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
-                                ${isActive ? 'tab-active bg-blue-500/15 text-blue-500' : 'bg-transparent text-gray-500 hover:bg-blue-500/10 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400'}
+                                ${isActive ? 'tab-active bg-red-500/15 text-red-500' : 'bg-transparent text-gray-500 hover:bg-red-500/10 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}
                             `}
                         >
                             <Icon size={18} />
@@ -1247,7 +1247,7 @@ export default function DSettings() {
                                             Current Time
                                         </label>
                                         <div className="text-right">
-                                            <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-500 font-mono">{currentTime}</span>
+                                            <span className="text-lg sm:text-xl md:text-2xl font-bold text-red-500 font-mono">{currentTime}</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col sm:flex-row gap-3">
@@ -1393,12 +1393,12 @@ export default function DSettings() {
                                                 <button
                                                     onClick={onUpload}
                                                     aria-label={isLight ? 'Upload light hero image' : 'Upload dark hero image'}
-                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 font-semibold hover:bg-blue-500/20 transition"
+                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 font-semibold hover:bg-red-500/20 transition"
                                                 >
-                                                    <span className="p-1.5 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/10">
-                                                        <Upload size={16} className="text-blue-400" />
+                                                    <span className="p-1.5 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/10">
+                                                        <Upload size={16} className="text-red-400" />
                                                     </span>
-                                                    <span className="hidden sm:inline text-blue-400 tracking-wide font-semibold">Upload</span>
+                                                    <span className="hidden sm:inline text-red-400 tracking-wide font-semibold">Upload</span>
                                                 </button>
 
                                                 <button
@@ -1437,7 +1437,7 @@ export default function DSettings() {
                                 </h3>
                                 <div className="flex flex-col md:flex-row items-center gap-6">
                                     <div className="group relative flex-shrink-0">
-                                        <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-blue-400 p-0.5 flex-shrink-0 mx-auto sm:mx-0 bg-[var(--input-bg)] flex items-center justify-center">
+                                        <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-red-400 p-0.5 flex-shrink-0 mx-auto sm:mx-0 bg-[var(--input-bg)] flex items-center justify-center">
                                             {profileImagePreview ? (
                                                 <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover rounded-full" />
                                             ) : (
@@ -1449,7 +1449,7 @@ export default function DSettings() {
                                             <button
                                                 aria-label="Upload profile image"
                                                 onClick={() => profileImageInputRef.current?.click()}
-                                                className="w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center hover:bg-blue-500/20 transition"
+                                                className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/20 transition"
                                             >
                                                 <Upload size={16} />
                                             </button>

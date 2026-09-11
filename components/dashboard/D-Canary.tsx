@@ -648,7 +648,7 @@ const DCanary = () => {
                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
                 }}
             >
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-500">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0 text-red-500">
                     {isImage ? <ImageIcon size={16} /> : isVideo ? <Video size={16} /> : <FileText size={16} />}
                 </div>
 
@@ -796,7 +796,7 @@ const DCanary = () => {
             style={{ backgroundColor: containerBg, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
         >
             <div className="flex items-start gap-4">
-                <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 48, height: 48, background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 48, height: 48, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                     <Tags size={24} />
                 </span>
                 <div>
@@ -832,9 +832,9 @@ const DCanary = () => {
                             className="rounded-xl overflow-hidden"
                             style={{
                                 background: editing
-                                    ? (isDark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.04)')
+                                    ? (isDark ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)')
                                     : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
-                                border: `1px solid ${editing ? '#3b82f6' : 'transparent'}`,
+                                border: `1px solid ${editing ? '#ef4444' : 'transparent'}`,
                             }}
                         >
                             <AnimatePresence mode="popLayout" initial={false}>
@@ -855,14 +855,14 @@ const DCanary = () => {
                                             maxLength={MAX_CATEGORY_NAME}
                                             onChange={(e) => setEditCatName(e.target.value)}
                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCategoryEdit(); if (e.key === 'Escape') setEditingCatId(null); }}
-                                            className="w-full h-10 rounded-lg border px-3 text-sm font-semibold outline-none focus:border-blue-500 transition-colors"
+                                            className="w-full h-10 rounded-lg border px-3 text-sm font-semibold outline-none focus:border-red-500 transition-colors"
                                             style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff', borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)', color: isDark ? '#fff' : '#000' }}
                                         />
                                         <div className="flex items-center justify-between gap-3 flex-wrap">
                                             <ColorSwatches value={editCatColor} onPick={setEditCatColor} isDark={isDark} />
                                             <div className="flex items-center gap-1 ml-auto">
                                                 <button type="button" onClick={() => setEditingCatId(null)} className="px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/10" style={{ color: 'var(--text-muted)' }}>Cancel</button>
-                                                <button type="button" onClick={saveCategoryEdit} disabled={catBusy} className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors disabled:opacity-50" style={{ background: '#3b82f6', color: '#fff' }}>
+                                                <button type="button" onClick={saveCategoryEdit} disabled={catBusy} className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors disabled:opacity-50" style={{ background: '#ef4444', color: '#fff' }}>
                                                     <Check size={14} /> Save
                                                 </button>
                                             </div>
@@ -918,7 +918,7 @@ const DCanary = () => {
                         placeholder="Category name"
                         onChange={(e) => setNewCatName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }}
-                        className="flex-1 min-w-0 h-11 rounded-xl border px-4 text-sm font-medium outline-none focus:border-blue-500 transition-colors"
+                        className="flex-1 min-w-0 h-11 rounded-xl border px-4 text-sm font-medium outline-none focus:border-red-500 transition-colors"
                         style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: isDark ? '#fff' : '#000' }}
                     />
                     <button
@@ -926,7 +926,7 @@ const DCanary = () => {
                         onClick={addCategory}
                         disabled={catBusy || !newCatName.trim()}
                         className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-xl text-sm font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                        style={{ background: '#3b82f6', color: '#fff' }}
+                        style={{ background: '#ef4444', color: '#fff' }}
                     >
                         <Plus size={16} /> Add
                     </button>
@@ -946,7 +946,7 @@ const DCanary = () => {
                 style={{ backgroundColor: containerBg, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
             >
                 <div className="flex items-start gap-4">
-                    <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 48, height: 48, background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                    <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 48, height: 48, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                         <Clock size={24} />
                     </span>
                     <div>
@@ -971,7 +971,7 @@ const DCanary = () => {
                                     aria-pressed={on}
                                     className="px-4 py-2 rounded-xl text-sm font-bold border transition-colors cursor-pointer"
                                     style={on
-                                        ? { background: '#3b82f6', color: '#fff', borderColor: '#3b82f6' }
+                                        ? { background: '#ef4444', color: '#fff', borderColor: '#ef4444' }
                                         : { background: 'transparent', color: 'var(--text-muted)', borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)' }}
                                 >
                                     {label}
@@ -1001,7 +1001,7 @@ const DCanary = () => {
                                     aria-pressed={on}
                                     className="px-2 py-2 rounded-xl text-xs font-bold border transition-colors cursor-pointer text-center"
                                     style={on
-                                        ? { background: '#3b82f6', color: '#fff', borderColor: '#3b82f6' }
+                                        ? { background: '#ef4444', color: '#fff', borderColor: '#ef4444' }
                                         : { background: 'transparent', color: 'var(--text-muted)', borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)' }}
                                 >
                                     {formatHourSlot(h)}
@@ -1033,7 +1033,7 @@ const DCanary = () => {
                         onClick={saveAvailability}
                         disabled={!availDirty || availSaving}
                         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ background: '#3b82f6', color: '#fff' }}
+                        style={{ background: '#ef4444', color: '#fff' }}
                     >
                         <Check size={16} />
                         {availSaving ? 'Saving…' : 'Save hours'}
@@ -1054,7 +1054,7 @@ const DCanary = () => {
                     onClick={() => handleTabChange('bookings')}
                     className={`
                         flex items-center gap-2 px-5 py-2.5 rounded-lg border-none cursor-pointer font-sans font-bold text-sm whitespace-nowrap transition-all
-                        ${activeSection === 'bookings' ? 'bg-blue-500/15 text-blue-500' : 'bg-transparent text-gray-500 hover:bg-blue-500/10 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400'}
+                        ${activeSection === 'bookings' ? 'bg-red-500/15 text-red-500' : 'bg-transparent text-gray-500 hover:bg-red-500/10 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}
                     `}
                 >
                     <CalendarIcon size={16} />
@@ -1064,13 +1064,13 @@ const DCanary = () => {
                     onClick={() => handleTabChange('mails')}
                     className={`
                         flex items-center gap-2 px-5 py-2.5 rounded-lg border-none cursor-pointer font-sans font-bold text-sm whitespace-nowrap transition-all
-                        ${activeSection === 'mails' ? 'bg-blue-500/15 text-blue-500' : 'bg-transparent text-gray-500 hover:bg-blue-500/10 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400'}
+                        ${activeSection === 'mails' ? 'bg-red-500/15 text-red-500' : 'bg-transparent text-gray-500 hover:bg-red-500/10 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}
                     `}
                 >
                     <Mail size={16} />
                     <span className="hidden sm:inline">Mails</span>
                     {emails.length > 0 && (
-                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${activeSection === 'mails' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-white/20 dark:text-white'}`}>
+                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${activeSection === 'mails' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-white/20 dark:text-white'}`}>
                             {emails.length}
                         </span>
                     )}
@@ -1079,7 +1079,7 @@ const DCanary = () => {
                     onClick={() => handleTabChange('hours')}
                     className={`
                         flex items-center gap-2 px-5 py-2.5 rounded-lg border-none cursor-pointer font-sans font-bold text-sm whitespace-nowrap transition-all
-                        ${activeSection === 'hours' ? 'bg-blue-500/15 text-blue-500' : 'bg-transparent text-gray-500 hover:bg-blue-500/10 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400'}
+                        ${activeSection === 'hours' ? 'bg-red-500/15 text-red-500' : 'bg-transparent text-gray-500 hover:bg-red-500/10 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'}
                     `}
                 >
                     <Clock size={16} />
@@ -1102,7 +1102,7 @@ const DCanary = () => {
                             borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                             backdropFilter: 'blur(20px)'
                         }}>
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full" />
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[100px] rounded-full" />
 
                         {/* Integrated Navigation Inside Box */}
                         <div className="flex items-center justify-between relative z-10 mb-2">
@@ -1174,15 +1174,15 @@ const DCanary = () => {
                                                         style={{
                                                             position: 'absolute', inset: 0,
                                                             borderRadius: 12,
-                                                            backgroundColor: 'rgb(59, 130, 246)',
-                                                            boxShadow: '0 4px 12px -2px rgba(59, 130, 246, 0.5)',
+                                                            backgroundColor: 'rgb(239, 68, 68)',
+                                                            boxShadow: '0 4px 12px -2px rgba(239,68,68, 0.5)',
                                                             zIndex: 0
                                                         }}
                                                     />
                                                 )}
                                                 {date && (
                                                     <>
-                                                        <span className={`text-[13px] sm:text-sm font-bold relative z-10 ${isSelected ? 'text-white' : isToday ? 'text-blue-500' : ''}`} style={{ color: !isSelected && !isToday ? (isDark ? '#fff' : '#000') : undefined }}>
+                                                        <span className={`text-[13px] sm:text-sm font-bold relative z-10 ${isSelected ? 'text-white' : isToday ? 'text-red-500' : ''}`} style={{ color: !isSelected && !isToday ? (isDark ? '#fff' : '#000') : undefined }}>
                                                             {date.getDate()}
                                                         </span>
 
@@ -1275,7 +1275,7 @@ const DCanary = () => {
                                                         <span>{meeting.time}</span>
                                                     </div>
                                                     {meeting.link && (
-                                                        <div className="flex items-center gap-1.5 p-1 rounded-md text-blue-500 bg-blue-500/10">
+                                                        <div className="flex items-center gap-1.5 p-1 rounded-md text-red-500 bg-red-500/10">
                                                             <Video size={12} />
                                                             <span className="font-semibold">Meet link</span>
                                                         </div>
@@ -1338,8 +1338,8 @@ const DCanary = () => {
                                         onClick={() => setSelectedEmail(email)}
                                         className={`group relative p-3 md:p-4 rounded-xl md:rounded-2xl border transition-all cursor-pointer ${selectedEmail?.id === email.id ? 'shadow-md' : 'hover:translate-x-1 hover:border-gray-300 dark:hover:border-white/20'}`}
                                         style={{
-                                            borderColor: selectedEmail?.id === email.id ? 'rgb(59, 130, 246)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
-                                            backgroundColor: selectedEmail?.id === email.id ? (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.1)') : (isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)')
+                                            borderColor: selectedEmail?.id === email.id ? 'rgb(239, 68, 68)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                                            backgroundColor: selectedEmail?.id === email.id ? (isDark ? 'rgba(239,68,68, 0.2)' : 'rgba(239,68,68, 0.1)') : (isDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)')
                                         }}
                                     >
                                         <div className="flex items-start justify-between gap-3">
@@ -1362,7 +1362,7 @@ const DCanary = () => {
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-[9px] font-bold opacity-40">{new Date(email.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                                     {email.attachments.length > 0 && (
-                                                        <div className="flex items-center gap-1 text-[9px] font-bold text-blue-500">
+                                                        <div className="flex items-center gap-1 text-[9px] font-bold text-red-500">
                                                             <Paperclip size={10} />
                                                             <span>{email.attachments.length}</span>
                                                         </div>
@@ -1382,7 +1382,7 @@ const DCanary = () => {
                                                         });
                                                         setOpenOptionsId(openOptionsId === email.id ? null : email.id);
                                                     }}
-                                                    className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${openOptionsId === email.id ? 'text-blue-500 bg-blue-500/10' : 'opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                                                    className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${openOptionsId === email.id ? 'text-red-500 bg-red-500/10' : 'opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'}`}
                                                 >
                                                     <MoreVertical size={16} />
                                                 </button>
@@ -1444,7 +1444,7 @@ const DCanary = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleReplyEmail(selectedEmail)}
-                                                    className="p-2.5 md:px-4 md:py-2 rounded-xl bg-blue-500 text-white shadow-lg shadow-blue-500/20 hover:bg-blue-600 active:scale-95 transition-all flex items-center gap-2"
+                                                    className="p-2.5 md:px-4 md:py-2 rounded-xl bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600 active:scale-95 transition-all flex items-center gap-2"
                                                     title="Reply"
                                                 >
                                                     <Reply size={18} />
@@ -1521,7 +1521,7 @@ const DCanary = () => {
                                         <div className="flex flex-col gap-4 mt-2">
                                             <div className="flex items-center justify-between pb-2 border-b border-dashed" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
                                                 <div className="flex items-center gap-2">
-                                                    <Paperclip size={16} className="text-blue-500" />
+                                                    <Paperclip size={16} className="text-red-500" />
                                                     <span className="text-xs font-black uppercase tracking-widest opacity-60">
                                                         Attachments ({selectedEmail.attachments.length})
                                                     </span>
@@ -1569,7 +1569,7 @@ const DCanary = () => {
                                     {/* Header */}
                                     <div className="p-5 md:p-6 border-b flex items-center justify-between gap-3" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 44, height: 44, background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                                            <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 44, height: 44, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                                                 <CalendarIcon size={22} />
                                             </span>
                                             <div className="min-w-0">
@@ -1587,7 +1587,7 @@ const DCanary = () => {
                                         {viewingMeeting.email && (
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Email</span>
-                                                <a href={`mailto:${viewingMeeting.email}`} className="text-sm font-semibold hover:text-blue-500 transition-colors break-all select-all inline-flex items-center gap-2" style={{ color: isDark ? '#fff' : '#000' }}>
+                                                <a href={`mailto:${viewingMeeting.email}`} className="text-sm font-semibold hover:text-red-500 transition-colors break-all select-all inline-flex items-center gap-2" style={{ color: isDark ? '#fff' : '#000' }}>
                                                     <Mail size={14} className="opacity-60 shrink-0" />
                                                     {viewingMeeting.email}
                                                 </a>
@@ -1612,7 +1612,7 @@ const DCanary = () => {
                                             <span className="text-sm leading-relaxed" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.85)' }}>{viewingMeeting.reason || 'No description provided.'}</span>
                                         </div>
                                         {viewingMeeting.link && (
-                                            <a href={viewingMeeting.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors self-start no-underline" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                                            <a href={viewingMeeting.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors self-start no-underline" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                                                 <Video size={16} /> Join meeting
                                             </a>
                                         )}
@@ -1632,7 +1632,7 @@ const DCanary = () => {
                                             type="button"
                                             onClick={() => { const m = viewingMeeting; setViewingMeeting(null); handleReschedule(m); }}
                                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold cursor-pointer transition-all"
-                                            style={{ background: '#3b82f6', color: '#fff' }}
+                                            style={{ background: '#ef4444', color: '#fff' }}
                                         >
                                             <Edit2 size={16} /> Edit
                                         </button>
@@ -1671,7 +1671,7 @@ const DCanary = () => {
                                         below don't have to carry that job on their own. */}
                                     <div className="px-5 md:px-7 py-4 md:py-5 border-b flex items-start justify-between gap-3" style={{ borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }}>
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 42, height: 42, background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                                            <span className="grid place-items-center shrink-0 rounded-2xl" style={{ width: 42, height: 42, background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                                                 <Edit2 size={20} />
                                             </span>
                                             <div className="min-w-0">
@@ -1701,7 +1701,7 @@ const DCanary = () => {
                                                     <input
                                                         id="booking-title"
                                                         type="text"
-                                                        className="w-full h-11 rounded-xl border px-3.5 text-sm font-medium transition-colors focus:border-blue-500 outline-none"
+                                                        className="w-full h-11 rounded-xl border px-3.5 text-sm font-medium transition-colors focus:border-red-500 outline-none"
                                                         style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)', color: isDark ? '#fff' : '#000' }}
                                                         value={editingMeeting.title}
                                                         onChange={(e) => setEditingMeeting({ ...editingMeeting, title: e.target.value })}
@@ -1755,7 +1755,7 @@ const DCanary = () => {
                                                                     onClick={() => setEditingMeeting({ ...editingMeeting, time })}
                                                                     className="h-9 rounded-lg text-[11px] font-bold border transition-colors disabled:cursor-not-allowed cursor-pointer"
                                                                     style={on
-                                                                        ? { background: '#3b82f6', color: '#fff', borderColor: '#3b82f6' }
+                                                                        ? { background: '#ef4444', color: '#fff', borderColor: '#ef4444' }
                                                                         : { background: 'transparent', color: isTaken ? 'var(--text-muted)' : (isDark ? '#fff' : '#000'), borderColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.1)', opacity: isTaken ? 0.35 : 1 }}
                                                                     title={isTaken ? 'Already booked' : undefined}
                                                                 >
@@ -1845,11 +1845,11 @@ const DCanary = () => {
                                                                                 layoutId="modal-selected-day-bg"
                                                                                 initial={false}
                                                                                 transition={{ type: "spring", stiffness: 500, damping: 40, mass: 1 }}
-                                                                                style={{ position: 'absolute', inset: 0, borderRadius: 8, backgroundColor: '#3b82f6', zIndex: 0 }}
+                                                                                style={{ position: 'absolute', inset: 0, borderRadius: 8, backgroundColor: '#ef4444', zIndex: 0 }}
                                                                             />
                                                                         )}
                                                                         <span className="relative z-10 text-xs" style={{
-                                                                            color: isSelected ? '#fff' : (isToday ? '#3b82f6' : (isDark ? '#fff' : '#000')),
+                                                                            color: isSelected ? '#fff' : (isToday ? '#ef4444' : (isDark ? '#fff' : '#000')),
                                                                             fontWeight: isSelected || isToday ? 700 : 500,
                                                                         }}>
                                                                             {date?.getDate()}
@@ -1867,7 +1867,7 @@ const DCanary = () => {
                                                     <div className="text-sm font-bold leading-snug" style={{ color: isDark ? '#fff' : '#000' }}>
                                                         {editingMeeting.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
                                                     </div>
-                                                    <div className="text-sm font-semibold" style={{ color: '#3b82f6' }}>{editingMeeting.time}</div>
+                                                    <div className="text-sm font-semibold" style={{ color: '#ef4444' }}>{editingMeeting.time}</div>
                                                     {isPastDay(editingMeeting.date) && (
                                                         <div className="text-[11px] font-semibold mt-1.5" style={{ color: '#f59e0b' }}>That day has already passed.</div>
                                                     )}
@@ -1900,7 +1900,7 @@ const DCanary = () => {
                                                 onClick={() => handleSaveMeeting()}
                                                 disabled={!editDirty}
                                                 className="inline-flex items-center gap-2 px-5 h-10 rounded-xl text-white font-bold text-sm cursor-pointer transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
-                                                style={{ background: '#3b82f6' }}
+                                                style={{ background: '#ef4444' }}
                                             >
                                                 <Check size={17} strokeWidth={2.5} />
                                                 Save changes
@@ -2020,10 +2020,10 @@ const DCanary = () => {
                                 }}
                                 className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
                                 style={{
-                                    color: isDark ? '#60a5fa' : '#2563eb',
+                                    color: isDark ? '#f87171' : '#dc2626',
                                     fontFamily: "'Inter', sans-serif"
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(37, 99, 235, 0.05)'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(239,68,68, 0.1)' : 'rgba(37, 99, 235, 0.05)'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 <Reply size={16} /> Reply

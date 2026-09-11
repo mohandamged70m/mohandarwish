@@ -27,7 +27,7 @@ export const ACCOUNT_ICON: Record<AccountType, typeof Wallet> = {
 // A distinct accent per account type, so each is recognisable at a glance.
 export const ACCOUNT_COLOR: Record<AccountType, string> = {
     cash: '#10b981',    // emerald
-    bank: '#3b82f6',    // blue
+    bank: '#ef4444',    // blue
     card: '#8b5cf6',    // violet
     wallet: '#f59e0b',  // amber
     other: '#ec4899',   // pink
@@ -78,7 +78,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
     };
 
     const fieldBg = isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10';
-    const inputCls = `w-full px-3.5 py-2.5 rounded-xl border ${fieldBg} text-primary text-sm outline-none focus:border-blue-400/50 transition-colors`;
+    const inputCls = `w-full px-3.5 py-2.5 rounded-xl border ${fieldBg} text-primary text-sm outline-none focus:border-red-400/50 transition-colors`;
     const labelCls = 'text-xs font-semibold text-sec uppercase tracking-wider mb-3 block';
 
     return createPortal(
@@ -101,7 +101,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'rgba(15,15,20,0.85)' : 'rgba(255,255,255,0.85)' }}>
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500">
                             <Wallet size={18} />
                         </div>
                         <h3 className="text-lg font-bold text-primary font-inter m-0">{isEdit ? 'Edit' : 'New'} account</h3>
@@ -151,7 +151,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <div className={`flex rounded-xl border ${fieldBg} p-1 gap-1`}>
                                 {CURRENCIES.map(c => (
                                     <button key={c} type="button" onClick={() => setCurrency(c)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-blue-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-red-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
                                         {CURRENCY_SYMBOL[c]}
                                     </button>
                                 ))}
@@ -191,7 +191,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                     )}
                     <div className="flex-1" />
                     <button onClick={onClose} className="px-5 py-2.5 rounded-xl font-semibold text-sm text-sec hover:bg-black/5 dark:hover:bg-white/10 transition-all">Cancel</button>
-                    <button onClick={save} className="px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95 bg-blue-500 hover:bg-blue-600 shadow-blue-500/20">
+                    <button onClick={save} className="px-6 py-2.5 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95 bg-red-500 hover:bg-red-600 shadow-red-500/20">
                         {isEdit ? 'Save' : 'Add'}
                     </button>
                 </div>

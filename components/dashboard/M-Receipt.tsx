@@ -374,7 +374,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
     };
 
     const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-sec mb-1.5';
-    const inputCls = `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-white/10 focus:border-blue-400/60' : 'bg-black/[0.03] border-black/10 focus:border-blue-400/60'} text-primary`;
+    const inputCls = `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-white/10 focus:border-red-400/60' : 'bg-black/[0.03] border-black/10 focus:border-red-400/60'} text-primary`;
     const showPeriod = selectedProjects.some(p => p.monthly && perPayment[p.id]);
 
     return createPortal(
@@ -392,7 +392,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-500/10 text-blue-500"><Receipt size={18} /></div>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500"><Receipt size={18} /></div>
                         <h3 className="text-lg font-bold text-primary font-inter m-0">New receipt</h3>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
@@ -416,7 +416,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         type="button"
                                         onClick={() => setKind(k)}
                                         title={hint}
-                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-blue-500 text-white shadow-sm' : 'text-sec hover:text-primary'}`}
+                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-red-500 text-white shadow-sm' : 'text-sec hover:text-primary'}`}
                                     >
                                         {title}
                                     </button>
@@ -433,13 +433,13 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                     const onPlan = hasInstallments(p) || !!p.monthly;
                                     const single = !!perPayment[p.id];
                                     return (
-                                        <div key={p.id} className={`rounded-xl border transition-colors ${on ? 'border-blue-400/60 bg-blue-500/[0.06]' : 'border-transparent hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'}`}>
+                                        <div key={p.id} className={`rounded-xl border transition-colors ${on ? 'border-red-400/60 bg-red-500/[0.06]' : 'border-transparent hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'}`}>
                                             <button
                                                 type="button"
                                                 onClick={() => toggle(p.id)}
                                                 className="w-full flex items-center gap-3 p-2.5 text-left bg-transparent border-none cursor-pointer"
                                             >
-                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-blue-500 text-white' : 'border border-black/20 dark:border-white/20'}`}>
+                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-red-500 text-white' : 'border border-black/20 dark:border-white/20'}`}>
                                                     {on && <Check size={13} strokeWidth={3} />}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
@@ -460,7 +460,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                                 key={mode}
                                                                 type="button"
                                                                 onClick={() => setPerPayment(prev => ({ ...prev, [p.id]: mode === 'payment' }))}
-                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-blue-500 text-white' : 'text-sec hover:text-primary bg-black/[0.04] dark:bg-white/[0.06]'}`}
+                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-red-500 text-white' : 'text-sec hover:text-primary bg-black/[0.04] dark:bg-white/[0.06]'}`}
                                                             >
                                                                 {text}
                                                             </button>
@@ -546,7 +546,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                     <button
                                         type="button"
                                         onClick={() => setManualDate(m => !m)}
-                                        className="mt-1.5 text-[11px] font-bold text-blue-500 hover:underline bg-transparent border-none p-0 cursor-pointer"
+                                        className="mt-1.5 text-[11px] font-bold text-red-500 hover:underline bg-transparent border-none p-0 cursor-pointer"
                                     >
                                         {useManualDate ? 'Use the logged dates' : 'Set the date manually'}
                                     </button>
@@ -598,7 +598,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                     <button
                         onClick={send}
                         disabled={!canSend || !!sentTo}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-emerald-500 disabled:opacity-100' : 'bg-blue-500 hover:bg-blue-600 disabled:opacity-40'}`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-emerald-500 disabled:opacity-100' : 'bg-red-500 hover:bg-red-600 disabled:opacity-40'}`}
                     >
                         {sending ? <Loader2 size={16} className="animate-spin" /> : sentTo ? <Check size={16} strokeWidth={3} /> : <Send size={16} />}
                         {sending ? 'Sending…' : sentTo ? `Sent to ${sentTo}` : (kind === 'due' ? 'Send request' : 'Send receipt')}

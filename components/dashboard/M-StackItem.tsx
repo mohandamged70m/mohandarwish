@@ -81,7 +81,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                             <div className="flex flex-col sm:flex-row gap-4">
                                 {/* Preview */}
                                 <div className="flex-shrink-0 mx-auto sm:mx-0">
-                                    <div className={`w-24 h-24 rounded-xl border-2 border-dashed ${icon ? 'border-blue-500 bg-blue-500/5' : 'border-gray-500/20'} flex items-center justify-center p-2 relative group`}>
+                                    <div className={`w-24 h-24 rounded-xl border-2 border-dashed ${icon ? 'border-red-500 bg-red-500/5' : 'border-gray-500/20'} flex items-center justify-center p-2 relative group`}>
                                         {icon ? (
                                             <>
                                                 <img src={icon} alt="Icon" className="w-full h-full object-contain" />

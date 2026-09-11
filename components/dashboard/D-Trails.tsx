@@ -71,7 +71,7 @@ interface SourceRow {
 /** What each kind is called on screen, and the colour it wears. */
 const SOURCE_KINDS: Record<string, { label: string; color: string }> = {
     ai: { label: 'Assistant', color: '#a855f7' },
-    search: { label: 'Search', color: '#3b82f6' },
+    search: { label: 'Search', color: '#ef4444' },
     social: { label: 'Social', color: '#ec4899' },
     mail: { label: 'Email', color: '#f59e0b' },
     referral: { label: 'Link', color: '#10b981' },
@@ -114,7 +114,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                 </div>
                 <div className="flex flex-col gap-2.5">
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_#3B82F6]" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {(item.value || 0).toLocaleString()}
                             <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
@@ -391,7 +391,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                             key={f}
                             onClick={(e) => { e.stopPropagation(); setFilter(f); }}
                             className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${filter === f
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                                ? 'bg-red-600 text-white shadow-lg shadow-red-600/25'
                                 : `${isDark ? 'text-[#666] hover:text-[#999]' : 'text-slate-400 hover:text-slate-700'}`
                                 }`}
                         >
@@ -427,7 +427,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                                 key={i}
                                 onClick={() => changePage(i)}
                                 className={`rounded-full transition-all duration-300 cursor-pointer ${i === safePageIndex
-                                    ? 'w-4 h-1.5 bg-blue-500'
+                                    ? 'w-4 h-1.5 bg-red-500'
                                     : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`
                                     }`}
                             />
@@ -460,8 +460,8 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                                     </filter>
                                     <linearGradient id={`areaFill-${isDark ? 'd' : 'l'}`} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#3B82F6" stopOpacity={isDark ? 0.15 : 0.3} />
-                                        <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="#ef4444" stopOpacity={isDark ? 0.15 : 0.3} />
+                                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="projectFill" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor="#10B981" stopOpacity={isDark ? 0.1 : 0.2} />
@@ -485,7 +485,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                                 <YAxis hide domain={['auto', 'auto']} />
                                 <Tooltip
                                     content={<CustomTooltip isDark={isDark} />}
-                                    cursor={{ stroke: isDark ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                    cursor={{ stroke: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)', strokeWidth: 1, strokeDasharray: '4 4' }}
                                 />
                                 <Area
                                     type="monotone"
@@ -512,13 +512,13 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                                 <Area
                                     type="monotone"
                                     dataKey="value"
-                                    stroke="#3B82F6"
+                                    stroke="#ef4444"
                                     fillOpacity={1}
                                     fill={`url(#areaFill-${isDark ? 'd' : 'l'})`}
                                     strokeWidth={cw < 500 ? 2 : 3}
                                     filter="url(#lineGlow)"
-                                    dot={{ r: cw < 500 ? 2.5 : 3.5, fill: isDark ? '#0C0C0C' : '#fff', strokeWidth: cw < 500 ? 1.5 : 2, stroke: '#3B82F6', opacity: 1, strokeOpacity: 1 }}
-                                    activeDot={{ r: cw < 500 ? 4.5 : 6, fill: '#3B82F6', strokeWidth: 2, stroke: isDark ? '#0C0C0C' : '#fff' }}
+                                    dot={{ r: cw < 500 ? 2.5 : 3.5, fill: isDark ? '#0C0C0C' : '#fff', strokeWidth: cw < 500 ? 1.5 : 2, stroke: '#ef4444', opacity: 1, strokeOpacity: 1 }}
+                                    activeDot={{ r: cw < 500 ? 4.5 : 6, fill: '#ef4444', strokeWidth: 2, stroke: isDark ? '#0C0C0C' : '#fff' }}
                                     animationDuration={400}
                                     animationEasing="ease-out"
                                 />
@@ -638,7 +638,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                 </div>
                 {/* Weight legend */}
                 <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-xl border text-[10px] font-bold ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/40' : 'bg-slate-50 border-black/5 text-slate-400'}`}>
-                    <span className="flex items-center gap-1"><Eye size={12} className="text-blue-500" />×{RANK_WEIGHTS.view}</span>
+                    <span className="flex items-center gap-1"><Eye size={12} className="text-red-500" />×{RANK_WEIGHTS.view}</span>
                     <span className="flex items-center gap-1"><ExternalLink size={12} className="text-emerald-500" />×{RANK_WEIGHTS.live}</span>
                     <span className="flex items-center gap-1"><Github size={12} className="text-purple-500" />×{RANK_WEIGHTS.github}</span>
                     <span className="flex items-center gap-1"><Download size={12} className="text-amber-500" />×{RANK_WEIGHTS.download}</span>
@@ -676,7 +676,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                                     {p.icon ? (
                                         <FileImage src={p.icon} alt={p.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-blue-500 text-white flex items-center justify-center font-bold">{p.name.charAt(0).toUpperCase()}</div>
+                                        <div className="w-full h-full bg-red-500 text-white flex items-center justify-center font-bold">{p.name.charAt(0).toUpperCase()}</div>
                                     )}
                                 </div>
 
@@ -693,12 +693,12 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                                     <div className={`h-1.5 rounded-full mt-3 overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.05]'}`}>
                                         <div
                                             className="h-full rounded-full transition-all duration-500"
-                                            style={{ width: `${barPct}%`, backgroundColor: accent || '#3B82F6' }}
+                                            style={{ width: `${barPct}%`, backgroundColor: accent || '#ef4444' }}
                                         />
                                     </div>
                                     {/* Breakdown */}
                                     <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 mt-3">
-                                        {stat(<Eye size={12} />, p.views, '#3B82F6', 'Views')}
+                                        {stat(<Eye size={12} />, p.views, '#ef4444', 'Views')}
                                         {stat(<ExternalLink size={12} />, p.liveViews, '#10B981', 'Demo opens')}
                                         {stat(<Github size={12} />, p.githubViews, '#8B5CF6', 'Repo opens')}
                                         {stat(<Download size={12} />, p.downloadViews, '#F59E0B', 'Downloads')}
@@ -722,7 +722,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
 
 // ── the tab ──────────────────────────────────────────────────────────────
 const VIEWS: Array<{ id: TrailsView; label: string; icon: typeof Footprints; tint: string }> = [
-    { id: 'stories', label: 'Stories', icon: Footprints, tint: '59, 130, 246' },
+    { id: 'stories', label: 'Stories', icon: Footprints, tint: '239, 68, 68' },
     { id: 'overview', label: 'Overview', icon: Activity, tint: '16, 185, 129' },
     { id: 'links', label: 'Links', icon: Link2, tint: '168, 85, 247' },
 ];
@@ -1120,7 +1120,7 @@ const DTrails = () => {
 
     // ── render ───────────────────────────────────────────────────────────
     const counters = [
-        { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#3b82f6' },
+        { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#ef4444' },
         { label: 'People', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
         { label: 'Link opens', value: totals?.LinkOpens ?? 0, icon: <Link2 size={18} />, tint: '#a855f7' },
         { label: 'Reached contact', value: totals?.Contacts ?? 0, icon: <Mail size={18} />, tint: '#ec4899' },
@@ -1215,9 +1215,9 @@ const DTrails = () => {
                                                     className="px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors"
                                                     style={{
                                                         background: storyFilter === f.id
-                                                            ? (isDark ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.1)')
+                                                            ? (isDark ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.1)')
                                                             : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
-                                                        color: storyFilter === f.id ? '#3b82f6' : 'var(--text-muted)',
+                                                        color: storyFilter === f.id ? '#ef4444' : 'var(--text-muted)',
                                                     }}
                                                 >
                                                     {f.label}
@@ -1233,7 +1233,7 @@ const DTrails = () => {
                                                 onChange={e => setSearch(e.target.value)}
                                                 placeholder="Country, browser, link…"
                                                 aria-label="Search visits"
-                                                className="w-full h-9 rounded-xl border pl-9 pr-3 text-xs outline-none transition-colors focus:border-blue-500"
+                                                className="w-full h-9 rounded-xl border pl-9 pr-3 text-xs outline-none transition-colors focus:border-red-500"
                                                 style={{
                                                     backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#fff',
                                                     borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
@@ -1349,7 +1349,7 @@ const DTrails = () => {
                                                                     <span className="h-1.5 flex-1 rounded-full overflow-hidden"
                                                                         style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }}>
                                                                         <span className="block h-full rounded-full"
-                                                                            style={{ width: `${Math.min(100, deepest)}%`, background: '#3b82f6' }} />
+                                                                            style={{ width: `${Math.min(100, deepest)}%`, background: '#ef4444' }} />
                                                                     </span>
                                                                     <span className="text-[10px] font-bold tabular-nums w-7 text-right" style={{ color: 'var(--text-muted)' }}>
                                                                         {deepest}%
@@ -1551,7 +1551,7 @@ const DTrails = () => {
                                                             <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{link.For}</p>
                                                         </div>
                                                         <button onClick={e => openMenu(e, link.id)} aria-label={`Options for ${link.Name}`}
-                                                            className="p-1 shrink-0 cursor-pointer transition-colors hover:text-blue-500" style={{ color: 'var(--text-muted)' }}>
+                                                            className="p-1 shrink-0 cursor-pointer transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
                                                             <MoreVertical size={18} />
                                                         </button>
                                                     </div>
@@ -1560,7 +1560,7 @@ const DTrails = () => {
                                                         style={{ background: isDark ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.03)', borderColor: 'var(--card-border)' }}>
                                                         <code className="text-[10px] font-mono flex-1 truncate" style={{ color: 'var(--text-muted)' }}>{link.url}</code>
                                                         <button onClick={() => copyToClipboard(link.url, link.id)} aria-label="Copy link"
-                                                            className="cursor-pointer transition-colors hover:text-blue-500" style={{ color: 'var(--text-muted)' }}>
+                                                            className="cursor-pointer transition-colors hover:text-red-500" style={{ color: 'var(--text-muted)' }}>
                                                             {copied === link.id ? <Check size={15} className="text-green-500" /> : <Copy size={15} />}
                                                         </button>
                                                     </div>
@@ -1578,8 +1578,8 @@ const DTrails = () => {
                                                             onClick={() => patchLink(link.id, { Notify: link.Notify === false }, link.Notify === false ? 'You will be emailed on every open.' : 'Notifications off for this link.')}
                                                             className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
                                                             style={{
-                                                                background: link.Notify !== false ? 'rgba(59,130,246,0.14)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
-                                                                color: link.Notify !== false ? '#3b82f6' : 'var(--text-muted)',
+                                                                background: link.Notify !== false ? 'rgba(239,68,68,0.14)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
+                                                                color: link.Notify !== false ? '#ef4444' : 'var(--text-muted)',
                                                             }}
                                                         >
                                                             {link.Notify !== false ? <BellRing size={13} /> : <BellOff size={13} />}

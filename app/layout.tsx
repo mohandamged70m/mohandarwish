@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { Nav } from "@/components/layouts/nav";
@@ -29,11 +30,17 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
+// Self-hosted (was next/font/google): the build environment can't always reach
+// fonts.googleapis.com, which made Next fall back silently. Same files, same
+// --font-plex-mono variable, zero network at build time.
+const plexMono = localFont({
   variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
   display: "swap",
+  src: [
+    { path: "../public/fonts/ibm-plex-mono-400.woff2", weight: "400" },
+    { path: "../public/fonts/ibm-plex-mono-500.woff2", weight: "500" },
+    { path: "../public/fonts/ibm-plex-mono-600.woff2", weight: "600" },
+  ],
 });
 
 export const metadata: Metadata = {

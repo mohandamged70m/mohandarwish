@@ -33,7 +33,7 @@ export const isLive = (s: SessionDoc): boolean =>
     !s.Ended && Date.now() - (s.LastSeenAt || 0) < 60_000;
 
 const EVENT_COLOR: Record<string, string> = {
-    section: '#3b82f6',
+    section: '#ef4444',
     project: '#10b981',
     project_end: '#10b98166',
     out: '#14b8a6',
@@ -213,7 +213,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                 }}>
                     {[
                         { icon: <Zap size={14} />, label: 'Active', value: formatMs(story.ActiveMs || 0), tint: '#22c55e' },
-                        { icon: <Clock size={14} />, label: 'Tab open', value: formatMs(story.OpenMs || 0), tint: '#3b82f6' },
+                        { icon: <Clock size={14} />, label: 'Tab open', value: formatMs(story.OpenMs || 0), tint: '#ef4444' },
                         { icon: <ArrowDownWideNarrow size={14} />, label: 'Read down', value: `${deepest}%`, tint: '#8b5cf6' },
                         { icon: <MousePointer2 size={14} />, label: 'Events', value: String(events.length), tint: '#f59e0b' },
                     ].map(stat => (
@@ -278,7 +278,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                 <div className="flex flex-col gap-3">
                                     <span className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>Where the time went</span>
                                     {sections.map(([name, ms]) => (
-                                        <Bar key={name} label={name} value={ms} max={sectionMax} color="#3b82f6" suffix={formatMs(ms)} isDark={isDark} />
+                                        <Bar key={name} label={name} value={ms} max={sectionMax} color="#ef4444" suffix={formatMs(ms)} isDark={isDark} />
                                     ))}
                                 </div>
                             )}
@@ -347,7 +347,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                 <div className="flex flex-wrap gap-1.5 pt-3">
                                     {utm.map(([k, v]) => (
                                         <span key={k} className="px-2 py-0.5 rounded-md text-[10px] font-bold"
-                                            style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                                            style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
                                             {k}: {v}
                                         </span>
                                     ))}
