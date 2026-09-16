@@ -6,6 +6,10 @@ import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { ScrollReveal, SectionSlide, SectionTransition } from "@/components/transitions";
 import type { SectionDef } from "@/components/transitions";
 
+import { getEducationServer, getExperienceServer, getSkillsServer, getStackServer } from "@/lib/profile-server";
+
+export const dynamic = "force-dynamic";
+
 // Paged sections target the full-page WRAPS (exact viewport boundaries),
 // not the inner content blocks — so curtain reveals land pixel-flush with
 // no seam of the previous section. Focus still lands on inner headings.
@@ -16,7 +20,14 @@ const SECTIONS: SectionDef[] = [
   { id: "contact-wrap", label: "Contact" },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const [experience, education, skills, stack] = await Promise.all([
+    getExperienceServer(),
+    getEducationServer(),
+    getSkillsServer(),
+    getStackServer(),
+  ]);
+
   return (
     <SectionTransition sections={SECTIONS}>
       <div className="w-full max-w-full min-w-0 overflow-x-hidden">
@@ -35,7 +46,12 @@ export default function Home() {
         <SectionSlide section="about">
           <div id="about-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <ScrollReveal delay={0.05}>
-              <AboutSection />
+              <AboutSection
+                experience={experience.map((e) => ({ company: e.company, role: e.role, period: e.period, slug: e.slug, brand: e.brand }))}
+                education={education.map((e) => ({ school: e.school, degree: e.degree, period: e.period, slug: e.slug }))}
+                skills={skills.map((s) => s.label)}
+                stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
+              />
             </ScrollReveal>
           </div>
         </SectionSlide>

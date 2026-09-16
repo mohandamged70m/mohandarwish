@@ -5,11 +5,13 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState, type ReactNode } from "react";
 import { ME } from "@/Data/me";
-import { Education } from "@/components/about/education";
-import { Experience } from "@/components/about/experience";
+import { Education, type EducationEntry } from "@/components/about/education";
+import { Experience, type ExperienceEntry } from "@/components/about/experience";
 import { Skills } from "@/components/about/skills";
+import { useProfile } from "@/hooks/useProfile";
+import type { StackChip } from "@/components/about/stack";
 
-const StackLazy = dynamic(
+const StackLazy = dynamic<{ chips?: StackChip[] }>(
   () => import("@/components/about/stack").then((m) => m.Stack),
   {
     ssr: false,
@@ -26,10 +28,26 @@ const StackLazy = dynamic(
 const TABS = ["Experience", "Education", "Skills", "Stack"] as const;
 type Tab = (typeof TABS)[number];
 
-export function AboutSection(): ReactNode {
+export type AboutSectionProps = {
+  experience?: ExperienceEntry[];
+  education?: EducationEntry[];
+  skills?: string[];
+  stack?: StackChip[];
+};
+
+export function AboutSection(initial: AboutSectionProps = {}): ReactNode {
   const [active, setActive] = useState<Tab>("Experience");
   const reduceMotion = useReducedMotion() ?? false;
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // Live data: prefer server-provided props (homepage fetch), fall back to
+  // client fetch so dashboard edits appear without a rebuild. Children fall
+  // back to their hardcoded defaults when the lists are empty/undefined.
+  const live = useProfile();
+  const experience = initial.experience ?? live.experience;
+  const education = initial.education ?? live.education;
+  const skills = initial.skills ?? live.skills;
+  const stack = initial.stack ?? live.stack;
 
   // Roving tabindex + arrow-key activation (WAI-APG tabs): every action
   // stays keyboard-reachable, tab order matches visual order.
@@ -197,10 +215,10 @@ export function AboutSection(): ReactNode {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  {active === "Experience" && <Experience />}
-                  {active === "Education" && <Education />}
-                  {active === "Skills" && <Skills />}
-                  {active === "Stack" && <StackLazy />}
+                  {active === "Experience" && <Experience entries={experience} />}
+                  {active === "Education" && <Education entries={education} />}
+                  {active === "Skills" && <Skills skills={skills} />}
+                  {active === "Stack" && <StackLazy chips={stack} />}
                 </motion.div>
               </AnimatePresence>
             </div>
