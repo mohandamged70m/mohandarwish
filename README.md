@@ -3,7 +3,7 @@
 > Personal portfolio of **Mohand Darwish**, Software Engineer (Full-Stack, Frontend-leaning) based in Alexandria, Egypt.
 > Clean architecture, performant web apps, and systems that scale — built with **Next.js + TypeScript + Node**.
 
-**Live:** https://mohand-darwish.dev
+**Live:** https://mohanddarwish.vercel.app/
 
 ---
 
