@@ -15,7 +15,7 @@ function requestToken(req: NextRequest): string {
   return req.nextUrl.searchParams.get("admin")?.trim() ?? "";
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (!req.nextUrl.pathname.startsWith("/api/dashboard/")) return NextResponse.next();
   const expected = process.env.ADMIN_TOKEN;
   if (expected && requestToken(req) === expected) return NextResponse.next();
