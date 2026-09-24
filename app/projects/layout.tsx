@@ -1,9 +1,13 @@
 import { ModalViewport } from "@/components/layouts/modal-viewport";
+import type { ReactNode } from "react";
 
 export default function ProjectsLayout({
   children,
   modal,
-}: LayoutProps<"/projects">) {
+}: {
+  children: ReactNode;
+  modal: ReactNode;
+}) {
   return (
     <>
       {children}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
@@ -48,7 +49,7 @@ export const metadata: Metadata = {
   description: "Mohand Darwish — Software Engineer (Full-Stack, Frontend-leaning) from Alexandria. Next.js, TypeScript, Node — clean architecture, perf, a11y.",
 };
 
-export default function RootLayout({ children, modal }: LayoutProps<"/">) {
+export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <html
       lang="en"
