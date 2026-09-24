@@ -3,6 +3,10 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { DEFAULT_AVAILABILITY, parseAvailabilityConfig } from "@/lib/availability";
 import { isAdminRequest } from "@/lib/admin";
 
+// Live Supabase-backed config — never execute at build time (CI/preview
+// environments may have no env or network; page-data collection would fail).
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const supabase = supabaseServer();

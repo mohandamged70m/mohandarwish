@@ -1,0 +1,26 @@
+# Fast signal on every push/PR without secrets or a production build.
+# Production deploys happen on Vercel (auto-deploy from main with project
+# env vars) — NOT via GitHub Pages, which can't serve API routes, the
+# proxy, or any Supabase-backed feature this app needs.
+name: Verify
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
