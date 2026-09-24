@@ -33,12 +33,27 @@ export function useReducedMotion(): boolean {
 export function isMotionForced(): boolean {
   try {
     if (typeof window === "undefined") return false;
-    const q = new URLSearchParams(window.location.search);
-    if (q.get("motion") === "full" || q.get("motion") === "1") {
+    const url = new URL(window.location.href);
+    const q = url.searchParams.get("motion");
+    if (q === "full" || q === "1") {
       try {
         window.localStorage.setItem("md-motion", "full");
       } catch {
         // storage blocked — query param still applies to this load
+      }
+      // Strip the flag so the address bar (and any copied/shared URL)
+      // stays canonical — the localStorage value keeps it persisted.
+      // replaceState never triggers a navigation.
+      try {
+        url.searchParams.delete("motion");
+        const rest = url.searchParams.toString();
+        window.history.replaceState(
+          null,
+          "",
+          url.pathname + (rest ? `?${rest}` : "") + url.hash
+        );
+      } catch {
+        // non-fatal: flag just stays visible in the URL
       }
       return true;
     }
