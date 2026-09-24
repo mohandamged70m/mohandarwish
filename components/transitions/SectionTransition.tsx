@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { motion, useAnimationControls, useReducedMotion } from 'motion/react';
+import { motion, useAnimationControls, useReducedMotionConfig as useReducedMotion } from 'motion/react';
 import {
   createContext,
   useCallback,
@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { isMotionForced } from '@/lib/motion';
 
 export type SectionDef = { id: string; label: string };
 
@@ -52,13 +53,19 @@ export function requestSectionNavigate(id: string, moveFocus = false): void {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const COVER_MS = 240;
-const HOLD_MS = 460;
-// ui-ux exit-faster-than-enter: lift resolves snappier than the cover.
-const EXIT_MS = 180;
-const COOLDOWN_MS = 1150;
+// Hold long enough for the staggered label (delay 0.08 + i*0.035, 0.32s
+// duration — "Projects" finishes ~0.65s) to read before the lift.
+const HOLD_MS = 680;
+// Must cover the wine panel's 0.28s exit duration or the lift gets clipped.
+const EXIT_MS = 340;
+const COOLDOWN_MS = 1350;
 const WHEEL_THRESHOLD = 60;
 
-type LenisHandle = { stop?: () => void; start?: () => void };
+type LenisHandle = {
+  stop?: () => void;
+  start?: () => void;
+  scrollTo?: (target: HTMLElement | number, opts?: Record<string, unknown>) => void;
+};
 
 function getLenis(): LenisHandle | undefined {
   try {
@@ -70,9 +77,22 @@ function getLenis(): LenisHandle | undefined {
 
 // Desktop pager is active on md+ with a fine pointer and no reduced motion.
 // Mobile / touch / reduced-motion keep the free-scroll page (no curtain).
+// Desktop pager is active on md+ with a fine pointer and no reduced motion.
+// Mobile / touch / reduced-motion keep the free-scroll page (no curtain).
+// Escape hatch (?motion=full, see lib/motion) skips the reduced-motion gate
+// so the curtain can be previewed on a reduce-motion machine.
+function motionForced(): boolean {
+  try {
+    return isMotionForced();
+  } catch {
+    return false;
+  }
+}
+
 function pagerEnabled(): boolean {
   if (typeof window === 'undefined') return false;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  const forced = motionForced();
+  if (!forced && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
   if (!window.matchMedia('(min-width: 768px)').matches) return false;
   if (!window.matchMedia('(pointer: fine)').matches) return false;
   return true;
@@ -81,6 +101,18 @@ function pagerEnabled(): boolean {
 function scrollToSectionNow(id: string): void {
   const el = document.getElementById(id);
   if (!el) return;
+  // Lenis owns the scroll position when it runs — a native window.scrollTo
+  // desyncs its virtual scroll and the page snaps back. Go through Lenis
+  // (instant) when present, native jump otherwise.
+  try {
+    const lenis = getLenis();
+    if (lenis?.scrollTo) {
+      lenis.scrollTo(el, { immediate: true, force: true });
+      return;
+    }
+  } catch {
+    // non-fatal: fall through to native scroll
+  }
   // Flush top (ignores scroll-mt): each pager section fills the viewport
   // from its top edge like a full page.
   const top = el.getBoundingClientRect().top + window.scrollY;
@@ -382,12 +414,12 @@ function SectionCurtain({
 
   return createPortal(
     <div aria-hidden className="fixed inset-0 z-[200]">
-      {/* trailing dark panel for depth */}
+      {/* trailing dark panel for depth (lags the wine panel slightly) */}
       <motion.div
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
-        transition={{ duration: exiting ? 0.18 : 0.2, ease: EASE }}
-        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-accent"
+        transition={{ duration: exiting ? 0.24 : 0.2, ease: EASE, delay: 0.06 }}
+        className="absolute inset-0 overflow-hidden bg-bg-surface"
       />
       {/* signature wine curtain */}
       <motion.div
@@ -434,13 +466,17 @@ export function SectionSlide({
   const { activeId, cycle, direction } = useSectionTransition();
   const reduceMotion = useReducedMotion();
   const controls = useAnimationControls();
-  const seenCycle = useRef(cycle);
+  // Keyed on cycle+section: the cycle bumps at cover-start while activeId
+  // still points at the old section, so marking the bare cycle seen would
+  // swallow the entrance that should play when activeId lands here.
+  const seenKey = useRef('');
 
   useEffect(() => {
     if (reduceMotion) return;
-    if (seenCycle.current === cycle) return;
-    seenCycle.current = cycle;
+    const key = `${cycle}:${activeId}`;
+    if (seenKey.current === key) return;
     if (activeId !== section) return;
+    seenKey.current = key;
     controls.set({ y: direction * 44, filter: 'blur(6px)' });
     controls
       .start({ y: 0, filter: 'blur(0px)', transition: { duration: 0.55, ease: EASE } })

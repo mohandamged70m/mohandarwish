@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import "lenis/dist/lenis.css";
 import { features } from "@/lib/config";
+import { isMotionForced } from "@/lib/motion";
 
 const LENIS_OPTIONS = {
   duration: 1.1,
@@ -35,7 +36,8 @@ export function SmoothScroll({
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    if (prefersReducedMotion) return;
+    // ?motion=full previews the full experience on a reduce-motion machine.
+    if (prefersReducedMotion && !isMotionForced()) return;
 
     // Dynamically import Lenis + GSAP so they never land in the initial
     // bundle (per docs/01-app/02-guides/lazy-loading.md). Same LENIS_OPTIONS,
@@ -71,6 +73,11 @@ export function SmoothScroll({
         const target = e.target as HTMLElement;
         const anchor = target.closest('a[href^="#"]');
         if (!anchor) return;
+
+        // The pager owns section jumps (curtain + Lenis-stop + instant jump):
+        // a competing Lenis glide to the same anchor visibly fights it.
+        if (document.documentElement.dataset.sectionTransition === '1') return;
+        if (anchor.closest('nav')) return;
 
         const href = anchor.getAttribute("href");
         if (!href || href === "#") return;

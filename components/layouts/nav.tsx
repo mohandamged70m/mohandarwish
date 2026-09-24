@@ -226,19 +226,27 @@ export function Nav(): ReactNode {
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
-  // scroll-spy on the one-pager — pill moves as hero/projects/about pass by
+  // scroll-spy on the one-pager — pill moves as hero/projects/about pass by.
+  // The pager sections are the *-wrap shells; fall back to the inner content
+  // ids if a shell is missing so the pill never goes blind.
   useEffect(() => {
     if (pathname !== "/") return;
-    const ids = ["hero", "projects", "about"];
-    const els = ids
-      .map((id) => document.getElementById(id))
+    const spy: Array<{ observe: string; hash: string }> = [
+      { observe: "hero", hash: "#hero" },
+      { observe: "projects-wrap", hash: "#projects" },
+      { observe: "about-wrap", hash: "#about" },
+    ];
+    const els = spy
+      .map(({ observe }) => document.getElementById(observe) ?? document.getElementById(observe.replace("-wrap", "")))
       .filter((el): el is HTMLElement => el !== null);
     if (els.length === 0) return;
+    const hashFor = (id: string): string =>
+      spy.find((s) => s.observe === id)?.hash ?? `#${id.replace("-wrap", "")}`;
     const obs = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting && entry.target.id) {
-            setCurrentHash(`#${entry.target.id}`);
+            setCurrentHash(hashFor(entry.target.id));
           }
         }
       },

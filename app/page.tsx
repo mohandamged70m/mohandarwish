@@ -36,14 +36,14 @@ export default async function Home() {
             <HeroSection />
           </div>
         </SectionSlide>
-        <SectionSlide section="projects">
+        <SectionSlide section="projects-wrap">
           <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <ScrollReveal>
               <ProjectsSection />
             </ScrollReveal>
           </div>
         </SectionSlide>
-        <SectionSlide section="about">
+        <SectionSlide section="about-wrap">
           <div id="about-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <ScrollReveal delay={0.05}>
               <AboutSection
@@ -55,7 +55,7 @@ export default async function Home() {
             </ScrollReveal>
           </div>
         </SectionSlide>
-        <SectionSlide section="contact">
+        <SectionSlide section="contact-wrap">
           <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <ScrollReveal delay={0.05}>
               <ContactCard />

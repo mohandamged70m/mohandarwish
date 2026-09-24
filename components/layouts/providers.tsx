@@ -1,11 +1,23 @@
 "use client";
 
-import { ReducedMotionProvider } from "@/lib/motion";
+import { useEffect, useState, type ReactNode } from "react";
+import { MotionConfig } from "motion/react";
+import { ReducedMotionProvider, isMotionForced } from "@/lib/motion";
 import { SmoothScroll } from "@/components/layouts/smooth-scroll";
 import { ThemeProvider } from "next-themes";
-import type { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }): ReactNode {
+  // ?motion=full forces motion components on for previewing on a
+  // reduce-motion machine (motion's useReducedMotion then returns false).
+  const [forced, setForced] = useState(false);
+  useEffect(() => {
+    try {
+      setForced(isMotionForced());
+    } catch {
+      // non-fatal: fall back to respecting the OS setting
+    }
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -13,9 +25,11 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
       enableSystem
       disableTransitionOnChange
     >
-      <ReducedMotionProvider>
-        <SmoothScroll>{children}</SmoothScroll>
-      </ReducedMotionProvider>
+      <MotionConfig reducedMotion={forced ? "never" : "user"}>
+        <ReducedMotionProvider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </ReducedMotionProvider>
+      </MotionConfig>
     </ThemeProvider>
   );
 }
