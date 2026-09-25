@@ -38,46 +38,47 @@ export function useDeveloperRepos() {
         }
         if (!cancelled) setLoading(true);
         try {
-          const results = await Promise.all(
-            names.map(async (name) => {
-              try {
-                const res = await fetch(
-                  `https://api.github.com/repos/${GITHUB_USERNAME}/${name}`
-                );
-                if (!res.ok) {
-                  return {
-                    name,
-                    description: null,
-                    language: null,
-                    stars: 0,
-                    forks: 0,
-                    updatedAt: "",
-                    url: `https://github.com/${GITHUB_USERNAME}/${name}`,
-                  } satisfies DeveloperRepo;
-                }
-                const j = await res.json();
-                return {
-                  name: j.name ?? name,
-                  description: j.description ?? null,
-                  language: j.language ?? null,
-                  stars: j.stargazers_count ?? 0,
-                  forks: j.forks_count ?? 0,
-                  updatedAt: j.updated_at ?? "",
-                  url: j.html_url ?? `https://github.com/${GITHUB_USERNAME}/${name}`,
-                } satisfies DeveloperRepo;
-              } catch {
-                return {
-                  name,
-                  description: null,
-                  language: null,
-                  stars: 0,
-                  forks: 0,
-                  updatedAt: "",
-                  url: `https://github.com/${GITHUB_USERNAME}/${name}`,
-                } satisfies DeveloperRepo;
-              }
-            })
+          // Same-origin proxy: server-side GitHub fetch with shared cache,
+          // so the dashboard never hits api.github.com rate limits directly.
+          const res = await fetch(
+            `/api/github/repos?names=${names.map(encodeURIComponent).join(",")}`
           );
+          if (!res.ok) throw new Error(`GitHub proxy error (${res.status})`);
+          const items = (await res.json()) as Array<{
+            name: string;
+            description: string | null;
+            language: string | null;
+            stargazers_count: number;
+            forks_count: number;
+            updated_at?: string;
+            html_url: string;
+          }>;
+          const byName = new Map(
+            items.map((j) => [j.name.toLowerCase(), j])
+          );
+          const results: DeveloperRepo[] = names.map((name) => {
+            const j = byName.get(name.toLowerCase());
+            if (!j) {
+              return {
+                name,
+                description: null,
+                language: null,
+                stars: 0,
+                forks: 0,
+                updatedAt: "",
+                url: `https://github.com/${GITHUB_USERNAME}/${name}`,
+              } satisfies DeveloperRepo;
+            }
+            return {
+              name: j.name ?? name,
+              description: j.description ?? null,
+              language: j.language ?? null,
+              stars: j.stargazers_count ?? 0,
+              forks: j.forks_count ?? 0,
+              updatedAt: j.updated_at ?? "",
+              url: j.html_url ?? `https://github.com/${GITHUB_USERNAME}/${name}`,
+            } satisfies DeveloperRepo;
+          });
           if (cancelled) return;
           // keep dashboard order
           const order = new Map(names.map((n, i) => [n.toLowerCase(), i]));
@@ -87,6 +88,25 @@ export function useDeveloperRepos() {
               (order.get(b.name.toLowerCase()) ?? 99)
           );
           setRepos(results);
+        } catch {
+          // Proxy failed (rate-limit/offline): show placeholder entries so
+          // the dashboard still lists the chosen names instead of empty.
+          if (!cancelled) {
+            setRepos(
+              names.map(
+                (name) =>
+                  ({
+                    name,
+                    description: null,
+                    language: null,
+                    stars: 0,
+                    forks: 0,
+                    updatedAt: "",
+                    url: `https://github.com/${GITHUB_USERNAME}/${name}`,
+                  }) satisfies DeveloperRepo,
+              ),
+            );
+          }
         } finally {
           if (!cancelled) setLoading(false);
         }

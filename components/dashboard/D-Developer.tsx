@@ -47,7 +47,8 @@ const DDeveloper = () => {
         return () => unsub();
     }, []);
 
-    // Fetch all repos from GitHub
+    // Fetch all repos via the same-origin proxy (server-side GitHub fetch
+    // with shared caching + optional token — avoids 403 rate limits).
     useEffect(() => {
         const controller = new AbortController();
         let ignore = false;
@@ -57,7 +58,7 @@ const DDeveloper = () => {
             const tid = setTimeout(() => controller.abort(), 10_000);
             try {
                 const res = await fetch(
-                    `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`,
+                    `/api/github/repos?all=1`,
                     { signal: controller.signal },
                 );
                 clearTimeout(tid);
@@ -72,6 +73,8 @@ const DDeveloper = () => {
                     setAllRepos(data);
                 } else if (res.status === 404) {
                     setReposError(`GitHub user "@${GITHUB_USERNAME}" not found (404)`);
+                } else if (res.status === 429) {
+                    setReposError('GitHub API rate limit exceeded. Try again shortly.');
                 } else {
                     setReposError(`GitHub API error (${res.status})`);
                 }

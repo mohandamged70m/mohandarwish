@@ -6,8 +6,6 @@ import { Star, GitFork, ArrowUpRight, GitBranch } from 'lucide-react';
 import { doc, onSnapshot } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
 
-const GITHUB_USERNAME = 'mohandamged70m';
-
 // Rank watermark numbers only - kept monochrome (no gold/silver/bronze) so the
 // section stays neutral.
 const RANKS = ['01', '02', '03'];
@@ -212,34 +210,35 @@ const FeaturedRepos = () => {
         const CACHE_KEY = 'gh_featured_repos';
         const CACHE_TTL = 30 * 60 * 1000;
         let isMounted = true;
+        // Set once the first snapshot (or error) arrives — drives the
+        // hang safety net below.
+        let snapshotSeen = false;
         // Track latest fetch generation so stale Firestore updates don't clobber fresh data
         let fetchGen = 0;
         // Top-level abort controller - fires on unmount to cancel all in-flight requests
         const masterController = new AbortController();
 
-        // Per-request fetch with isolated 10s timeout (single slow repo won't kill siblings)
-        const fetchOne = async (url: string): Promise<RepoData | null> => {
+        const fetchReposByNames = async (names: string[]) => {
+            // Single batched request — the proxy preserves order server-side.
             const controller = new AbortController();
             const tid = setTimeout(() => controller.abort(), 10_000);
-            // Also bail if the master (unmount) signal fires
             const onMasterAbort = () => controller.abort();
             masterController.signal.addEventListener('abort', onMasterAbort);
             try {
-                const res = await fetch(url, { signal: controller.signal });
-                if (res.ok) return (await res.json()) as RepoData;
-            } catch { /* per-request fail */ }
+                const res = await fetch(
+                    `/api/github/repos?names=${names.map(encodeURIComponent).join(',')}`,
+                    { signal: controller.signal },
+                );
+                if (res.ok) {
+                    const data: RepoData[] = await res.json();
+                    if (Array.isArray(data)) return data;
+                }
+            } catch { /* network fail */ }
             finally {
                 clearTimeout(tid);
                 masterController.signal.removeEventListener('abort', onMasterAbort);
             }
-            return null;
-        };
-
-        const fetchReposByNames = async (names: string[]) => {
-            const results = await Promise.all(
-                names.map(name => fetchOne(`https://api.github.com/repos/${GITHUB_USERNAME}/${name}`)),
-            );
-            return results;
+            return names.map(() => null as RepoData | null);
         };
 
         const fetchTop3 = async (): Promise<RepoData[]> => {
@@ -249,17 +248,12 @@ const FeaturedRepos = () => {
             masterController.signal.addEventListener('abort', onMasterAbort);
             try {
                 const res = await fetch(
-                    `https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100`,
+                    `/api/github/repos?top=3`,
                     { signal: controller.signal },
                 );
                 if (res.ok) {
                     const data: RepoData[] = await res.json();
-                    return data
-                        // Exclude the profile repo, forks, and archived repos so the
-                        // featured set matches GitHubStats (which also excludes forks).
-                        .filter(r => r.name !== GITHUB_USERNAME && !r.fork && !r.archived)
-                        .sort((a, b) => b.stargazers_count - a.stargazers_count)
-                        .slice(0, 3);
+                    return Array.isArray(data) ? data : [];
                 }
             } catch { /* timeout / network */ }
             finally {
@@ -304,12 +298,11 @@ const FeaturedRepos = () => {
 
             let data: RepoData[];
             if (names.length > 0) {
-                // Preserve Firestore order; nulls (failed/missing repos) keep their slot intentionally dropped
+                // Preserve Firestore order; match case-insensitively since
+                // GitHub repo names are case-preserving but lookups may differ.
+                const byName = new Map(fetched.filter((r): r is RepoData => r !== null).map(r => [r.name.toLowerCase(), r]));
                 data = names
-                    .map((n, i) => {
-                        const r = fetched[i];
-                        return r && r.name === n ? r : null;
-                    })
+                    .map((n) => byName.get(n.toLowerCase()) ?? null)
                     .filter((r): r is RepoData => r !== null);
             } else {
                 data = fetched.filter((r): r is RepoData => r !== null);
@@ -322,14 +315,31 @@ const FeaturedRepos = () => {
         const unsubFirestore = onSnapshot(
             doc(db, 'Settings', 'Developer'),
             (snap) => {
+                snapshotSeen = true;
                 const names: string[] = snap.exists() ? (snap.data().featuredRepos ?? []) : [];
                 load(names);
             },
-            (err) => { console.warn('[FeaturedRepos] Firestore listener error:', err); },
+            (err) => {
+                console.warn('[FeaturedRepos] Settings listener error:', err);
+                // Never hang on skeletons: fall back to top-starred repos.
+                snapshotSeen = true;
+                load([]);
+            },
         );
+
+        // Safety net: if the settings read hangs entirely (neither snapshot
+        // nor error arrives), fall back to top-starred instead of spinning
+        // skeletons forever. A later snapshot still wins via fetchGen.
+        const fallbackTid = setTimeout(() => {
+            if (isMounted && !snapshotSeen) {
+                snapshotSeen = true;
+                load([]);
+            }
+        }, 12_000);
 
         return () => {
             isMounted = false;
+            clearTimeout(fallbackTid);
             masterController.abort();
             unsubFirestore();
         };
