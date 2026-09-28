@@ -4,15 +4,15 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState, type ReactNode } from "react";
-import { ME } from "@/Data/me";
-import { Education, type EducationEntry } from "@/components/about/education";
-import { Experience, type ExperienceEntry } from "@/components/about/experience";
-import { Skills } from "@/components/about/skills";
+import { ME } from "@/data/me";
+import { Education, type EducationEntry } from "@/components/sections/about/Education";
+import { Experience, type ExperienceEntry } from "@/components/sections/about/Experience";
+import { Skills } from "@/components/sections/about/Skills";
 import { useProfile } from "@/hooks/useProfile";
-import type { StackChip } from "@/components/about/stack";
+import type { StackChip } from "@/components/sections/about/Stack";
 
 const StackLazy = dynamic<{ chips?: StackChip[] }>(
-  () => import("@/components/about/stack").then((m) => m.Stack),
+  () => import("@/components/sections/about/Stack").then((m) => m.Stack),
   {
     ssr: false,
     loading: () => (

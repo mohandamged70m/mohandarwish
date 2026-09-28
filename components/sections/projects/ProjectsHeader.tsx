@@ -1,4 +1,4 @@
-import type { FilterCategory } from "@/Data/projects";
+import type { FilterCategory } from "@/data/projects";
 
 type Props = {
   active?: FilterCategory;

@@ -1,6 +1,6 @@
 "use client";
 
-import { Developer } from "@/components/developer";
+import { Developer } from "@/components/sections/developer";
 
 /**
  * Developer tab content for the Projects section.

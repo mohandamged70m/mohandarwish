@@ -1,8 +1,8 @@
-import { Education } from "@/components/about/education";
-import { Experience } from "@/components/about/experience";
-import { Skills } from "@/components/about/skills";
-import { Stack } from "@/components/about/stack";
-import { ContactCard } from "@/components/contact/contact-card";
+import { Education } from "@/components/sections/about/Education";
+import { Experience } from "@/components/sections/about/Experience";
+import { Skills } from "@/components/sections/about/Skills";
+import { Stack } from "@/components/sections/about/Stack";
+import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { createMetadata } from "@/lib/metadata";
 import { getEducationServer, getExperienceServer, getSkillsServer, getStackServer } from "@/lib/profile-server";

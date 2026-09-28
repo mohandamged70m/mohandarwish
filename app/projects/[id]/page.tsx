@@ -1,11 +1,11 @@
-import { ProjectDetailContent } from "@/components/projects/ProjectDetailContent";
+import { ProjectDetailContent } from "@/components/sections/projects/ProjectDetailContent";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { createMetadata } from "@/lib/metadata";
-import { decodeProjectId } from "@/Data/projects";
+import { decodeProjectId } from "@/data/projects";
 import { getProjectServer, getProjectsServer } from "@/lib/projects-server";
 
 type Params = Promise<{ id: string }>;

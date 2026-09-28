@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { type FilterCategory } from "@/Data/projects";
+import { type FilterCategory } from "@/data/projects";
 
 type Props = {
   categories: readonly FilterCategory[];

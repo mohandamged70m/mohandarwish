@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Project } from "@/Data/projects";
+import type { Project } from "@/data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { sanitizeSvg } from "@/lib/sanitize";
 import { GlassPanel } from "./GlassPanel";

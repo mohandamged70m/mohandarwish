@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { EducationEntry } from "@/components/about/education";
-import type { ExperienceEntry } from "@/components/about/experience";
-import type { StackChip } from "@/components/about/stack";
+import type { EducationEntry } from "@/components/sections/about/Education";
+import type { ExperienceEntry } from "@/components/sections/about/Experience";
+import type { StackChip } from "@/components/sections/about/Stack";
 
 type ExperienceRow = {
   company: string;

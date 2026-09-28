@@ -1,7 +1,7 @@
-﻿import HeroSection from "@/components/hero/HeroSection";
-import ProjectsSection from "@/components/projects/ProjectsSection";
-import { AboutSection } from "@/components/about/AboutSection";
-import { ContactCard } from "@/components/contact/contact-card";
+﻿import HeroSection from "@/components/sections/hero/HeroSection";
+import ProjectsSection from "@/components/sections/projects/ProjectsSection";
+import { AboutSection } from "@/components/sections/about/AboutSection";
+import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { ScrollReveal, SectionSlide, SectionTransition } from "@/components/transitions";
 import type { SectionDef } from "@/components/transitions";

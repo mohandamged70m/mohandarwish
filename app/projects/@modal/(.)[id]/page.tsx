@@ -1,6 +1,6 @@
-import { ProjectDetailContent } from "@/components/projects/ProjectDetailContent";
-import { ProjectModal } from "@/components/projects/ProjectModal";
-import { decodeProjectId } from "@/Data/projects";
+import { ProjectDetailContent } from "@/components/sections/projects/ProjectDetailContent";
+import { ProjectModal } from "@/components/sections/projects/ProjectModal";
+import { decodeProjectId } from "@/data/projects";
 import { getProjectServer } from "@/lib/projects-server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";

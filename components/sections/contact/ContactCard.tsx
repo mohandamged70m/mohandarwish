@@ -4,7 +4,7 @@ import { ArrowRight, Check, Copy, FileText, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
-import { ME } from "@/Data/me";
+import { ME } from "@/data/me";
 import { BookButton } from "@/components/booking/BookButton";
 import { FadeIn } from "@/components/ui/motion-primitives";
 

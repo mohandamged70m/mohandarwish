@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FILTER_CATEGORIES } from "@/Data/projects";
-import type { FilterCategory } from "@/Data/projects";
+import { FILTER_CATEGORIES } from "@/data/projects";
+import type { FilterCategory } from "@/data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectCard } from "./ProjectCard";
 import { DeveloperTab } from "./DeveloperTab";
