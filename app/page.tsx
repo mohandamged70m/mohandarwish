@@ -1,12 +1,12 @@
 ﻿import HeroSection from "@/components/sections/hero/HeroSection";
 import ProjectsSection from "@/components/sections/projects/ProjectsSection";
-import { AboutSection } from "@/components/sections/about/AboutSection";
+import { StackSection } from "@/components/sections/stack/StackSection";
 import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { ScrollReveal, SectionSlide, SectionTransition } from "@/components/transitions";
 import type { SectionDef } from "@/components/transitions";
 
-import { getEducationServer, getExperienceServer, getSkillsServer, getStackServer } from "@/lib/profile-server";
+import { getStackServer } from "@/lib/profile-server";
 import { createMetadata } from "@/lib/metadata";
 
 export const revalidate = 3600;
@@ -24,15 +24,12 @@ export const metadata = createMetadata({
 const SECTIONS: SectionDef[] = [
   { id: "hero", label: "Home" },
   { id: "projects-wrap", label: "Projects" },
-  { id: "about-wrap", label: "About" },
+  { id: "stack-wrap", label: "Stack" },
   { id: "contact-wrap", label: "Contact" },
 ];
 
 export default async function Home() {
-  const [experience, education, skills, stack] = await Promise.all([
-    getExperienceServer(),
-    getEducationServer(),
-    getSkillsServer(),
+  const [stack] = await Promise.all([
     getStackServer(),
   ]);
 
@@ -51,13 +48,10 @@ export default async function Home() {
             </ScrollReveal>
           </div>
         </SectionSlide>
-        <SectionSlide section="about-wrap">
-          <div id="about-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+        <SectionSlide section="stack-wrap">
+          <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <ScrollReveal delay={0.05}>
-              <AboutSection
-                experience={experience.map((e) => ({ company: e.company, role: e.role, period: e.period, slug: e.slug, brand: e.brand }))}
-                education={education.map((e) => ({ school: e.school, degree: e.degree, period: e.period, slug: e.slug }))}
-                skills={skills.map((s) => s.label)}
+              <StackSection
                 stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
               />
             </ScrollReveal>

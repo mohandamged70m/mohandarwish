@@ -11,7 +11,7 @@
 
 This is not a static one-pager. It's a full product:
 
-- **Marketing site** — hero, projects showcase, about, contact, project detail pages, CV modal
+- **Marketing site** — hero, projects showcase, stack, contact, project detail pages, CV modal
 - **Booking system** — visitors can book a call (availability + booked-slots APIs, email receipts)
 - **Contact pipeline** — contact form → validation/sanitization → Supabase + email via Resend
 - **Owner dashboard (`/dashboard`)** — CMS for projects, tags, contributors, experience, inbox/messages, bookings, site settings, hero images, analytics
@@ -21,10 +21,9 @@ This is not a static one-pager. It's a full product:
 
 | Route | What it is |
 |---|---|
-| `/` | Single-page flow: Hero → Projects → About → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
+| `/` | Single-page flow: Hero → Projects → Stack → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
 | `/projects` | Filterable project listing (Frontend / Full-Stack / Design System / Tooling) |
 | `/projects/[id]` | Project detail: gallery, videos, stack tags, contributors, metrics, live/GitHub/download links, view tracking |
-| `/about` | Full story: Experience / Education / Skills / Stack tabs |
 | `/mohanddarwish` | Vanity / short-link profile route |
 | `/dashboard` | Private owner CMS (token-gated): projects, tags, contributors, messages, bookings, settings, treasury, LLM assistant |
 | `/api/*` | Backend: `contact`, `booking`, `booked-slots`, `availability`, `messages`, `track`, `dashboard/*`, `diag` |
@@ -33,7 +32,7 @@ This is not a static one-pager. It's a full product:
 
 1. **Hero** — animated split-text intro, morphing portrait (light/dark aware, dashboard-overridable), `Book a call` + `View projects` CTAs, location badge
 2. **Projects** — featured carousel/grid driven by Supabase (`listing` order), live data with static fallback
-3. **About** — sticky intro + WAI-APG accessible tabs (Experience / Education / Skills / interactive Stack playground)
+3. **Stack** — sticky intro + interactive Stack playground (Matter.js, dashboard-driven)
 4. **Contact** — contact card + booking entry point, validated form with spam protection
 
 ## Key Features
@@ -72,7 +71,7 @@ components/
   sections/           # landing sections (each with index.ts barrel):
     hero/             # HeroSection, TextAnimated, PortraitMorph
     projects/         # ProjectsSection, cards, detail views, DeveloperTab
-    about/            # AboutSection + Education/Experience/Skills/Stack tabs
+    stack/            # StackSection + interactive Stack playground (Matter.js)
     contact/          # ContactCard + form
     developer/        # Developer profile, GitHub stats/graphs, repos
   booking/            # BookButton, BookingModal, CustomTimePicker

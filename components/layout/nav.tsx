@@ -24,7 +24,7 @@ type NavItem = {
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
   { label: "Projects", href: "#projects" },
-  { label: "About", href: "#about" },
+  { label: "Stack", href: "#stack" },
   { label: "Contact", href: "#booking" },
 ];
 
@@ -172,19 +172,15 @@ export function Nav(): ReactNode {
   const [hasMeasured, setHasMeasured] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // One-pager: active pill follows the visible section (#hero/#projects/#about)
-  // via hash + scroll-spy. Full /projects and /about pages still exist, so map
-  // those paths back to their section for the pill.
+  // One-pager: active pill follows the visible section (#hero/#projects/#stack)
+  // via hash + scroll-spy. The full /projects page still exists, so map
+  // that path back to its section for the pill.
   const [currentHash, setCurrentHash] = useState<string>("#hero");
 
   useEffect(() => {
     const syncFromLocation = (): void => {
       if (pathname === "/projects") {
         setCurrentHash("#projects");
-        return;
-      }
-      if (pathname === "/about") {
-        setCurrentHash("#about");
         return;
       }
       if (pathname !== "/") return;
@@ -206,7 +202,7 @@ export function Nav(): ReactNode {
       !target ||
       (target !== "hero" &&
         target !== "projects" &&
-        target !== "about" &&
+        target !== "stack" &&
         target !== "booking")
     ) {
       return;
@@ -226,7 +222,7 @@ export function Nav(): ReactNode {
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
-  // scroll-spy on the one-pager — pill moves as hero/projects/about pass by.
+  // scroll-spy on the one-pager — pill moves as hero/projects/stack pass by.
   // The pager sections are the *-wrap shells; fall back to the inner content
   // ids if a shell is missing so the pill never goes blind.
   useEffect(() => {
@@ -234,7 +230,7 @@ export function Nav(): ReactNode {
     const spy: Array<{ observe: string; hash: string }> = [
       { observe: "hero", hash: "#hero" },
       { observe: "projects-wrap", hash: "#projects" },
-      { observe: "about-wrap", hash: "#about" },
+      { observe: "stack-wrap", hash: "#stack" },
     ];
     const els = spy
       .map(({ observe }) => document.getElementById(observe) ?? document.getElementById(observe.replace("-wrap", "")))

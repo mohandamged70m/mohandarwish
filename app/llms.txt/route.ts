@@ -37,7 +37,6 @@ design systems, web performance, accessibility.
 
 ## Pages
 - Home: ${base}/
-- About and background: ${base}/about
 - All projects: ${base}/projects
 - CV: ${base}${ME.cvUrl}
 

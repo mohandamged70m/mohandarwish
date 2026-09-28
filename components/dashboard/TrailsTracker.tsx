@@ -16,7 +16,7 @@ const FLUSH_DIRTY_MS = 15_000;
 const FLUSH_HEARTBEAT_MS = 45_000;
 
 const SOCIAL_HOSTS = /x\.com|twitter|linkedin|github|facebook|instagram|tiktok|reddit|youtube|medium|dev\.to|producthunt|substack/i;
-const KNOWN_SECTIONS = ["hero", "projects-wrap", "about-wrap", "contact-wrap"];
+const KNOWN_SECTIONS = ["hero", "projects-wrap", "stack-wrap", "contact-wrap"];
 
 type Event = { k: string; v?: string; t: number };
 

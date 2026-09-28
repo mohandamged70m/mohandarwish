@@ -499,13 +499,13 @@ section[id="contact"] {
   }
 }
 
-/* Short viewports — keep About fitted in one screen (pairs with the pager):
+/* Short viewports — keep Stack fitted in one screen (pairs with the pager):
    tighten shell padding + grid gap so the ~470px budget holds ~560px screens */
 @media (max-height: 720px) and (min-width: 1024px) {
-  #about .about-shell {
+  #stack .stack-shell {
     padding-block: 1.5rem !important;
   }
-  #about .about-grid {
+  #stack .stack-grid {
     gap: 1.5rem !important;
   }
 }
