@@ -336,6 +336,8 @@ export function PortraitMorph({
           src={srcA}
           alt={alt}
           draggable={false}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full select-none object-cover"
         />
       ) : null}

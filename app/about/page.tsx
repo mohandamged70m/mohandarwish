@@ -11,11 +11,12 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = createMetadata({
   title: "About",
-  description: "About me, background, and how to book a call.",
+  description:
+    "About Mohand Darwish — full-stack software engineer (Next.js, TypeScript, Node) based in Alexandria, Egypt and working worldwide. Experience, education, skills and how to book a call.",
   path: "/about",
 });
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function AboutPage(): Promise<ReactNode> {
   const [experience, education, skills, stack] = await Promise.all([

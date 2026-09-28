@@ -11,8 +11,8 @@ import { requestSectionNavigate, useSectionTransition } from "@/components/trans
 import { doc, onSnapshot } from "@/lib/dash-db";
 import { db } from "@/lib/dash-db";
 
-const FALLBACK_A = "/me/mohandarish.jpg";
-const FALLBACK_B = "/me/mohand-darwish.jpg";
+const FALLBACK_A = "/me/mohandarwish.jpeg";
+const FALLBACK_B = "/me/mohand-darwish.jpeg";
 
 // The template's stock hero image — never treat it as an owner upload.
 const STOCK_HERO = "images.unsplash.com";
@@ -154,7 +154,7 @@ const HeroSection = () => {
                     key={srcA}
                     srcA={srcA}
                     srcB={srcB}
-                    alt="Mohand portrait"
+                    alt="Portrait of Mohand Darwish, software engineer based in Alexandria, Egypt"
                   />
                 </div>
               </div>

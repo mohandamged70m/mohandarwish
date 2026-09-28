@@ -7,7 +7,8 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = createMetadata({
   title: "All Projects",
-  description: "Full archive of projects — every build, experiment and collaboration.",
+  description:
+    "Every project by Mohand Darwish — Next.js, TypeScript and full-stack builds, experiments and collaborations, filterable by category.",
   path: "/projects",
 });
 

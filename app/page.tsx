@@ -7,8 +7,16 @@ import { ScrollReveal, SectionSlide, SectionTransition } from "@/components/tran
 import type { SectionDef } from "@/components/transitions";
 
 import { getEducationServer, getExperienceServer, getSkillsServer, getStackServer } from "@/lib/profile-server";
+import { createMetadata } from "@/lib/metadata";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+export const metadata = createMetadata({
+  title: "Mohand Darwish — Full-Stack Software Engineer (Next.js, TypeScript)",
+  description:
+    "Mohand Darwish is a full-stack software engineer in Alexandria, Egypt, working worldwide. Next.js, TypeScript, Node — projects, background and booking.",
+  path: "/",
+});
 
 // Paged sections target the full-page WRAPS (exact viewport boundaries),
 // not the inner content blocks — so curtain reveals land pixel-flush with
