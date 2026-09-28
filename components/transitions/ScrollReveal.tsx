@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { motion, useReducedMotionConfig as useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -26,7 +26,15 @@ export function ScrollReveal({
   duration = 0.7,
   once = true,
 }: ScrollRevealProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotionRaw = useReducedMotion();
+  // Gate on mount so SSR + hydration render identically (server snapshot is
+  // always "full motion"). Reduced-motion users switch to the simplified
+  // variant in a post-hydration update instead of a hydration mismatch.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const reduceMotion = mounted ? reduceMotionRaw : false;
 
   if (reduceMotion) {
     return (

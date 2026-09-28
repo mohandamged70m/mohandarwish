@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
-import Script from "next/script";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
@@ -11,6 +10,7 @@ import { Providers } from "@/components/layout/providers";
 import { TrailsTracker } from "@/components/dashboard/TrailsTracker";
 import { ModalViewport } from "@/components/layout/modal-viewport";
 import { RouteCurtain } from "@/components/transitions";
+import { ScrollRestorationFix } from "@/components/layout/scroll-restoration";
 import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/metadata";
 import { ME } from "@/data/me";
@@ -148,11 +148,6 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
       className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
     >
       <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
-        {/* Kill browser scroll restoration before hydration: every fresh load
-            starts at the top (hero) instead of a stale mid-section offset. */}
-        <Script id="scroll-restoration" strategy="beforeInteractive">
-          {`try{window.history.scrollRestoration="manual"}catch(e){}`}
-        </Script>
         {/* Structured data: Person + WebSite (SEO + AI answer engines). */}
         <script
           type="application/ld+json"
@@ -161,6 +156,7 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           }}
         />
         <Providers>
+          <ScrollRestorationFix />
           <TrailsTracker />
           <PathMemory />
           <Nav />

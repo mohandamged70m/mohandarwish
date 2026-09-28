@@ -71,11 +71,7 @@ export default function ProjectsSection() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
             className="w-full min-w-0 overflow-hidden"
           >
-            <ProjectsHeader
-              active={active}
-              projectsCount={projects.filter((p) => p.featured).length}
-              devCount={devRepos.length}
-            />
+            <ProjectsHeader active={active} />
           </motion.div>
 
           <p className="sr-only" aria-live="polite">

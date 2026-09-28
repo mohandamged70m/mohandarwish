@@ -261,17 +261,20 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
     };
   }, [open, onClose]);
 
-  const modalMotion = useMemo(() => ({ initial: { opacity: 0, scale: 0.3, y: -400 } as const, animate: { opacity: 1, scale: 1, y: 0 } as const, exit: { opacity: 0, scale: 0.3, y: -400 } as const, transformOrigin: "top center", transition: { type: "spring" as const, damping: 30, stiffness: 350, mass: 1 } }), []);
+  const modalMotion = useMemo(() => ({ initial: { opacity: 0, scale: 0.3, y: -400 } as const, animate: { opacity: 1, scale: 1, y: 0 } as const, exit: { opacity: 0, scale: 0.3, y: 400 } as const, transformOrigin: "top center", transition: { type: "spring" as const, damping: 30, stiffness: 350, mass: 1 } }), []);
 
-  if (!open) return null;
   if (typeof document === "undefined") return null;
 
   return createPortal(
     <>
       {alert?.show && <Alert type={alert.type} message={alert.message} onClose={() => hideAlert()} duration={alert.duration ?? 4000} />}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", zIndex: 1400 }} onClick={onClose} />
-      <div className="fixed inset-0 z-[1401] flex items-center justify-center p-4 pointer-events-none" style={{ overscrollBehavior: "contain" }}>
-        <motion.div role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" layout initial={modalMotion.initial} animate={modalMotion.animate} exit={modalMotion.exit} transition={modalMotion.transition} className={isMobile ? "glass-panel-deep" : ""} style={{ width: isMobile ? "90vw" : "min(1240px, 94vw)", height: isMobile ? "90dvh" : "min(760px, 92vh)", maxWidth: isMobile ? "90vw" : "94vw", maxHeight: isMobile ? "90dvh" : "92vh", transformOrigin: modalMotion.transformOrigin, overflow: isMobile ? "hidden" : "visible", borderRadius: isMobile ? "16px" : "0", display: "flex", flexDirection: "column", pointerEvents: "auto", backgroundColor: isMobile ? undefined : "transparent", border: isMobile ? undefined : "none", boxShadow: isMobile ? undefined : "none", willChange: "transform, opacity" }} onClick={(e) => e.stopPropagation()}>
+      <AnimatePresence>
+        {open && (
+          <motion.div key="contact-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", zIndex: 1400 }} onClick={onClose} />
+        )}
+        {open && (
+          <motion.div key="contact-wrapper" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-[1401] flex items-center justify-center p-4 pointer-events-none" style={{ overscrollBehavior: "contain" }}>
+            <motion.div role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" layout initial={modalMotion.initial} animate={modalMotion.animate} exit={modalMotion.exit} transition={modalMotion.transition} className={isMobile ? "glass-panel-deep" : ""} style={{ width: isMobile ? "90vw" : "min(1240px, 94vw)", height: isMobile ? "90dvh" : "min(760px, 92vh)", maxWidth: isMobile ? "90vw" : "94vw", maxHeight: isMobile ? "90dvh" : "92vh", transformOrigin: modalMotion.transformOrigin, overflow: isMobile ? "hidden" : "visible", borderRadius: isMobile ? "16px" : "0", display: "flex", flexDirection: "column", pointerEvents: "auto", backgroundColor: isMobile ? undefined : "transparent", border: isMobile ? undefined : "none", boxShadow: isMobile ? undefined : "none", willChange: "transform, opacity" }} onClick={(e) => e.stopPropagation()}>
           {isMobile && <div className="absolute inset-0 bg-gradient-to-b from-black/[0.04] dark:from-white/[0.04] to-transparent pointer-events-none -z-10" />}
           <div className="flex flex-col flex-1 overflow-hidden" style={{ overscrollBehavior: "contain", padding: isMobile ? "0" : "24px 24px 0 24px" }}>
             {isMobile && (
@@ -405,7 +408,9 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
             </div>
           )}
         </motion.div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>,
     document.body
   );
