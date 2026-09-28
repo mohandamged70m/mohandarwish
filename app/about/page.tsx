@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = createMetadata({
   title: "About",
   description:
-    "About Mohand Darwish — full-stack software engineer (Next.js, TypeScript, Node) based in Alexandria, Egypt and working worldwide. Experience, education, skills and how to book a call.",
+    "About Mohand Darwish — Software Engineer | AI Product Builder (Next.js, TypeScript, Node) based in Alexandria, Egypt and working worldwide. Experience, education, skills and how to book a call.",
   path: "/about",
 });
 
@@ -34,10 +34,10 @@ export default async function AboutPage(): Promise<ReactNode> {
             <h1 className="font-heading text-[1.75rem] font-semibold tracking-tight text-text-primary sm:text-[2rem]">
               Hello! I&rsquo;m <span className="border-b border-accent/30 pb-0.5 text-accent">Mohand Darwish</span>.
             </h1>
-            <p className="mt-3 font-heading text-sm tracking-wide text-text-muted">Alexandria, Egypt · GMT+2 · Full-Stack, Frontend-leaning</p>
+            <p className="mt-3 font-heading text-sm tracking-wide text-text-muted">Alexandria, Egypt · GMT+2 · Software Engineer | AI Product Builder</p>
             <div className="mt-8 space-y-6 font-body text-[17px] leading-[1.7] tracking-tight text-text-secondary sm:text-[18px]">
               <p>
-                A <strong className="font-semibold text-text-primary">software engineer (full-stack, frontend-leaning)</strong> who keeps architecture simple and web apps fast. I ship <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> and care about speed, accessibility and code others can work in.
+                A <strong className="font-semibold text-text-primary">Software Engineer | AI Product Builder</strong> who keeps architecture simple and web apps fast. I ship <strong className="font-semibold text-text-primary">Next.js + TypeScript + Node</strong> and care about speed, accessibility and code others can work in.
               </p>
               <p>
                 I like taking unclear product ideas to a release, from design tokens and component APIs to tRPC routes and Postgres queries. I do my best work where <strong className="font-semibold text-text-primary">frontend craft meets full-stack ownership</strong>.

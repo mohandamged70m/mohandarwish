@@ -49,7 +49,7 @@ const plexMono = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Mohand Darwish | Software Engineer — Full-Stack, Frontend-leaning",
+    default: "Mohand Darwish | Software Engineer | AI Product Builder",
     template: "%s | Mohand Darwish",
   },
   description: siteConfig.description,
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Mohand Darwish | Software Engineer — Full-Stack, Frontend-leaning",
+    title: "Mohand Darwish | Software Engineer | AI Product Builder",
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohand Darwish | Software Engineer — Full-Stack, Frontend-leaning",
+    title: "Mohand Darwish | Software Engineer | AI Product Builder",
     description: siteConfig.description,
     creator: siteConfig.creator,
   },
@@ -108,7 +108,7 @@ const jsonLd = {
       name: ME.name,
       url: siteConfig.url,
       image: `${siteConfig.url}/me/mohand-darwish.jpeg`,
-      jobTitle: "Software Engineer",
+      jobTitle: "Software Engineer | AI Product Builder",
       description: siteConfig.description,
       email: `mailto:${ME.email}`,
       address: {

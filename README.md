@@ -1,6 +1,6 @@
 # Mohand Darwish — Portfolio
 
-> Personal portfolio of **Mohand Darwish**, Software Engineer (Full-Stack, Frontend-leaning) based in Alexandria, Egypt.
+> Personal portfolio of **Mohand Darwish**, Software Engineer | AI Product Builder based in Alexandria, Egypt.
 > Clean architecture, performant web apps, and systems that scale — built with **Next.js + TypeScript + Node**.
 
 **Live:** https://mohanddarwish.vercel.app/

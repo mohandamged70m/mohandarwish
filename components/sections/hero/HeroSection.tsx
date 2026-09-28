@@ -95,7 +95,7 @@ const HeroSection = () => {
 
               <p className="pt-1 font-body text-base text-text-secondary sm:text-lg">
                 <TextAnimated
-                  text="Full-stack engineer, frontend leaning. Clean code and fast interfaces."
+                  text="Software Engineer | AI Product Builder. Clean code and fast interfaces."
                   replayKey={heroReplayKey}
                   className="block text-left font-body font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
                   startDelay={280}

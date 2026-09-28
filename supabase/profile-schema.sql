@@ -111,7 +111,7 @@ create policy "public delete profile_stack" on profile_stack for delete using (t
 
 -- ── Seed from current hardcoded About content (idempotent) ──
 insert into profile_experience (company, role, period, slug, brand, sort_order) values
-  ('Freelance', 'Frontend Engineer (Full-Stack)', 'Jan 2023 – Present', null, '#AD2831', 0),
+  ('Freelance', 'Software Engineer | AI Product Builder', 'Jan 2023 – Present', null, '#AD2831', 0),
   ('Open Source', 'Contributor — Design System & Tooling', 'Jun 2022 – Present', 'github', '#111111', 1),
   ('Studio Intern', 'Frontend Intern', 'Jun 2021 – May 2022', null, '#1F1F1F', 2)
 on conflict do nothing;

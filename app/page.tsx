@@ -12,9 +12,9 @@ import { createMetadata } from "@/lib/metadata";
 export const revalidate = 3600;
 
 export const metadata = createMetadata({
-  title: "Mohand Darwish — Full-Stack Software Engineer (Next.js, TypeScript)",
+  title: "Mohand Darwish — Software Engineer | AI Product Builder (Next.js, TypeScript)",
   description:
-    "Mohand Darwish is a full-stack software engineer in Alexandria, Egypt, working worldwide. Next.js, TypeScript, Node — projects, background and booking.",
+    "Mohand Darwish is a Software Engineer | AI Product Builder in Alexandria, Egypt, working worldwide. Next.js, TypeScript, Node — projects, background and booking.",
   path: "/",
 });
 

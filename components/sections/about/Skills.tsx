@@ -17,7 +17,7 @@ export function Skills({ skills }: { skills?: string[] }): ReactNode {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="font-display text-[15px] font-semibold tracking-tight text-text-primary">
-        What I do — Frontend-leaning Full-Stack
+        What I do — Software Engineer | AI Product Builder
       </h3>
       <div className="rounded-[20px] border border-border bg-bg-surface p-2 sm:p-4">
         <div className="flex flex-wrap gap-2.5">

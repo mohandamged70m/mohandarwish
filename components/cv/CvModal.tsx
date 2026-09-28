@@ -23,7 +23,7 @@ export function requestCvOpen(): void {
 const EXPERIENCE = [
   {
     company: "Freelance",
-    role: "Frontend Engineer (Full-Stack)",
+    role: "Software Engineer | AI Product Builder",
     period: "Jan 2023 — Present",
     points: [
       "Ship Next.js + TypeScript + Node apps with clean architecture and strict perf / a11y budgets.",

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Mohand Darwish — Software Engineer, Full-Stack Frontend-leaning";
+export const alt = "Mohand Darwish — Software Engineer | AI Product Builder";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -44,7 +44,7 @@ export default function Image() {
           Mohand Darwish
         </div>
         <div style={{ fontSize: 38, color: "#d6d3d1", marginTop: "20px" }}>
-          Software Engineer — Full-Stack, Frontend-leaning
+          Software Engineer | AI Product Builder
         </div>
         <div style={{ fontSize: 30, color: "#a8a29e", marginTop: "12px" }}>
           Next.js · TypeScript · Node

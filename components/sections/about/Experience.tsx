@@ -15,7 +15,7 @@ export type ExperienceEntry = {
 const DEFAULT_ENTRIES: ExperienceEntry[] = [
   {
     company: "Freelance",
-    role: "Frontend Engineer (Full-Stack)",
+    role: "Software Engineer | AI Product Builder",
     period: "Jan 2023 – Present",
     brand: "#AD2831",
   },

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Mohand Darwish — Software Engineer",
+    name: "Mohand Darwish — Software Engineer | AI Product Builder",
     short_name: "Mohand Darwish",
     description:
       "Mohand Darwish is a software engineer in Alexandria, Egypt, working worldwide. Next.js, TypeScript and Node.",
