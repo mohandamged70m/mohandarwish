@@ -1,5 +1,4 @@
-// Booking categories (replaces the old utils/categories).
-// Stored in Settings/Canary as Categories.<id> = { Name, Color, Created }.
+// Booking categories. Stored in Settings/Canary as Categories.<id> = { Name, Color, Created }.
 
 export interface MeetingCategory {
   id: string;

@@ -1,4 +1,4 @@
-// Timezone options (replaces the old utils/timezones).
+// Timezone options.
 // Entries are { value: hour offset (fractions allowed), label: starts with UTC±HH:MM }.
 
 export interface TimezoneOption {

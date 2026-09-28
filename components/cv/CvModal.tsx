@@ -11,7 +11,7 @@ import {
   Printer,
   X,
 } from "lucide-react";
-import { ME } from "@/Data/me";
+import { ME } from "@/data/me";
 
 export const CV_OPEN_EVENT = "open-cv";
 

@@ -6,7 +6,7 @@ import {
   type DashboardProjectRow,
   type Project,
   type TagDirectory,
-} from "@/Data/projects";
+} from "@/data/projects";
 
 async function getDirectories(): Promise<{ tags?: TagDirectory; contributors?: ContributorDirectory }> {
   const supabase = supabaseServer();

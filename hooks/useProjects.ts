@@ -10,7 +10,7 @@ import {
   type DashboardProjectRow,
   type Project,
   type TagDirectory,
-} from "@/Data/projects";
+} from "@/data/projects";
 
 export function useProjects() {
   const [projects, setProjects] = useState<Project[]>([]);

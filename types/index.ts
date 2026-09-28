@@ -74,4 +74,4 @@ export type {
   ProjectTag as SiteTag,
   ProjectContributor as SiteContributor,
   ProjectCategory as SiteCategory,
-} from "@/Data/projects";
+} from "@/data/projects";
