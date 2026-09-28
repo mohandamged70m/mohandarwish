@@ -26,14 +26,14 @@ import {
     nextMonthlyPaymentDate, projectNextPaymentDate, TreasuryAccount, accountBalance, accountActivityCount, accountsTotal, accountOptions,
     hasInstallments, installmentMonthlyAmount, installmentsPaidCount, projectContractTotal,
 } from '@/lib/treasury';
-import RollingNumber from '@/components/dash/RollingNumber';
+import RollingNumber from '@/components/dashboard/primitives/RollingNumber';
 import MTreasuryEntry from './M-TreasuryEntry';
 import MReceipt from './M-Receipt';
 import MAccount, { ACCOUNT_ICON, ACCOUNT_COLOR } from './M-Account';
-import DatePicker from '@/components/dash/DatePicker';
-import Select from '@/components/dash/Select';
+import DatePicker from '@/components/dashboard/primitives/DatePicker';
+import Select from '@/components/ui/mohand-select';
 import SaveBar from './SaveBar';
-import Alert, { AlertType } from '@/components/dash/Alert';
+import Alert, { AlertType } from '@/components/ui/alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
 
 // Treasury is its own admin-only collection, sorted into one document per

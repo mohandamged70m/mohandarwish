@@ -13,7 +13,7 @@ import { TagData, ContributorData, TagFormData } from '@/types';
 import MTagForm from './M-TagForm';
 import MContributorForm from './M-ContributorForm';
 import { createPortal } from 'react-dom';
-import Loader from '@/components/dash/reactbits/Loader';
+import Loader from '@/components/dashboard/primitives/reactbits/Loader';
 import MConfirmModal from './M-ConfirmModal';
 
 interface RawFirestoreTag {

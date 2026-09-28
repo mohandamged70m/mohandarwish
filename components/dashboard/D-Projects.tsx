@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { sanitizeSvg } from '@/lib/sanitize';
 import { createPortal } from 'react-dom';
 import { Plus, Search, MoreVertical, ExternalLink, Eye, Edit2, Trash2, GripVertical } from 'lucide-react';
-import { Github } from '@/components/dash/icons';
+import { Github } from '@/components/dashboard/primitives/icons';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from '@/lib/dash-db';
 import { Reorder, useDragControls } from 'motion/react';
 import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getStorage } from '@/lib/dash-storage';
@@ -13,16 +13,16 @@ import app, { db } from '@/lib/dash-db';
 // getStorage here keeps firebase/storage out of the eager bundle while leaving
 // every existing `ref(storage, ...)` call site unchanged.
 const storage = getStorage(app);
-import Alert from '@/components/dash/Alert';
+import Alert from '@/components/ui/alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
 import MProjectForm from './M-ProjectForm';
 import { ProjectData, ContributorData, ProjectFormData, TagData } from '@/types';
-import MProjectView from '@/components/dash/M-ProjectView';
-import { getTechColor, getStackIcon } from '@/utils/projectUtils';
-import MContributorView, { Contributor } from '@/components/dash/M-ContributorView';
-import Loader from '@/components/dash/reactbits/Loader';
+import MProjectView from '@/components/dashboard/M-ProjectView';
+import { getTechColor, getStackIcon } from '@/lib/project-utils';
+import MContributorView, { Contributor } from '@/components/dashboard/M-ContributorView';
+import Loader from '@/components/dashboard/primitives/reactbits/Loader';
 import MConfirmModal, { ConfirmType } from './M-ConfirmModal';
-import FileImage from '@/components/dash/FileImage';
+import FileImage from '@/components/dashboard/primitives/FileImage';
 
 interface RawFirestoreTag {
     Name?: string;

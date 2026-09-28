@@ -8,19 +8,19 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Edit2, X, C
 import { doc, onSnapshot, updateDoc, deleteField, setDoc } from '@/lib/dash-db';
 import { httpsCallable, getFunctions } from '@/lib/dash-functions';
 import app, { db } from '@/lib/dash-db';
-import { AvailabilityConfig, DEFAULT_AVAILABILITY, WEEKDAY_LABELS, ALL_HOURS, parseAvailabilityConfig, buildHostSlots, formatHourSlot } from '@/utils/availability';
-import { MeetingCategory, PERSONAL_CATEGORY, CATEGORY_COLORS, MAX_CATEGORY_NAME, categoryKey, parseCategories, findCategory } from '@/utils/categories';
+import { AvailabilityConfig, DEFAULT_AVAILABILITY, WEEKDAY_LABELS, ALL_HOURS, parseAvailabilityConfig, buildHostSlots, formatHourSlot } from '@/lib/availability';
+import { MeetingCategory, PERSONAL_CATEGORY, CATEGORY_COLORS, MAX_CATEGORY_NAME, categoryKey, parseCategories, findCategory } from '@/lib/categories';
 // Local Functions handle (lazy Dashboard chunk) - keeps firebase/functions out of eager.
 const functions = getFunctions(app);
 
-import Alert from '@/components/dash/Alert';
+import Alert from '@/components/ui/alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
 import MConfirmModal from './M-ConfirmModal';
-import MContact from '@/components/dash/M-Contact';
+import MContact from '@/components/dashboard/M-Contact';
 import MReply from './M-Reply';
-import CustomTimePicker from '@/components/dash/CustomTimePicker';
-import Select from '@/components/dash/Select';
-import Loader from '@/components/dash/reactbits/Loader';
+import CustomTimePicker from '@/components/booking/CustomTimePicker';
+import Select from '@/components/ui/mohand-select';
+import Loader from '@/components/dashboard/primitives/reactbits/Loader';
 
 interface Attachment {
     name: string;

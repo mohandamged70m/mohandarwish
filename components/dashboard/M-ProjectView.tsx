@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ExternalLink, Eye } from "lucide-react";
 import type { ProjectData, ContributorData } from "@/types";
-import FileImage from "@/components/dash/FileImage";
-import { Github as GithubIcon } from "@/components/dash/icons";
+import FileImage from "@/components/dashboard/primitives/FileImage";
+import { Github as GithubIcon } from "@/components/dashboard/primitives/icons";
 import { sanitizeSvg } from "@/lib/sanitize";
 
 export type ProjectViewData = ProjectData & { title: string; images: string[] };

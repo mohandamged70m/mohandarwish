@@ -12,8 +12,8 @@ import {
     projectPayments, paymentTimeLabel,
 } from '@/lib/treasury';
 import { buildReceiptHtml, receiptNumber, ReceiptData } from '@/lib/receipt';
-import Select from '@/components/dash/Select';
-import DatePicker from '@/components/dash/DatePicker';
+import Select from '@/components/ui/mohand-select';
+import DatePicker from '@/components/dashboard/primitives/DatePicker';
 
 interface Props {
     projects: TreasuryProject[];

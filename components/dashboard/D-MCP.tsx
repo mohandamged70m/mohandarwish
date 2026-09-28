@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Plug, Copy, Check, ShieldAlert, RotateCcw, ShieldCheck, Power, Sparkles, Bot, Activity, Pencil, Eye, X } from 'lucide-react';
 import { doc, onSnapshot, setDoc, collection, query, orderBy, limit } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
-import Alert from '@/components/dash/Alert';
+import Alert from '@/components/ui/alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
 
 interface McpConfig {

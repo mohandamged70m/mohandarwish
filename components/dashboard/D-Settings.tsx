@@ -12,13 +12,13 @@ import { ref, uploadBytes, getDownloadURL, getMetadata, getStorage } from '@/lib
 import app, { db } from '@/lib/dash-db';
 // Local Storage handle (lazy Dashboard chunk) - keeps firebase/storage out of eager.
 const storage = getStorage(app);
-import Alert, { AlertType } from '@/components/dash/Alert';
-import { timezoneOptions } from '@/utils/timezones';
+import Alert, { AlertType } from '@/components/ui/alert';
+import { timezoneOptions } from '@/lib/timezones';
 import MStackItem, { StackItemData } from './M-StackItem';
 import DMcpPanel from './D-MCP';
-import Select from '@/components/dash/Select';
+import Select from '@/components/ui/mohand-select';
 import SaveBar from './SaveBar';
-import Loader from '@/components/dash/reactbits/Loader';
+import Loader from '@/components/dashboard/primitives/reactbits/Loader';
 import MConfirmModal from './M-ConfirmModal';
 // Replaced failing ui-avatars.com with a local icon-based placeholder logic
 

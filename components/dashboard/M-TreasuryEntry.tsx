@@ -14,10 +14,10 @@ import {
     ExpenseTemplate, matchExpenseTemplates, expenseProjectOptions, incomeProjectOptions, formatMoney,
     expenseCategories, matchCategories, nextMonthlyPaymentDate, accountOptions, installmentTotal,
 } from '@/lib/treasury';
-import DatePicker from '@/components/dash/DatePicker';
-import Select from '@/components/dash/Select';
-import Toggle from '@/components/dash/Toggle';
-import ElasticSlider from '@/components/dash/reactbits/ElasticSlider';
+import DatePicker from '@/components/dashboard/primitives/DatePicker';
+import Select from '@/components/ui/mohand-select';
+import Toggle from '@/components/dashboard/primitives/Toggle';
+import ElasticSlider from '@/components/dashboard/primitives/reactbits/ElasticSlider';
 
 type Mode = 'project' | 'expense' | 'income';
 

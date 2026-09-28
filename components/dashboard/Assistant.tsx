@@ -10,7 +10,7 @@ import {
     chat, getApiKey, setKeyOverride, getModel, setModel, resolveProvider, listModels,
     userMessage, toolResultMessage, PROVIDER_LABEL, Provider, ToolCall, ToolResult,
 } from '@/lib/llm';
-import Select from '@/components/dash/Select';
+import Select from '@/components/ui/mohand-select';
 import Markdown from './Markdown';
 
 type Status = 'idle' | 'connecting' | 'thinking' | 'acting' | 'speaking' | 'error';

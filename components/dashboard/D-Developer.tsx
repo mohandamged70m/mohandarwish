@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Trash2, GripVertical, Save, X, Search, Star, GitFork, Loader2, ListChecks, Check, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
-import { Github } from '@/components/dash/icons';
+import { Github } from '@/components/dashboard/primitives/icons';
 import { doc, onSnapshot, setDoc } from '@/lib/dash-db';
 import { Reorder, motion, useReducedMotion } from 'motion/react';
 import { db } from '@/lib/dash-db';
-import Alert from '@/components/dash/Alert';
+import Alert from '@/components/ui/alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
 
 const GITHUB_USERNAME = 'mohandamged70m';

@@ -4,14 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { sanitizeSvg } from '@/lib/sanitize';
 import { createPortal } from 'react-dom';
 import { X, Upload, Plus, Image as ImageIcon, ExternalLink, Trash2, Search } from 'lucide-react';
-import { Github } from '@/components/dash/icons';
+import { Github } from '@/components/dashboard/primitives/icons';
 import { doc, collection, onSnapshot } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
 import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion } from '@/lib/motion';
 
 import { ProjectData, TagData, ContributorData } from '@/types';
-import FileImage from '@/components/dash/FileImage';
+import FileImage from '@/components/dashboard/primitives/FileImage';
 import { useObjectURL } from '@/hooks/useObjectURL';
 
 interface ProjectFormData extends Omit<ProjectData, 'images' | 'icon'> {

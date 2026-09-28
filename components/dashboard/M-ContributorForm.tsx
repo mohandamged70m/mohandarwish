@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Upload, Globe, ZoomIn, HardDrive, Trash2 } from 'lucide-react';
-import { Github, Linkedin, Facebook, Instagram } from '@/components/dash/icons';
+import { Github, Linkedin, Facebook, Instagram } from '@/components/dashboard/primitives/icons';
 import Cropper from 'react-easy-crop';
 import MFirebaseStorage from './M-FirebaseStorage';
 const firebaseIcon = '/svgs/firebase.svg'; // served from public/ (see M-StackItem note)

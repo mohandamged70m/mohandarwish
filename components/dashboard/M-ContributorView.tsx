@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { X, ExternalLink } from "lucide-react";
 import type { ContributorData } from "@/types";
-import FileImage from "@/components/dash/FileImage";
-import { Github, Linkedin, Facebook, Instagram } from "@/components/dash/icons";
+import FileImage from "@/components/dashboard/primitives/FileImage";
+import { Github, Linkedin, Facebook, Instagram } from "@/components/dashboard/primitives/icons";
 
 export interface Contributor extends ContributorData {
   image?: string;

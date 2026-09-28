@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Trash2, Wallet, Landmark, Banknote, CreditCard, Coins, Archive, TrendingUp } from 'lucide-react';
-import Toggle from '@/components/dash/Toggle';
+import Toggle from '@/components/dashboard/primitives/Toggle';
 import { motion } from 'motion/react';
 import {
     CURRENCIES, CURRENCY_SYMBOL, Currency, AccountType, ACCOUNT_TYPES,

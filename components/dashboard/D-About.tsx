@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, Edit2, Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
-import Alert from "@/components/dash/Alert";
+import Alert from "@/components/ui/alert";
 import useSafeAlert from "@/hooks/useSafeAlert";
 import MAboutForm, { type AboutItem, type AboutSection } from "./M-AboutForm";
 import MConfirmModal from "./M-ConfirmModal";

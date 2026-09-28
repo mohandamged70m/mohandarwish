@@ -12,17 +12,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, TooltipProps } from 'recharts';
 import { doc, onSnapshot, updateDoc, collection, getDocs, setDoc, deleteDoc, query, orderBy, limit as fsLimit, where } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
-import FileImage from '@/components/dash/FileImage';
-import Loader from '@/components/dash/reactbits/Loader';
-import Alert from '@/components/dash/Alert';
-import Toggle from '@/components/dash/Toggle';
-import RollingNumber from '@/components/dash/RollingNumber';
+import FileImage from '@/components/dashboard/primitives/FileImage';
+import Loader from '@/components/dashboard/primitives/reactbits/Loader';
+import Alert from '@/components/ui/alert';
+import Toggle from '@/components/dashboard/primitives/Toggle';
+import RollingNumber from '@/components/dashboard/primitives/RollingNumber';
 import useSafeAlert from '@/hooks/useSafeAlert';
 import MConfirmModal, { ConfirmType } from './M-ConfirmModal';
 import MStory, { DeviceIcon, flagOf, isLive } from './M-Story';
 import { formatMs, type SessionDoc, type LinkDoc, type TotalsDoc } from '@/lib/analytics-types';
-import { Github } from '@/components/dash/icons';
-import { STORY_KEY } from '@/components/dash/Algorithm';
+import { Github } from '@/components/dashboard/primitives/icons';
+import { STORY_KEY } from '@/components/dashboard/primitives/Algorithm';
 
 /**
  * Trails - what people actually did on the portfolio.
