@@ -197,13 +197,13 @@ NO blur / NO glass on cards
 
 - Default: `text-text-secondary`
 - Hover: `text-accent-text` (dark, `#E8624A`) / `text-accent` (light) + underline (1px offset 3px) — never wine `#AD2831` text on black
-- Active nav pill: `bg-accent/15 text-text-primary` + `ring-accent/30` + wine border (`components/layouts/nav.tsx`)
+- Active nav pill: `bg-accent/15 text-text-primary` + `ring-accent/30` + wine border (`components/layout/nav.tsx`)
 
 ### Code Blocks
 
 - `bg: var(--bg-surface)` (`#250902` on black base), `font: var(--font-heading)` (IBM Plex Mono), keywords in `var(--accent-text)` dark / `var(--accent-primary)` light, radius `4px`, border `1px solid var(--border)`.
 
-### Nav — `components/layouts/nav.tsx`
+### Nav — `components/layout/nav.tsx`
 
 - Floating pill → floating bar: `bg-bg-surface/80 backdrop-blur` + `border-border` — one of 3 allowed glass surfaces
 - Logo: `font-heading` mono 15px
@@ -244,8 +244,8 @@ NO blur / NO glass on cards
 |---|---|
 | `app/globals.css` | Tokens + Tailwind theme, `color-scheme` + light/dark overrides — matches §4 |
 | `app/layout.tsx` | Font loading (`Inter`, `Space_Grotesk`, `IBM_Plex_Mono`), `Providers` wrapper, body bg/text |
-| `components/layouts/providers.tsx` | `ThemeProvider` (`attribute="class"`, `defaultTheme="system"`) + `ReducedMotionProvider` |
-| `components/layouts/nav.tsx` | Bar nav + theme toggle — first consumer, allowed glass |
+| `components/layout/providers.tsx` | `ThemeProvider` (`attribute="class"`, `defaultTheme="system"`) + `ReducedMotionProvider` |
+| `components/layout/nav.tsx` | Bar nav + theme toggle — first consumer, allowed glass |
 | `components/ui/button.tsx` | Button variants (uses `--accent-ring` for glow), sharp radius |
 | `components/ui/card.tsx` | Card + subcomponents, flat, no blur |
 | `components/ui/badge.tsx` | Badge variants (`soft` uses `accent-soft-text`) |

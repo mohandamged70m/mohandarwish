@@ -38,7 +38,7 @@ This is not a static one-pager. It's a full product:
 
 ## Key Features
 
-- **Project showcase CMS-driven** — projects, tags (with color + icon), contributors (with socials), images/videos all edited in the dashboard, mapped via `Data/projects.ts` (`mapDashboardDocToProject`)
+- **Project showcase CMS-driven** — projects, tags (with color + icon), contributors (with socials), images/videos all edited in the dashboard, mapped via `data/projects.ts` (`mapDashboardDocToProject`)
 - **Booking flow** — `BookButton` → `BookingModal` → custom time picker → `POST /api/booking` → availability check → Resend receipt to visitor + notification to owner → sync to dashboard
 - **Contact flow** — `POST /api/contact` with sanitization (`lib/sanitize.ts`), rate-limit friendly, stored in Supabase, emailed via Resend (`lib/email.ts`, `lib/replyEmail.ts`, `lib/receipt.ts`)
 - **Dashboard CMS** — token auth (`lib/dash-auth.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
@@ -69,20 +69,22 @@ See `DESIGN.md` for the full design system (palette, type scale, components, do/
 app/                  # App Router: page.tsx, layout.tsx, about/, projects/, dashboard/,
                       # mohanddarwish/, api/ (contact, booking, messages, track, dashboard/*)
 components/
-  hero/               # HeroSection, TextAnimated, portrait-morph
-  projects/           # ProjectsSection, cards, detail views
-  about/              # AboutSection + experience/education/skills/stack tabs
+  sections/           # landing sections (each with index.ts barrel):
+    hero/             # HeroSection, TextAnimated, PortraitMorph
+    projects/         # ProjectsSection, cards, detail views, DeveloperTab
+    about/            # AboutSection + Education/Experience/Skills/Stack tabs
+    contact/          # ContactCard + form
+    developer/        # Developer profile, GitHub stats/graphs, repos
   booking/            # BookButton, BookingModal, CustomTimePicker
-  contact/            # contact-card + form
-  dashboard/          # CMS modules (D-*, M-*) + Assistant
+  dashboard/          # CMS modules (D-*, M-*) + Assistant + primitives/
   cv/                 # CV modal
-  layouts/            # nav, providers (theme), path-memory, modal-viewport
-  ui/                 # button, card, badge, motion-primitives
+  layout/             # nav, providers (theme), path-memory, modal-viewport
+  ui/                 # button, badge, alert, selects, motion-primitives
   transitions/        # SectionTransition, SectionSlide, ScrollReveal, RouteCurtain
-Data/                 # me.ts (profile/socials), projects.ts (types + dashboard mapping)
-lib/                  # supabase client/server, booking, availability, email/resend,
-                      # receipt, metadata, analytics-types, dash-*
-hooks/ utils/ types/  # shared client logic
+data/                 # me.ts (profile/socials), projects.ts (types + dashboard mapping)
+lib/                  # supabase client/server, booking, availability, categories,
+                      # timezones, email/resend, receipt, metadata, dash-*
+hooks/ types/         # shared client logic (hooks/ has index.ts barrel)
 supabase/             # schema.sql, dashboard-schema.sql
 public/               # cv.pdf, me/* portraits, svgs/, site.webmanifest
 apps-script/          # companion Google Apps Script (if used for sheets/mail sync)
