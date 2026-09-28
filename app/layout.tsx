@@ -4,12 +4,12 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
-import { Nav } from "@/components/layouts/nav";
+import { Nav } from "@/components/layout/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
-import { PathMemory } from "@/components/layouts/path-memory";
-import { Providers } from "@/components/layouts/providers";
+import { PathMemory } from "@/components/layout/path-memory";
+import { Providers } from "@/components/layout/providers";
 import { TrailsTracker } from "@/components/dashboard/TrailsTracker";
-import { ModalViewport } from "@/components/layouts/modal-viewport";
+import { ModalViewport } from "@/components/layout/modal-viewport";
 import { RouteCurtain } from "@/components/transitions";
 import { Analytics } from "@vercel/analytics/next";
 

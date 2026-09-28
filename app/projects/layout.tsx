@@ -1,4 +1,4 @@
-import { ModalViewport } from "@/components/layouts/modal-viewport";
+import { ModalViewport } from "@/components/layout/modal-viewport";
 import type { ReactNode } from "react";
 
 export default function ProjectsLayout({

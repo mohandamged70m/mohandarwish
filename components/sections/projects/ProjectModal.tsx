@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { getBackgroundPath } from "@/components/layouts/path-memory";
+import { getBackgroundPath } from "@/components/layout/path-memory";
 import { useReducedMotion } from "@/lib/motion";
 
 type Props = {

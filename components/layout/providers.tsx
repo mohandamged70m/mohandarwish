@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
 import { ReducedMotionProvider, isMotionForced } from "@/lib/motion";
-import { SmoothScroll } from "@/components/layouts/smooth-scroll";
+import { SmoothScroll } from "@/components/layout/smooth-scroll";
 import { ThemeProvider } from "next-themes";
 
 export function Providers({ children }: { children: ReactNode }): ReactNode {
