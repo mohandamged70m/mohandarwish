@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FILTER_CATEGORIES } from "@/data/projects";
-import type { FilterCategory } from "@/data/projects";
+import type { FilterCategory, Project } from "@/data/projects";
 import { ProjectFilter } from "./ProjectFilter";
 import { ProjectCard } from "./ProjectCard";
 import { ProjectsHeader } from "./ProjectsHeader";
@@ -22,9 +22,9 @@ const DeveloperTab = dynamic(
   { ssr: false, loading: () => null }
 );
 
-export default function ProjectsSection() {
+export default function ProjectsSection({ initialProjects }: { initialProjects?: Project[] }) {
   const [active, setActive] = useState<FilterCategory>("Projects");
-  const { projects, loading } = useProjects();
+  const { projects, loading } = useProjects(initialProjects);
   const { repos: devRepos } = useDeveloperRepos();
 
   // Homepage: Projects = featured (top 6 by Listing), Developer = GitHub featured repos
@@ -126,7 +126,6 @@ export default function ProjectsSection() {
                   <ProjectCard
                     project={project}
                     featured={active === "Projects" && project.featured}
-                    eager={i === 0}
                     fluid
                   />
                 </motion.div>

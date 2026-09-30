@@ -6,6 +6,7 @@ import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { SectionSlide, SectionTransition } from "@/components/transitions";
 
 import { getStackServer } from "@/lib/profile-server";
+import { getProjectsServer } from "@/lib/projects-server";
 import { createMetadata } from "@/lib/metadata";
 
 export const revalidate = 3600;
@@ -28,8 +29,11 @@ const SECTIONS = [
 ] as const;
 
 export default async function Home() {
-  const [stack] = await Promise.all([
+  const [stack, projects] = await Promise.all([
     getStackServer(),
+    // Server-rendered project cards for instant first paint; the section's
+    // live subscriptions still attach client-side afterwards (see useProjects).
+    getProjectsServer().catch(() => []),
   ]);
 
   return (
@@ -42,7 +46,7 @@ export default async function Home() {
         </div>
         <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
           <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-            <ProjectsSection />
+            <ProjectsSection initialProjects={projects} />
           </SectionSlide>
         </div>
         <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">

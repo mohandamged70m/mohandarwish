@@ -1,8 +1,6 @@
 "use client";
 
 import { FileText, Moon, Sun } from "lucide-react";
-import gsap from "gsap";
-import { CustomEase } from "gsap/CustomEase";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -64,11 +62,39 @@ function syncNavState(
   panel.setAttribute("aria-hidden", String(!isOpen));
 }
 
-function ensureOsmoEase(): void {
-  gsap.registerPlugin(CustomEase);
-  if (!CustomEase.get("osmo")) {
-    CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
+// gsap (~114KB with easing) only animates the menu open/close choreography,
+// so it stays out of the initial bundle and loads on idle / toggle
+// hover-focus. Same timelines once loaded; an imperative snap covers the
+// rare race where the user toggles first.
+type GsapApi = {
+  gsap: typeof import("gsap").default;
+  CustomEase: typeof import("gsap/CustomEase").CustomEase;
+};
+
+let gsapCache: GsapApi | null = null;
+let gsapInflight: Promise<GsapApi> | null = null;
+
+function loadGsap(): Promise<GsapApi> {
+  if (gsapCache) return Promise.resolve(gsapCache);
+  if (!gsapInflight) {
+    gsapInflight = (async () => {
+      const [{ default: gsap }, { CustomEase }] = await Promise.all([
+        import("gsap"),
+        import("gsap/CustomEase"),
+      ]);
+      gsap.registerPlugin(CustomEase);
+      if (!CustomEase.get("osmo")) {
+        CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
+      }
+      gsapCache = { gsap, CustomEase };
+      return gsapCache;
+    })();
   }
+  return gsapInflight;
+}
+
+function prefetchGsap(): void {
+  void loadGsap();
 }
 
 function useIsMounted(): boolean {
@@ -197,8 +223,15 @@ export function Nav(): ReactNode {
 
   const [currentHash, setCurrentHash] = useState<string>("#hero");
   const [open, setOpen] = useState(false);
+  const [gsapReady, setGsapReady] = useState(false);
   const openRef = useRef(false);
   openRef.current = open;
+  // Dimensions cache: measuring forces a reflow (style write → offsetWidth
+  // read), so measure on mount/resize/font-load only — never per toggle.
+  const dimsRef = useRef<NavDims | null>(null);
+  // State already snapped imperatively while gsap was missing: skip the
+  // timeline once when gsap arrives so it doesn't replay visibly.
+  const snappedRef = useRef<boolean | null>(null);
 
   const closeMenu = useCallback((): void => {
     setOpen(false);
@@ -305,12 +338,24 @@ export function Nav(): ReactNode {
         const bar = barRef.current;
         if (!inner || !bar) return;
         const dims = measureNav(inner, bar);
+        dimsRef.current = dims;
+        // gsap loads lazily and may not be here yet: plain style writes
+        // are pixel-identical for these end-state snaps.
+        const g = gsapCache?.gsap;
         if (openRef.current) {
-          gsap.set(inner, { width: dims.openW, height: dims.openH });
+          if (g) g.set(inner, { width: dims.openW, height: dims.openH });
+          else {
+            inner.style.width = `${dims.openW}px`;
+            inner.style.height = `${dims.openH}px`;
+          }
         } else {
           tlRef.current?.kill();
           tlRef.current = null;
-          gsap.set(inner, { width: dims.closedW, height: dims.closedH });
+          if (g) g.set(inner, { width: dims.closedW, height: dims.closedH });
+          else {
+            inner.style.width = `${dims.closedW}px`;
+            inner.style.height = `${dims.closedH}px`;
+          }
         }
       }, 150);
     };
@@ -326,6 +371,8 @@ export function Nav(): ReactNode {
   }, []);
 
   // ---- Osmo expanding-bottom-nav animation, driven by React `open` state ----
+  // gsap itself loads lazily (see prefetch below): while it isn't here yet,
+  // toggles snap to the same end-state pixels with plain style writes.
   useEffect(() => {
     const nav = navRef.current;
     const inner = innerRef.current;
@@ -336,16 +383,64 @@ export function Nav(): ReactNode {
 
     if (open) hasOpenedRef.current = true;
 
+    // Snap helpers (gsap-free path): mirror the timeline end states.
+    const revealEls = () =>
+      Array.from(panel.querySelectorAll<HTMLElement>("[data-bottom-nav-reveal]"));
+    const snapShut = (dims: NavDims) => {
+      inner.style.width = `${dims.closedW}px`;
+      inner.style.height = `${dims.closedH}px`;
+      panel.style.visibility = "hidden";
+      panel.style.opacity = "0";
+      for (const el of revealEls()) {
+        el.style.visibility = "hidden";
+        el.style.opacity = "0";
+      }
+    };
+    const snapOpen = (dims: NavDims) => {
+      inner.style.width = `${dims.openW}px`;
+      inner.style.height = `${dims.openH}px`;
+      panel.style.visibility = "inherit";
+      panel.style.opacity = "1";
+      for (const el of revealEls()) {
+        el.style.visibility = "inherit";
+        el.style.opacity = "1";
+        el.style.transform = "";
+      }
+    };
+
     // Never animated yet and currently closed: snap shut, no timeline.
     if (!open && !hasOpenedRef.current) {
       const dims = measureNav(inner, bar);
-      gsap.set(inner, { width: dims.closedW, height: dims.closedH });
+      dimsRef.current = dims;
+      snapShut(dims);
       syncNavState(nav, toggle, panel, false);
       return;
     }
 
-    ensureOsmoEase();
-    const dims = measureNav(inner, bar);
+    // Already snapped to this exact state while gsap was missing: nothing
+    // to animate when the library arrives late.
+    if (snappedRef.current === open) {
+      snappedRef.current = null;
+      return;
+    }
+
+    if (!gsapCache) {
+      const dims = dimsRef.current ?? measureNav(inner, bar);
+      dimsRef.current = dims;
+      syncNavState(nav, toggle, panel, open);
+      if (open) snapOpen(dims);
+      else snapShut(dims);
+      snappedRef.current = open;
+      void loadGsap().then(() => setGsapReady(true));
+      return;
+    }
+
+    const { gsap } = gsapCache;
+    // Cached dims: measuring here would force a reflow on every toggle
+    // (write styles → read offsetWidth). Refresh happens on resize /
+    // font load instead (see effects below).
+    const dims = dimsRef.current ?? measureNav(inner, bar);
+    dimsRef.current = dims;
     syncNavState(nav, toggle, panel, open);
 
     const reduced =
@@ -441,7 +536,44 @@ export function Nav(): ReactNode {
       tl.kill();
       if (tlRef.current === tl) tlRef.current = null;
     };
-  }, [open]);
+  }, [open, gsapReady]);
+
+  // gsap travels off the critical path: idle prefetch (+ toggle
+  // hover/focus below) so the first menu open is usually still animated.
+  useEffect(() => {
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const kick = () => {
+      void loadGsap().then(() => setGsapReady(true));
+    };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(kick, { timeout: 8000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(kick, 5000);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  // Re-measure once webfonts settle (dims depend on rendered text size).
+  useEffect(() => {
+    let cancelled = false;
+    try {
+      void document.fonts?.ready.then(() => {
+        if (cancelled) return;
+        const inner = innerRef.current;
+        const bar = barRef.current;
+        if (!inner || !bar) return;
+        dimsRef.current = measureNav(inner, bar);
+      });
+    } catch {
+      // non-fatal: resize handler + toggle fallback still measure
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // close menu on route change
   useEffect(() => {
@@ -551,6 +683,8 @@ function scrollToSection(id: string, moveFocus = false): void {
               aria-label="open menu"
               aria-controls="bottom-nav-panel"
               onClick={toggleMenu}
+              onMouseEnter={prefetchGsap}
+              onFocus={prefetchGsap}
               className="bottom-nav__toggle focus-ring"
             >
               <span className="bottom-nav__toggle-bar is--top" />

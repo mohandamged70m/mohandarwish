@@ -135,6 +135,12 @@ export default function HeroSection() {
     let visible = true;
     let lastX = "0px";
     let lastY = "0px";
+    // Cache the hero rect: reading getBoundingClientRect on every
+    // pointermove forces a layout; refresh on scroll/resize instead.
+    let rect = hero.getBoundingClientRect();
+    const refreshRect = () => {
+      rect = hero.getBoundingClientRect();
+    };
 
     const locked = () =>
       document.documentElement.dataset.sectionTransition === "1";
@@ -142,7 +148,7 @@ export default function HeroSection() {
       if (!raf && visible) raf = requestAnimationFrame(frame);
     };
     const onMove = (e: PointerEvent) => {
-      const r = hero.getBoundingClientRect();
+      const r = rect;
       tx = -((e.clientX - r.left) / r.width - 0.5) * 24;
       ty = -((e.clientY - r.top) / r.height - 0.5) * 16;
       kick();
@@ -191,6 +197,8 @@ export default function HeroSection() {
 
     hero.addEventListener("pointermove", onMove);
     hero.addEventListener("pointerleave", onLeave);
+    window.addEventListener("scroll", refreshRect, { passive: true });
+    window.addEventListener("resize", refreshRect);
     raf = requestAnimationFrame(frame);
     return () => {
       io.disconnect();
@@ -199,6 +207,8 @@ export default function HeroSection() {
       raf = 0;
       hero.removeEventListener("pointermove", onMove);
       hero.removeEventListener("pointerleave", onLeave);
+      window.removeEventListener("scroll", refreshRect);
+      window.removeEventListener("resize", refreshRect);
     };
   }, []);
 
@@ -240,6 +250,7 @@ export default function HeroSection() {
           width={817}
           height={1379}
           priority
+          fetchPriority="high"
           sizes="(max-width: 488px) 86vw, (max-width: 768px) 420px, 520px"
           className="h-full w-full object-contain object-bottom drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
         />

@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "@/lib/dash-db";
-import { db } from "@/lib/dash-db";
 
 const GITHUB_USERNAME = "mohandamged70m";
 
@@ -22,8 +20,14 @@ export function useDeveloperRepos() {
 
   useEffect(() => {
     let cancelled = false;
+    let unsub: (() => void) | undefined;
 
-    const unsub = onSnapshot(
+    // dash-db (supabase transport) loads lazily so it stays out of the
+    // initial bundle; behavior once loaded is unchanged.
+    void (async () => {
+      const { doc, onSnapshot, db } = await import("@/lib/dash-db");
+      if (cancelled) return;
+      unsub = onSnapshot(
       doc(db, "Settings", "Developer"),
       async (snap) => {
         const names: string[] = snap.exists()
@@ -114,11 +118,12 @@ export function useDeveloperRepos() {
       () => {
         if (!cancelled) setLoading(false);
       }
-    );
+      );
+    })();
 
     return () => {
       cancelled = true;
-      unsub();
+      unsub?.();
     };
   }, []);
 
