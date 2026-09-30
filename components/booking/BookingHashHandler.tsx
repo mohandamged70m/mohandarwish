@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookingModal } from "./BookingModal";
+import dynamic from "next/dynamic";
+
+// Code-split like the hero's booking button: the modal renders nothing
+// while closed, so it stays out of the initial bundle (no SSR) on every
+// route that embeds this handler. Prefetched on idle by the hero.
+const BookingModal = dynamic(() => import("./BookingModal"), { ssr: false });
 
 export function BookingHashHandler() {
   const [open, setOpen] = useState(false);

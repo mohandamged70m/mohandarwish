@@ -326,6 +326,9 @@ function ChipPill({ chip }: { chip: Chip }): ReactNode {
           alt=""
           width={18}
           height={18}
+          // Below-fold stack icons: keep them (and React 19's auto-preload
+          // of them) from competing with the hero LCP on first paint.
+          fetchPriority="low"
           className="h-5 w-5"
           draggable={false}
         />

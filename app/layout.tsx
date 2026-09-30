@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Anton, Inter, JetBrains_Mono, Permanent_Marker, Space_Grotesk } from "next/font/google";
+import { Anton, Inter, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
@@ -17,12 +17,6 @@ import { ME } from "@/data/me";
 
 const inter = Inter({
   variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
   subsets: ["latin"],
   display: "swap",
 });
@@ -161,7 +155,7 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
     >
       <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         {/* Structured data: Person + WebSite (SEO + AI answer engines). */}

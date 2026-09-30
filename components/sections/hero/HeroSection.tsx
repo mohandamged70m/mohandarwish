@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import { BookingModal } from "@/components/booking/BookingModal";
+import dynamic from "next/dynamic";
 import { ME } from "@/data/me";
 import "./hero.css";
+
+// BookingModal pulls in motion + supabase + calendar UI but renders nothing
+// while closed, so it stays off the hero's initial bundle (dynamic, no SSR)
+// and is prefetched on idle / button hover-focus to keep first open instant.
+const BookingModal = dynamic(() => import("@/components/booking/BookingModal"), { ssr: false });
+
+function prefetchBookingModal() {
+  void import("@/components/booking/BookingModal");
+}
 
 // Name split verbatim from ME.name ("Mohand Darwish").
 const [FIRST_NAME, LAST_NAME] = ME.name.split(" ");
@@ -14,7 +23,9 @@ const ROLE_TEXT = ME.role;
 // Staggered letter-by-letter reveal. Parent line keeps overflow-hidden so
 // each char rises from below; delay = base + index * step gives the
 // sequential "hey → Mohand → Darwish → role" cascade.
-function Letters({
+// Pure presentational (props are primitives) — memoized so the 20s clock
+// tick and modal open/close don't re-reconcile ~50 letter spans.
+const Letters = memo(function Letters({
   text,
   base,
   step,
@@ -49,33 +60,58 @@ function Letters({
       )}
     </>
   );
+});
+
+// Module-scope: fixed locale/timezone, safe to share between SSR + ticks.
+const cairoTime = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Africa/Cairo",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+const cairoOffset = new Intl.DateTimeFormat("en", {
+  timeZone: "Africa/Cairo",
+  timeZoneName: "shortOffset",
+});
+
+function formatClock(now: Date): string {
+  const o =
+    cairoOffset.formatToParts(now).find((x) => x.type === "timeZoneName")
+      ?.value || "";
+  return cairoTime.format(now) + " · " + o.replace("GMT", "UTC");
 }
 
 export default function HeroSection() {
   const heroRef = useRef<HTMLElement | null>(null);
-  const [clock, setClock] = useState("");
+  // Live Cairo clock for the location pill. Seeded during render (SSR +
+  // hydration) so the pill has its final fixed-length content on first paint
+  // instead of popping from "" → time (CLS). Monospace pill text never
+  // changes width, so the immediate tick + suppressHydrationWarning below are
+  // shift-free even if a minute boundary falls between SSR and hydration.
+  const [clock, setClock] = useState(() => formatClock(new Date()));
   const [bookingOpen, setBookingOpen] = useState(false);
 
-  // Live Cairo clock for the location pill.
   useEffect(() => {
-    const tf = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Africa/Cairo",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const of2 = new Intl.DateTimeFormat("en", {
-      timeZone: "Africa/Cairo",
-      timeZoneName: "shortOffset",
-    });
     const tick = () => {
-      const o =
-        of2.formatToParts(new Date()).find((x) => x.type === "timeZoneName")
-          ?.value || "";
-      setClock(tf.format(new Date()) + " · " + o.replace("GMT", "UTC"));
+      setClock(formatClock(new Date()));
     };
     tick();
     const id = setInterval(tick, 20000);
     return () => clearInterval(id);
+  }, []);
+
+  // Prefetch the booking chunk off the critical path (hover/focus on the
+  // button covers intent even earlier). No visual effect.
+  useEffect(() => {
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(prefetchBookingModal, { timeout: 8000 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(prefetchBookingModal, 5000);
+    return () => window.clearTimeout(t);
   }, []);
 
   // Subtle pointer parallax only — skipped for prefers-reduced-motion.
@@ -83,6 +119,10 @@ export default function HeroSection() {
   // skips DOM writes when settled, so it never churns style recalc under
   // the section curtain / slide transitions. Eases back to neutral while
   // a transition runs instead of fighting the slide animation.
+  // Perf: the rAF loop parks (no scheduled frame) once px/py settle on
+  // target instead of spinning forever; pointermove/leave, visibility, and
+  // the section-transition lock (MutationObserver) kick it back awake.
+  // Easing constants are untouched, so motion is pixel-identical.
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -96,6 +136,8 @@ export default function HeroSection() {
     let lastX = "0px";
     let lastY = "0px";
 
+    const locked = () =>
+      document.documentElement.dataset.sectionTransition === "1";
     const kick = () => {
       if (!raf && visible) raf = requestAnimationFrame(frame);
     };
@@ -112,9 +154,9 @@ export default function HeroSection() {
     const frame = () => {
       raf = 0;
       if (!visible) return;
-      const locked = document.documentElement.dataset.sectionTransition === "1";
-      const gx = locked ? 0 : tx;
-      const gy = locked ? 0 : ty;
+      const isLocked = locked();
+      const gx = isLocked ? 0 : tx;
+      const gy = isLocked ? 0 : ty;
       px += (gx - px) * 0.08;
       py += (gy - py) * 0.08;
       if (Math.abs(gx - px) < 0.02) px = gx;
@@ -127,7 +169,8 @@ export default function HeroSection() {
         lastX = sx;
         lastY = sy;
       }
-      raf = requestAnimationFrame(frame);
+      // Park when settled; kick() restarts on next input/visibility/lock.
+      if (px !== gx || py !== gy) raf = requestAnimationFrame(frame);
     };
 
     const io = new IntersectionObserver(
@@ -139,11 +182,19 @@ export default function HeroSection() {
     );
     io.observe(hero);
 
+    // Re-awaken when the pager curtain locks/unlocks the parallax target.
+    const mo = new MutationObserver(kick);
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-section-transition"],
+    });
+
     hero.addEventListener("pointermove", onMove);
     hero.addEventListener("pointerleave", onLeave);
     raf = requestAnimationFrame(frame);
     return () => {
       io.disconnect();
+      mo.disconnect();
       cancelAnimationFrame(raf);
       raf = 0;
       hero.removeEventListener("pointermove", onMove);
@@ -189,7 +240,7 @@ export default function HeroSection() {
           width={817}
           height={1379}
           priority
-          unoptimized
+          sizes="(max-width: 488px) 86vw, (max-width: 768px) 420px, 520px"
           className="h-full w-full object-contain object-bottom drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
         />
       </div>
@@ -215,11 +266,13 @@ export default function HeroSection() {
             aria-hidden="true"
             className="h-2 w-2 animate-[mh-pl_1.8s_ease-in-out_infinite] rounded-full bg-accent-text shadow-[0_0_10px_var(--accent-ring)]"
           />
-          {ME.location} <b className="font-medium text-text-secondary">{clock}</b>
+          {ME.location} <b suppressHydrationWarning className="font-medium text-text-secondary">{clock}</b>
         </span>
         <button
           type="button"
           onClick={() => setBookingOpen(true)}
+          onMouseEnter={prefetchBookingModal}
+          onFocus={prefetchBookingModal}
           data-track="contact-open"
           className="flex cursor-pointer items-center gap-2 rounded-full border border-accent bg-accent px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-on-accent no-underline shadow-[0_0_20px_var(--accent-ring)] backdrop-blur-[6px] transition-colors hover:border-accent-hover hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >

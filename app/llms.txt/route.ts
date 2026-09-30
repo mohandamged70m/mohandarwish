@@ -11,10 +11,10 @@ export async function GET(): Promise<Response> {
     const projects = await getProjectsServer();
     projectLines = projects
       .slice(0, 30)
-      .map((p) => `- ${p.title} (${p.category}): ${base}${p.href}`)
+      .map((p) => `- [${p.title}](${base}${p.href}) (${p.category})`)
       .join("\n");
   } catch {
-    projectLines = `- Full archive: ${base}/projects`;
+    projectLines = `- [Full archive](${base}/projects)`;
   }
 
   const body = `# ${ME.name}
@@ -27,30 +27,30 @@ ${siteConfig.description}
 - Role: ${ME.role}
 - Location: ${ME.location} · ${ME.timezone}
 - Availability: ${ME.availability}
-- Email: ${ME.email}
-- Website: ${base}
-- Profiles: ${ME.socials.github} · ${ME.socials.linkedin} · ${ME.socials.x}
+- Email: [${ME.email}](mailto:${ME.email})
+- Website: [${base}](${base}/)
+- Profiles: [GitHub](${ME.socials.github}) · [LinkedIn](${ME.socials.linkedin}) · [X](${ME.socials.x})
 
 ## Expertise
 Next.js, React, TypeScript, Node.js, full-stack product development,
 design systems, web performance, accessibility.
 
 ## Pages
-- Home: ${base}/
-- All projects: ${base}/projects
-- CV: ${base}${ME.cvUrl}
+- [Home](${base}/)
+- [All projects](${base}/projects)
+- [CV](${base}${ME.cvUrl})
 
 ## Selected projects
 ${projectLines}
 
 ## Contact
-Book a call via the booking section on the site (${base}/#booking),
-message via the contact form, or email ${ME.email} directly.
+[Book a call](${base}/#booking) via the booking section on the site,
+message via the contact form, or email [${ME.email}](mailto:${ME.email}) directly.
 `;
 
   return new Response(body, {
     headers: {
-      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Type": "text/markdown; charset=utf-8",
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
     },
   });

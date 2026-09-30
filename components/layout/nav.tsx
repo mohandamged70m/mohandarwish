@@ -563,6 +563,11 @@ function scrollToSection(id: string, moveFocus = false): void {
           ref={panelRef}
           id="bottom-nav-panel"
           aria-hidden="true"
+          // Closed panel is clipped (not display:none) but still in the DOM:
+          // inert keeps its links out of the tab order and accessibility
+          // tree until opened. No visual effect; aria-hidden sync stays in
+          // syncNavState. React renders this SSR-correct (open=false).
+          inert={!open}
           data-bottom-nav-panel
           className="bottom-nav__panel"
         >
