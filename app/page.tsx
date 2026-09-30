@@ -1,4 +1,5 @@
-﻿import HeroSection from "@/components/sections/hero/HeroSection";
+﻿import { Suspense } from "react";
+import HeroSection from "@/components/sections/hero/HeroSection";
 import ProjectsSection from "@/components/sections/projects/ProjectsSection";
 import { StackSection } from "@/components/sections/stack/StackSection";
 import { ContactCard } from "@/components/sections/contact/ContactCard";
@@ -28,14 +29,7 @@ const SECTIONS = [
   { id: "contact-wrap", label: "Contact" },
 ] as const;
 
-export default async function Home() {
-  const [stack, projects] = await Promise.all([
-    getStackServer(),
-    // Server-rendered project cards for instant first paint; the section's
-    // live subscriptions still attach client-side afterwards (see useProjects).
-    getProjectsServer().catch(() => []),
-  ]);
-
+export default function Home() {
   return (
     <SectionTransition sections={[...SECTIONS]}>
       <div className="w-full max-w-full min-w-0 overflow-x-hidden">
@@ -46,14 +40,16 @@ export default async function Home() {
         </div>
         <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
           <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-            <ProjectsSection initialProjects={projects} />
+            <Suspense fallback={null}>
+              <ProjectsData />
+            </Suspense>
           </SectionSlide>
         </div>
         <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
           <SectionSlide section="stack-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-            <StackSection
-              stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
-            />
+            <Suspense fallback={null}>
+              <StackData />
+            </Suspense>
           </SectionSlide>
         </div>
         <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
@@ -64,5 +60,26 @@ export default async function Home() {
         <BookingHashHandler />
       </div>
     </SectionTransition>
+  );
+}
+
+// Below-fold data streams in after the hero: these async Server Components
+// suspend independently, so the hero HTML (and the LCP image preload) flush
+// to the browser without waiting on Supabase. Same server-rendered cards and
+// client live subscriptions as before — just no longer TTFB-blocking.
+// Wrappers stay min-h-100svh, so late arrival causes no layout shift.
+async function ProjectsData() {
+  // Server-rendered project cards for instant first paint; the section's
+  // live subscriptions still attach client-side afterwards (see useProjects).
+  const projects = await getProjectsServer().catch(() => []);
+  return <ProjectsSection initialProjects={projects} />;
+}
+
+async function StackData() {
+  const stack = await getStackServer();
+  return (
+    <StackSection
+      stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
+    />
   );
 }

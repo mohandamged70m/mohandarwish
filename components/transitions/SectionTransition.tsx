@@ -433,11 +433,11 @@ function SectionCurtain({
           {letters.map((ch, i) => (
             <motion.span
               key={i}
-              initial={{ opacity: 0, y: '110%', filter: 'blur(6px)' }}
+              initial={{ opacity: 0, y: '110%' }}
               animate={
                 stage === 'cover'
-                  ? { opacity: 0, y: '110%', filter: 'blur(6px)' }
-                  : { opacity: 1, y: '0%', filter: 'blur(0px)' }
+                  ? { opacity: 0, y: '110%' }
+                  : { opacity: 1, y: '0%' }
               }
               transition={{ delay: 0.08 + i * 0.035, duration: 0.32, ease: EASE }}
               className="inline-block will-change-transform"
@@ -453,7 +453,7 @@ function SectionCurtain({
 }
 
 // Slide layer (parallel to the curtain): when this section becomes the pager
-// target, its content settles in with a rise + unblur — no remount, so
+// target, its content settles in with a rise + fade — no remount, so
 // carousel state, tabs and hooks are preserved.
 export function SectionSlide({
   section,
@@ -474,18 +474,32 @@ export function SectionSlide({
 
   useEffect(() => {
     if (reduceMotion) return;
+    if (activeId !== section) return;
     const key = `${cycle}:${activeId}`;
     if (seenKey.current === key) return;
-    if (activeId !== section) return;
     seenKey.current = key;
-    controls.set({ y: direction * 44, filter: 'blur(6px)' });
+    // Initial page load (cycle 0): paint sharp immediately instead of
+    // set-hidden-then-rise. Skips the flash over the hero and keeps first
+    // paint fast; the rise still plays on later pager arrivals (cycle > 0).
+    // Opacity + transform only — never filter/blur, which forces full
+    // repaints every frame and stutters on whole-viewport sections.
+    if (cycle === 0) {
+      controls.set({ y: 0, opacity: 1 });
+      return;
+    }
+    controls.set({ y: direction * 44, opacity: 0 });
     controls
-      .start({ y: 0, filter: 'blur(0px)', transition: { duration: 0.55, ease: EASE } })
+      .start({ y: 0, opacity: 1, transition: { duration: 0.55, ease: EASE } })
       .catch(() => {
         // transition superseded — safe to ignore
       });
     return () => {
       controls.stop();
+      // StrictMode (dev) mounts → cleanups → remounts: without this reset
+      // the guard above treats the cancelled first run as done and the
+      // inline blur(6px) stays stuck until the next navigation. Resetting
+      // lets the remount replay the entrance to completion.
+      seenKey.current = '';
     };
   }, [activeId, cycle, direction, section, controls, reduceMotion]);
 
@@ -493,7 +507,6 @@ export function SectionSlide({
     <motion.div
       animate={controls}
       initial={false}
-      style={{ willChange: 'transform, filter' }}
       className={className}
     >
       {children}

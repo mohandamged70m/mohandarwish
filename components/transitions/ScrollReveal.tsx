@@ -15,14 +15,15 @@ type ScrollRevealProps = {
   once?: boolean;
 };
 
-// Scroll-driven blur + rise reveal for whole-page sections.
-// Wraps a section block: fades, rises, unblurs and unclips on enter.
+// Scroll-driven rise reveal for whole-page sections.
+// Wraps a section block: fades and rises on enter. Transform + opacity
+// only — animating blur() forces full repaints every frame and stutters,
+// so the legacy `blur` prop is accepted but ignored.
 export function ScrollReveal({
   children,
   className,
   delay = 0,
   y = 28,
-  blur = 8,
   duration = 0.7,
   once = true,
 }: ScrollRevealProps) {
@@ -52,11 +53,11 @@ export function ScrollReveal({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y, filter: 'blur(' + blur + 'px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      initial={{ opacity: 0, y }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once, margin: '-80px' }}
       transition={{ duration, delay, ease: EASE }}
-      style={{ willChange: 'opacity, transform, filter' }}
+      style={{ willChange: 'opacity, transform' }}
       className={className}
     >
       {children}

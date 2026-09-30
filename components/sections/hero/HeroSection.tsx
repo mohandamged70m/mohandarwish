@@ -241,8 +241,13 @@ export default function HeroSection() {
         </span>
       </div>
 
+      {/* LCP image: paints immediately at its final position — no opacity-0 /
+          delayed entrance (an opacity-gated LCP candidate inflates render
+          delay by the full animation time). The pointer parallax transform
+          is compositor-only and LCP-safe. Section-level motion on pager
+          arrivals still comes from SectionSlide. */}
       <div
-        className="mh-me pointer-events-none bottom-0 left-[48%] z-[3] h-[88%] w-[min(86vw,420px)] animate-[mh-rise_1s_cubic-bezier(0.2,0.8,0.2,1)_0.15s_forwards] opacity-0 [transform:translate(calc(-50%+var(--px)/-3),36px)] md:w-[520px]"
+        className="mh-me pointer-events-none bottom-0 left-[48%] z-[3] h-[88%] w-[min(86vw,420px)] [transform:translate(calc(-50%+var(--px)/-3),0)] md:w-[520px]"
       >
         <Image
           src="/me/mohand-cutout.png"

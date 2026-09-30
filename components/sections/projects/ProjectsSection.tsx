@@ -22,6 +22,12 @@ const DeveloperTab = dynamic(
   { ssr: false, loading: () => null }
 );
 
+// Warms the Developer chunk on hover/focus intent so the first tab click
+// never pays dynamic-import (animejs + graph) + mount inside one frame.
+function prefetchDeveloperTab() {
+  void import("./DeveloperTab");
+}
+
 export default function ProjectsSection({ initialProjects }: { initialProjects?: Project[] }) {
   const [active, setActive] = useState<FilterCategory>("Projects");
   const { projects, loading } = useProjects(initialProjects);
@@ -157,7 +163,7 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
         >
           {/* filter navbar — center bottom */}
           <div className="flex w-full min-w-0 justify-center">
-            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} />
+            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} onPreviewCategory={(c) => { if (c === "Developer") prefetchDeveloperTab(); }} />
           </div>
           <Link href="/projects" aria-label="See all projects">
             <Button

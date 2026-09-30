@@ -9,6 +9,9 @@ type Props = {
   active: FilterCategory;
   onChange: (c: FilterCategory) => void;
   counts?: Record<FilterCategory, number>;
+  // Warm the chunk behind a tab before it's clicked (hover/focus intent),
+  // so the first click never pays dynamic-import + mount in one frame.
+  onPreviewCategory?: (c: FilterCategory) => void;
 };
 
 const defaultCounts: Record<FilterCategory, number> = {
@@ -16,7 +19,7 @@ const defaultCounts: Record<FilterCategory, number> = {
   Developer: 0,
 };
 
-export function ProjectFilter({ categories, active, onChange, counts = defaultCounts }: Props) {
+export function ProjectFilter({ categories, active, onChange, counts = defaultCounts, onPreviewCategory }: Props) {
   const listRef = useRef<HTMLDivElement>(null);
   const btnRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [pill, setPill] = useState<{ x: number; w: number } | null>(null);
@@ -60,8 +63,16 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
     return () => cancelAnimationFrame(id);
   }, [pill]);
 
-  // keep active tab visible when filter changes or overflows
+  // keep active tab visible when the user switches tabs.
+  // Never on mount: this section starts below the fold, and
+  // scrollIntoView(block:"nearest") would otherwise yank a fresh page load
+  // down from the hero to the filter bar (landing straddled between hero
+  // and projects). Comparing against the previous index (instead of a
+  // one-shot flag) also survives StrictMode remounts, whose refs persist.
+  const prevIdxRef = useRef(activeIdx);
   useEffect(() => {
+    if (prevIdxRef.current === activeIdx) return;
+    prevIdxRef.current = activeIdx;
     const el = activeIdx >= 0 ? btnRefs.current[activeIdx] : null;
     if (!el) return;
     // scroll into view centered, smooth unless reduced motion
@@ -138,6 +149,8 @@ export function ProjectFilter({ categories, active, onChange, counts = defaultCo
               aria-selected={isActive}
               tabIndex={isActive ? 0 : -1}
               onClick={() => onChange(cat)}
+              onMouseEnter={() => onPreviewCategory?.(cat)}
+              onFocus={() => onPreviewCategory?.(cat)}
               className={`relative z-10 inline-flex shrink-0 snap-start items-center gap-1.5 rounded-sm px-4 sm:px-5 min-h-11 py-2.5 text-[13px] sm:text-sm font-heading font-medium transition-colors duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface whitespace-nowrap
                 ${isActive ? "text-text-on-accent" : "text-text-secondary hover:text-text-primary"}`}
             >
