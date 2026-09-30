@@ -5,6 +5,14 @@
 
 @keyframes mh-up { to { transform: none; } }
 
+/* Letter-by-letter rise for every hero text line. Each char starts clipped
+ * below its overflow-hidden line and springs up with a per-letter delay
+ * set inline from HeroSection.tsx. */
+@keyframes mh-letter {
+  from { transform: translateY(110%) rotate(5deg); opacity: 0; }
+  to { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+}
+
 @keyframes mh-rise {
   to { opacity: 1; transform: translate(calc(-50% + var(--px) / -3), 0); }
 }
@@ -27,12 +35,21 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Compress every hero animation (including the infinite pulse dot, which
-   * is forced to a single quick run instead of looping). Pointer parallax
-   * is already skipped in JS under reduced motion. */
-  section[aria-label="Introduction"] [class*="animate-"] {
+  /* Every hero animation compresses to instant — EXCEPT the letter
+   * stagger (data-mh-letter), which the user explicitly requested.
+   * Letters use a gentle opacity-only fade with their stagger delays
+   * preserved, so no vestibular motion but still letter-by-letter. */
+  section[aria-label="Introduction"] [class*="animate-"]:not([data-mh-letter]) {
     animation-duration: 0.01s !important;
     animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
   }
+  section[aria-label="Introduction"] [data-mh-letter] {
+    animation-name: mh-letter-fade !important;
+    animation-duration: 0.3s !important;
+    animation-iteration-count: 1 !important;
+    transform: none !important;
+  }
 }
+
+@keyframes mh-letter-fade { from { opacity: 0; } to { opacity: 1; } }

@@ -8,6 +8,48 @@ import "./hero.css";
 
 // Name split verbatim from ME.name ("Mohand Darwish").
 const [FIRST_NAME, LAST_NAME] = ME.name.split(" ");
+const HEY_TEXT = "hey, i'm";
+const ROLE_TEXT = ME.role;
+
+// Staggered letter-by-letter reveal. Parent line keeps overflow-hidden so
+// each char rises from below; delay = base + index * step gives the
+// sequential "hey → Mohand → Darwish → role" cascade.
+function Letters({
+  text,
+  base,
+  step,
+  duration = 0.7,
+}: {
+  text: string;
+  base: number;
+  step: number;
+  duration?: number;
+}) {
+  return (
+    <>
+      {text.split("").map((ch, i) =>
+        ch === " " ? (
+          <span key={i} aria-hidden="true" className="inline-block">
+            &nbsp;
+          </span>
+        ) : (
+          <span
+            key={i}
+            aria-hidden="true"
+            className="inline-block animate-[mh-letter_0.7s_cubic-bezier(0.2,0.8,0.2,1)_forwards] [opacity:0] [transform:translateY(110%)_rotate(5deg)]"
+            data-mh-letter
+            style={{
+              animationDelay: `${(base + i * step).toFixed(3)}s`,
+              animationDuration: `${duration}s`,
+            }}
+          >
+            {ch}
+          </span>
+        )
+      )}
+    </>
+  );
+}
 
 export default function HeroSection() {
   const heroRef = useRef<HTMLElement | null>(null);
@@ -124,8 +166,8 @@ export default function HeroSection() {
         aria-hidden="true"
         className="mh-nm left-[4vw] top-[15%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
       >
-        <span className="block animate-[mh-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.25s_forwards] [transform:translateY(108%)]">
-          {FIRST_NAME}
+        <span className="block">
+          <Letters text={FIRST_NAME} base={0.55} step={0.06} />
         </span>
       </div>
       <div
@@ -133,8 +175,8 @@ export default function HeroSection() {
         aria-hidden="true"
         className="mh-nm right-[1vw] top-[47%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
       >
-        <span className="block animate-[mh-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.5s_forwards] [transform:translateY(108%)]">
-          {LAST_NAME}
+        <span className="block">
+          <Letters text={LAST_NAME} base={1.0} step={0.06} />
         </span>
       </div>
 
@@ -153,18 +195,20 @@ export default function HeroSection() {
       </div>
 
       <p
-        className="mh-hw mh-hey pointer-events-none left-[4.4vw] top-[8.5%] z-[4] animate-[mh-fade_0.8s_ease_1.4s_forwards] font-hero-hand text-[1.9vw] uppercase text-accent-text opacity-0 [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-4deg)]"
+        aria-hidden="true"
+        className="mh-hw mh-hey pointer-events-none left-[4.4vw] top-[8.5%] z-[4] overflow-hidden px-[0.1em] py-[0.15em] font-hero-hand text-[1.9vw] uppercase text-accent-text [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-4deg)]"
       >
-        hey, i&apos;m
+        <Letters text={HEY_TEXT} base={0.15} step={0.035} duration={0.55} />
       </p>
       <p
-        className="mh-hw mh-tag pointer-events-none right-[5vw] top-[8%] z-[4] animate-[mh-fade_0.8s_ease_1.7s_forwards] text-right font-hero-hand text-[2vw] uppercase leading-[1.1] text-accent-text opacity-0 [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-3deg)]"
+        aria-hidden="true"
+        className="mh-hw mh-tag pointer-events-none right-[5vw] top-[8%] z-[4] overflow-hidden px-[0.1em] py-[0.15em] text-right font-hero-hand text-[2vw] uppercase leading-[1.1] text-accent-text [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-3deg)]"
       >
-        {ME.role}
+        <Letters text={ROLE_TEXT} base={1.55} step={0.018} duration={0.55} />
       </p>
 
       <div
-        className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.1s_forwards] flex-wrap gap-[10px] opacity-0"
+        className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.6s_forwards] flex-wrap gap-[10px] opacity-0"
       >
         <span className="flex items-center gap-2 rounded-full border border-border bg-[color-mix(in_srgb,var(--bg-surface)_82%,transparent)] px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-primary no-underline backdrop-blur-[6px]">
           <i
