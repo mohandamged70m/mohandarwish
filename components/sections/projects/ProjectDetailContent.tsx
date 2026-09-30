@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { sanitizeSvg } from "@/lib/sanitize";
 import { GlassPanel } from "./GlassPanel";
+import { ScrollReveal } from "@/components/transitions/ScrollReveal";
 import { ProjectMediaCarousel } from "./ProjectMediaCarousel";
 import { useProjectModal } from "./ProjectModal";
 
@@ -120,7 +121,7 @@ function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconS
 type Props = { project: Project };
 
 export function ProjectDetailContent({ project }: Props) {
-  const { setActiveMedia, isMobile } = useProjectModal();
+  const { setActiveMedia, isMobile, inModal } = useProjectModal();
   const [windowWidth, setWindowWidth] = useState(1024);
 
   useEffect(() => {
@@ -152,6 +153,10 @@ export function ProjectDetailContent({ project }: Props) {
     const src = media[idx];
     if (src && !isVideoFile(src)) setActiveMedia(src);
   };
+
+  // Full detail pages get scroll reveals on the content matrix; inside the
+  // modal the morph + Motion fade own the transition, so no extra wrapper.
+  const MatrixReveal = inModal ? Fragment : ScrollReveal;
 
   return (
     <div className="flex w-full flex-col">
@@ -207,12 +212,16 @@ export function ProjectDetailContent({ project }: Props) {
           }}
         >
           <div
+            data-morph-hero
             style={{
               position: "relative",
               width: "100%",
               borderRadius: isMobile ? 16 : 32,
               overflow: "hidden",
               background: "#000",
+              // Morph target for the card -> modal shared transition.
+              // Only inside the modal; full detail pages stay out of it.
+              ...(inModal ? { viewTransitionName: "project-morph" } : null),
             }}
           >
             <ProjectMediaCarousel media={media} onIndexChange={handleIndexChange} isMobile={isMobile} />
@@ -257,6 +266,7 @@ export function ProjectDetailContent({ project }: Props) {
       </div>
 
       {/* CONTENT MATRIX */}
+      <MatrixReveal>
       <div
         style={{
           display: "grid",
@@ -528,6 +538,7 @@ export function ProjectDetailContent({ project }: Props) {
           )}
         </div>
       </div>
+      </MatrixReveal>
     </div>
   );
 }

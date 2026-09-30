@@ -1,6 +1,7 @@
 import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { Projects } from "@/components/sections/projects/Projects";
 import { FadeIn } from "@/components/ui/motion-primitives";
+import { ScrollReveal } from "@/components/transitions";
 import { createMetadata } from "@/lib/metadata";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -34,7 +35,9 @@ export default function ProjectsPage(): ReactNode {
           </p>
         </FadeIn>
       </section>
-      <Projects />
+      <ScrollReveal>
+        <Projects />
+      </ScrollReveal>
       <ContactCard />
       <div className="h-12 sm:h-16" />
     </main>

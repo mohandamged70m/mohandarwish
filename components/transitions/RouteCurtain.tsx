@@ -13,6 +13,17 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const HOLD_MS = 550;
 const EXIT_MS = 420;
 
+// Project modals are intercepting routes (URL changes but the page stays put
+// under a shared-element morph) — a full curtain wipe on top would bury the
+// morph, so those navigations never trigger the curtain.
+function isModalNav(a: string | null, b: string | null): boolean {
+  const isDetail = (p: string | null): boolean =>
+    !!p && p !== '/projects' && p.startsWith('/projects/');
+  const isBase = (p: string | null): boolean =>
+    p === '/' || p === '/projects';
+  return (isDetail(a) && (isBase(b) || isDetail(b))) || (isDetail(b) && isBase(a));
+}
+
 // Awwwards-style curtain wipe: wine panel + dark trailing panel sweep up
 // to reveal the new route. Enter-only (App Router has no exit hooks) —
 // on pathname change we cover instantly then slide away.
@@ -25,12 +36,15 @@ export function RouteCurtain() {
   const [stage, setStage] = useState<'cover' | 'exit'>('cover');
 
   // Adjust state during render (React-endorsed prev-comparison pattern):
-  // a new pathname starts a new wipe cycle. No wipe on first mount.
+  // a new pathname starts a new wipe cycle. No wipe on first mount, and no
+  // wipe for modal open/close (the morph owns that transition).
   if (prevPath !== pathname && !reduceMotion) {
     setPrevPath(pathname);
-    setCycle((c) => c + 1);
-    setStage('cover');
-    setVisible(true);
+    if (!isModalNav(prevPath, pathname)) {
+      setCycle((c) => c + 1);
+      setStage('cover');
+      setVisible(true);
+    }
   }
 
   // Cover + hold, then lift away, then unmount.

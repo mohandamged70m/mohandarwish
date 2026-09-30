@@ -1,0 +1,38 @@
+/* New hero — keyframes only. All static styling lives in Tailwind utilities
+ * in HeroSection.tsx (portfolio tokens: bg-bg-primary, text-text-primary,
+ * text-accent-text, border-border, bg-accent, …). Nothing here targets the
+ * rest of the site. */
+
+@keyframes mh-up { to { transform: none; } }
+
+@keyframes mh-rise {
+  to { opacity: 1; transform: translate(calc(-50% + var(--px) / -3), 0); }
+}
+
+@keyframes mh-fade { to { opacity: 1; } }
+
+@keyframes mh-pl { 50% { opacity: 0.35; } }
+
+/* Portrait / narrow screens (original used max-aspect-ratio: 1/1 — not
+ * expressible as a Tailwind variant, so it lives here). Scoped to the hero
+ * section; hook classes (mh-nm, mh-me, …) carry no base styles themselves. */
+@media (max-aspect-ratio: 1/1) {
+  section[aria-label="Introduction"] .mh-nm { font-size: 21vw; }
+  section[aria-label="Introduction"] #mh-a { top: 12%; left: 5vw; }
+  section[aria-label="Introduction"] #mh-b { top: 24%; right: 4vw; }
+  section[aria-label="Introduction"] .mh-me { height: 64%; left: 50%; }
+  section[aria-label="Introduction"] .mh-hey { font-size: 4.4vw; top: 7.5%; left: 5.5vw; }
+  section[aria-label="Introduction"] .mh-tag { font-size: 3.6vw; top: auto; bottom: 22%; right: 5vw; }
+  section[aria-label="Introduction"] .mh-pills { bottom: 9%; left: 5vw; right: 5vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Compress every hero animation (including the infinite pulse dot, which
+   * is forced to a single quick run instead of looping). Pointer parallax
+   * is already skipped in JS under reduced motion. */
+  section[aria-label="Introduction"] [class*="animate-"] {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+  }
+}

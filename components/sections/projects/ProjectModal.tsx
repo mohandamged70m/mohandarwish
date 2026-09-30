@@ -7,24 +7,34 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import type { ReactNode } from "react";
 import { getBackgroundPath } from "@/components/layout/path-memory";
 import { useReducedMotion } from "@/lib/motion";
+import {
+  canMorph,
+  findCardMorphImg,
+  transitionOrUpdate,
+  untagMorph,
+} from "@/lib/view-transitions";
 
 type Props = {
   children: ReactNode;
   backHref: string;
   marker?: string;
   initialMedia?: string;
+  /** Project id — used to re-tag the originating card so close morphs back. */
+  projectId?: string;
 };
 
 type ModalCtx = {
   activeMedia: string | null;
   setActiveMedia: (src: string | null) => void;
   isMobile: boolean;
+  /** True when rendered inside the modal (vs. full detail page). */
+  inModal: boolean;
 };
 
-const Ctx = createContext<ModalCtx>({ activeMedia: null, setActiveMedia: () => {}, isMobile: false });
+const Ctx = createContext<ModalCtx>({ activeMedia: null, setActiveMedia: () => {}, isMobile: false, inModal: false });
 export const useProjectModal = () => useContext(Ctx);
 
-export function ProjectModal({ children, backHref, marker, initialMedia }: Props) {
+export function ProjectModal({ children, backHref, marker, initialMedia, projectId }: Props) {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -46,25 +56,41 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
     const bg = getBackgroundPath();
     const bgPathOnly = (bg?.split("?")[0]?.split("#")[0]) ?? "";
     const isDetailBg = /^\/projects\/p\d+$/.test(bgPathOnly);
-    if (bg && !isDetailBg && bg !== "/" && bg !== "/#projects" && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    let target = bg && !isDetailBg ? bg : backHref;
-    if (target === "/") target = "/#projects";
-    const hasHash = target.includes("#");
-    if (hasHash) {
-      router.push(target);
-      const hashId = target.split("#")[1];
-      if (hashId) {
-        window.setTimeout(() => {
-          document.getElementById(hashId)?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 80);
+    const navigate = (): void => {
+      if (bg && !isDetailBg && bg !== "/" && bg !== "/#projects" && window.history.length > 1) {
+        router.back();
+        return;
       }
-    } else {
-      router.push(target, { scroll: false });
+      let target = bg && !isDetailBg ? bg : backHref;
+      if (target === "/") target = "/#projects";
+      const hasHash = target.includes("#");
+      if (hasHash) {
+        router.push(target);
+        const hashId = target.split("#")[1];
+        if (hashId) {
+          window.setTimeout(() => {
+            document.getElementById(hashId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 80);
+        }
+      } else {
+        router.push(target, { scroll: false });
+      }
+    };
+    // Shared-element close: re-tag the originating card so the modal hero
+    // morphs back into it. No card (direct link open) or no VT support →
+    // plain navigation; the Motion fade is the fallback either way.
+    if (projectId && canMorph()) {
+      const img = findCardMorphImg(projectId);
+      if (img) {
+        img.style.viewTransitionName = "project-morph";
+        void transitionOrUpdate(navigate).finally(() => {
+          untagMorph(img);
+        });
+        return;
+      }
     }
-  }, [router, backHref]);
+    navigate();
+  }, [router, backHref, projectId]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -99,7 +125,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia }: Props
       style={{ fontFamily: "var(--font-body)", WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       data-lenis-prevent
     >
-      <Ctx.Provider value={{ activeMedia, setActiveMedia, isMobile }}>
+      <Ctx.Provider value={{ activeMedia, setActiveMedia, isMobile, inModal: true }}>
         {/* backdrop */}
         <motion.div
           aria-hidden

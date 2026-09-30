@@ -24,7 +24,7 @@ export default async function InterceptedProjectFromArchive({
   if (!project) notFound();
 
   return (
-    <ProjectModal backHref="/projects" marker="projects-slot">
+    <ProjectModal backHref="/projects" marker="projects-slot" projectId={project.id}>
       <ProjectDetailContent project={project} />
     </ProjectModal>
   );

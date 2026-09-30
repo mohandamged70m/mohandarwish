@@ -2,14 +2,29 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
+import {
+  Alert,
+  BookingBackdrop,
+  BookingPanel,
+  BookingWrapper,
+  CustomTimePicker,
+  detailMotion,
+  HintTooltip,
+  iconSpring,
+  MohandSelect,
+  monthGridTransition,
+  monthGridVariants,
+  monthTitleMotion,
+  pillSpring,
+  spinTransition,
+  subnavMotion,
+  tabSlideTransition,
+  tabSlideVariants,
+} from "@/components/transitions/booking";
 import { X, Send, Paperclip, User, Phone, MessageSquare, Check, Mail, Calendar, Clock, ChevronLeft, ChevronRight, Globe } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
-import Alert from "@/components/ui/alert";
 import useSafeAlert from "@/hooks/useSafeAlert";
 import { AvailabilityConfig, DEFAULT_AVAILABILITY, parseAvailabilityConfig, buildHostSlots, isWorkingDay } from "@/lib/availability";
-import { MohandSelect } from "@/components/ui/mohand-select";
-import CustomTimePicker from "@/components/booking/CustomTimePicker";
-import HintTooltip from "@/components/ui/hint-tooltip";
 import useTheme from "@/hooks/useTheme";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -79,12 +94,6 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
   const [isMobile, setIsMobile] = useState(false);
   const [agendaScrolled, setAgendaScrolled] = useState(false);
   const [messageScrolled, setMessageScrolled] = useState(false);
-
-  const tabVariants = {
-    enter: (d: number) => ({ x: d > 0 ? "40%" : "-40%", opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (d: number) => ({ x: d > 0 ? "-40%" : "40%", opacity: 0 }),
-  };
 
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
   const limitDate = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 45); return d; }, []);
@@ -261,8 +270,6 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
     };
   }, [open, onClose]);
 
-  const modalMotion = useMemo(() => ({ initial: { opacity: 0, scale: 0.3, y: -400 } as const, animate: { opacity: 1, scale: 1, y: 0 } as const, exit: { opacity: 0, scale: 0.3, y: 400 } as const, transformOrigin: "top center", transition: { type: "spring" as const, damping: 30, stiffness: 350, mass: 1 } }), []);
-
   if (typeof document === "undefined") return null;
 
   return createPortal(
@@ -270,18 +277,18 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
       {alert?.show && <Alert type={alert.type} message={alert.message} onClose={() => hideAlert()} duration={alert.duration ?? 4000} />}
       <AnimatePresence>
         {open && (
-          <motion.div key="contact-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", zIndex: 1400 }} onClick={onClose} />
+          <BookingBackdrop key="contact-backdrop" onClose={onClose} />
         )}
         {open && (
-          <motion.div key="contact-wrapper" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-[1401] flex items-center justify-center p-4 pointer-events-none" style={{ overscrollBehavior: "contain" }}>
-            <motion.div role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" layout initial={modalMotion.initial} animate={modalMotion.animate} exit={modalMotion.exit} transition={modalMotion.transition} className={isMobile ? "glass-panel-deep" : ""} style={{ width: isMobile ? "90vw" : "min(1240px, 94vw)", height: isMobile ? "90dvh" : "min(760px, 92vh)", maxWidth: isMobile ? "90vw" : "94vw", maxHeight: isMobile ? "90dvh" : "92vh", transformOrigin: modalMotion.transformOrigin, overflow: isMobile ? "hidden" : "visible", borderRadius: isMobile ? "16px" : "0", display: "flex", flexDirection: "column", pointerEvents: "auto", backgroundColor: isMobile ? undefined : "transparent", border: isMobile ? undefined : "none", boxShadow: isMobile ? undefined : "none", willChange: "transform, opacity" }} onClick={(e) => e.stopPropagation()}>
+          <BookingWrapper key="contact-wrapper">
+            <BookingPanel labelledBy="contact-modal-title" className={isMobile ? "glass-panel-deep" : ""} style={{ width: isMobile ? "90vw" : "min(1240px, 94vw)", height: isMobile ? "90dvh" : "min(760px, 92vh)", maxWidth: isMobile ? "90vw" : "94vw", maxHeight: isMobile ? "90dvh" : "92vh", overflow: isMobile ? "hidden" : "visible", borderRadius: isMobile ? "16px" : "0", display: "flex", flexDirection: "column", pointerEvents: "auto", backgroundColor: isMobile ? undefined : "transparent", border: isMobile ? undefined : "none", boxShadow: isMobile ? undefined : "none", willChange: "transform, opacity" }}>
           {isMobile && <div className="absolute inset-0 bg-gradient-to-b from-black/[0.04] dark:from-white/[0.04] to-transparent pointer-events-none -z-10" />}
           <div className="flex flex-col flex-1 overflow-hidden" style={{ overscrollBehavior: "contain", padding: isMobile ? "0" : "24px 24px 0 24px" }}>
             {isMobile && (
               <div className="p-6 pb-0 flex flex-col gap-4">
                 <div className="flex-row-between mb-4">
                   <div className="flex items-center gap-3">
-                    <motion.div layoutId="contact-icon" className="flex items-center justify-center" transition={{ type: "spring", damping: 30, stiffness: 350, mass: 1 }}><Mail size={24} strokeWidth={2} /></motion.div>
+                    <motion.div layoutId="contact-icon" className="flex items-center justify-center" transition={iconSpring}><Mail size={24} strokeWidth={2} /></motion.div>
                     <h2 id="contact-modal-title" className="heading-md m-0 font-bold" style={{ fontSize: "1.5rem" }}>Contact Me</h2>
                   </div>
                   <button onClick={onClose} aria-label="Close contact form" className="btn-icon rounded-full"><X size={20} /></button>
@@ -291,12 +298,12 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
             <div data-lenis-prevent className={isMobile ? "custom-scrollbar" : ""} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflowY: isMobile ? "auto" : "hidden", overflowX: "hidden" } as React.CSSProperties}>
               <AnimatePresence mode="wait" custom={tabDirection} initial={false}>
                 {activeTab === "meeting" ? (
-                  <motion.div key="meeting" custom={tabDirection} variants={tabVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} style={{ flex: isMobile ? "0 0 auto" : 1, minHeight: 0, display: isMobile ? "flex" : "grid", flexDirection: isMobile ? "column" : "row", gridTemplateColumns: isMobile ? "none" : "1.2fr 1fr", gap: isMobile ? "40px" : "32px", overflowY: isMobile ? "visible" : "hidden", padding: isMobile ? "0 16px 24px" : "0 24px 12px", height: isMobile ? "auto" : "100%" } as unknown as React.CSSProperties}>
+                  <motion.div key="meeting" custom={tabDirection} variants={tabSlideVariants} initial="enter" animate="center" exit="exit" transition={tabSlideTransition} style={{ flex: isMobile ? "0 0 auto" : 1, minHeight: 0, display: isMobile ? "flex" : "grid", flexDirection: isMobile ? "column" : "row", gridTemplateColumns: isMobile ? "none" : "1.2fr 1fr", gap: isMobile ? "40px" : "32px", overflowY: isMobile ? "visible" : "hidden", padding: isMobile ? "0 16px 24px" : "0 24px 12px", height: isMobile ? "auto" : "100%" } as unknown as React.CSSProperties}>
                     <div data-lenis-prevent className={!isMobile ? "glass-panel-deep hide-scrollbar" : ""} style={{ height: isMobile ? "auto" : "100%", display: "flex", flexDirection: "column", gap: "24px", overflowY: isMobile ? "visible" : "auto", padding: isMobile ? "0" : "24px", borderRadius: isMobile ? "0" : "24px", boxShadow: isMobile ? "none" : "0 18px 44px -22px rgba(0,0,0,0.16), 0 44px 96px -40px rgba(0,0,0,0.2)" }}>
-                      {!isMobile && (<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", width: "100%" }}><div style={{ display: "flex", alignItems: "center", gap: "12px" }}><motion.div layoutId="contact-icon" className="flex items-center justify-center text-primary" transition={{ type: "spring", damping: 30, stiffness: 350, mass: 1 }}><Mail size={22} /></motion.div><h2 style={{ fontSize: "clamp(1.15rem, 0.85rem + 1.1vw, 1.45rem)", fontWeight: 700, margin: 0 }}>Contact Me</h2></div></div>)}
+                      {!isMobile && (<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", width: "100%" }}><div style={{ display: "flex", alignItems: "center", gap: "12px" }}><motion.div layoutId="contact-icon" className="flex items-center justify-center text-primary" transition={iconSpring}><Mail size={22} /></motion.div><h2 style={{ fontSize: "clamp(1.15rem, 0.85rem + 1.1vw, 1.45rem)", fontWeight: 700, margin: 0 }}>Contact Me</h2></div></div>)}
                       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "safe center", gap: "24px", width: "100%", minHeight: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, width: "100%" }}>
-                          <h3 style={{ fontSize: "clamp(1rem, 0.85rem + 0.6vw, 1.15rem)", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}><AnimatePresence mode="wait"><motion.span key={calendarDate.toISOString()} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.2 }}>{calendarDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</motion.span></AnimatePresence></h3>
+                          <h3 style={{ fontSize: "clamp(1rem, 0.85rem + 0.6vw, 1.15rem)", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}><AnimatePresence mode="wait"><motion.span key={calendarDate.toISOString()} {...monthTitleMotion}>{calendarDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })}</motion.span></AnimatePresence></h3>
                           <div style={{ display: "flex", gap: "8px" }}>
                             <button aria-label="Previous month" disabled={isPrevMonthDisabled} onClick={() => { if (!isPrevMonthDisabled) { setDirection(-1); setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1)); } }} style={{ padding: "8px", borderRadius: "10px", border: "none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: "var(--text-primary)", cursor: isPrevMonthDisabled ? "not-allowed" : "pointer", opacity: isPrevMonthDisabled ? 0.4 : 1 }}><ChevronLeft size={16} /></button>
                             <button aria-label="Next month" disabled={isNextMonthDisabled} onClick={() => { if (!isNextMonthDisabled) { setDirection(1); setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1)); } }} style={{ padding: "8px", borderRadius: "10px", border: "none", background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: "var(--text-primary)", cursor: isNextMonthDisabled ? "not-allowed" : "pointer", opacity: isNextMonthDisabled ? 0.4 : 1 }}><ChevronRight size={16} /></button>
@@ -304,7 +311,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                         </div>
                         <div style={{ overflow: "hidden", flexShrink: 0, width: "100%" }}>
                           <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-                            <motion.div key={calendarDate.toISOString()} role="grid" aria-label={calendarDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })} custom={direction} variants={{ enter: (d: number) => ({ x: d > 0 ? "100%" : "-100%", opacity: 0 }), center: { x: 0, opacity: 1 }, exit: (d: number) => ({ x: d > 0 ? "-100%" : "100%", opacity: 0 }) }} initial="enter" animate="center" exit="exit" transition={{ type: "spring", stiffness: 300, damping: 30 }} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", textAlign: "center" }}>
+                            <motion.div key={calendarDate.toISOString()} role="grid" aria-label={calendarDate.toLocaleDateString("en-US", { month: "long", year: "numeric" })} custom={direction} variants={monthGridVariants} initial="enter" animate="center" exit="exit" transition={monthGridTransition} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", textAlign: "center" }}>
                               {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (<div key={`${d}-${i}`} style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-muted)", paddingBottom: "8px" }}>{d}</div>))}
                               {Array.from({ length: getDaysInMonth(calendarDate).firstDay }).map((_, i) => (<div key={`empty-${i}`} />))}
                               {Array.from({ length: getDaysInMonth(calendarDate).days }).map((_, i) => {
@@ -327,7 +334,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                       </div>
                       <div data-lenis-prevent onScroll={(e) => setAgendaScrolled(e.currentTarget.scrollTop > 4)} className={!isMobile ? "hide-scrollbar" : ""} style={{ flex: 1, minHeight: 0, overflowY: isMobile ? "visible" : "auto", padding: isMobile ? "0" : "4px 24px 24px", display: "flex", flexDirection: "column" }}>
                         <AnimatePresence mode="wait">
-                          <motion.div key={bookingSuccess ? "success" : selectedDate?.toISOString() || "no-date"} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                          <motion.div key={bookingSuccess ? "success" : selectedDate?.toISOString() || "no-date"} {...detailMotion} style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                             {bookingSuccess ? (
                               <div style={{ display: "flex", flexDirection: "column", gap: "24px", alignItems: "center", textAlign: "center", height: "100%", justifyContent: "center", paddingTop: "40px" }}>
                                 <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}><Check size={32} /></div>
@@ -366,7 +373,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                       </div>
                       <div><label htmlFor="booking-reason" className="input-label font-semibold">Reason *</label><textarea id="booking-reason" aria-label="Reason for meeting" required className="dashboard-textarea" style={{ minHeight: "60px", borderRadius: "12px" }} placeholder="What's this meeting for?" rows={1} value={meetingData.reason} onChange={(e) => setMeetingData({ ...meetingData, reason: e.target.value })} /></div>
                     </div>
-                                    <button onClick={handleMeetingSubmit} disabled={isSubmitting || !selectedDate || !selectedTime || !meetingData.name.trim() || !meetingData.email.trim() || !meetingData.reason.trim()} aria-busy={isSubmitting} className="btn-primary btn w-full focus-ring" style={{ padding: "14px", borderRadius: "14px", opacity: isSubmitting || !selectedDate || !selectedTime || !meetingData.name.trim() || !meetingData.email.trim() || !meetingData.reason.trim() ? 0.5 : 1 }}>{isSubmitting ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} style={{ display: "flex" }}><Clock size={16} /></motion.div> Booking...</>) : "Confirm Booking"}</button>
+                                    <button onClick={handleMeetingSubmit} disabled={isSubmitting || !selectedDate || !selectedTime || !meetingData.name.trim() || !meetingData.email.trim() || !meetingData.reason.trim()} aria-busy={isSubmitting} className="btn-primary btn w-full focus-ring" style={{ padding: "14px", borderRadius: "14px", opacity: isSubmitting || !selectedDate || !selectedTime || !meetingData.name.trim() || !meetingData.email.trim() || !meetingData.reason.trim() ? 0.5 : 1 }}>{isSubmitting ? (<><motion.div animate={{ rotate: 360 }} transition={spinTransition} style={{ display: "flex" }}><Clock size={16} /></motion.div> Booking...</>) : "Confirm Booking"}</button>
                                   </>
                                 )}
                               </>
@@ -377,7 +384,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key="message" custom={tabDirection} variants={tabVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }} style={{ flex: isMobile ? "0 0 auto" : 1, minHeight: 0, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: isMobile ? "flex-start" : "center", overflowY: isMobile ? "visible" : "hidden", padding: isMobile ? "0 16px 24px" : "0 24px 12px", height: isMobile ? "auto" : "100%" }}>
+                  <motion.div key="message" custom={tabDirection} variants={tabSlideVariants} initial="enter" animate="center" exit="exit" transition={tabSlideTransition} style={{ flex: isMobile ? "0 0 auto" : 1, minHeight: 0, display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: isMobile ? "flex-start" : "center", overflowY: isMobile ? "visible" : "hidden", padding: isMobile ? "0 16px 24px" : "0 24px 12px", height: isMobile ? "auto" : "100%" }}>
                     <form onSubmit={handleSubmit} className={!isMobile ? "glass-panel-deep" : ""} style={{ width: "100%", maxWidth: isMobile ? "none" : "640px", height: isMobile ? "auto" : "100%", display: "flex", flexDirection: "column", overflow: "hidden", borderRadius: isMobile ? "0" : "24px", boxShadow: isMobile ? "none" : "0 18px 44px -22px rgba(0,0,0,0.16), 0 44px 96px -40px rgba(0,0,0,0.2)", willChange: "transform", position: "relative" }}>
                       <div style={{ flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: isMobile ? "4px 0 16px" : "20px 24px", backgroundColor: messageScrolled ? (isDark ? "rgba(20,20,25,0.55)" : "rgba(255,255,255,0.55)") : "transparent", backdropFilter: messageScrolled ? "blur(14px)" : "none", WebkitBackdropFilter: messageScrolled ? "blur(14px)" : "none", borderBottom: `1px solid ${messageScrolled ? (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)") : "transparent"}`, borderTopLeftRadius: isMobile ? "0" : "24px", borderTopRightRadius: isMobile ? "0" : "24px", transition: "background-color 0.25s ease, border-color 0.25s ease", zIndex: 5 }}><h3 style={{ fontSize: "clamp(1.1rem, 0.9rem + 0.7vw, 1.3rem)", fontWeight: 700, margin: 0 }}>Send a Message</h3>{!isMobile && (<button type="button" onClick={onClose} aria-label="Close contact form" className="btn-icon rounded-full focus-ring" style={{ backgroundColor: "transparent", color: "var(--text-muted)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", borderRadius: "50%", transition: "all 0.2s" }}><X size={18} /></button>)}</div>
                       <div data-lenis-prevent onScroll={(e) => setMessageScrolled(e.currentTarget.scrollTop > 4)} className={!isMobile ? "hide-scrollbar" : ""} style={{ flex: 1, minHeight: 0, overflowY: isMobile ? "visible" : "auto", padding: isMobile ? "0" : "4px 24px 24px", display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -391,7 +398,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
                         </div>
                         <div><label htmlFor="msg-message" className="input-label font-semibold">Message *</label><textarea id="msg-message" name="message" aria-label="Message" value={formData.message} onChange={handleInputChange} required rows={3} className="dashboard-textarea" placeholder="How can I help you?" /></div>
                         <div><div className="flex-row-between mb-3"><label className="input-label font-semibold m-0">Attachments</label><label className="flex items-center gap-1 text-sm cursor-pointer font-medium" style={{ color: "var(--accent-primary)" }}><Paperclip size={16} /> Add Files<input type="file" multiple onChange={handleFileChange} className="hidden" /></label></div>{formData.attachments.length > 0 && (<div className="flex flex-wrap gap-2">{formData.attachments.map((file, i) => (<div key={i} className="attachment-item flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)" }}><span className="max-w-[150px] overflow-hidden truncate">{file.name}</span><button type="button" aria-label={`Remove ${file.name}`} onClick={() => removeFile(i)} className="inline-flex opacity-70 hover:opacity-100"><X size={14} /></button></div>))}</div>)}</div>
-                        <button type="submit" disabled={isSubmitting || !formData.name.trim() || !formData.email.trim() || !formData.message.trim()} aria-busy={isSubmitting} className="btn-primary btn w-full focus-ring disabled:opacity-50 disabled:cursor-not-allowed" style={{ opacity: isSubmitting ? 0.7 : 1 }}>{isSubmitting ? (<><motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="flex"><Clock size={18} /></motion.div> Sending...</>) : (<><Send size={18} /> Send Message</>)}</button>
+                        <button type="submit" disabled={isSubmitting || !formData.name.trim() || !formData.email.trim() || !formData.message.trim()} aria-busy={isSubmitting} className="btn-primary btn w-full focus-ring disabled:opacity-50 disabled:cursor-not-allowed" style={{ opacity: isSubmitting ? 0.7 : 1 }}>{isSubmitting ? (<><motion.div animate={{ rotate: 360 }} transition={spinTransition} className="flex"><Clock size={18} /></motion.div> Sending...</>) : (<><Send size={18} /> Send Message</>)}</button>
                       </div>
                     </form>
                   </motion.div>
@@ -401,14 +408,14 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
           </div>
           {!hideTabs && (
             <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", padding: isMobile ? "8px 0 12px" : "6px 0 16px", pointerEvents: "auto" }}>
-              <motion.div initial={{ opacity: 0, y: 10, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6, scale: 0.96 }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }} className="flex items-center gap-1 p-1.5 rounded-2xl md:gap-1.5 md:p-2 md:rounded-3xl backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]" style={{ backgroundColor: "var(--subnav-bg, rgba(255,255,255,0.25))", border: "1px solid var(--section-border)" }}>
-                <button type="button" onClick={() => { if (activeTab !== "meeting") { setTabDirection(-1); setActiveTab("meeting"); } }} className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold md:gap-2.5 md:px-5 md:py-2.5 md:rounded-2xl md:text-sm cursor-pointer" style={{ color: activeTab === "meeting" ? "var(--accent-primary)" : "var(--text-muted)", background: "transparent", border: "none", transition: "color 0.2s ease" }}>{activeTab === "meeting" && (<motion.div layoutId="contact-subnav-pill" className="absolute inset-0 rounded-xl md:rounded-2xl" style={{ background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)" }} transition={{ type: "spring", damping: 28, stiffness: 380 }} />)}<Calendar className="relative z-10 w-[15px] h-[15px] md:w-[18px] md:h-[18px]" strokeWidth={2.2} /><span className="relative z-10">Book a Call</span></button>
-                <button type="button" onClick={() => { if (activeTab !== "message") { setTabDirection(1); setActiveTab("message"); } }} className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold md:gap-2.5 md:px-5 md:py-2.5 md:rounded-2xl md:text-sm cursor-pointer" style={{ color: activeTab === "message" ? "var(--accent-primary)" : "var(--text-muted)", background: "transparent", border: "none", transition: "color 0.2s ease" }}>{activeTab === "message" && (<motion.div layoutId="contact-subnav-pill" className="absolute inset-0 rounded-xl md:rounded-2xl" style={{ background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)" }} transition={{ type: "spring", damping: 28, stiffness: 380 }} />)}<MessageSquare className="relative z-10 w-[15px] h-[15px] md:w-[18px] md:h-[18px]" strokeWidth={2.2} /><span className="relative z-10">Send a Message</span></button>
+              <motion.div {...subnavMotion} className="flex items-center gap-1 p-1.5 rounded-2xl md:gap-1.5 md:p-2 md:rounded-3xl backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]" style={{ backgroundColor: "var(--subnav-bg, rgba(255,255,255,0.25))", border: "1px solid var(--section-border)" }}>
+                <button type="button" onClick={() => { if (activeTab !== "meeting") { setTabDirection(-1); setActiveTab("meeting"); } }} className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold md:gap-2.5 md:px-5 md:py-2.5 md:rounded-2xl md:text-sm cursor-pointer" style={{ color: activeTab === "meeting" ? "var(--accent-primary)" : "var(--text-muted)", background: "transparent", border: "none", transition: "color 0.2s ease" }}>{activeTab === "meeting" && (<motion.div layoutId="contact-subnav-pill" className="absolute inset-0 rounded-xl md:rounded-2xl" style={{ background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)" }} transition={pillSpring} />)}<Calendar className="relative z-10 w-[15px] h-[15px] md:w-[18px] md:h-[18px]" strokeWidth={2.2} /><span className="relative z-10">Book a Call</span></button>
+                <button type="button" onClick={() => { if (activeTab !== "message") { setTabDirection(1); setActiveTab("message"); } }} className="relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold md:gap-2.5 md:px-5 md:py-2.5 md:rounded-2xl md:text-sm cursor-pointer" style={{ color: activeTab === "message" ? "var(--accent-primary)" : "var(--text-muted)", background: "transparent", border: "none", transition: "color 0.2s ease" }}>{activeTab === "message" && (<motion.div layoutId="contact-subnav-pill" className="absolute inset-0 rounded-xl md:rounded-2xl" style={{ background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)" }} transition={pillSpring} />)}<MessageSquare className="relative z-10 w-[15px] h-[15px] md:w-[18px] md:h-[18px]" strokeWidth={2.2} /><span className="relative z-10">Send a Message</span></button>
               </motion.div>
             </div>
           )}
-        </motion.div>
-          </motion.div>
+        </BookingPanel>
+          </BookingWrapper>
         )}
       </AnimatePresence>
     </>,

@@ -6,8 +6,9 @@ import { CustomEase } from "gsap/CustomEase";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { flushSync } from "react-dom";
+import { pagerEnabled, requestSectionNavigate } from "@/components/transitions";
 import { requestCvOpen } from "@/components/cv/CvModal";
-import { requestSectionNavigate } from "@/components/transitions";
 import { ME } from "@/data/me";
 import {
   useCallback,
@@ -119,7 +120,12 @@ function NavThemeToggle(): ReactNode {
         startViewTransition: (cb: () => void) => { finished: Promise<void> };
       }
     ).startViewTransition(() => {
-      setTheme(next);
+      // flushSync so the theme class flips synchronously inside the
+      // transition callback — otherwise the browser snapshots old -> old
+      // and the circular reveal never plays.
+      flushSync(() => {
+        setTheme(next);
+      });
     });
 
     transition.finished.finally(() => {
@@ -443,6 +449,41 @@ export function Nav(): ReactNode {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+// Section navigation: desktop pager plays the curtain + slide (via the
+// SectionTransition provider on the home page); mobile / touch /
+// reduced-motion keeps the Lenis smooth glide. Keyboard users land on the
+// section heading so focus follows the visible change.
+function scrollToSection(id: string, moveFocus = false): void {
+  const el =
+    document.getElementById(id) ?? document.getElementById(`${id}-wrap`);
+  if (!el) return;
+  try {
+    const lenis = (
+      window as unknown as {
+        __lenis?: {
+          scrollTo?: (target: HTMLElement, opts?: Record<string, unknown>) => void;
+        };
+      }
+    ).__lenis;
+    if (lenis?.scrollTo) {
+      lenis.scrollTo(el, { offset: 0, duration: 1.1 });
+    } else {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  } catch {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  if (moveFocus) {
+    try {
+      const target =
+        el.querySelector<HTMLElement>("[data-pager-focus]") ?? el;
+      target.focus({ preventScroll: true });
+    } catch {
+      // non-fatal: already scrolled visually
+    }
+  }
+}
+
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     item: NavItem
@@ -450,7 +491,6 @@ export function Nav(): ReactNode {
     e.preventDefault();
     e.stopPropagation();
     setOpen(false);
-    if (document.documentElement.dataset.sectionTransition === "1") return;
     const id = item.href.slice(1);
     if (id === "booking") {
       if (pathname !== "/") {
@@ -466,7 +506,13 @@ export function Nav(): ReactNode {
       window.location.href = "/";
       return;
     }
-    requestSectionNavigate(id, e.detail === 0);
+    const moveFocus = e.detail === 0;
+    if (pagerEnabled()) {
+      requestSectionNavigate(id, moveFocus);
+      setCurrentHash(item.href);
+      return;
+    }
+    scrollToSection(id, moveFocus);
     setCurrentHash(item.href);
   };
 

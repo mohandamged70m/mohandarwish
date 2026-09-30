@@ -1,179 +1,188 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
-import TextAnimated from "./TextAnimated";
-import { Button } from "@/components/ui/button";
-import { ScaleUnblur } from "@/components/ui/motion-primitives";
-import { PortraitMorph } from "./PortraitMorph";
-import { BookButton } from "@/components/booking/BookButton";
-import { requestSectionNavigate, useSectionTransition } from "@/components/transitions";
-import { doc, onSnapshot } from "@/lib/dash-db";
-import { db } from "@/lib/dash-db";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import Image from "next/image";
+import { BookingModal } from "@/components/booking/BookingModal";
+import { ME } from "@/data/me";
+import "./hero.css";
 
-const FALLBACK_A = "/me/mohandarwish.jpeg";
-const FALLBACK_B = "/me/mohand-darwish.jpeg";
+// Name split verbatim from ME.name ("Mohand Darwish").
+const [FIRST_NAME, LAST_NAME] = ME.name.split(" ");
 
-// The template's stock hero image — never treat it as an owner upload.
-const STOCK_HERO = "images.unsplash.com";
+export default function HeroSection() {
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [clock, setClock] = useState("");
+  const [bookingOpen, setBookingOpen] = useState(false);
 
-const HeroSection = () => {
-  const { resolvedTheme } = useTheme();
-  const { activeId, cycle } = useSectionTransition();
-  // Replays the split-text entrance whenever the pager returns to hero.
-  const heroReplayKey = activeId === "hero" ? cycle : undefined;
-  // Whatever photo the owner last saved in the dashboard (Settings → Account:
-  // profile photo, or the light/dark hero image) wins over the static files.
-  const [accountPhoto, setAccountPhoto] = useState<string | null>(null);
-  const [heroLight, setHeroLight] = useState<string | null>(null);
-  const [heroDark, setHeroDark] = useState<string | null>(null);
-
+  // Live Cairo clock for the location pill.
   useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, "Settings", "Account"),
-      (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data() as Record<string, unknown>;
-        const pick = (v: unknown) =>
-          typeof v === "string" && v.trim() && !v.includes(STOCK_HERO) ? v.trim() : null;
-        setAccountPhoto(pick(data.imageUrl));
-        setHeroLight(pick(data.heroImageUrl));
-        setHeroDark(pick(data.heroImageUrlDark));
-      },
-      () => {
-        // Public read failed (offline?) — static portraits stay in place.
-      },
-    );
-    return () => unsub();
+    const tf = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Africa/Cairo",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const of2 = new Intl.DateTimeFormat("en", {
+      timeZone: "Africa/Cairo",
+      timeZoneName: "shortOffset",
+    });
+    const tick = () => {
+      const o =
+        of2.formatToParts(new Date()).find((x) => x.type === "timeZoneName")
+          ?.value || "";
+      setClock(tf.format(new Date()) + " · " + o.replace("GMT", "UTC"));
+    };
+    tick();
+    const id = setInterval(tick, 20000);
+    return () => clearInterval(id);
   }, []);
 
-  const isDark = resolvedTheme !== "light";
-  // The hero-image uploader is the explicit "photo for the hero" slot; the
-  // account profile photo is the fallback. One upload => both morph frames,
-  // so hover has nothing stale to blend into.
-  const uploaded = (isDark ? heroDark : heroLight) ?? accountPhoto ?? null;
-  const srcA = uploaded ?? FALLBACK_A;
-  const srcB = uploaded ?? FALLBACK_B;
+  // Subtle pointer parallax only — skipped for prefers-reduced-motion.
+  // The loop idles while the hero is off-screen (IntersectionObserver) and
+  // skips DOM writes when settled, so it never churns style recalc under
+  // the section curtain / slide transitions. Eases back to neutral while
+  // a transition runs instead of fighting the slide animation.
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let tx = 0;
+    let ty = 0;
+    let px = 0;
+    let py = 0;
+    let raf = 0;
+    let visible = true;
+    let lastX = "0px";
+    let lastY = "0px";
+
+    const kick = () => {
+      if (!raf && visible) raf = requestAnimationFrame(frame);
+    };
+    const onMove = (e: PointerEvent) => {
+      const r = hero.getBoundingClientRect();
+      tx = -((e.clientX - r.left) / r.width - 0.5) * 24;
+      ty = -((e.clientY - r.top) / r.height - 0.5) * 16;
+      kick();
+    };
+    const onLeave = () => {
+      tx = ty = 0;
+      kick();
+    };
+    const frame = () => {
+      raf = 0;
+      if (!visible) return;
+      const locked = document.documentElement.dataset.sectionTransition === "1";
+      const gx = locked ? 0 : tx;
+      const gy = locked ? 0 : ty;
+      px += (gx - px) * 0.08;
+      py += (gy - py) * 0.08;
+      if (Math.abs(gx - px) < 0.02) px = gx;
+      if (Math.abs(gy - py) < 0.02) py = gy;
+      const sx = px.toFixed(2) + "px";
+      const sy = py.toFixed(2) + "px";
+      if (sx !== lastX || sy !== lastY) {
+        hero.style.setProperty("--px", sx);
+        hero.style.setProperty("--py", sy);
+        lastX = sx;
+        lastY = sy;
+      }
+      raf = requestAnimationFrame(frame);
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries.some((e) => e.isIntersecting);
+        kick();
+      },
+      { threshold: 0 }
+    );
+    io.observe(hero);
+
+    hero.addEventListener("pointermove", onMove);
+    hero.addEventListener("pointerleave", onLeave);
+    raf = requestAnimationFrame(frame);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+      raf = 0;
+      hero.removeEventListener("pointermove", onMove);
+      hero.removeEventListener("pointerleave", onLeave);
+    };
+  }, []);
+
   return (
     <section
+      ref={heroRef}
       aria-label="Introduction"
-      className="relative flex min-h-[100svh] w-full max-w-full min-w-0 items-center overflow-hidden border-b border-border/50 supports-[min-height:100dvh]:min-h-[100dvh]"
+      style={{ "--px": "0px", "--py": "0px" } as CSSProperties}
+      className="relative h-svh min-h-[540px] overflow-hidden bg-bg-primary [color-scheme:dark] [&>*]:absolute"
     >
-      {/* ── background ── */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        {/* wine glow — left */}
-        <div className="absolute inset-y-0 left-0 w-[68%] bg-[radial-gradient(ellipse_at_18%_52%,var(--accent-ring)_0%,transparent_62%)] opacity-70" />
-        {/* subtle grid — masked to left side only */}
-        <div className="absolute inset-0 opacity-[0.035] [mask-image:radial-gradient(ellipse_at_22%_50%,black_42%,transparent_72%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:32px_32px]" />
-        {/* top hairline accent */}
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
-      </div>
-
-      <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-1 items-center overflow-hidden px-4 py-6 pt-[calc(3.5rem+4dvh)] pb-[max(1.5rem,3dvh)] sm:px-6 sm:py-8 sm:pt-[calc(3.75rem+4dvh)] lg:px-8 lg:py-6 lg:pt-[calc(2rem+4dvh)]">
-        <div className="grid w-full max-w-full min-w-0 items-center gap-8 sm:gap-10 overflow-hidden lg:grid-cols-[1.08fr_0.92fr] lg:gap-8 xl:gap-12 hero-grid">
-          {/* ── left : content ── */}
-          <div className="flex flex-col items-start gap-6 text-left lg:pr-2">
-            {/* heading */}
-            <div className="w-full space-y-4">
-              <h1 data-pager-focus tabIndex={-1} className="font-display font-bold leading-[0.92] tracking-[-0.02em] text-text-primary">
-                <TextAnimated
-                  text="Hi, I'm Mohand Darwish"
-                  replayKey={heroReplayKey}
-                  className="block text-left font-bold leading-[0.9] tracking-[-0.02em] text-[clamp(2rem,5vw+0.75rem,3.75rem)]"
-                  stagger={18}
-                  duration={260}
-                />
-              </h1>
-
-              {/* accent rule */}
-              <div className="flex justify-start">
-                <div
-                  aria-hidden
-                  className="h-px w-24 bg-gradient-to-r from-accent/70 to-transparent"
-                />
-              </div>
-
-              <p className="pt-1 font-body text-base text-text-secondary sm:text-lg">
-                <TextAnimated
-                  text="Software Engineer | AI Product Builder. Clean code and fast interfaces."
-                  replayKey={heroReplayKey}
-                  className="block text-left font-body font-medium tracking-tight text-text-secondary text-[clamp(0.95rem,1.5vw+0.6rem,1.25rem)]"
-                  startDelay={280}
-                  stagger={16}
-                  duration={260}
-                />
-              </p>
-            </div>
-
-            {/* description */}
-            <div className="max-w-[48ch] space-y-3">
-              <p className="font-body text-sm leading-relaxed text-text-secondary">
-                I build product ideas into shipped software with Next.js, TypeScript and Node. Based in Alexandria, working worldwide.
-              </p>
-            </div>
-
-            {/* CTAs — single primary conversion (Book a call), secondary View projects */}
-            <div className="flex w-full flex-wrap justify-start gap-3 pt-1">
-              <BookButton label="Book a call →" />
-              <Button
-                variant="secondary"
-                size="lg"
-                className="min-w-[152px] w-full sm:w-auto"
-                aria-label="View projects — scroll to work"
-                onClick={(e) => {
-                  // Keyboard Enter (detail 0) moves focus to the section
-                  // heading; pointer users keep focus where it is.
-                  requestSectionNavigate("projects", e.detail === 0);
-                }}
-              >
-                View projects
-              </Button>
-            </div>
-
-            {/* meta */}
-            <div className="flex flex-wrap justify-start gap-2 pt-2 font-heading text-xs text-text-muted">
-              <span className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-bg-surface px-3 py-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                Alexandria, Egypt
-              </span>
-            </div>
-          </div>
-
-          {/* ── right : portrait ── */}
-          <div className="relative flex items-center justify-center lg:justify-end">
-            {/* glow behind card */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] bg-[radial-gradient(ellipse_at_center,var(--accent-ring)_0%,transparent_70%)] opacity-60 blur-[18px] lg:left-auto lg:right-[-4%] lg:w-[92%] lg:translate-x-0"
-            />
-
-            <ScaleUnblur className="relative w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[clamp(320px,32vw,440px)] max-h-[min(50dvh,420px)] sm:max-h-[min(48dvh,460px)] lg:max-h-[min(62dvh,560px)]">
-              <div className="relative aspect-square w-full max-h-[inherit] overflow-hidden rounded-[28px]">
-                <div className="relative h-full w-full max-h-[inherit] overflow-hidden rounded-[28px] bg-bg-primary">
-                  <PortraitMorph
-                    key={srcA}
-                    srcA={srcA}
-                    srcB={srcB}
-                    alt="Portrait of Mohand Darwish, software engineer based in Alexandria, Egypt"
-                  />
-                </div>
-              </div>
-            </ScaleUnblur>
-          </div>
-        </div>
-      </div>
-
-      {/* scroll hint — desktop */}
+      <h1 data-pager-focus tabIndex={-1} className="sr-only">
+        {ME.name} — {ME.role}
+      </h1>
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 hidden justify-center pb-4 lg:flex"
+        id="mh-a"
+        aria-hidden="true"
+        className="mh-nm left-[4vw] top-[15%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
       >
-        <span className="inline-flex flex-col items-center gap-2 font-heading text-[10px] uppercase tracking-widest text-text-muted/60">
-          <span className="h-6 w-px bg-gradient-to-b from-border-strong to-transparent" />
+        <span className="block animate-[mh-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.25s_forwards] [transform:translateY(108%)]">
+          {FIRST_NAME}
         </span>
       </div>
+      <div
+        id="mh-b"
+        aria-hidden="true"
+        className="mh-nm right-[1vw] top-[47%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
+      >
+        <span className="block animate-[mh-up_1s_cubic-bezier(0.2,0.8,0.2,1)_0.5s_forwards] [transform:translateY(108%)]">
+          {LAST_NAME}
+        </span>
+      </div>
+
+      <div
+        className="mh-me pointer-events-none bottom-0 left-[48%] z-[3] h-[88%] w-[min(86vw,420px)] animate-[mh-rise_1s_cubic-bezier(0.2,0.8,0.2,1)_0.15s_forwards] opacity-0 [transform:translate(calc(-50%+var(--px)/-3),36px)] md:w-[520px]"
+      >
+        <Image
+          src="/me/mohand-cutout.png"
+          alt="Portrait of Mohand Darwish, software engineer based in Alexandria, Egypt"
+          width={817}
+          height={1379}
+          priority
+          unoptimized
+          className="h-full w-full object-contain object-bottom drop-shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+        />
+      </div>
+
+      <p
+        className="mh-hw mh-hey pointer-events-none left-[4.4vw] top-[8.5%] z-[4] animate-[mh-fade_0.8s_ease_1.4s_forwards] font-hero-hand text-[1.9vw] uppercase text-accent-text opacity-0 [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-4deg)]"
+      >
+        hey, i&apos;m
+      </p>
+      <p
+        className="mh-hw mh-tag pointer-events-none right-[5vw] top-[8%] z-[4] animate-[mh-fade_0.8s_ease_1.7s_forwards] text-right font-hero-hand text-[2vw] uppercase leading-[1.1] text-accent-text opacity-0 [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-3deg)]"
+      >
+        {ME.role}
+      </p>
+
+      <div
+        className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.1s_forwards] flex-wrap gap-[10px] opacity-0"
+      >
+        <span className="flex items-center gap-2 rounded-full border border-border bg-[color-mix(in_srgb,var(--bg-surface)_82%,transparent)] px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-primary no-underline backdrop-blur-[6px]">
+          <i
+            aria-hidden="true"
+            className="h-2 w-2 animate-[mh-pl_1.8s_ease-in-out_infinite] rounded-full bg-accent-text shadow-[0_0_10px_var(--accent-ring)]"
+          />
+          {ME.location} <b className="font-medium text-text-secondary">{clock}</b>
+        </span>
+        <button
+          type="button"
+          onClick={() => setBookingOpen(true)}
+          data-track="contact-open"
+          className="flex cursor-pointer items-center gap-2 rounded-full border border-accent bg-accent px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-on-accent no-underline shadow-[0_0_20px_var(--accent-ring)] backdrop-blur-[6px] transition-colors hover:border-accent-hover hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          Book a call &rarr;
+        </button>
+      </div>
+      <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
     </section>
   );
-};
-
-export default HeroSection;
+}

@@ -3,8 +3,7 @@ import ProjectsSection from "@/components/sections/projects/ProjectsSection";
 import { StackSection } from "@/components/sections/stack/StackSection";
 import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
-import { ScrollReveal, SectionSlide, SectionTransition } from "@/components/transitions";
-import type { SectionDef } from "@/components/transitions";
+import { SectionSlide, SectionTransition } from "@/components/transitions";
 
 import { getStackServer } from "@/lib/profile-server";
 import { createMetadata } from "@/lib/metadata";
@@ -18,15 +17,15 @@ export const metadata = createMetadata({
   path: "/",
 });
 
-// Paged sections target the full-page WRAPS (exact viewport boundaries),
-// not the inner content blocks — so curtain reveals land pixel-flush with
-// no seam of the previous section. Focus still lands on inner headings.
-const SECTIONS: SectionDef[] = [
-  { id: "hero", label: "Home" },
+// Module-level (referentially stable) pager sections — ids must match the
+// wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
+// the curtain + slide between these; everywhere else they free-scroll.
+const SECTIONS = [
+  { id: "hero", label: "Hero" },
   { id: "projects-wrap", label: "Projects" },
   { id: "stack-wrap", label: "Stack" },
   { id: "contact-wrap", label: "Contact" },
-];
+] as const;
 
 export default async function Home() {
   const [stack] = await Promise.all([
@@ -34,36 +33,30 @@ export default async function Home() {
   ]);
 
   return (
-    <SectionTransition sections={SECTIONS}>
+    <SectionTransition sections={[...SECTIONS]}>
       <div className="w-full max-w-full min-w-0 overflow-x-hidden">
-        <SectionSlide section="hero">
-          <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+        <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <SectionSlide section="hero" className="flex w-full min-w-0 flex-1 flex-col">
             <HeroSection />
-          </div>
-        </SectionSlide>
-        <SectionSlide section="projects-wrap">
-          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <ScrollReveal>
-              <ProjectsSection />
-            </ScrollReveal>
-          </div>
-        </SectionSlide>
-        <SectionSlide section="stack-wrap">
-          <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <ScrollReveal delay={0.05}>
-              <StackSection
-                stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
-              />
-            </ScrollReveal>
-          </div>
-        </SectionSlide>
-        <SectionSlide section="contact-wrap">
-          <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <ScrollReveal delay={0.05}>
-              <ContactCard />
-            </ScrollReveal>
-          </div>
-        </SectionSlide>
+          </SectionSlide>
+        </div>
+        <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+            <ProjectsSection />
+          </SectionSlide>
+        </div>
+        <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <SectionSlide section="stack-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+            <StackSection
+              stack={stack.map((c) => ({ label: c.label, slug: c.slug, bg: c.bg, fg: c.fg, iconUrl: c.icon_url }))}
+            />
+          </SectionSlide>
+        </div>
+        <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <SectionSlide section="contact-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+            <ContactCard />
+          </SectionSlide>
+        </div>
         <BookingHashHandler />
       </div>
     </SectionTransition>

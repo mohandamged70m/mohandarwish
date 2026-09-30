@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/data/projects";
+import { canMorph, tagMorph, transitionOrUpdate, untagMorph } from "@/lib/view-transitions";
 
 type Props = {
   project: Project;
@@ -15,9 +19,32 @@ type Props = {
 };
 
 export function ProjectCard({ project, featured = false, eager = false, fluid = false }: Props) {
+  const router = useRouter();
+
+  // Shared-element open: tag this card's media as the morph source, then
+  // navigate inside a view transition so it morphs into the modal hero.
+  // Falls back to plain Link navigation (modifier-clicks, touch without VT,
+  // reduced motion, unsupported browsers).
+  const handleOpen = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+    if (e.defaultPrevented) return;
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!canMorph()) return;
+    const img = e.currentTarget.querySelector<HTMLElement>("[data-morph-img]");
+    if (!img) return;
+    e.preventDefault();
+    tagMorph(img);
+    void transitionOrUpdate(() => {
+      router.push(project.href);
+    }).finally(() => {
+      untagMorph(img);
+    });
+  };
+
   return (
     <Link
       href={project.href}
+      onClick={handleOpen}
+      data-project-card={project.id}
       aria-label={`${project.title} — ${project.category}`}
       className={`group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary ${
         fluid
@@ -26,7 +53,7 @@ export function ProjectCard({ project, featured = false, eager = false, fluid = 
       }`}
     >
       {/* frameless media - no border, no chrome, just image */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[16px] md:rounded-[20px] bg-bg-primary">
+      <div data-morph-img className="relative aspect-[16/10] w-full overflow-hidden rounded-[16px] md:rounded-[20px] bg-bg-primary">
         <Image
           src={project.image}
           alt={project.title}

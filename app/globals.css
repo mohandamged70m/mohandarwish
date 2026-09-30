@@ -158,6 +158,10 @@ html.light {
   --font-sans: var(--font-inter);
   --font-mono: var(--font-plex-mono);
 
+  /* New-hero faces (scoped variables from app/layout.tsx) */
+  --font-hero-display: var(--font-hero-display);
+  --font-hero-hand: var(--font-hero-hand);
+
   /* Radius */
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -314,7 +318,7 @@ h4 {
   background: var(--text-muted);
 }
 
-/* View transition for theme toggle */
+/* View transition for theme toggle — circular reveal from the toggle */
 html[data-theme-anim="1"]::view-transition-old(root),
 html[data-theme-anim="1"]::view-transition-new(root) {
   animation: none;
@@ -327,22 +331,33 @@ html[data-theme-anim="1"]::view-transition-old(root) {
 
 html[data-theme-anim="1"]::view-transition-new(root) {
   z-index: 9999;
+  clip-path: circle(0px at var(--theme-cx, 50vw) var(--theme-cy, 50vh));
+  animation: theme-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Shared element morph: project card -> project modal */
-::view-transition-group(.morph) {
-  animation-duration: 400ms;
+@keyframes theme-reveal {
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-cx, 50vw) var(--theme-cy, 50vh));
+  }
+}
+
+/* Shared element morph: project card -> project modal.
+   Only the clicked card is tagged (view-transition-name set from JS), and
+   only the open modal hero carries the name — so this pair is unique. */
+::view-transition-group(project-morph) {
+  animation-duration: 450ms;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-::view-transition-image-pair(.morph) {
-  animation-name: vt-via-blur;
+::view-transition-image-pair(project-morph) {
+  isolation: isolate;
 }
 
-@keyframes vt-via-blur {
-  30% {
-    filter: blur(3px);
-  }
+::view-transition-old(project-morph),
+::view-transition-new(project-morph) {
+  object-fit: cover;
+  animation-duration: 450ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Let clicks pass through to the live page while a transition plays */

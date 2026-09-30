@@ -89,7 +89,8 @@ function motionForced(): boolean {
   }
 }
 
-function pagerEnabled(): boolean {
+// Exported so nav can choose the pager path (curtain) vs. smooth scroll.
+export function pagerEnabled(): boolean {
   if (typeof window === 'undefined') return false;
   const forced = motionForced();
   if (!forced && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;

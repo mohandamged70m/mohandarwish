@@ -1,15 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Anton, Inter, JetBrains_Mono, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
 import { PathMemory } from "@/components/layout/path-memory";
 import { Providers } from "@/components/layout/providers";
+import { RouteCurtain } from "@/components/transitions/RouteCurtain";
 import { TrailsTracker } from "@/components/dashboard/TrailsTracker";
 import { ModalViewport } from "@/components/layout/modal-viewport";
-import { RouteCurtain } from "@/components/transitions";
 import { ScrollRestorationFix } from "@/components/layout/scroll-restoration";
 import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/metadata";
@@ -30,6 +30,22 @@ const jetbrainsMono = JetBrains_Mono({
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+  display: "swap",
+});
+
+// Hero display + handwriting faces (new hero only). Scoped to
+// --font-hero-* so they never override the Space Grotesk / Plex Mono system.
+const heroDisplay = Anton({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-hero-display",
+  display: "swap",
+});
+
+const heroHand = Permanent_Marker({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-hero-hand",
   display: "swap",
 });
 
@@ -145,7 +161,7 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${plexMono.variable} antialiased`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
     >
       <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         {/* Structured data: Person + WebSite (SEO + AI answer engines). */}
