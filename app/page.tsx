@@ -21,7 +21,7 @@ export const metadata = createMetadata({
 // wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
 // the curtain + slide between these; everywhere else they free-scroll.
 const SECTIONS = [
-  { id: "hero", label: "Hero" },
+  { id: "hero", label: "Home" },
   { id: "projects-wrap", label: "Projects" },
   { id: "stack-wrap", label: "Stack" },
   { id: "contact-wrap", label: "Contact" },
