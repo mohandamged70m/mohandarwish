@@ -39,35 +39,35 @@ export function SmoothScroll({
     // ?motion=full previews the full experience on a reduce-motion machine.
     if (prefersReducedMotion && !isMotionForced()) return;
 
-    // Dynamically import Lenis + GSAP so they never land in the initial
-    // bundle (per docs/01-app/02-guides/lazy-loading.md). Same LENIS_OPTIONS,
-    // same GSAP ticker sync — behavior unchanged, just code-split.
+    // Dynamically import Lenis so it never lands in the initial bundle (per
+    // docs/01-app/02-guides/lazy-loading.md). Same LENIS_OPTIONS.
     let cancelled = false;
     let cleanup: (() => void) | undefined;
 
     (async () => {
-      const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] = await Promise.all([
-        import("lenis"),
-        import("gsap"),
-        import("gsap/ScrollTrigger"),
-      ]);
+      const { default: Lenis } = await import("lenis");
       if (cancelled) return;
-
-      gsap.registerPlugin(ScrollTrigger);
 
       const lenis = new Lenis(LENIS_OPTIONS as never);
       // expose for section components that need programmatic scroll — optional velocity scaling
       (window as unknown as { __lenis?: unknown }).__lenis = lenis;
 
-      // Sync Lenis → ScrollTrigger so pinned scrub stays in sync with smooth scroll
-      lenis.on("scroll", ScrollTrigger.update);
-      // Use GSAP ticker for Lenis raf to keep both in same tick (prevents jitter)
-      const gsapTickerCb = (time: number) => {
-        // gsap ticker time is seconds, lenis expects ms
-        lenis.raf(time * 1000);
+      // `autoRaf: false` above means we own the frame loop, so pump Lenis from a
+      // plain rAF instead of borrowing the GSAP ticker.
+      //
+      // This previously pulled in `gsap` + `gsap/ScrollTrigger` purely to
+      // run `lenis.on("scroll", ScrollTrigger.update)`. There is not a
+      // single ScrollTrigger in this codebase — zero pinned/scrubbed
+      // sections — so that only ever ran the plugin's per-scroll update
+      // bookkeeping and the GSAP ticker's perpetual rAF wakeups, for no
+      // visual effect. GSAP is still lazily loaded where it IS used (the
+      // nav menu timeline), just not here.
+      let raf = 0;
+      const loop = (time: number): void => {
+        lenis.raf(time);
+        raf = requestAnimationFrame(loop);
       };
-      gsap.ticker.add(gsapTickerCb);
-      gsap.ticker.lagSmoothing(0);
+      raf = requestAnimationFrame(loop);
 
       function handleAnchorClick(e: MouseEvent): void {
         const target = e.target as HTMLElement;
@@ -93,8 +93,7 @@ export function SmoothScroll({
 
       cleanup = () => {
         document.removeEventListener("click", handleAnchorClick);
-        gsap.ticker.remove(gsapTickerCb);
-        lenis.off("scroll", ScrollTrigger.update);
+        cancelAnimationFrame(raf);
         try {
           delete (window as unknown as { __lenis?: unknown }).__lenis;
         } catch {}

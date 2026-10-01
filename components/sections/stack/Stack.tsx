@@ -85,7 +85,6 @@ export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
 
       const {
         Engine,
-        Runner,
         World,
         Bodies,
         Body,
@@ -181,11 +180,23 @@ export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
         container.style.cursor = "grab";
       });
 
-      const runner = Runner.create();
-      Runner.run(runner, engine);
-
+      // Single rAF loop that steps physics and paints in the same frame.
+      // This used to call `Runner.run(runner, engine)` — Matter's own
+      // perpetual rAF loop — *and* a second custom rAF that only wrote
+      // transforms, so the simulation and the DOM writes were interleaved
+      // across two independent frame callbacks. Stepping `Engine.update`
+      // ourselves means one callback, one layout read/write batch, and no
+      // orphaned ticker to tear down.
+      const STEP_MS = 1000 / 60;
       let raf = 0;
-      const tick = (): void => {
+      let last = performance.now();
+      const tick = (now: number): void => {
+        // Fixed timestep, clamped so a backgrounded tab doesn't replay a
+        // huge catch-up burst when it comes back.
+        const delta = Math.min(now - last, STEP_MS * 4);
+        last = now;
+        Engine.update(engine, delta);
+
         for (let i = 0; i < states.length; i++) {
           const s = states[i];
           const el = chipRefs.current[i];
@@ -222,7 +233,6 @@ export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
       cleanup = () => {
         cancelAnimationFrame(raf);
         ro.disconnect();
-        Runner.stop(runner);
         World.clear(world, false);
         Engine.clear(engine);
       };
