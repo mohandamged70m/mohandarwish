@@ -1,6 +1,25 @@
 import type { NextConfig } from "next";
 
+/**
+ * Bots that must receive the *complete* HTML document, not a streamed shell.
+ *
+ * By default Next.js only blocking-renders for its own HTML-limited list
+ * (Google, Bing, Twitterbot, Slackbot…). Everything else — which today means
+ * GPTBot, ClaudeBot, PerplexityBot, Applebot-Extended and friends — gets the
+ * streamed response. The home page streams its below-the-fold sections
+ * (`<Suspense>` boundaries), so those crawlers were receiving a shell without
+ * the projects, stack, FAQ or any of the JSON-LD. That is the single biggest
+ * GEO defect this config fixes: the AI crawlers now get the same fully
+ * assembled document Google does.
+ *
+ * The first alternative is Next.js's own default list, preserved verbatim so
+ * overriding the option changes nothing for existing engines.
+ */
+const HTML_LIMITED_BOTS =
+  /[\w-]+-Google|Google-[\w-]+|Chrome-Lighthouse|Slurp|DuckDuckBot|baiduspider|yandex|sogou|bitlybot|tumblr|vkShare|quora link preview|redditbot|ia_archiver|Bingbot|BingPreview|applebot|facebookexternalhit|facebookcatalog|Twitterbot|LinkedInBot|Slackbot|Discordbot|WhatsApp|SkypeUriPreview|Yeti|googleweblight|GPTBot|OAI-SearchBot|ChatGPT-User|ClaudeBot|Claude-SearchBot|Claude-User|PerplexityBot|Perplexity-User|Google-Extended|Applebot-Extended|CCBot|Amazonbot|meta-externalagent|cohere-ai|YouBot|Bytespider|Diffbot/i;
+
 const nextConfig: NextConfig = {
+  htmlLimitedBots: HTML_LIMITED_BOTS,
   images: {
     // AVIF is smallest but slow to encode — fine in production (cached at
     // the edge) but painful in dev where each image optimizes on demand.

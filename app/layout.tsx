@@ -13,7 +13,9 @@ import { ModalViewport } from "@/components/layout/modal-viewport";
 import { ScrollRestorationFix } from "@/components/layout/scroll-restoration";
 import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/metadata";
-import { ME } from "@/data/me";
+import { SAME_AS } from "@/data/me";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { siteEntityGraph } from "@/lib/seo";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -63,13 +65,24 @@ export const metadata: Metadata = {
     template: "%s | Mohand Darwish",
   },
   description: siteConfig.description,
+  applicationName: siteConfig.name,
   keywords: [...siteConfig.keywords],
   authors: [...siteConfig.authors],
   creator: siteConfig.name,
   publisher: siteConfig.name,
   category: "technology",
+  // Site is English-only: no hreflang graph is emitted (a self-referencing
+  // `alternates.languages` block with no translations is noise, not signal).
   alternates: {
     canonical: "/",
+    types: {
+      // Points LLM crawlers at the machine-readable brief for the site root.
+      "text/markdown": "/llms.txt",
+    },
+  },
+  // `me` links are the standard way to claim an identity across profiles.
+  other: {
+    "me": [...SAME_AS],
   },
   openGraph: {
     title: "Mohand Darwish | Software Engineer | AI Product Builder",
@@ -77,6 +90,8 @@ export const metadata: Metadata = {
     url: siteConfig.url,
     siteName: siteConfig.name,
     locale: siteConfig.locale,
+    // The home page is the portfolio *site*, not an OG "profile" object —
+    // the legacy profile type isn't rendered by current social consumers.
     type: "website",
   },
   twitter: {
@@ -107,69 +122,33 @@ export const viewport: Viewport = {
   ],
 };
 
-// Structured data for Google + AI answer engines (ChatGPT, Perplexity, …):
-// a Person entity with verifiable sameAs links, plus the WebSite entity.
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Person",
-      "@id": `${siteConfig.url}/#person`,
-      name: ME.name,
-      url: siteConfig.url,
-      image: `${siteConfig.url}/me/mohand-darwish.jpeg`,
-      jobTitle: "Software Engineer | AI Product Builder",
-      description: siteConfig.description,
-      email: `mailto:${ME.email}`,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Alexandria",
-        addressCountry: "EG",
-      },
-      sameAs: [ME.socials.github, ME.socials.linkedin, ME.socials.x],
-      knowsAbout: [
-        "Next.js",
-        "React",
-        "TypeScript",
-        "Node.js",
-        "Full-Stack Development",
-        "Frontend Engineering",
-        "Web Accessibility",
-        "Web Performance",
-      ],
-    },
-    {
-      "@type": "WebSite",
-      "@id": `${siteConfig.url}/#website`,
-      url: siteConfig.url,
-      name: siteConfig.name,
-      description: siteConfig.description,
-      inLanguage: "en",
-      author: { "@id": `${siteConfig.url}/#person` },
-    },
-  ],
-};
+// Structured data for Google + AI answer engines (ChatGPT, Perplexity, Gemini,
+// Claude, AI Overviews). Person + WebSite + ProfilePage + primaryImage, built
+// once in lib/seo.ts so the entity `@id`s are identical on every route and the
+// handles can never disagree with the nav, footer, or llms.txt. Rendered in
+// this Server Component, so it is in the initial HTML payload — not injected
+// by client JS.
+const jsonLd = siteEntityGraph();
 
 export default function RootLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <html
       lang="en"
+      dir="ltr"
       suppressHydrationWarning
       className={`${inter.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
     >
       <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
-        {/* Structured data: Person + WebSite (SEO + AI answer engines). */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
-          }}
-        />
+        {/* Entity graph: Person + WebSite + ProfilePage (SEO + AI citation). */}
+        <JsonLd data={jsonLd} />
         <Providers>
           <ScrollRestorationFix />
           <TrailsTracker />
           <PathMemory />
-          <Nav />
+          {/* Banner landmark wraps the (fixed-position) primary nav. */}
+          <header>
+            <Nav />
+          </header>
           <CvModalHost />
           <RouteCurtain />
           {children}

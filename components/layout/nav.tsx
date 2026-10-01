@@ -22,12 +22,18 @@ type NavItem = {
   href: string;
 };
 
+// Mirrors the pager SECTIONS in app/page.tsx — every full-height section is
+// reachable from the nav, and every href resolves to a real element id.
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
+  { label: "About", href: "#about" },
   { label: "Projects", href: "#projects" },
   { label: "Stack", href: "#stack" },
   { label: "Contact", href: "#booking" },
 ];
+
+/** Ids the pager/nav are allowed to jump to (see the scroll-target effect). */
+const NAV_TARGETS = ["hero", "about", "projects", "stack", "booking"] as const;
 
 type NavDims = {
   closedW: number;
@@ -260,13 +266,7 @@ export function Nav(): ReactNode {
     const pending = sessionStorage.getItem("scroll-target");
     const rawHash = window.location.hash.replace("#", "");
     const target = pending || rawHash;
-    if (
-      !target ||
-      (target !== "hero" &&
-        target !== "projects" &&
-        target !== "stack" &&
-        target !== "booking")
-    ) {
+    if (!target || !(NAV_TARGETS as readonly string[]).includes(target)) {
       return;
     }
     sessionStorage.removeItem("scroll-target");
@@ -287,6 +287,7 @@ export function Nav(): ReactNode {
     if (pathname !== "/") return;
     const spy: Array<{ observe: string; hash: string }> = [
       { observe: "hero", hash: "#hero" },
+      { observe: "about-wrap", hash: "#about" },
       { observe: "projects-wrap", hash: "#projects" },
       { observe: "stack-wrap", hash: "#stack" },
     ];
@@ -747,6 +748,7 @@ function scrollToSection(id: string, moveFocus = false): void {
                   [
                     { label: "GitHub", href: ME.socials.github },
                     { label: "LinkedIn", href: ME.socials.linkedin },
+                    { label: "YouTube", href: ME.socials.youtube },
                     { label: "X/Twitter", href: ME.socials.x },
                   ] as const
                 ).map((s) => (

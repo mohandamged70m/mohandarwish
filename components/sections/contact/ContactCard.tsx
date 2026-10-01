@@ -102,6 +102,7 @@ export function ContactCard(): ReactNode {
                     <SocialIcon href={`mailto:${ME.email}`} label={`Email ${ME.email}`} lucideIcon={Mail} />
                     <SocialIcon href={ME.socials.linkedin} label="LinkedIn" imageSrc="/linkedin.svg" />
                     <SocialIcon href={ME.socials.github} label="GitHub" imageSrc="/github.svg" />
+                    <SocialIcon href={ME.socials.youtube} label="YouTube" imageSrc="/youtube.svg" />
                   </div>
                   <div className="flex flex-col items-center gap-2 text-center">
                     <a
@@ -110,20 +111,25 @@ export function ContactCard(): ReactNode {
                     >
                       {ME.email}
                     </a>
-                    <p className="font-body text-[13px] tracking-tight text-text-muted">
-                      2026 © {ME.name} · Built with Next.js ·{" "}
-                      <a
-                        href={ME.socials.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline decoration-border underline-offset-4 hover:text-accent"
-                      >
-                        View source
-                      </a>
-                    </p>
+                    {/* Contentinfo landmark for the page. The copyright line
+                        doubles as the site's machine-readable attribution, so
+                        the author is present in the HTML on every route. */}
+                    <footer className="font-body text-[13px] tracking-tight text-text-muted">
+                      <p>
+                        {new Date().getFullYear()} © {ME.name} · {ME.role} · Built with Next.js ·{" "}
+                        <a
+                          href={ME.socials.github}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline decoration-border underline-offset-4 hover:text-accent"
+                        >
+                          View source
+                        </a>
+                      </p>
+                    </footer>
                     <p className="inline-flex items-center gap-1.5 font-body text-[12px] tracking-tight text-text-muted">
                       <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-                      Alexandria · GMT+2
+                      {ME.location} · {ME.timezone} · {ME.availability}
                     </p>
                   </div>
                 </div>

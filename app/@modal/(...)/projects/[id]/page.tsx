@@ -26,7 +26,9 @@ export default async function InterceptedProjectPage({
   const initialMedia = project.images?.[0] ?? project.videos?.[0] ?? project.image;
   return (
     <ProjectModal backHref="/#projects" marker="root-slot" initialMedia={initialMedia} projectId={project.id}>
-      <ProjectDetailContent project={project} />
+      {/* headingLevel="h2": this intercepted copy sits alongside the page it
+          was navigated away from, so it must not introduce a second h1. */}
+      <ProjectDetailContent project={project} headingLevel="h2" />
     </ProjectModal>
   );
 }

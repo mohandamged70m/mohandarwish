@@ -159,8 +159,9 @@ Image remote hosts are allowlisted in `next.config.ts` (picsum, simpleicons, svg
 **Mohand Darwish** — Alexandria, Egypt (GMT+2)
 
 - Email: mohandamged70m@gmail.com
-- LinkedIn: https://www.linkedin.com/in/mohand-darwish
+- LinkedIn: https://www.linkedin.com/in/mohandamged
 - GitHub: https://github.com/mohandamged70m
+- YouTube: https://www.youtube.com/@mohand.darwish
 - X: https://x.com/mohand_darwish
 
 Available for new opportunities — hire CTA and `Book a call` are built into the hero.

@@ -7,6 +7,9 @@ import type { ReactNode } from "react";
 import { createMetadata } from "@/lib/metadata";
 import { decodeProjectId } from "@/data/projects";
 import { getProjectServer, getProjectsServer } from "@/lib/projects-server";
+import { breadcrumbJsonLd, projectJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { ME } from "@/data/me";
 
 type Params = Promise<{ id: string }>;
 
@@ -32,11 +35,12 @@ export async function generateMetadata({
   try {
     const project = await getProjectServer(docId);
     if (!project) return {};
+    const stack = project.stack?.slice(0, 3).join(", ");
     return createMetadata({
       title: project.title,
       description:
-        project.description ??
-        `Project details for ${project.title} — ${project.category}.`,
+        project.description?.trim() ||
+        `${project.title} — a ${project.category.toLowerCase()} project by ${ME.name}${stack ? `, built with ${stack}` : ""}.`,
       path: `/projects/${encodeURIComponent(project.id)}`,
     });
   } catch {
@@ -60,7 +64,18 @@ export default async function ProjectPage({
   if (!project) notFound();
 
   return (
-    <main className="flex flex-1 flex-col">
+    <main id="main-content" className="flex flex-1 flex-col">
+      {/* Per-project entity: SoftwareApplication authored by the site-wide
+          Person @id, plus the breadcrumb trail. Both are server-rendered. */}
+      <JsonLd data={projectJsonLd(project)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Projects", path: "/projects" },
+          { name: project.title, path: `/projects/${encodeURIComponent(project.id)}` },
+        ])}
+      />
+
       <section className="mx-auto w-full max-w-3xl px-4 pt-32 pb-16 sm:px-6 sm:pt-40 sm:pb-20">
         <Link
           href="/projects"

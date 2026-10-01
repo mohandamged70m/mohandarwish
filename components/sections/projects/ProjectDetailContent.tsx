@@ -118,11 +118,21 @@ function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconS
   );
 }
 
-type Props = { project: Project };
+type Props = { project: Project; headingLevel?: "h1" | "h2" };
 
-export function ProjectDetailContent({ project }: Props) {
+/**
+ * `headingLevel` keeps the document outline valid on every surface: the full
+ * case-study route passes the default "h1", while the intercepted modal
+ * variant (rendered alongside the route it was navigated away from) passes
+ * "h2" so the document never ends up with two h1 elements. Visual output is
+ * identical — all sizes are set inline.
+ */
+export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
   const { setActiveMedia, isMobile, inModal } = useProjectModal();
   const [windowWidth, setWindowWidth] = useState(1024);
+  const Title = headingLevel;
+  const Section = headingLevel === "h1" ? "h2" : "h3";
+  const Sub = headingLevel === "h1" ? "h3" : "h4";
 
   useEffect(() => {
     const onR = () => setWindowWidth(window.innerWidth);
@@ -302,7 +312,7 @@ export function ProjectDetailContent({ project }: Props) {
                 Project ID: #{project.id.toUpperCase()}
               </span>
             </div>
-            <h1
+            <Title
               style={{
                 margin: 0,
                 fontSize: isMobile ? (isTiny ? "1.9rem" : "2.6rem") : "4.2rem",
@@ -316,7 +326,7 @@ export function ProjectDetailContent({ project }: Props) {
               }}
             >
               {displayTitle}
-            </h1>
+            </Title>
             {project.description && (
               <p
                 style={{
@@ -346,9 +356,9 @@ export function ProjectDetailContent({ project }: Props) {
           </GlassPanel>
 
           <GlassPanel>
-            <h3 style={{ margin: "0 0 22px 0", fontSize: "0.8rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-primary)", fontFamily: "var(--font-heading)" }}>
+            <Section style={{ margin: "0 0 22px 0", fontSize: "0.8rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-primary)", fontFamily: "var(--font-heading)" }}>
               Technological Blueprint
-            </h3>
+            </Section>
             {project.stack && project.stack.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${isMobile ? 140 : 170}px, 1fr))`, gap: 12 }}>
                 {project.stack.map((tech) => {
@@ -410,7 +420,7 @@ export function ProjectDetailContent({ project }: Props) {
         {/* Sidebar */}
         <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 20 : 24 }}>
           <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-            <h4 style={{ margin: "0 0 16px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Actions</h4>
+            <Sub style={{ margin: "0 0 16px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Actions</Sub>
             {(isRealUrl(project.liveUrl) || isRealUrl(project.githubUrl)) ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {isRealUrl(project.liveUrl) && (
@@ -481,7 +491,7 @@ export function ProjectDetailContent({ project }: Props) {
 
           {project.metrics && project.metrics.length > 0 && (
             <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-              <h4 style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Impact</h4>
+              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Impact</Sub>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {project.metrics.map((m) => (
                   <div key={m.label} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px 14px" }}>
@@ -494,7 +504,7 @@ export function ProjectDetailContent({ project }: Props) {
           )}
 
           <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-            <h4 style={{ margin: "0 0 10px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Details</h4>
+            <Sub style={{ margin: "0 0 10px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Details</Sub>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>
               <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Category:</span> {project.category}</div>
               {project.year && <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Year:</span> {project.year}</div>}
@@ -514,9 +524,9 @@ export function ProjectDetailContent({ project }: Props) {
 
           {project.contributors && project.contributors.length > 0 && (
             <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-              <h4 style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
+              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
                 Team ({project.contributors.length})
-              </h4>
+              </Sub>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {project.contributors.map((c) => (
                   <div key={`${c.name}-${c.role}`} style={{ display: "flex", alignItems: "center", gap: 12 }}>
