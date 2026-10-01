@@ -120,6 +120,16 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
   const [prevTab, setPrevTab] = useState(activeTab);
   if (prevTab !== activeTab) { setPrevTab(activeTab); setAgendaScrolled(false); setMessageScrolled(false); }
 
+  // Which half of the funnel they walked into: booking a call, or just writing.
+  // The furthest one they reached is the interesting number in Trails.
+  useEffect(() => {
+    if (!open) return;
+    try {
+      (window as unknown as { __trails?: { track: (k: string, v?: string) => void } })
+        .__trails?.track("contact-tab", activeTab);
+    } catch { /* never break the page */ }
+  }, [open, activeTab]);
+
   const getDaysInMonth = (date: Date) => { const y = date.getFullYear(), m = date.getMonth(); return { days: new Date(y, m + 1, 0).getDate(), firstDay: new Date(y, m, 1).getDay() }; };
   const [availConfig, setAvailConfig] = useState<AvailabilityConfig>(DEFAULT_AVAILABILITY);
   const [availLoaded, setAvailLoaded] = useState(false);

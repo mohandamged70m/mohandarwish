@@ -10,7 +10,12 @@
 //   query(col, ...constraints) with where(field,'==',v), orderBy(field,dir), limit(n)
 //   onSnapshot(target, onNext, onError?) -> unsubscribe
 //   getDoc / getDocs / setDoc (with {merge}) / updateDoc (dotted keys) / deleteDoc
-//   deleteField() / serverTimestamp() / writeBatch(db)
+//   deleteField() / serverTimestamp() / increment() / writeBatch(db)
+//
+// Analytics rollups are NOT written through here: concurrent writers would each read
+// the same pre-write total and one count would vanish. app/api/track uses the
+// dash_merge/dash_patch/dash_patch_seq SQL functions in supabase/dashboard-schema.sql
+// instead, which do the read-modify-write inside one statement.
 
 import { supabase } from "@/lib/supabase/client";
 
@@ -114,6 +119,20 @@ export function orderBy(field: string, dir: "asc" | "desc" = "asc"): Constraint 
 
 export function limit(n: number): Constraint {
   return { t: "limit", n };
+}
+
+/**
+ * Firestore's FieldValue.increment(). Kept as a sentinel here, exactly like
+ * deleteField()/serverTimestamp() above, so call sites copied from the Firebase
+ * version keep working.
+ *
+ * Note for writers that read-modify-write in JavaScript: this cannot be atomic the
+ * way Firestore's was. `increment(n)` writes the literal n, so to take a count back
+ * out you need the current value: `increment(current - 1)`. For rollups that many
+ * writers touch at once, use the dash_merge/dash_patch SQL functions instead.
+ */
+export function increment(n: number): number {
+  return n;
 }
 
 export function query(col: ColRef, ...constraints: Constraint[]): Query {

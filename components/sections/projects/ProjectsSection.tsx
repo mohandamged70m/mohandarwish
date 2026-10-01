@@ -12,6 +12,7 @@ import { ProjectCard } from "./ProjectCard";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { useProjects } from "@/hooks/useProjects";
 import { useDeveloperRepos } from "@/hooks/useDeveloperRepos";
+import { useTailor } from "@/lib/analytics/tailor";
 
 // Developer tab (animejs + GitHub graph) is hidden until the user clicks
 // the Developer filter — split it out so animejs never lands in the
@@ -32,12 +33,23 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
   const [active, setActive] = useState<FilterCategory>("Projects");
   const { projects, loading } = useProjects(initialProjects);
   const { repos: devRepos } = useDeveloperRepos();
+  // A share link can ask for specific projects to float to the top of the grid —
+  // "here are the three that matter for you" instead of the usual ranking.
+  const tailor = useTailor();
 
   // Homepage: Projects = featured (top 6 by Listing), Developer = GitHub featured repos
   const filtered = useMemo(() => {
-    if (active === "Projects") return projects.filter((p) => p.featured);
-    return [];
-  }, [active, projects]);
+    const featured = active === "Projects" ? projects.filter((p) => p.featured) : [];
+    const pinned = tailor?.Pinned ?? [];
+    if (!pinned.length) return featured;
+    // Pinned order is the link's order; unpinned keep their normal ranking behind it.
+    return [
+      ...pinned
+        .map((id) => featured.find((p) => p.id === id))
+        .filter((p): p is Project => !!p),
+      ...featured.filter((p) => !pinned.includes(p.id)),
+    ];
+  }, [active, projects, tailor]);
 
   const filterCounts = useMemo<Record<FilterCategory, number>>(
     () => ({

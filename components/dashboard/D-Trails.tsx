@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, TooltipProps } from 'recharts';
-import { doc, onSnapshot, updateDoc, collection, getDocs, setDoc, deleteDoc, query, orderBy, limit as fsLimit, where } from '@/lib/dash-db';
+import { doc, onSnapshot, updateDoc, collection, getDocs, setDoc, deleteDoc, query, orderBy, limit as fsLimit, where, increment } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
 import FileImage from '@/components/dashboard/primitives/FileImage';
 import Loader from '@/components/dashboard/primitives/reactbits/Loader';
@@ -1078,11 +1078,26 @@ const DTrails = () => {
     };
 
     const deleteStory = async (id: string) => {
+        const story = sessions.find(s => s.Id === id);
         try {
             await deleteDoc(doc(db, 'Analytics', 'Sessions', 'Items', id));
+            // The link counted this visit; take it back so its card agrees with the
+            // list. An owner visit was never counted. A removed link has no card.
+            const linkId = story && !story.Owner ? story.Link?.Id : undefined;
+            let recounted = true;
+            if (linkId && links.some(l => l.Code === linkId || l.id === linkId)) {
+                try {
+                    await updateDoc(doc(db, 'Analytics', 'Links', 'Items', linkId), {
+                        Opens: increment(-1),
+                        Sessions: increment(-1),
+                    });
+                } catch { recounted = false; }
+            }
             setOpenStoryId(null);
             setPendingStory('');
-            showAlert({ type: 'success', message: 'Visit deleted.' });
+            showAlert(recounted
+                ? { type: 'success', message: 'Visit deleted.' }
+                : { type: 'error', message: 'Visit deleted, but its link still counts it.' });
         } catch {
             showAlert({ type: 'error', message: 'Could not delete that visit.' });
         }
@@ -1118,13 +1133,16 @@ const DTrails = () => {
         setActiveMenu(null);
     };
 
-    // ── render ───────────────────────────────────────────────────────────
+    // Returning is what separates visits from people. Someone who opened the link
+    // three times is one person and three visits; showing only the session count
+    // made that read as three people.
     const counters = [
         { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#ef4444' },
         { label: 'People', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
         { label: 'Link opens', value: totals?.LinkOpens ?? 0, icon: <Link2 size={18} />, tint: '#a855f7' },
         { label: 'Reached contact', value: totals?.Contacts ?? 0, icon: <Mail size={18} />, tint: '#ec4899' },
     ];
+    const returning = totals?.Returning ?? 0;
 
     return (
         <div className="flex flex-col gap-6 h-full overflow-y-auto lg:overflow-hidden p-1 sm:p-0">
@@ -1182,6 +1200,15 @@ const DTrails = () => {
                         <Radio size={13} className="animate-pulse" />
                         {liveCount} reading now
                     </button>
+                )}
+
+                {/* Sessions vs people. Only worth saying once somebody came back. */}
+                {returning > 0 && (
+                    <p className="text-xs text-muted m-0 ml-auto hidden md:block">
+                        {counters[1].value.toLocaleString()} {counters[1].value === 1 ? 'person' : 'people'},
+                        {' '}{counters[0].value.toLocaleString()} visits
+                        {' — '}{returning.toLocaleString()} {returning === 1 ? 'was' : 'were'} a return
+                    </p>
                 )}
             </div>
 

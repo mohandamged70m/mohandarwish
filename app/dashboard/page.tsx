@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Dashboard from "@/components/dashboard/Dashboard";
+import { STORY_KEY } from "@/components/dashboard/primitives/Algorithm";
 
 // Admin shell: ADMIN_TOKEN gate (same as before), then the full dashboard.
 // On entry it mirrors bookings/messages/availability into the docs Canary
@@ -56,6 +57,24 @@ function useDashboardToken() {
       setTimeout(() => setToast(null), 3000);
     }
   };
+
+  // "Watch this visit" in the link-open email lands here as /dashboard?s=<id>. Park
+  // the id for D-Trails, drop it from the URL, and let the normal token gate run —
+  // the id is worthless without it. Parked before auth because the flag survives the
+  // gate: signing in re-renders this component, and the claim must not be lost.
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const story = params.get("s");
+      if (!story || !/^[a-z0-9-]{6,40}$/i.test(story)) return;
+      sessionStorage.setItem(STORY_KEY, story);
+      params.delete("s");
+      const rest = params.toString();
+      window.history.replaceState({}, "", window.location.pathname + (rest ? `?${rest}` : ""));
+    } catch {
+      /* private mode - the email link just lands on the dashboard normally */
+    }
+  }, []);
 
   const logout = () => {
     localStorage.removeItem("dashboard_token");

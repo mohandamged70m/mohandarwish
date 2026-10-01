@@ -4,27 +4,19 @@ import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { ME } from "@/data/me";
+import { useTailor } from "@/lib/analytics/tailor";
 import "./hero.css";
-
-// BookingModal pulls in motion + supabase + calendar UI but renders nothing
-// while closed, so it stays off the hero's initial bundle (dynamic, no SSR)
-// and is prefetched on idle / button hover-focus to keep first open instant.
 const BookingModal = dynamic(() => import("@/components/booking/BookingModal"), { ssr: false });
 
 function prefetchBookingModal() {
   void import("@/components/booking/BookingModal");
 }
 
-// Name split verbatim from ME.name ("Mohand Darwish").
+
 const [FIRST_NAME, LAST_NAME] = ME.name.split(" ");
 const HEY_TEXT = "hey, i'm";
 const ROLE_TEXT = ME.role;
 
-// Staggered letter-by-letter reveal. Parent line keeps overflow-hidden so
-// each char rises from below; delay = base + index * step gives the
-// sequential "hey → Mohand → Darwish → role" cascade.
-// Pure presentational (props are primitives) — memoized so the 20s clock
-// tick and modal open/close don't re-reconcile ~50 letter spans.
 const Letters = memo(function Letters({
   text,
   base,
@@ -82,13 +74,13 @@ function formatClock(now: Date): string {
 
 export default function HeroSection() {
   const heroRef = useRef<HTMLElement | null>(null);
-  // Live Cairo clock for the location pill. Seeded during render (SSR +
-  // hydration) so the pill has its final fixed-length content on first paint
-  // instead of popping from "" → time (CLS). Monospace pill text never
-  // changes width, so the immediate tick + suppressHydrationWarning below are
-  // shift-free even if a minute boundary falls between SSR and hydration.
   const [clock, setClock] = useState(() => formatClock(new Date()));
   const [bookingOpen, setBookingOpen] = useState(false);
+  // A share link can greet this visitor by name ("hey, Sam, it's Mohand") instead of
+  // the default line. Null on the server and the first client render, so the default
+  // shows first and the tailored line swaps in without a hydration mismatch.
+  const tailor = useTailor();
+  const hey = tailor?.Greeting?.trim() || HEY_TEXT;
 
   useEffect(() => {
     const tick = () => {
@@ -99,8 +91,6 @@ export default function HeroSection() {
     return () => clearInterval(id);
   }, []);
 
-  // Prefetch the booking chunk off the critical path (hover/focus on the
-  // button covers intent even earlier). No visual effect.
   useEffect(() => {
     const w = window as unknown as {
       requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
@@ -114,15 +104,6 @@ export default function HeroSection() {
     return () => window.clearTimeout(t);
   }, []);
 
-  // Subtle pointer parallax only — skipped for prefers-reduced-motion.
-  // The loop idles while the hero is off-screen (IntersectionObserver) and
-  // skips DOM writes when settled, so it never churns style recalc under
-  // the section curtain / slide transitions. Eases back to neutral while
-  // a transition runs instead of fighting the slide animation.
-  // Perf: the rAF loop parks (no scheduled frame) once px/py settle on
-  // target instead of spinning forever; pointermove/leave, visibility, and
-  // the section-transition lock (MutationObserver) kick it back awake.
-  // Easing constants are untouched, so motion is pixel-identical.
   useEffect(() => {
     const hero = heroRef.current;
     if (!hero) return;
@@ -241,11 +222,6 @@ export default function HeroSection() {
         </span>
       </div>
 
-      {/* LCP image: paints immediately at its final position — no opacity-0 /
-          delayed entrance (an opacity-gated LCP candidate inflates render
-          delay by the full animation time). The pointer parallax transform
-          is compositor-only and LCP-safe. Section-level motion on pager
-          arrivals still comes from SectionSlide. */}
       <div
         className="mh-me pointer-events-none bottom-0 left-[48%] z-[3] h-[88%] w-[min(86vw,420px)] [transform:translate(calc(-50%+var(--px)/-3),0)] md:w-[520px]"
       >
@@ -265,7 +241,7 @@ export default function HeroSection() {
         aria-hidden="true"
         className="mh-hw mh-hey pointer-events-none left-[4.4vw] top-[8.5%] z-[4] overflow-hidden px-[0.1em] py-[0.15em] font-hero-hand text-[1.9vw] uppercase text-accent-text [text-shadow:0_0_18px_var(--accent-ring)] [transform:rotate(-4deg)]"
       >
-        <Letters text={HEY_TEXT} base={0.15} step={0.035} duration={0.55} />
+        <Letters text={hey} base={0.15} step={0.035} duration={0.55} />
       </p>
       <p
         aria-hidden="true"

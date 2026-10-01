@@ -7,7 +7,7 @@ import {
     X, Monitor, Smartphone, Tablet, Clock, Gauge, MousePointer2, Trash2,
     ArrowDownWideNarrow, Link2, Zap, Radio,
 } from 'lucide-react';
-import { EVENT_LABEL, formatMs, type SessionDoc, type SessionEvent } from '@/lib/analytics-types';
+import { EVENT_LABEL, formatMs, sentLabel, type SessionDoc, type SessionEvent } from '@/lib/analytics-types';
 
 /**
  * One visit, end to end.
@@ -77,7 +77,27 @@ function describe(e: SessionEvent): string {
         return e.v === 'dead' ? 'Clicked something that does nothing' : 'Clicked the same spot over and over';
     }
     if (e.k === 'copy') return `Copied ${e.v === 'text' ? 'some text' : `your ${e.v}`}`;
+    if (e.k === 'section') return `Moved to ${sectionName(e.v)}`;
+    if (e.k === 'project_end') return `Closed ${e.v}`;
+    if (e.k === 'social_back') return `Came back from ${e.v}`;
+    if (e.k === 'contact_tab') {
+        return e.v === 'message' ? 'Went to write a message' : 'Went to book a call';
+    }
+    if (e.k === 'contact_sent') return sentLabel(e.v);
     return `${label} ${e.v}`;
+}
+
+/** Section ids are slugs; people read them as names. */
+function sectionName(id?: string): string {
+    switch (id) {
+        case 'hero': return 'the intro';
+        case 'stack': return 'the stack';
+        case 'projects': return 'the projects';
+        case 'project': return 'a project';
+        case 'contact': return 'contact';
+        case 'home': return 'the top of the page';
+        default: return id || 'somewhere';
+    }
 }
 
 const Fact = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
@@ -145,7 +165,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
     const sectionMax = sections[0]?.[1] || 1;
 
     const summary = [
-        story.Contact?.Sent ? `sent a ${story.Contact.Sent === 'meeting' ? 'booking' : 'message'}`
+        story.Contact?.Sent ? sentLabel(story.Contact.Sent)
             : story.Contact?.Opens ? 'opened contact but left'
                 : null,
         projects.length ? `${projects.length} project${projects.length === 1 ? '' : 's'}` : null,

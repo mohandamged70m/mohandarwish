@@ -1,187 +1,202 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { canonicalSocial, classifySource, type SourceKind } from "@/lib/analytics/source";
+import { linkOpenedHtml } from "@/lib/email";
+import { getResendFrom, sendSafe } from "@/lib/resend";
+import { siteConfig } from "@/lib/metadata";
 
-// Trails ingest: LINK-ONLY page-view pings + rich session flushes.
-// Only visits that arrive through a share link created in Trails > Links
-// (Analytics/Links/Items, matched by Code) are recorded. Direct / organic
-// visits are ignored entirely — no session row, no aggregates.
+// Trails ingest. The only thing that writes anything under `Analytics/`.
 //
-// Feeds Analytics/Days/Items, Analytics/Totals, Analytics/Sessions/Items
-// (capped at 300), Analytics/Sources/Items, Analytics/Socials/Items and the
-// Projects/<id> Views maps that D-Trails reads. No PII is stored.
+// The browser buffers a visit and POSTs numbered deltas here (lib/analytics/collect.ts);
+// this applies them. Deltas rather than snapshots, so two flushes racing cannot
+// overwrite each other, and every flush carries `seq` counting up from 1 - the server
+// applies a sequence check and the write in one statement (dash_patch_seq), so a retry
+// or a double-submit is counted exactly once.
 //
-// Two call shapes (backwards compatible):
-//   legacy ping: { path, referrer, screen, viewport, language }  -> ignored
-//   session:     { kind: "init" | "flush", sid, ... }
+// Three things this endpoint is careful about, because each one was a way the old
+// ingest lost or inflated the numbers:
+//   - `hello` (device, entry, share-link code) rides along until the server confirms
+//     it has it. It used to go on flush 1 only, so a refused first flush left the
+//     visit recorded but anonymous, and the link never counted its open.
+//   - Every number is clamped and every key validated. A public endpoint that adds
+//     whatever it is sent will happily add 1e308 to a lifetime counter.
+//   - An owner visit is taken back OUT if it is recognised part-way through, or the
+//     totals count a visit the dashboard is hiding as the owner's own.
+//
+// Feeds Analytics/Days/Items, Analytics/Totals, Analytics/Sessions/Items (capped),
+// Analytics/Sources/Items, Analytics/Socials/Items and the Projects/<id> Views maps
+// that D-Trails reads. No PII is stored.
 
+export const dynamic = "force-dynamic";
+
+const MAX_SEQ = 300;
+const MAX_EVENTS_PER_FLUSH = 120;
+const MAX_EVENTS_TOTAL = 500;
+const MAX_KEYS = 60;
 const MAX_SESSIONS = 300;
-const MAX_EVENTS = 500;
+const HOUR_MS = 60 * 60 * 1000;
+const MAX_SESSION_AGE_MS = 12 * HOUR_MS;
 
-type NumMap = Record<string, number>;
+const SESSIONS = "Analytics/Sessions/Items";
+const DAYS = "Analytics/Days/Items";
+const LINKS = "Analytics/Links/Items";
+const SOURCES = "Analytics/Sources/Items";
+const SOCIALS = "Analytics/Socials/Items";
+const TOTALS = "Analytics/Totals";
 
-interface ProjectDelta {
-  Ms?: number;
-  Opens?: number;
-  Live?: number;
-  Github?: number;
-  Download?: number;
-}
+const ID_RE = /^[a-z0-9]{1,14}-[a-z0-9]{4,20}$/i;
+const VISITOR_RE = /^v-[a-z0-9]{8,20}$/;
+const CODE_RE = /^[A-Za-z0-9_-]{4,32}$/;
 
-interface SocialDelta {
-  Clicks?: number;
-  AwayMs?: number;
-}
+const EVENT_KINDS = new Set([
+  "section", "project", "project_end", "out", "social", "social_back",
+  "cv", "contact", "contact_tab", "contact_sent", "copy", "scroll",
+  "idle", "wake", "hide", "show", "rage", "print", "end",
+]);
 
-interface FlushDeltas {
-  sections?: NumMap;
-  projects?: Record<string, ProjectDelta>;
-  projectAgg?: { Project?: number; Live?: number; Github?: number; Download?: number };
-  socials?: Record<string, SocialDelta>;
-  socialClicks?: number;
-  contactsSent?: number;
-}
-
-type Body = {
-  kind?: "init" | "flush";
-  sid?: string;
-  vid?: string;
-  isNewVisitor?: boolean;
-  path?: string;
-  referrer?: string;
-  screen?: string;
-  viewport?: string;
-  language?: string;
-  utm?: Record<string, string>;
-  owner?: boolean;
-  linkId?: string;
-  linkName?: string;
-  linkFor?: string;
-  link?: { Id?: string; Name?: string; For?: string };
-  device?: Record<string, string>;
-  perf?: { LoadMs?: number; LcpMs?: number };
-  // flush-only (all deltas except scalars)
-  activeMs?: number;
-  openMs?: number;
-  idleMs?: number;
-  scroll?: NumMap;
-  contactOpens?: number;
-  contactSent?: string;
-  cvOpens?: number;
-  exitSection?: string;
-  events?: Array<{ k: string; v?: string; t: number }>;
-  rage?: number;
-  copies?: number;
-  prints?: number;
-  ended?: boolean;
-  deltas?: FlushDeltas;
-};
+type Dict = Record<string, unknown>;
 
 type Supa = ReturnType<typeof supabaseServer>;
 
-async function readDoc(supa: Supa, path: string) {
+// ── validation helpers ────────────────────────────────────────────────
+const isObj = (v: unknown): v is Dict => !!v && typeof v === "object" && !Array.isArray(v);
+
+/**
+ * A map key we are willing to write as a field or a document id. Project ids are the
+ * project documents' own ids and social names carry dashes, so those stay legal;
+ * only what would break the path or the merge is rejected.
+ */
+function safeKey(v: unknown): string | null {
+  if (typeof v !== "string") return null;
+  const s = v.trim();
+  if (!s || s.length > 100) return null;
+  if (s === "." || s === "..") return null;
+  if (/[/[\]*~]/.test(s)) return null;
+  if (s.startsWith("__")) return null;
+  return s;
+}
+
+/** A non-negative integer, clamped. Anything else becomes 0. */
+function num(v: unknown, max: number): number {
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(Math.round(n), max);
+}
+
+function str(v: unknown, max: number): string {
+  return typeof v === "string" ? v.slice(0, max) : "";
+}
+
+/** Read a delta map (`{key: number}`) with both the key set and values bounded. */
+function deltaMap(v: unknown, max: number): Record<string, number> {
+  const out: Record<string, number> = {};
+  if (!isObj(v)) return out;
+  let n = 0;
+  for (const [k, raw] of Object.entries(v)) {
+    if (n >= MAX_KEYS) break;
+    const key = safeKey(k);
+    const value = num(raw, max);
+    if (!key || !value) continue;
+    out[key] = value;
+    n++;
+  }
+  return out;
+}
+
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** The UTC day a visit began on - the day its opening flush was counted under. */
+function dayOf(startedAt: unknown): string {
+  const at = num(startedAt, Number.MAX_SAFE_INTEGER);
+  return at ? new Date(at).toISOString().slice(0, 10) : todayKey();
+}
+
+// ── document layer ────────────────────────────────────────────────────
+async function readDoc(supa: Supa, path: string): Promise<Dict> {
   const { data } = await supa.from("dashboard_docs").select("data").eq("path", path).maybeSingle();
-  return ((data?.data as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+  return (isObj(data?.data) ? (data!.data as Dict) : {}) as Dict;
 }
 
-async function writeDoc(supa: Supa, path: string, data: Record<string, unknown>) {
-  await supa.from("dashboard_docs").upsert(
-    { path, data, updated_at: new Date().toISOString() },
-    { onConflict: "path" }
-  );
-}
-
-function num(v: unknown): number {
-  const n = Number(v || 0);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function cleanSid(s: unknown): string {
-  return typeof s === "string" ? s.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64) : "";
-}
-
-function sourceKind(host: string): string {
-  const h = host.toLowerCase();
-  if (/google|bing|duckduckgo|yahoo|yandex|baidu|ecosia|brave/.test(h)) return "search";
-  if (/x\.com|twitter|linkedin|github|facebook|instagram|tiktok|reddit|youtube|medium|dev\.to|producthunt/.test(h))
-    return "social";
-  if (/mail|newsletter|substack/.test(h)) return "mail";
-  if (/chatgpt|claude|perplexity|gemini|bard|copilot|grok/.test(h)) return "ai";
-  return "referral";
-}
-
-function hostOf(ref: string): string {
-  try {
-    return ref ? new URL(ref).hostname.replace(/^www\./, "") : "";
-  } catch {
-    return "";
+/**
+ * The in-process twin of the SQL dash_merge(): number + number adds, object + object
+ * merges, anything else is overwritten. Used only as the fallback when the atomic
+ * functions below are not installed (the migration has not been run) - identical
+ * behaviour to the SQL version, minus the guarantee.
+ */
+function mergeInto(base: Dict, patch: Dict): Dict {
+  const out: Dict = { ...base };
+  for (const [k, v] of Object.entries(patch)) {
+    const b = base[k];
+    if (isObj(b) && isObj(v)) out[k] = mergeInto(b, v);
+    else if (typeof b === "number" && typeof v === "number") out[k] = b + v;
+    else out[k] = v;
   }
+  return out;
 }
 
-// Link-only gate: a tracking code is valid only when a link doc with that
-// Code exists in Analytics/Links/Items. Returns the doc path plus the
-// canonical Name/For (client-supplied values are never trusted).
-async function resolveLink(
+/**
+ * Add to a document atomically. Two concurrent flushes each read the same
+ * pre-write total and one count vanishes; the SQL function does the
+ * read-modify-write inside a single statement, which is what Firestore's
+ * FieldValue.increment() gave us before the Supabase port.
+ */
+async function patchDoc(supa: Supa, path: string, patch: Dict): Promise<void> {
+  if (!Object.keys(patch).length) return;
+  try {
+    const { error } = await supa.rpc("dash_patch", { p_path: path, p_patch: patch });
+    if (!error) return;
+  } catch {
+    /* function not installed - fall through */
+  }
+  const cur = await readDoc(supa, path);
+  await writeDoc(supa, path, mergeInto(cur, patch));
+}
+
+async function writeDoc(supa: Supa, path: string, data: Dict): Promise<void> {
+  await supa.from("dashboard_docs").upsert({ path, data, updated_at: new Date().toISOString() }, { onConflict: "path" });
+}
+
+/**
+ * Apply one flush, exactly once.
+ *
+ * Returns null when the flush was a replay (its seq was already applied) or when it
+ * lost a race to a newer one - the caller retries on null, because its view of the
+ * session's Events and Scroll was stale by definition.
+ */
+async function patchSeq(
   supa: Supa,
-  code: unknown,
-): Promise<{ path: string; code: string; Name: string; For: string } | null> {
-  if (typeof code !== "string" || !code) return null;
-  const c = code.slice(0, 120);
-  if (!c) return null;
+  path: string,
+  patch: Dict,
+  seq: number,
+  events: unknown[]
+): Promise<Dict | null> {
   try {
-    const { data: rows } = await supa
-      .from("dashboard_docs")
-      .select("path,data")
-      .like("path", "Analytics/Links/Items/%")
-      .limit(1000);
-    for (const r of (rows ?? []) as { path: string; data: Record<string, unknown> }[]) {
-      const d = (r?.data ?? {}) as Record<string, unknown>;
-      if (d.Code === c) {
-        return {
-          path: r.path,
-          code: c,
-          Name: typeof d.Name === "string" ? d.Name.slice(0, 120) : "",
-          For: typeof d.For === "string" ? d.For.slice(0, 120) : "",
-        };
-      }
-    }
+    const { data, error } = await supa.rpc("dash_patch_seq", {
+      p_path: path,
+      p_patch: patch,
+      p_max_seq: seq,
+      p_events: events,
+    });
+    if (!error) return (isObj(data) ? data : null) as Dict | null;
   } catch {
-    return null;
+    /* function not installed - fall through */
   }
-  return null;
+  const cur = await readDoc(supa, path);
+  if (num(cur.Seq, Number.MAX_SAFE_INTEGER) >= seq) return null;
+  const next = mergeInto(cur, patch);
+  next.Seq = seq;
+  next.Events = [...(Array.isArray(cur.Events) ? cur.Events : []), ...events];
+  await writeDoc(supa, path, next);
+  return next;
 }
 
-// Country from the platform edge (Vercel). Locally / elsewhere this is
-// absent and Geo stays empty — never breaks tracking.
-function edgeGeo(req: Request): { Country: string; Code: string } {
-  const raw = (req.headers.get("x-vercel-ip-country") || "").toUpperCase();
-  if (!/^[A-Z]{2}$/.test(raw)) return { Country: "", Code: "" };
-  try {
-    const name = new Intl.DisplayNames(["en"], { type: "region" }).of(raw) || "";
-    return { Country: name, Code: raw };
-  } catch {
-    return { Country: "", Code: raw };
-  }
-}
-
-async function bumpDay(supa: Supa, day: string, patch: Record<string, number>) {
-  if (!Object.values(patch).some((n) => n > 0)) {
-    // Still ensure the day doc exists for session-only inits handled by caller.
-    return;
-  }
-  const doc = await readDoc(supa, `Analytics/Days/Items/${day}`);
-  const next = { ...doc };
-  for (const [k, v] of Object.entries(patch)) next[k] = num(next[k]) + v;
-  await writeDoc(supa, `Analytics/Days/Items/${day}`, next);
-}
-
-async function trimSessions(supa: Supa) {
-  const { data: rows } = await supa
-    .from("dashboard_docs")
-    .select("path,data")
-    .like("path", "Analytics/Sessions/Items/%")
-    .limit(2000);
-  const list = ((rows ?? []) as { path: string; data: Record<string, unknown> }[]).sort(
-    (a, b) => num(b.data?.LastSeenAt ?? b.data?.StartedAt) - num(a.data?.LastSeenAt ?? a.data?.StartedAt)
+/** Sessions are capped, newest kept. Old visits are not interesting, and the tab is small. */
+async function trimSessions(supa: Supa): Promise<void> {
+  const { data: rows } = await supa.from("dashboard_docs").select("path,data").like("path", `${SESSIONS}/%`).limit(2000);
+  const list = ((rows ?? []) as { path: string; data: Dict }[]).sort(
+    (a, b) => num(b.data?.LastSeenAt ?? b.data?.StartedAt, Number.MAX_SAFE_INTEGER) - num(a.data?.LastSeenAt ?? a.data?.StartedAt, Number.MAX_SAFE_INTEGER)
   );
   const extra = list.slice(MAX_SESSIONS);
   for (let i = 0; i < extra.length; i += 50) {
@@ -190,290 +205,642 @@ async function trimSessions(supa: Supa) {
   }
 }
 
-// --- legacy minimal ping (old TrackView): link-only mode ignores it ---
-// Direct page-view pings carry no link code, so they are dropped. Kept as a
-// no-op for backwards compatibility (old clients still get { ok: true }).
-async function legacyPing(_supa: Supa, _body: Body, _path: string, _now: number, _day: string) {
-  return;
+// ── share-link resolution ─────────────────────────────────────────────
+interface LinkRow {
+  docId: string;
+  path: string;
+  Code: string;
+  Name: string;
+  For: string;
+  Notify: boolean;
+  Tailor: { AutoCv: boolean; Greeting: string; Pinned: string[] };
 }
 
-// --- session init: one live session row per LINKED visitor session ---
-// Drops anything without a valid share-link code (unknown codes, direct
-// visits, prefetches). Valid inits stamp the canonical link + bump the
-// link's Sessions counter so Trails > Links stays truthful.
-async function sessionInit(
-  supa: Supa,
-  body: Body,
-  path: string,
-  now: number,
-  day: string,
-  geo: { Country: string; Code: string },
-) {
-  const sid = cleanSid(body.sid);
-  if (!sid) return;
-  if (body.owner === true) return; // owner's own coding/testing: never track
-  const link = await resolveLink(supa, body.linkId);
-  if (!link) return; // not a share-link visit: ignore completely
-  const existing = await readDoc(supa, `Analytics/Sessions/Items/${sid}`);
-  if (existing.StartedAt) {
-    // Re-init (e.g. HMR / remount): keep it live, don't double-count aggregates.
-    await writeDoc(supa, `Analytics/Sessions/Items/${sid}`, {
-      ...existing,
-      LastSeenAt: now,
-      Ended: false,
-    });
-    return;
-  }
-
-  const d = body.device ?? {};
-  const str = (v: unknown) => (typeof v === "string" ? v.slice(0, 120) : "");
-  const utm: Record<string, string> = {};
-  if (body.utm && typeof body.utm === "object") {
-    for (const [k, v] of Object.entries(body.utm)) {
-      if (typeof v === "string" && v) utm[k.slice(0, 24)] = v.slice(0, 200);
-    }
-  }
-  await writeDoc(supa, `Analytics/Sessions/Items/${sid}`, {
-    StartedAt: now,
-    LastSeenAt: now,
-    Ended: false,
-    ActiveMs: 0,
-    OpenMs: 0,
-    IdleMs: 0,
-    Owner: false, // owner visits return early above: recorded sessions are never owners
-    Visit: 1,
-    Legacy: false,
-    EventsCut: false,
-    Geo: geo,
-    Device: {
-      Type: str(d.Type),
-      Browser: str(d.Browser),
-      OS: str(d.OS),
-      LocalTime: str(d.LocalTime),
-      Timezone: str(d.Timezone),
-      Screen: str(d.Screen || body.screen),
-      Viewport: str(d.Viewport || body.viewport),
-      Language: str(d.Language || body.language),
-      Theme: str(d.Theme),
-    },
-    Link: {
-      Id: link.code,
-      Name: link.Name,
-      For: link.For,
-    },
-    Entry: { Ref: body.referrer || "Direct", Section: path, Utm: utm },
-    Source: { Name: hostOf(body.referrer || "") || "Direct" },
-    Exit: { Section: path },
-    Contact: { Opens: 0, Sent: "" },
-    Cv: { Opens: 0 },
-    Projects: {},
-    Socials: {},
-    Sections: { [path]: 1 },
-    Scroll: {},
-    Events: [],
-    Rage: 0,
-    Copies: 0,
-    Prints: 0,
-    Flushes: 0,
-    Perf: { LoadMs: num(body.perf?.LoadMs), LcpMs: num(body.perf?.LcpMs) },
-  });
-
-  const dayDoc = await readDoc(supa, `Analytics/Days/Items/${day}`);
-  await writeDoc(supa, `Analytics/Days/Items/${day}`, { ...dayDoc, Sessions: num(dayDoc.Sessions) + 1 });
-  // One linked visit started: count it on the link itself (powers the
-  // per-link "visits" + "See visits" in Trails). Best-effort, never fatal.
+/**
+ * The one pen for a link's counters: a Code is only valid when a link document with
+ * that Code exists, and the Name/For stored on the visit are always the document's,
+ * never the caller's. Resolved on the opening flush only - it is a table scan, and
+ * nothing after the opening needs it.
+ *
+ * `null` means "no such link". `undefined` means "could not tell" (the read failed),
+ * which the caller must treat differently from the former.
+ */
+async function resolveLink(supa: Supa, code: unknown): Promise<LinkRow | null | undefined> {
+  if (typeof code !== "string" || !CODE_RE.test(code)) return null;
   try {
-    const linkDoc = await readDoc(supa, link.path);
-    if (linkDoc && Object.keys(linkDoc).length > 0) {
-      await writeDoc(supa, link.path, {
-        ...linkDoc,
-        Sessions: num(linkDoc.Sessions) + 1,
-        LastOpenAt: now,
-      });
+    const { data: rows, error } = await supa
+      .from("dashboard_docs")
+      .select("path,data")
+      .like("path", `${LINKS}/%`)
+      .limit(1000);
+    if (error) return undefined;
+    for (const r of (rows ?? []) as { path: string; data: Dict }[]) {
+      const d = isObj(r?.data) ? r.data : {};
+      if (d.Code === code) {
+        const docId = r.path.slice(r.path.lastIndexOf("/") + 1);
+        return {
+          docId,
+          path: r.path,
+          Code: code,
+          Name: str(d.Name, 120),
+          For: str(d.For, 120),
+          Notify: d.Notify !== false,
+          Tailor: readTailor(d.Tailor),
+        };
+      }
     }
+    return null;
   } catch {
-    // link counter must never break tracking
+    return undefined;
   }
-  const totals = await readDoc(supa, "Analytics/Totals");
-  await writeDoc(supa, "Analytics/Totals", {
-    ...totals,
-    Sessions: num(totals.Sessions) + 1,
-    Visitors: num(totals.Visitors) + (body.isNewVisitor === false ? 0 : 1),
-  });
-  await trimSessions(supa);
-
-  const host = hostOf(body.referrer || "");
-  const srcId = host || "direct";
-  const src = await readDoc(supa, `Analytics/Sources/Items/${srcId}`);
-  await writeDoc(supa, `Analytics/Sources/Items/${srcId}`, {
-    ...src,
-    Name: host || "Direct",
-    Kind: host ? sourceKind(host) : "direct",
-    Sessions: num(src.Sessions) + 1,
-    LastAt: now,
-  });
 }
 
-// --- session flush: additive deltas merged into the live session row ---
-async function sessionFlush(supa: Supa, body: Body, now: number, day: string) {
-  const sid = cleanSid(body.sid);
-  if (!sid) return;
-  const cur = await readDoc(supa, `Analytics/Sessions/Items/${sid}`);
-  if (!cur.StartedAt) return; // unknown session: ignore (client will re-init)
-  if (cur.Owner === true) return; // owner sessions stay frozen, never update
-
-  const dz = body.deltas ?? {};
-  const sec = (dz.sections ?? {}) as NumMap;
-  const proj = (dz.projects ?? {}) as Record<string, ProjectDelta>;
-  const soc = (dz.socials ?? {}) as Record<string, SocialDelta>;
-  const scr = (body.scroll ?? {}) as NumMap;
-
-  const sections = { ...((cur.Sections as NumMap) ?? {}) };
-  for (const [k, v] of Object.entries(sec)) {
-    if (num(v) > 0) sections[k.slice(0, 200)] = num(sections[k]) + num(v);
+// ── geo ───────────────────────────────────────────────────────────────
+/**
+ * Country from whichever edge is in front of us. On Vercel the header is set for
+ * free; the others are free too where a CDN sits in front. When none is present Geo
+ * stays empty - it is a nice-to-have, and never breaks tracking.
+ */
+function edgeGeo(req: Request): { Country: string; Code: string } {
+  const raw = (
+    req.headers.get("x-vercel-ip-country") ||
+    req.headers.get("cf-ipcountry") ||
+    req.headers.get("x-country-code") ||
+    ""
+  ).toUpperCase();
+  if (!/^[A-Z]{2}$/.test(raw)) return { Country: "", Code: "" };
+  try {
+    return { Country: new Intl.DisplayNames(["en"], { type: "region" }).of(raw) || "", Code: raw };
+  } catch {
+    return { Country: "", Code: raw };
   }
-  const scroll = { ...((cur.Scroll as NumMap) ?? {}) };
-  for (const [k, v] of Object.entries(scr)) {
-    const key = k.slice(0, 200);
-    scroll[key] = Math.max(num(scroll[key]), num(v));
+}
+
+// ── shapers ───────────────────────────────────────────────────────────
+function readDevice(raw: unknown): Dict {
+  const d = isObj(raw) ? raw : {};
+  const type = str(d.Type, 10);
+  return {
+    Type: type === "phone" || type === "tablet" ? type : "desktop",
+    OS: str(d.OS, 20),
+    Browser: str(d.Browser, 20),
+    Screen: str(d.Screen, 20),
+    Viewport: str(d.Viewport, 20),
+    Language: str(d.Language, 20),
+    Theme: str(d.Theme, 10) === "light" ? "light" : "dark",
+    Timezone: str(d.Timezone, 60),
+    LocalTime: str(d.LocalTime, 10),
+    Touch: d.Touch === true,
+  };
+}
+
+function readEntry(raw: unknown): Dict {
+  const e = isObj(raw) ? raw : {};
+  const utm: Record<string, string> = {};
+  if (isObj(e.Utm)) {
+    let n = 0;
+    for (const [k, v] of Object.entries(e.Utm)) {
+      if (n >= 8) break;
+      const key = safeKey(k);
+      if (key && typeof v === "string") {
+        utm[key] = str(v, 80);
+        n++;
+      }
+    }
   }
-  const projects = { ...((cur.Projects as Record<string, ProjectDelta>) ?? {}) };
-  for (const [id, d] of Object.entries(proj)) {
-    const key = id.slice(0, 120);
-    const p = projects[key] ?? { Ms: 0, Opens: 0, Live: 0, Github: 0, Download: 0 };
-    projects[key] = {
-      Ms: num(p.Ms) + num(d.Ms),
-      Opens: num(p.Opens) + num(d.Opens),
-      Live: num(p.Live) + num(d.Live),
-      Github: num(p.Github) + num(d.Github),
-      Download: num(p.Download) + num(d.Download),
+  return {
+    Section: safeKey(e.Section) || "home",
+    Path: str(e.Path, 200),
+    Referrer: str(e.Referrer, 300),
+    Ref: str(e.Ref, 120),
+    Utm: utm,
+  };
+}
+
+function readTailor(raw: unknown): { AutoCv: boolean; Greeting: string; Pinned: string[] } {
+  const t = isObj(raw) ? raw : {};
+  const pinned = Array.isArray(t.Pinned)
+    ? t.Pinned.map((p) => safeKey(p)).filter((p): p is string => !!p).slice(0, 12)
+    : [];
+  return { AutoCv: t.AutoCv === true, Greeting: str(t.Greeting, 160), Pinned: pinned };
+}
+
+function readProjects(v: unknown): Record<string, Dict> {
+  const out: Record<string, Dict> = {};
+  if (!isObj(v)) return out;
+  let n = 0;
+  for (const [rawKey, rawVal] of Object.entries(v)) {
+    if (n >= MAX_KEYS) break;
+    const key = safeKey(rawKey);
+    if (!key || !isObj(rawVal)) continue;
+    out[key] = {
+      Opens: num(rawVal.opens, 500),
+      Ms: num(rawVal.ms, 6 * HOUR_MS),
+      Live: num(rawVal.live, 500),
+      Github: num(rawVal.github, 500),
+      Download: num(rawVal.download, 500),
     };
+    n++;
   }
-  const socials = { ...((cur.Socials as Record<string, SocialDelta>) ?? {}) };
-  for (const [name, d] of Object.entries(soc)) {
-    const key = name.slice(0, 120);
-    const s = socials[key] ?? { Clicks: 0, AwayMs: 0 };
-    socials[key] = { Clicks: num(s.Clicks) + num(d.Clicks), AwayMs: num(s.AwayMs) + num(d.AwayMs) };
-  }
+  return out;
+}
 
-  const prevEvents = Array.isArray(cur.Events) ? cur.Events : [];
-  const incoming = Array.isArray(body.events) ? body.events : [];
-  const saneEvents = incoming
-    .filter((e) => e && typeof e.k === "string")
-    .slice(0, MAX_EVENTS)
-    .map((e) => ({ k: e.k.slice(0, 24), v: typeof e.v === "string" ? e.v.slice(0, 200) : undefined, t: num(e.t) }));
-  const mergedEvents = [...prevEvents, ...saneEvents].slice(-MAX_EVENTS);
-  const eventsCut = Boolean(cur.EventsCut) || prevEvents.length + saneEvents.length > MAX_EVENTS;
+function readSocials(v: unknown): Record<string, Dict> {
+  const out: Record<string, Dict> = {};
+  if (!isObj(v)) return out;
+  let n = 0;
+  for (const [rawKey, rawVal] of Object.entries(v)) {
+    if (n >= MAX_KEYS) break;
+    const safe = safeKey(rawKey);
+    if (!safe || !isObj(rawVal)) continue;
+    // One document per network, not one per spelling.
+    const key = canonicalSocial(safe);
+    const row = { Clicks: num(rawVal.clicks, 500), AwayMs: num(rawVal.awayMs, 6 * HOUR_MS) };
+    if (!row.Clicks && !row.AwayMs) continue;
+    const prev = out[key] as { Clicks: number; AwayMs: number } | undefined;
+    out[key] = prev ? { Clicks: prev.Clicks + row.Clicks, AwayMs: prev.AwayMs + row.AwayMs } : row;
+    n++;
+  }
+  return out;
+}
 
-  const prevContact = (cur.Contact ?? {}) as { Opens?: unknown; Sent?: unknown };
-  const contactSent = typeof body.contactSent === "string" && body.contactSent ? body.contactSent.slice(0, 24) : "";
-  // Late link attribution (landing handoff): stamp the session once known —
-  // but only for a code that really exists in Analytics/Links/Items.
-  // Sessions that never gain a valid link are direct traffic: ignore them.
-  const curLinkId =
-    cur.Link && typeof (cur.Link as { Id?: unknown }).Id === "string"
-      ? ((cur.Link as { Id: string }).Id || "")
-      : "";
-  let linkPatch: { Id: string; Name: string; For: string } | null = null;
-  if (body.link && typeof body.link.Id === "string" && body.link.Id) {
-    const resolved = await resolveLink(supa, body.link.Id);
-    if (resolved) linkPatch = { Id: resolved.code, Name: resolved.Name, For: resolved.For };
-  }
-  if (!curLinkId && !linkPatch) return; // linkless visit: do not record
-  const prevCv = (cur.Cv ?? {}) as { Opens?: unknown };
-  const prevPerf = (cur.Perf ?? {}) as { LoadMs?: unknown; LcpMs?: unknown };
+function sumBy(rows: Record<string, Dict>, field: string): number {
+  return Object.values(rows).reduce((total, row) => total + (num(row[field], Number.MAX_SAFE_INTEGER) || 0), 0);
+}
 
-  await writeDoc(supa, `Analytics/Sessions/Items/${sid}`, {
-    ...cur,
-    LastSeenAt: now,
-    Ended: body.ended === true,
-    ActiveMs: num(cur.ActiveMs) + num(body.activeMs),
-    OpenMs: Math.max(num(cur.OpenMs), num(body.openMs)),
-    IdleMs: num(cur.IdleMs) + num(body.idleMs),
-    Exit: { Section: typeof body.exitSection === "string" && body.exitSection ? body.exitSection.slice(0, 200) : ((cur.Exit as { Section?: string } | undefined)?.Section ?? "") },
-    ...(linkPatch ? { Link: linkPatch } : null),
-    Contact: {
-      Opens: num(prevContact.Opens) + num(body.contactOpens),
-      Sent: contactSent || (typeof prevContact.Sent === "string" ? prevContact.Sent : ""),
-    },
-    Cv: { Opens: num(prevCv.Opens) + num(body.cvOpens) },
-    Projects: projects,
-    Socials: socials,
-    Sections: sections,
-    Scroll: scroll,
-    Events: mergedEvents,
-    EventsCut: eventsCut,
-    Rage: num(cur.Rage) + num(body.rage),
-    Copies: num(cur.Copies) + num(body.copies),
-    Prints: num(cur.Prints) + num(body.prints),
-    Flushes: num(cur.Flushes) + 1,
-    Perf: {
-      LoadMs: num(prevPerf.LoadMs) || num(body.perf?.LoadMs),
-      LcpMs: num(prevPerf.LcpMs) || num(body.perf?.LcpMs),
-    },
-  });
-
-  // Aggregates driven by explicit deltas (exactly-once per flush from client).
-  const agg = dz.projectAgg ?? {};
-  const dayProjects = num(agg.Project) + num(agg.Live) + num(agg.Github) + num(agg.Download);
-  const daySocials = num(dz.socialClicks);
-  if (dayProjects > 0 || daySocials > 0) {
-    const dayDoc = await readDoc(supa, `Analytics/Days/Items/${day}`);
-    await writeDoc(supa, `Analytics/Days/Items/${day}`, {
-      ...dayDoc,
-      Projects: num(dayDoc.Projects) + dayProjects,
-      Socials: num(dayDoc.Socials) + daySocials,
-    });
-  }
-  if (num(dz.contactsSent) > 0) {
-    const totals = await readDoc(supa, "Analytics/Totals");
-    await writeDoc(supa, "Analytics/Totals", {
-      ...totals,
-      Contacts: num(totals.Contacts) + num(dz.contactsSent),
-    });
-  }
-  for (const [name, d] of Object.entries(soc)) {
-    if (num(d.Clicks) <= 0 && num(d.AwayMs) <= 0) continue;
-    const key = name.slice(0, 120);
-    const row = await readDoc(supa, `Analytics/Socials/Items/${key}`);
-    await writeDoc(supa, `Analytics/Socials/Items/${key}`, {
-      ...row,
-      Name: key,
-      Clicks: num(row.Clicks) + num(d.Clicks),
-      AwayMs: num(row.AwayMs) + num(d.AwayMs),
-    });
-  }
-  for (const [id, d] of Object.entries(proj)) {
-    const opens = num(d.Opens);
-    const live = num(d.Live);
-    const gh = num(d.Github);
-    const dl = num(d.Download);
-    if (opens <= 0 && live <= 0 && gh <= 0 && dl <= 0) continue;
-    const key = id.slice(0, 120);
-    const row = await readDoc(supa, `Projects/${key}`);
-    if (!row || Object.keys(row).length === 0) continue; // never invent project docs
-    const views = { ...((row.Views as Record<string, unknown>) ?? {}) };
-    views.Project = num(views.Project) + opens;
-    views.Live = num(views.Live) + live;
-    views.Github = num(views.Github) + gh;
-    views.Download = num(views.Download) + dl;
-    await writeDoc(supa, `Projects/${key}`, { ...row, Views: views });
-  }
+// ── the endpoint ──────────────────────────────────────────────────────
+interface Applied {
+  /** False when the visit was not (and will never be) recorded. */
+  tracked: boolean;
+  /** True once the server holds this visit's `hello`. */
+  hello: boolean;
+  tailor?: unknown;
+  link?: { Name: string; For: string };
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as Body;
-  const path = typeof body.path === "string" && body.path ? body.path.slice(0, 200) : "/";
-  const now = Date.now();
-  const day = new Date(now).toISOString().slice(0, 10);
+  let body: Dict;
+  try {
+    const parsed: unknown = await req.json();
+    if (!isObj(parsed)) return NextResponse.json({ ok: false, error: "Bad body" }, { status: 400 });
+    body = parsed;
+  } catch {
+    return NextResponse.json({ ok: false, error: "Bad body" }, { status: 400 });
+  }
+
+  const id = str(body.id, 40);
+  const seq = num(body.seq, MAX_SEQ + 1);
+  const visitor = str(body.visitor, 40);
+  const visit = Math.max(1, num(body.visit, 100000));
+
+  if (!ID_RE.test(id) || !VISITOR_RE.test(visitor)) {
+    return NextResponse.json({ ok: false, error: "Bad session identity" }, { status: 400 });
+  }
+  if (seq < 1 || seq > MAX_SEQ) {
+    return NextResponse.json({ ok: false, error: "Too many flushes for one visit" }, { status: 429 });
+  }
 
   try {
     const supa = supabaseServer();
-    if (body.kind === "init") await sessionInit(supa, body, path, now, day, edgeGeo(req));
-    else if (body.kind === "flush") await sessionFlush(supa, body, now, day);
-    else await legacyPing(supa, body, path, now, day);
+    // Two attempts: the second exists because a flush can lose a race to a newer one
+    // and then needs a fresh view of Events/Scroll before it can be applied.
+    let result = await applyFlush(supa, { id, seq, visitor, visit, body }, req);
+    if (result === "retry") result = await applyFlush(supa, { id, seq, visitor, visit, body }, req);
+    return NextResponse.json({
+      ok: true,
+      v: 2,
+      seq,
+      tracked: result !== "retry" ? result.tracked : false,
+      hello: result !== "retry" ? result.hello : false,
+      ...(result !== "retry" && result.tailor ? { tailor: result.tailor } : {}),
+      ...(result !== "retry" && result.link ? { link: result.link } : {}),
+    });
   } catch {
-    // tracking must never break the page
+    // tracking must never break the page - but say so, so the client keeps its
+    // buffer and the next flush carries what this one was holding.
+    return NextResponse.json({ ok: false, error: "Internal error" }, { status: 500 });
   }
-  return NextResponse.json({ ok: true });
+}
+
+async function applyFlush(
+  supa: Supa,
+  ctx: { id: string; seq: number; visitor: string; visit: number; body: Dict },
+  req: Request
+): Promise<Applied | "retry"> {
+  const { id, seq, visitor, visit, body } = ctx;
+  const now = Date.now();
+  const path = `${SESSIONS}/${id}`;
+
+  const existing = await readDoc(supa, path);
+  const isNew = !num(existing.StartedAt, Number.MAX_SAFE_INTEGER);
+
+  // Idempotent: a retried or out-of-order flush is dropped rather than double-counted.
+  if (!isNew && num(existing.Seq, Number.MAX_SAFE_INTEGER) >= seq) {
+    return { tracked: true, hello: true };
+  }
+  if (!isNew && now - num(existing.StartedAt, Number.MAX_SAFE_INTEGER) > MAX_SESSION_AGE_MS) {
+    throw new Error("reject:Visit expired");
+  }
+  if (isNew && seq !== 1 && seq > 10) {
+    // The opening flush never arrived (blocked, offline) and this is too deep into
+    // the visit to reconstruct it. Rejected: the client stops, rather than inventing
+    // a story that starts mid-way.
+    throw new Error("reject:Unknown visit");
+  }
+
+  const add = isObj(body.add) ? body.add : {};
+  const set = isObj(body.set) ? body.set : {};
+  const hello = isObj(body.hello) ? body.hello : null;
+
+  // ── deltas ─────────────────────────────────────────────────────────
+  const openMs = num(add.openMs, 6 * HOUR_MS);
+  const activeMs = num(add.activeMs, 6 * HOUR_MS);
+  const idleMs = num(add.idleMs, 6 * HOUR_MS);
+  const sections = deltaMap(add.sections, 6 * HOUR_MS);
+  const cvOpens = num(add.cvOpens, 500);
+  const contactOpens = num(add.contactOpens, 500);
+  const copies = num(add.copies, 500);
+  const rage = num(add.rage, 2000);
+  const prints = num(add.prints, 200);
+  const projects = readProjects(add.projects);
+  const socials = readSocials(add.socials);
+
+  // ── absolute state ─────────────────────────────────────────────────
+  const exitSection = safeKey(set.exitSection) || "";
+  const scroll = deltaMap(set.scroll, 100);
+  const contactTab = str(set.contactTab, 20);
+  const contactSent = str(set.contactSent, 20);
+  const perf = isObj(set.perf)
+    ? { LoadMs: num((set.perf as Dict).LoadMs, 10 * 60_000), LcpMs: num((set.perf as Dict).LcpMs, 10 * 60_000) }
+    : null;
+
+  // ── timeline ───────────────────────────────────────────────────────
+  // Room is what is left of the cap once this visit's existing events are counted.
+  const priorEvents = Array.isArray(existing.Events) ? existing.Events.length : 0;
+  const room = Math.max(0, MAX_EVENTS_TOTAL - priorEvents);
+  const incoming = Array.isArray(body.events) ? body.events.slice(0, MAX_EVENTS_PER_FLUSH) : [];
+  const events: Array<{ t: number; k: string; v?: string }> = [];
+  for (const raw of incoming) {
+    if (events.length >= room) break;
+    if (!isObj(raw)) continue;
+    const k = str(raw.k, 20);
+    if (!EVENT_KINDS.has(k)) continue;
+    const v = str(raw.v, 120);
+    events.push({ t: num(raw.t, 24 * HOUR_MS), k, ...(v ? { v } : {}) });
+  }
+  const eventsCut = Boolean(existing.EventsCut) || incoming.length > events.length;
+
+  // ── link resolution + geo, opening flush only ──────────────────────
+  let linkRow: LinkRow | null = null;
+  let linkLookupFailed = false;
+  let geo: { Country: string; Code: string } | null = null;
+  let device: Dict = {};
+  let entry: Dict = {};
+  let source: { Name: string; Kind: SourceKind } | null = null;
+
+  if (hello) {
+    const code = str(hello.code, 40);
+    if (CODE_RE.test(code)) {
+      const found = await resolveLink(supa, code);
+      if (found === undefined) linkLookupFailed = true;
+      else linkRow = found;
+    }
+  }
+  // A visit with no share link is direct traffic: the portfolio records share-link
+  // visits only, so this one is never stored. `undefined` (the lookup could not
+  // complete) is not that verdict - it must not throw a real visit away.
+  if (isNew && !linkRow && !linkLookupFailed) {
+    return { tracked: false, hello: true };
+  }
+
+  if (isNew) {
+    geo = edgeGeo(req);
+    device = readDevice(hello?.device);
+    entry = readEntry(hello?.entry);
+    source = classifySource({
+      Ref: str(entry.Ref, 120),
+      Referrer: str(entry.Referrer, 300),
+      Utm: (entry.Utm as Record<string, string>) || {},
+    });
+  }
+
+  const owner = body.owner === true;
+
+  // ── the session patch ──────────────────────────────────────────────
+  // Counters and nested maps ride as deltas (dash_merge adds them); Events are
+  // appended by the guarded write; Seq is set by it, not merged.
+  const patch: Dict = {
+    LastSeenAt: now,
+    ActiveMs: activeMs,
+    OpenMs: openMs,
+    IdleMs: idleMs,
+    Copies: copies,
+    Rage: rage,
+    Prints: prints,
+    Cv: { Opens: cvOpens },
+    Flushes: 1,
+  };
+  if (Object.keys(sections).length) patch.Sections = sections;
+  if (Object.keys(projects).length) patch.Projects = projects;
+  if (Object.keys(socials).length) patch.Socials = socials;
+  if (contactOpens > 0) patch.Contact = { Opens: contactOpens };
+  if (contactTab) patch.Contact = { ...(patch.Contact as Dict | undefined), Tab: contactTab };
+  if (contactSent) patch.Contact = { ...(patch.Contact as Dict | undefined), Sent: contactSent };
+  if (exitSection) patch.Exit = { Section: exitSection };
+  if (perf) patch.Perf = perf;
+  if (events.length) patch.EventsCut = eventsCut;
+
+  if (isNew) {
+    patch.StartedAt = num(hello?.startedAt, now) || now;
+    patch.Ended = false;
+    patch.EndedAt = null;
+    patch.Visitor = visitor;
+    patch.Visit = visit;
+    patch.Owner = owner;
+    patch.Legacy = false;
+    patch.EventsCut = eventsCut;
+    patch.Entry = entry;
+    patch.Source = source;
+    patch.Device = device;
+    patch.Geo = geo;
+    patch.Exit = { Section: exitSection || str(entry.Section, 100) || "home" };
+    // Scroll and Events start empty on a new visit: the client keeps them absolute,
+    // so seeding them here is all that is needed.
+    patch.Scroll = scroll;
+    patch.Projects = projects;
+    patch.Socials = socials;
+    patch.Sections = sections;
+    patch.Link = linkRow
+      ? { Id: linkRow.Code, DocId: linkRow.docId, Name: linkRow.Name, For: linkRow.For }
+      : null;
+  } else {
+    // Scroll is a maximum, not a total: read-modify-write per section, inside the
+    // guarded write. A losing flush is retried against a fresh read, so this can
+    // never go backwards.
+    const prevScroll = isObj(existing.Scroll) ? (existing.Scroll as Record<string, unknown>) : {};
+    for (const [k, v] of Object.entries(scroll)) {
+      patch.Scroll = { ...(patch.Scroll as Dict | undefined), [k]: Math.max(num(prevScroll[k], 100), v) };
+    }
+    if (owner) patch.Owner = true;
+  }
+
+  if (body.end === true) {
+    patch.Ended = true;
+    patch.EndedAt = now;
+  }
+
+  const written = await patchSeq(supa, path, patch, seq, events);
+  if (written === null) {
+    // Replay, or a newer flush won the race. Re-read and try once more with an
+    // up-to-date view; a second loss means the newer one already covers this.
+    const after = await readDoc(supa, path);
+    if (num(after.Seq, Number.MAX_SAFE_INTEGER) >= seq) return { tracked: true, hello: true };
+    return "retry";
+  }
+
+  // ── counting ───────────────────────────────────────────────────────
+  // Owner visits are recorded (so the tab that flipped the switch has a row) but
+  // never counted: they would drown the real numbers.
+  if (!owner && !existing.Owner) {
+    await addCounts(
+      supa,
+      {
+        opened: isNew,
+        visit,
+        countryCode: geo?.Code || "",
+        source,
+        deviceType: str(device.Type, 10),
+        linkDocId: isNew && linkRow ? linkRow.docId : "",
+        activeMs,
+        projects,
+        socials,
+        contactOpens,
+        cvOpens,
+        events: events.length,
+      },
+      1,
+      todayKey(),
+      now
+    );
+  } else if (owner && !isNew && !existing.Owner) {
+    // Recognised as the owner part-way through the visit: every flush before this one
+    // was counted as a stranger's. Take them back out, or the totals and the link's
+    // card would count a visit that Trails hides as the owner's own.
+    await addCounts(supa, countedSoFar(existing), -1, dayOf(existing.StartedAt), now);
+  }
+
+  if (isNew && !owner) await trimSessions(supa);
+
+  // Notification last: a mail failure must never cost us the visit.
+  if (isNew && !owner && linkRow?.Notify) {
+    try {
+      await notifyLinkOpened({
+        link: linkRow,
+        sessionId: id,
+        geo,
+        device,
+        visit,
+        ref: str(entry.Ref, 120),
+      });
+    } catch (err) {
+      console.error("[track] link-open notification failed:", err);
+    }
+  }
+
+  return {
+    tracked: true,
+    hello: !!hello || !isNew,
+    ...(linkRow ? { tailor: linkRow.Tailor } : {}),
+    ...(linkRow ? { link: { Name: linkRow.Name, For: linkRow.For } } : {}),
+  };
+}
+
+// ── counting ─────────────────────────────────────────────────────────
+/** What one visit adds to the rollups: a flush's deltas, or a whole visit so far. */
+interface Counts {
+  /** The visit itself: sessions, visitors, country, source, device, link open. */
+  opened: boolean;
+  visit: number;
+  countryCode: string;
+  source: { Name: string; Kind: SourceKind } | null;
+  deviceType: string;
+  linkDocId: string;
+  activeMs: number;
+  projects: Record<string, Dict>;
+  socials: Record<string, Dict>;
+  contactOpens: number;
+  cvOpens: number;
+  events: number;
+}
+
+/**
+ * Add a visit's counts to the day, the totals, the projects, the socials, the
+ * sources and its link (sign 1), or take them back out (sign -1). Taking back never
+ * creates a document: a link or project removed since stays removed.
+ */
+async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: number): Promise<void> {
+  const inc = (n: number) => Math.max(0, n) * sign;
+  const projectOpens = sumBy(c.projects, "Opens");
+  const socialClicks = sumBy(c.socials, "Clicks");
+
+  const dayPatch: Dict = {
+    ActiveMs: inc(c.activeMs),
+    Projects: inc(projectOpens),
+    Socials: inc(socialClicks),
+    Contacts: inc(c.contactOpens),
+    Cv: inc(c.cvOpens),
+  };
+  const totalsPatch: Dict = {
+    Events: inc(c.events),
+    Projects: inc(projectOpens),
+    Socials: inc(socialClicks),
+    Contacts: inc(c.contactOpens),
+    Cv: inc(c.cvOpens),
+  };
+  if (sign > 0) totalsPatch.LastAt = now;
+
+  if (c.opened) {
+    dayPatch.Sessions = inc(1);
+    totalsPatch.Sessions = inc(1);
+    if (c.visit <= 1) {
+      dayPatch.Visitors = inc(1);
+      totalsPatch.Visitors = inc(1);
+    } else {
+      // A returning visit is a session, not a new person. Counting it as a visitor
+      // again is how a portfolio ends up with more "people" than exist. Lifetime
+      // returns live on Totals (the day rollup already keeps its own).
+      dayPatch.Returning = inc(1);
+      totalsPatch.Returning = inc(1);
+    }
+    if (c.countryCode) dayPatch.Countries = { [c.countryCode]: inc(1) };
+    if (c.source) {
+      const sourceKey = safeKey(c.source.Name);
+      if (sourceKey) {
+        dayPatch.Sources = { [sourceKey]: inc(1) };
+        // One document per origin, so the dashboard can list them without reading
+        // every visit back.
+        await patchDoc(
+          supa,
+          `${SOURCES}/${sourceKey}`,
+          sign > 0
+            ? { Name: c.source.Name, Kind: c.source.Kind, Sessions: inc(1), LastAt: now }
+            : { Sessions: inc(1) }
+        );
+      }
+    }
+    if (c.deviceType) dayPatch.Devices = { [c.deviceType]: inc(1) };
+    if (c.linkDocId) {
+      dayPatch.LinkOpens = inc(1);
+      totalsPatch.LinkOpens = inc(1);
+    }
+  }
+
+  await patchDoc(supa, `${DAYS}/${day}`, dayPatch);
+  await patchDoc(supa, TOTALS, totalsPatch);
+
+  // Per-project engagement stays on the project itself: the public project modal
+  // shows these counts to visitors, so they stay on Projects/{id}.Views.
+  //
+  // The id comes from the caller's payload and only ever passed safeKey(), which
+  // says the string is a legal document id - not that the project exists. So: only
+  // raise counters on a project that is already there, never create one.
+  for (const [projectId, row] of Object.entries(c.projects)) {
+    const path = `Projects/${projectId}`;
+    const exists = await readDoc(supa, path);
+    if (!Object.keys(exists).length) continue;
+    const views: Dict = {};
+    // Read through num() before adding: the delta has already been clamped, and inc()
+    // must not push the result past that ceiling.
+    const opens = num(row.Opens, 500);
+    const live = num(row.Live, 500);
+    const gh = num(row.Github, 500);
+    const dl = num(row.Download, 500);
+    if (opens) views.Project = inc(opens);
+    if (live) views.Live = inc(live);
+    if (gh) views.Github = inc(gh);
+    if (dl) views.Download = inc(dl);
+    if (Object.keys(views).length) await patchDoc(supa, path, { Views: views });
+  }
+
+  for (const [name, row] of Object.entries(c.socials)) {
+    await patchDoc(supa, `${SOCIALS}/${name}`, {
+      Clicks: inc(num(row.Clicks, 500)),
+      AwayMs: inc(num(row.AwayMs, 6 * HOUR_MS)),
+      ...(sign > 0 ? { LastAt: now } : {}),
+    });
+  }
+
+  if (c.opened && c.linkDocId) {
+    const linkPath = `${LINKS}/${c.linkDocId}`;
+    if (sign > 0) {
+      await patchDoc(supa, linkPath, { Opens: inc(1), Sessions: inc(1), LastOpenAt: now });
+    } else {
+      const exists = await readDoc(supa, linkPath);
+      if (Object.keys(exists).length) await patchDoc(supa, linkPath, { Opens: inc(1), Sessions: inc(1) });
+    }
+  }
+}
+
+/** Everything a visit has had counted so far, read back from its own row. */
+function countedSoFar(s: Dict): Counts {
+  const obj = (v: unknown): Dict => (isObj(v) ? v : {});
+  const rows = (v: unknown, fields: string[]): Record<string, Dict> => {
+    const out: Record<string, Dict> = {};
+    for (const [key, row] of Object.entries(obj(v))) {
+      if (!safeKey(key) || !isObj(row)) continue;
+      out[key] = Object.fromEntries(fields.map((f) => [f, num((row as Dict)[f], Number.MAX_SAFE_INTEGER)]));
+    }
+    return out;
+  };
+  const source = obj(s.Source);
+  return {
+    opened: true,
+    visit: Math.max(1, num(s.Visit, 100000)),
+    countryCode: safeKey(obj(s.Geo).Code) || "",
+    source: typeof source.Name === "string" ? { Name: source.Name, Kind: (source.Kind || "referral") as SourceKind } : null,
+    deviceType: safeKey(obj(s.Device).Type) || "",
+    linkDocId: str(obj(s.Link).DocId, 40) || safeKey(obj(s.Link).Id) || "",
+    activeMs: num(s.ActiveMs, Number.MAX_SAFE_INTEGER),
+    projects: rows(s.Projects, ["Opens", "Live", "Github", "Download"]),
+    socials: rows(s.Socials, ["Clicks", "AwayMs"]),
+    contactOpens: num(obj(s.Contact).Opens, Number.MAX_SAFE_INTEGER),
+    cvOpens: num(obj(s.Cv).Opens, Number.MAX_SAFE_INTEGER),
+    events: Array.isArray(s.Events) ? s.Events.length : 0,
+  };
+}
+
+// ── notification ──────────────────────────────────────────────────────
+async function notifyLinkOpened(args: {
+  link: LinkRow;
+  sessionId: string;
+  geo: { Country: string; Code: string } | null;
+  device: Dict;
+  visit: number;
+  ref: string;
+}): Promise<void> {
+  const to = process.env.OWNER_EMAIL;
+  const key = process.env.RESEND_API_KEY;
+  if (!to || !key) return; // not configured - a missing key must not be an error
+
+  const { Resend } = await import("resend");
+  const resend = new Resend(key);
+  const linkName = args.link.Name || "Someone";
+  const linkFor = args.link.For || "your portfolio";
+  const site = siteConfig.url;
+
+  await sendSafe(resend, {
+    from: getResendFrom(),
+    to,
+    subject: `${linkName} opened your link`.replace(/[\r\n]+/g, " ").slice(0, 200),
+    html: linkOpenedHtml({
+      linkName,
+      linkFor,
+      country: args.geo?.Code ? `${args.geo.Country} (${args.geo.Code})` : "",
+      device: [args.device.Type, args.device.OS, args.device.Browser].filter(Boolean).join(" - "),
+      localTime: str(args.device.LocalTime, 10),
+      source: args.ref || "Direct",
+      visit: args.visit,
+      storyUrl: `${site}/dashboard?s=${encodeURIComponent(args.sessionId)}`,
+    }),
+  });
 }

@@ -27,7 +27,26 @@ create policy "public all dashboard_docs" on dashboard_docs for all using (true)
 
 -- Live updates for the dashboard (lib/dash-db subscribes; falls back to
 -- polling when replication is unavailable, so this is best-effort).
-alter publication supabase_realtime add table dashboard_docs;
+--
+-- Guarded, because this file is meant to be re-runnable and Postgres has no
+-- "ADD TABLE IF NOT EXISTS": running it twice used to fail with
+-- 42710 relation is already member of publication.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dashboard_docs'
+  ) then
+    alter publication supabase_realtime add table dashboard_docs;
+  end if;
+end $$;
+
+-- ── Trails atomic writes ───────────────────────────────────────────────
+-- dash_merge / dash_patch / dash_patch_seq live in trails-functions.sql so a failure
+-- anywhere in this file cannot leave them uncreated — /api/track falls back to
+-- in-process merge without them, which loses counts under concurrency, and that
+-- fallback is silent. Run trails-functions.sql first.
+-- See verify-trails.sql for the read-only check that they work.
 
 -- ── Storage bucket for dashboard uploads (project images, icons, receipts) ──
 insert into storage.buckets (id, name, public)
