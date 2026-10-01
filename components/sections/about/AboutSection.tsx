@@ -10,24 +10,29 @@ import { KNOWS_ABOUT, ME, PROFILES } from "@/data/me";
  * not an image, not a per-letter span, not behind `whileInView`, not behind a
  * tab. That is what lets an answer engine quote it verbatim.
  *
- * Design note: styling reuses the exact tokens and rhythm of the neighbouring
- * Stack / Contact sections, so this reads as part of the existing system.
+ * ── Visually hidden on `/` ───────────────────────────────────────────────────
+ * `sr-only` keeps every node in the initial HTML payload and in the
+ * accessibility tree while collapsing the box to 1px, so the bio costs no
+ * vertical space on the home page.
+ *
+ * `sr-only` is load-bearing here, and must never become `display: none`,
+ * `visibility: hidden`, or `aria-hidden`:
+ *   - `display: none` content is NOT indexed by Google. That would delete the
+ *     bio from search results — the exact opposite of the intent.
+ *   - `visibility: hidden` / `aria-hidden` pull it out of the a11y tree, so
+ *     screen-reader users lose content sighted users also no longer have.
+ *   - `sr-only` is the one visually-hidden pattern Google documents as still
+ *     indexable, and it keeps the tree intact for assistive tech.
+ *
+ * The structured-data signal is unaffected either way: `lib/seo.ts` already
+ * emits a Person node carrying `ME.oneLiner` as `description`, plus
+ * `knowsAbout` and `sameAs`, rendered server-side in `app/layout.tsx` and never
+ * clipped. This section is the human-facing duplicate of that graph.
  */
 export function AboutSection(): ReactNode {
   return (
-    <section
-      id="about"
-      aria-labelledby="about-heading"
-      className="relative w-full max-w-full min-w-0 scroll-mt-24 overflow-hidden bg-bg-primary"
-    >
-      {/* backdrop — mirrors the Stack section's hairline + side glow, mirrored
-          to the left so the four full-bleed sections stay visually distinct. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-0 overflow-hidden">
-        <div className="absolute inset-y-0 left-0 w-[55%] bg-[radial-gradient(ellipse_at_20%_50%,var(--accent-ring)_0%,transparent_60%)] opacity-40" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-60" />
-      </div>
-
-      <div className="relative mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+    <section id="about" aria-labelledby="about-heading" className="sr-only">
+      <div>
         <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-text">
           About
         </p>

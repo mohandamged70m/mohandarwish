@@ -23,12 +23,12 @@ export const metadata = createMetadata({
 // Module-level (referentially stable) pager sections — ids must match the
 // wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
 // the curtain + slide between these; everywhere else they free-scroll.
-// About joins the pager because it is a real, scrollable section whose content
-// is server-rendered in the initial HTML — an answer engine or crawler never
-// has to execute anything to read the bio sentence.
+//
+// About is deliberately absent: it is `sr-only` on `/`, so it is no longer a
+// scroll destination. Leaving it in this array would give the wheel pager and
+// the curtain a blank full-height stop labelled "About".
 const SECTIONS = [
   { id: "hero", label: "Home" },
-  { id: "about-wrap", label: "About" },
   { id: "projects-wrap", label: "Projects" },
   { id: "stack-wrap", label: "Stack" },
   { id: "contact-wrap", label: "Contact" },
@@ -46,11 +46,13 @@ export default function Home() {
               <HeroSection />
             </SectionSlide>
           </div>
-          <div id="about-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <SectionSlide section="about-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-              <AboutSection />
-            </SectionSlide>
-          </div>
+          {/* Crawl-only bio. `sr-only` is `position: absolute` + 1px, so it
+              contributes no flow height — hence no `min-h-[100svh]` wrapper and
+              no `SectionSlide` (the slide starts at opacity 0 and would never
+              animate in, since the section is no longer a pager target).
+              Kept server-rendered and in the accessibility tree on purpose:
+              this is the sentence answer engines quote. */}
+          <AboutSection />
           <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
               <Suspense fallback={null}>

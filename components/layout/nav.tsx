@@ -24,16 +24,17 @@ type NavItem = {
 
 // Mirrors the pager SECTIONS in app/page.tsx — every full-height section is
 // reachable from the nav, and every href resolves to a real element id.
+// About is omitted because it is `sr-only` on `/`: a menu link to a 1px box
+// would scroll sighted users somewhere meaningless.
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
-  { label: "About", href: "#about" },
   { label: "Projects", href: "#projects" },
   { label: "Stack", href: "#stack" },
   { label: "Contact", href: "#booking" },
 ];
 
 /** Ids the pager/nav are allowed to jump to (see the scroll-target effect). */
-const NAV_TARGETS = ["hero", "about", "projects", "stack", "booking"] as const;
+const NAV_TARGETS = ["hero", "projects", "stack", "booking"] as const;
 
 type NavDims = {
   closedW: number;
@@ -287,7 +288,6 @@ export function Nav(): ReactNode {
     if (pathname !== "/") return;
     const spy: Array<{ observe: string; hash: string }> = [
       { observe: "hero", hash: "#hero" },
-      { observe: "about-wrap", hash: "#about" },
       { observe: "projects-wrap", hash: "#projects" },
       { observe: "stack-wrap", hash: "#stack" },
     ];
