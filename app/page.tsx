@@ -29,8 +29,8 @@ export const metadata = createMetadata({
 // the curtain a blank full-height stop labelled "About".
 const SECTIONS = [
   { id: "hero", label: "Home" },
-  { id: "projects-wrap", label: "Projects" },
   { id: "stack-wrap", label: "Stack" },
+  { id: "projects-wrap", label: "Projects" },
   { id: "contact-wrap", label: "Contact" },
 ] as const;
 
@@ -53,17 +53,17 @@ export default function Home() {
               Kept server-rendered and in the accessibility tree on purpose:
               this is the sentence answer engines quote. */}
           <AboutSection />
-          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-              <Suspense fallback={null}>
-                <ProjectsData />
-              </Suspense>
-            </SectionSlide>
-          </div>
           <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
             <SectionSlide section="stack-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
               <Suspense fallback={null}>
                 <StackData />
+              </Suspense>
+            </SectionSlide>
+          </div>
+          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+            <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+              <Suspense fallback={null}>
+                <ProjectsData />
               </Suspense>
             </SectionSlide>
           </div>

@@ -28,8 +28,8 @@ type NavItem = {
 // would scroll sighted users somewhere meaningless.
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
-  { label: "Projects", href: "#projects" },
   { label: "Stack", href: "#stack" },
+  { label: "Projects", href: "#projects" },
   { label: "Contact", href: "#booking" },
 ];
 
@@ -288,8 +288,8 @@ export function Nav(): ReactNode {
     if (pathname !== "/") return;
     const spy: Array<{ observe: string; hash: string }> = [
       { observe: "hero", hash: "#hero" },
-      { observe: "projects-wrap", hash: "#projects" },
       { observe: "stack-wrap", hash: "#stack" },
+      { observe: "projects-wrap", hash: "#projects" },
     ];
     const els = spy
       .map(

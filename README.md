@@ -21,7 +21,7 @@ This is not a static one-pager. It's a full product:
 
 | Route | What it is |
 |---|---|
-| `/` | Single-page flow: Hero → Projects → Stack → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
+| `/` | Single-page flow: Hero → Stack → Projects → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
 | `/projects` | Filterable project listing (Frontend / Full-Stack / Design System / Tooling) |
 | `/projects/[id]` | Project detail: gallery, videos, stack tags, contributors, metrics, live/GitHub/download links, view tracking |
 | `/mohanddarwish` | Vanity / short-link profile route |
