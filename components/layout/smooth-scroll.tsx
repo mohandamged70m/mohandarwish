@@ -23,6 +23,12 @@ export function SmoothScroll({
   children: ReactNode;
 }): ReactNode {
   const pathname = usePathname();
+  // Dashboard membership only: the Lenis instance must survive normal route
+  // changes. Project modals are intercepting routes (pathname / -> detail and
+  // back) — recreating Lenis on every pathname change destroys the instance
+  // the open modal just stopped(), so wheel over the modal gutters scrolls
+  // the page behind it. Only entering/leaving /dashboard toggles the instance.
+  const isDashboard = pathname?.startsWith("/dashboard") ?? false;
 
   useEffect(() => {
     if (!features.smoothScroll) return;
@@ -30,7 +36,7 @@ export function SmoothScroll({
     // The dashboard is an app-like UI with its own nested scroll containers
     // (main column, modals). Lenis hijacks wheel events at window level, which
     // leaves those inner scrollers dead — so it stays off on /dashboard.
-    if (pathname?.startsWith("/dashboard")) return;
+    if (isDashboard) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -51,6 +57,16 @@ export function SmoothScroll({
       const lenis = new Lenis(LENIS_OPTIONS as never);
       // expose for section components that need programmatic scroll — optional velocity scaling
       (window as unknown as { __lenis?: unknown }).__lenis = lenis;
+      // A modal (project, booking, CV) may already be open — e.g. a refresh
+      // that remounts providers under the dialog, or a recreation racing the
+      // modal's own stop(). An open dialog always wants the background held.
+      try {
+        if (document.querySelector('[role="dialog"]')) {
+          (lenis as unknown as { stop?: () => void }).stop?.();
+        }
+      } catch {
+        // non-fatal: modal effect will stop Lenis on its own pass
+      }
 
       // `autoRaf: false` above means we own the frame loop, so pump Lenis from a
       // plain rAF instead of borrowing the GSAP ticker.
@@ -86,7 +102,7 @@ export function SmoothScroll({
         if (!element) return;
 
         e.preventDefault();
-        lenis.scrollTo(element as HTMLElement, { offset: -100 });
+        lenis.scrollTo(element as HTMLElement, { offset: -80 });
       }
 
       document.addEventListener("click", handleAnchorClick);
@@ -105,7 +121,7 @@ export function SmoothScroll({
       cancelled = true;
       cleanup?.();
     };
-  }, [pathname]);
+  }, [isDashboard]);
 
   return <>{children}</>;
 }

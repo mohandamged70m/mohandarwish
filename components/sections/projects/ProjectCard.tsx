@@ -23,6 +23,14 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
   // Falls back to plain Link navigation (modifier-clicks, touch without VT,
   // reduced motion, unsupported browsers).
   const handleOpen = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+    // Record the background scroll BEFORE any navigation (morph or plain):
+    // the open navigation can clamp it (shorter detail viewport) and history
+    // restoration can drop it — modal close restores from this value.
+    try {
+      sessionStorage.setItem("project-modal-y", String(window.scrollY));
+    } catch {
+      // non-fatal: close falls back to mount-time capture
+    }
     if (e.defaultPrevented) return;
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     if (!canMorph()) return;
@@ -31,7 +39,10 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
     e.preventDefault();
     tagMorph(img);
     void transitionOrUpdate(() => {
-      router.push(project.href);
+      // scroll:false: the background page must stay exactly where it was
+      // (projects section) — a scroll-to-top here strands modal close on
+      // the hero even with history back.
+      router.push(project.href, { scroll: false });
     }).finally(() => {
       untagMorph(img);
     });
@@ -40,6 +51,7 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
   return (
     <Link
       href={project.href}
+      scroll={false}
       onClick={handleOpen}
       data-project-card={project.id}
       aria-label={`${project.title} — ${project.category}`}

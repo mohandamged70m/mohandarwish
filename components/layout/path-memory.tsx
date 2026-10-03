@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
-const DETAIL_PATTERN = /^\/projects\/p\d+$/;
+const DETAIL_PATTERN = /^\/projects\/.+/;
 const STORAGE_KEY = "background-path";
 
 let inMemoryPath = "/";
@@ -19,13 +19,23 @@ export function PathMemory(): ReactNode {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!DETAIL_PATTERN.test(pathname)) {
-      const search = typeof window !== "undefined" ? window.location.search : "";
-      const hash = typeof window !== "undefined" ? window.location.hash : "";
-      const fullPath = `${pathname}${search}${hash}`;
-      inMemoryPath = fullPath;
-      sessionStorage.setItem(STORAGE_KEY, fullPath);
-    }
+    const save = (): void => {
+      try {
+        const current = window.location.pathname;
+        if (DETAIL_PATTERN.test(current)) return;
+        const fullPath = `${current}${window.location.search}${window.location.hash}`;
+        inMemoryPath = fullPath;
+        sessionStorage.setItem(STORAGE_KEY, fullPath);
+      } catch {
+        // storage blocked — in-memory path still updates
+      }
+    };
+    // usePathname excludes the hash, so anchor glides (/#projects) never
+    // re-run this effect — without the listener the stored path stays "/"
+    // and modal close can't tell hero apart from the projects section.
+    save();
+    window.addEventListener("hashchange", save);
+    return () => window.removeEventListener("hashchange", save);
   }, [pathname]);
 
   return null;
