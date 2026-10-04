@@ -6,7 +6,7 @@ import {
   githubFetch,
 } from "@/lib/github";
 
-export const revalidate = 1800; // 30 min ISR
+export const revalidate = 3600; // 1 hour ISR
 
 interface GhRepo {
   name: string;
@@ -50,15 +50,15 @@ export async function GET(req: Request) {
   const cacheKey = names.length
     ? `gh:repos:names:${names.join(",").toLowerCase()}`
     : allParam === "1"
-      ? "gh:repos:all"
-      : `gh:repos:top:${topParam ?? "3"}`;
+      ? "gh:repos:all:v2"
+      : `gh:repos:top:v2:${topParam ?? "3"}`;
 
   try {
     const cached = getCached<GhRepo[]>(cacheKey);
     if (cached) {
       return NextResponse.json(cached, {
         headers: {
-          "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
           "X-Cache": "HIT",
         },
       });
@@ -85,36 +85,47 @@ export async function GET(req: Request) {
       return NextResponse.json(data, {
         headers: {
           "Cache-Control":
-            "public, s-maxage=1800, stale-while-revalidate=3600",
+            "public, s-maxage=3600, stale-while-revalidate=7200",
         },
       });
     }
 
-    // Top-N or full list: single list call.
-    const listRes = await githubFetch(
-      `/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`,
-    );
+    // Top-N or full list: fetch every owned repo page until a short page.
+    const all: GhRepo[] = [];
+    for (let page = 1; ; page++) {
+      const listRes = await githubFetch(
+        `/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100&type=owner&page=${page}`,
+      );
 
-    if (listRes.status === 403) {
-      return NextResponse.json(
-        { error: "GitHub API rate limit exceeded. Try again shortly." },
-        { status: 429, headers: { "Cache-Control": "public, s-maxage=60" } },
-      );
-    }
-    if (listRes.status === 404) {
-      return NextResponse.json(
-        { error: `GitHub user "@${GITHUB_USERNAME}" not found.` },
-        { status: 404 },
-      );
-    }
-    if (!listRes.ok) {
-      return NextResponse.json(
-        { error: `GitHub API error (${listRes.status}).` },
-        { status: 502 },
-      );
-    }
+      if (listRes.status === 403) {
+        return NextResponse.json(
+          { error: "GitHub API rate limit exceeded. Try again shortly." },
+          { status: 429, headers: { "Cache-Control": "public, s-maxage=60" } },
+        );
+      }
+      if (listRes.status === 404) {
+        return NextResponse.json(
+          { error: `GitHub user "@${GITHUB_USERNAME}" not found.` },
+          { status: 404 },
+        );
+      }
+      if (!listRes.ok) {
+        return NextResponse.json(
+          { error: `GitHub API error (${listRes.status}).` },
+          { status: 502 },
+        );
+      }
 
-    const all: GhRepo[] = await listRes.json();
+      const batch: GhRepo[] = await listRes.json();
+      if (!Array.isArray(batch)) {
+        return NextResponse.json(
+          { error: "GitHub API returned malformed repos data." },
+          { status: 502 },
+        );
+      }
+      all.push(...batch);
+      if (batch.length < 100) break;
+    }
 
     if (allParam === "1") {
       const data = all
@@ -129,7 +140,7 @@ export async function GET(req: Request) {
       return NextResponse.json(data, {
         headers: {
           "Cache-Control":
-            "public, s-maxage=1800, stale-while-revalidate=3600",
+            "public, s-maxage=3600, stale-while-revalidate=7200",
         },
       });
     }
@@ -139,7 +150,7 @@ export async function GET(req: Request) {
       Math.min(10, parseInt(topParam ?? "3", 10) || 3),
     );
     const data = all
-      .filter((r) => r.name.toLowerCase() !== GITHUB_USERNAME.toLowerCase() && !r.fork && !r.archived)
+      .filter((r) => r.name.toLowerCase() !== GITHUB_USERNAME.toLowerCase() && !r.archived)
       .sort((a, b) => b.stargazers_count - a.stargazers_count)
       .slice(0, top)
       .map(pick);
@@ -147,7 +158,7 @@ export async function GET(req: Request) {
     setCached(cacheKey, data);
     return NextResponse.json(data, {
       headers: {
-        "Cache-Control": "public, s-maxage=1800, stale-while-revalidate=3600",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
       },
     });
   } catch (e) {

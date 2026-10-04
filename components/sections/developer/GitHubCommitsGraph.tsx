@@ -45,41 +45,6 @@ function calculateStreak(yearlyData: Record<number, ContributionDay[]>): number 
 
 const GITHUB_USERNAME = 'mohandamged70m';
 
-// Mock data fallback for multiple years
-const generateMockData = (): { yearly: Record<number, ContributionDay[]>; totals: Record<number, number> } => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const yearly: Record<number, ContributionDay[]> = {};
-    const totals: Record<number, number> = {};
-
-    for (let y = currentYear - 3; y <= currentYear; y++) {
-        const days: ContributionDay[] = [];
-        const start = new Date(y, 0, 1);
-        const end = y === currentYear ? now : new Date(y, 11, 31);
-        let total = 0;
-
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dow = d.getDay();
-            let prob = dow === 0 || dow === 6 ? 0.25 : 0.55;
-            if (Math.random() > 0.7) prob += 0.2;
-            let count = 0;
-            if (Math.random() < prob) {
-                const r = Math.random();
-                if (r < 0.4) count = Math.floor(Math.random() * 3) + 1;
-                else if (r < 0.7) count = Math.floor(Math.random() * 5) + 3;
-                else if (r < 0.9) count = Math.floor(Math.random() * 8) + 5;
-                else count = Math.floor(Math.random() * 15) + 8;
-            }
-            const level = count === 0 ? 0 : count <= 2 ? 1 : count <= 5 ? 2 : count <= 10 ? 3 : 4;
-            days.push({ date: new Date(d).toISOString().split('T')[0], count, level });
-            total += count;
-        }
-        yearly[y] = days;
-        totals[y] = total;
-    }
-    return { yearly, totals };
-};
-
 const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: GitHubCommitsGraphProps) => {
     const thisYear = new Date().getFullYear();
 
@@ -96,6 +61,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     }, []);
     const [slideDir, setSlideDir] = useState<number>(0); // -1 = left (older), 1 = right (newer)
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [hasAppeared, setHasAppeared] = useState(false);
     const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -106,6 +72,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
 
     useEffect(() => {
         const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPrefersReduced(mql.matches);
         const onChange = () => setPrefersReduced(mql.matches);
         mql.addEventListener("change", onChange);
@@ -123,7 +90,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         const controller = new AbortController();
 
         /** Shared logic: turn raw API JSON into component state. */
-        const applyData = (data: { contributions?: unknown[]; total?: Record<string, unknown> }) => {
+        const applyData = (data: { contributions?: unknown[]; total?: Record<string, unknown>; currentStreak?: unknown; longestStreak?: unknown }) => {
             if (ignore) return false;
             if (!data.contributions || !Array.isArray(data.contributions)) return false;
 
@@ -161,7 +128,10 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
             setIsLoading(false);
 
             // Report streak (guarded - parent may have unmounted)
-            if (!ignore) onStreakCalculated?.(calculateStreak(byYear));
+            if (!ignore) {
+                const serverStreak = typeof data.currentStreak === 'number' ? data.currentStreak : null;
+                onStreakCalculated?.(serverStreak ?? calculateStreak(byYear));
+            }
             return true;
         };
 
@@ -169,10 +139,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
             // 1) Try the API with a 10-second timeout (uses master controller - aborts on unmount)
             const tid = setTimeout(() => controller.abort(), 10_000);
             try {
-                const res = await fetch(
-                    `https://github-contributions-api.jogruber.de/v4/${username}`,
-                    { signal: controller.signal },
-                );
+                const res = await fetch('/api/github/contributions', { signal: controller.signal });
                 clearTimeout(tid);
                 if (ignore) return;
 
@@ -184,6 +151,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                         return;
                     }
                 }
+                if (!ignore) setError(`GitHub contributions unavailable (${res.status}).`);
             } catch { clearTimeout(tid); /* timeout or network error - fall through */ }
 
             if (ignore) return;
@@ -196,15 +164,9 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
 
             if (ignore) return;
 
-            // 3) Final fallback: deterministic mock data
-            const mock = generateMockData();
-            const years = Object.keys(mock.yearly).map(Number).sort((a, b) => a - b);
-            setYearlyData(mock.yearly);
-            setYearlyTotals(mock.totals);
-            setAvailableYears(years);
-            setCurrentYear(years[years.length - 1]);
+            // 3) Final fallback: small error state, no mock numbers.
             setIsLoading(false);
-            onStreakCalculated?.(0);
+            setError((prev) => prev ?? 'Could not load GitHub contributions.');
         };
 
         fetchAll();
@@ -568,6 +530,12 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                     </motion.div>
                 </AnimatePresence>
             </div>
+
+            {!isLoading && error && (
+                <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }} role="status">
+                    {error}
+                </p>
+            )}
 
             {/* ── Legend ── */}
             <motion.div

@@ -7,8 +7,11 @@ import { Star, GitFork, Package, Users } from 'lucide-react';
 interface Stats {
     followers: number;
     totalStars: number;
-    totalForks: number;
+    forksReceived: number;
+    forkedRepos: number;
     repoCount: number;
+    currentStreak: number;
+    longestStreak: number;
 }
 
 const StatCard = ({
@@ -104,15 +107,18 @@ const GitHubStats = () => {
     const [stats, setStats] = useState<Stats>({
         followers: 0,
         totalStars: 0,
-        totalForks: 0,
+        forksReceived: 0,
+        forkedRepos: 0,
         repoCount: 0,
+        currentStreak: 0,
+        longestStreak: 0,
     });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const CACHE_KEY = 'gh_stats_overview';
-        const CACHE_TTL = 30 * 60 * 1000; // 30 min
+        const CACHE_KEY = 'gh_stats_overview_v2';
+        const CACHE_TTL = 60 * 60 * 1000; // 60 min
 
         const applyStats = (s: Stats) => {
             setStats(s);
@@ -142,8 +148,11 @@ const GitHubStats = () => {
                     applyStats({
                         followers: data.followers || 0,
                         totalStars: data.totalStars || 0,
-                        totalForks: data.totalForks || 0,
+                        forksReceived: data.forksReceived || 0,
+                        forkedRepos: data.forkedRepos || 0,
                         repoCount: data.repoCount || 0,
+                        currentStreak: data.currentStreak || 0,
+                        longestStreak: data.longestStreak || 0,
                     });
                 } else {
                     // Non-OK must still end loading (previously hung forever).
@@ -183,10 +192,15 @@ const GitHubStats = () => {
         <>
             <div className="dev-stats-grid">
                 <StatCard icon={Star} label="Total Stars" value={stats.totalStars} delay={0.15} isLoading={isLoading} />
-                <StatCard icon={GitFork} label="Total Forks" value={stats.totalForks} delay={0.22} isLoading={isLoading} />
+                <StatCard icon={GitFork} label="Forks Received" value={stats.forksReceived} delay={0.22} isLoading={isLoading} />
                 <StatCard icon={Package} label="Repositories" value={stats.repoCount} delay={0.29} isLoading={isLoading} />
                 <StatCard icon={Users} label="Followers" value={stats.followers} delay={0.36} isLoading={isLoading} />
             </div>
+            {!isLoading && (
+                <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    Forked repos: {stats.forkedRepos} · Current streak: {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'} · Longest streak: {stats.longestStreak} day{stats.longestStreak === 1 ? '' : 's'}
+                </p>
+            )}
             {!isLoading && error && (
                 <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }} role="status">
                     {error}
