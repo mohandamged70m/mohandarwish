@@ -69,16 +69,8 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
     <section
       id="projects"
       aria-label="Projects"
-      className="relative w-full max-w-full min-w-0 overflow-hidden isolate [contain:layout_paint] bg-bg-primary scroll-mt-20"
+      className="w-full max-w-full min-w-0 bg-bg-primary scroll-mt-20"
     >
-      {/* backdrop — wine glow + grid — true frameless: no border, max-width contained */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 mx-auto max-w-[1600px] bg-[radial-gradient(ellipse_at_50%_0%,var(--accent-ring)_0%,transparent_62%)] opacity-60" />
-        <div className="absolute inset-0 opacity-[0.032] [mask-image:radial-gradient(ellipse_at_50%_12%,black_38%,transparent_78%)] bg-[linear-gradient(to_right,var(--border-strong)_1px,transparent_1px),linear-gradient(to_bottom,var(--border-strong)_1px,transparent_1px)] bg-[size:28px_28px]" />
-        {/* no top hairline — frameless: gap, not border, creates rhythm */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg-primary/30" />
-      </div>
-
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
         {/* header block — constrained */}
         <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
@@ -95,13 +87,18 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
             <ProjectsHeader active={active} />
           </motion.div>
 
+          {/* filter — top, under header for discoverability (was bottom) */}
+          <div className="flex w-full min-w-0 justify-center">
+            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} onPreviewCategory={(c) => { if (c === "Developer") prefetchDeveloperTab(); }} />
+          </div>
+
           <p className="sr-only" aria-live="polite">
             Showing {isDeveloper ? "developer profile" : `${filtered.length} projects`} for {active}
           </p>
 
           {/* empty state — stays inside gutter (projects only; developer handles its own) */}
           {showEmpty && (
-            <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
+            <div className="w-full rounded-md border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
               <p className="font-heading text-sm font-medium text-text-primary">
                 {projects.length === 0
                   ? "No projects yet — add one from the dashboard"
@@ -115,20 +112,19 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
             </div>
           )}
           {isLoading && (
-            <div className="w-full rounded-[16px] border border-border bg-bg-surface px-6 py-10 text-center">
+            <div className="w-full rounded-md border border-border bg-bg-surface px-6 py-10 text-center">
               <p className="font-heading text-sm font-medium text-text-primary">Loading projects…</p>
             </div>
           )}
         </div>
 
-        {/* showcase grid — Swiss minimal, zero horizontal scroll: 1 / 2 / 3
-            columns with a lead card spanning two for editorial rhythm */}
+        {/* showcase grid — uniform 1 / 2 / 3 rhythm, hierarchy from index+metric */}
         {!isDeveloper && filtered.length > 0 && (
-          <div className="mx-auto w-full max-w-7xl min-w-0 px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl min-w-0 px-4 pt-2 sm:px-6 lg:px-8">
             <div
               role="list"
               aria-label="Featured projects"
-              className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+              className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3"
             >
               {filtered.map((project, i) => (
                 <motion.div
@@ -143,7 +139,6 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
                     delay: reduce ? 0 : (i % 3) * 0.08,
                   }}
                   {...noMotion}
-                  className={i === 0 && filtered.length >= 4 ? "sm:col-span-2" : undefined}
                 >
                   <ProjectCard
                     project={project}
@@ -170,7 +165,7 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
           </motion.div>
         )}
 
-        {/* CTA + filter — constrained, centered bottom navbar */}
+        {/* CTA — filter lives on top now, bottom keeps See-all only */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -179,10 +174,6 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
           {...noMotion}
           className="mx-auto flex w-full max-w-7xl flex-col items-center gap-5 px-4 sm:px-6 lg:px-8 pt-2"
         >
-          {/* filter navbar — center bottom */}
-          <div className="flex w-full min-w-0 justify-center">
-            <ProjectFilter categories={FILTER_CATEGORIES} active={active} onChange={setActive} counts={filterCounts} onPreviewCategory={(c) => { if (c === "Developer") prefetchDeveloperTab(); }} />
-          </div>
           <Link href="/projects" aria-label="See all projects">
             <Button
               variant="secondary"

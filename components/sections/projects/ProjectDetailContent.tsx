@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project } from "@/data/projects";
@@ -141,14 +141,19 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
     return () => window.removeEventListener("resize", onR);
   }, []);
 
-  const media: string[] = (() => {
+  const media: string[] = useMemo(() => {
     const vids = project.videos ?? [];
     const imgs = project.images ?? [project.image];
     // videos first like Mohand
     const all = [...vids, ...imgs];
     // dedupe
     return Array.from(new Set(all));
-  })();
+    // Memoized: without this, `media` is a new array every render, which
+    // re-fires the ambient-sync effects below (and the carousel's
+    // onIndexChange effect) on every render — scheduling a parent state
+    // update from a child effect during the mount commit, i.e. React's
+    // "state update on a component that hasn't mounted yet" warning.
+  }, [project.videos, project.images, project.image]);
 
   const displayTitle = project.title.toUpperCase();
   const isTiny = windowWidth < 480;
@@ -159,10 +164,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
     if (first) setActiveMedia(first);
   }, [media, setActiveMedia]);
 
-  const handleIndexChange = (idx: number) => {
+  const handleIndexChange = useCallback((idx: number) => {
     const src = media[idx];
     if (src && !isVideoFile(src)) setActiveMedia(src);
-  };
+    // Stable identity: the carousel runs this in an effect keyed on the
+    // callback, so a new closure every render would re-fire that effect
+    // (and the parent setState) on every render.
+  }, [media, setActiveMedia]);
 
   // Full detail pages get scroll reveals on the content matrix; inside the
   // modal the morph + Motion fade own the transition, so no extra wrapper.

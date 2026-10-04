@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isVideoFile } from "@/lib/project-utils";
 import { VideoPlayer } from "./VideoPlayer";
@@ -76,8 +76,14 @@ export function ProjectMediaCarousel({ media, onIndexChange, isMobile }: Props) 
   const [isHovered, setIsHovered] = useState(false);
 
   const sorted = media;
+  // Notify the parent once per index change only. The parent callback may
+  // have an unstable identity across renders — keying the effect on it
+  // would re-fire (and re-set parent state) on every parent render.
+  const lastNotified = useRef<number | null>(null);
 
   useEffect(() => {
+    if (lastNotified.current === current) return;
+    lastNotified.current = current;
     onIndexChange?.(current);
   }, [current, onIndexChange]);
 
