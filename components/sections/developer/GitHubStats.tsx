@@ -192,13 +192,13 @@ const GitHubStats = () => {
         <>
             <div className="dev-stats-grid">
                 <StatCard icon={Star} label="Total Stars" value={stats.totalStars} delay={0.15} isLoading={isLoading} />
-                <StatCard icon={GitFork} label="Forks Received" value={stats.forksReceived} delay={0.22} isLoading={isLoading} />
+                <StatCard icon={GitFork} label="Forked Repos" value={stats.forkedRepos} delay={0.22} isLoading={isLoading} />
                 <StatCard icon={Package} label="Repositories" value={stats.repoCount} delay={0.29} isLoading={isLoading} />
                 <StatCard icon={Users} label="Followers" value={stats.followers} delay={0.36} isLoading={isLoading} />
             </div>
             {!isLoading && (
                 <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Forked repos: {stats.forkedRepos} · Current streak: {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'} · Longest streak: {stats.longestStreak} day{stats.longestStreak === 1 ? '' : 's'}
+                    Forks received: {stats.forksReceived} · Current streak: {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'} · Longest streak: {stats.longestStreak} day{stats.longestStreak === 1 ? '' : 's'}
                 </p>
             )}
             {!isLoading && error && (
