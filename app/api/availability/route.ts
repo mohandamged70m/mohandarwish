@@ -1,17 +1,18 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { DEFAULT_AVAILABILITY, parseAvailabilityConfig } from "@/lib/availability";
 import { isAdminRequest } from "@/lib/admin";
+import { toAvailability } from "@/lib/convex-map";
 
-// Live Supabase-backed config — never execute at build time (CI/preview
+// Live Convex-backed config — never execute at build time (CI/preview
 // environments may have no env or network; page-data collection would fail).
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = supabaseServer();
-    const { data, error } = await supabase.from("availability").select("*").eq("id", 1).maybeSingle();
-    if (error) throw error;
+    const row = await convexQuery(api.availability.get, {});
+    const data = toAvailability(row);
     if (!data) {
       return NextResponse.json({
         workingDays: DEFAULT_AVAILABILITY.workingDays,
@@ -34,19 +35,14 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   if (!isAdminRequest(req)) {
-    // also allow OWNER email check via body? simple token guard
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await req.json().catch(() => null) as { workingDays?: number[]; hours?: number[]; timezone?: string } | null;
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  const supabase = supabaseServer();
-  const { error } = await supabase.from("availability").upsert({
-    id: 1,
-    working_days: body.workingDays ?? DEFAULT_AVAILABILITY.workingDays,
+  await convexMutation(api.availability.upsert, {
+    workingDays: body.workingDays ?? DEFAULT_AVAILABILITY.workingDays,
     hours: body.hours ?? DEFAULT_AVAILABILITY.hours,
     timezone: body.timezone ?? "UTC+02:00 (EET)",
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "id" });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  });
   return NextResponse.json({ ok: true });
 }

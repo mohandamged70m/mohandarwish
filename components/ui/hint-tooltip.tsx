@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { AlertCircle } from "lucide-react";
 
 const WIDTH = 260;
@@ -23,6 +23,20 @@ export default function HintTooltip({ text, isDark, size = 14 }: { text: string;
     const arrow = Math.max(14, Math.min(cx - left, WIDTH - 14));
     setPos({ left, top, arrow, flipDown });
   }, []);
+
+  const reduce = useReducedMotion();
+
+  // Close (or re-anchor would misplace) while any ancestor scrolls — tooltip is pointer-events:none.
+  useEffect(() => {
+    if (!show) return;
+    const close = () => setShow(false);
+    window.addEventListener("scroll", close, { capture: true, passive: true });
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("scroll", close, { capture: true } as AddEventListenerOptions);
+      window.removeEventListener("resize", close);
+    };
+  }, [show]);
 
   const bg = isDark ? "rgba(22,22,28,0.72)" : "rgba(255,255,255,0.82)";
   const border = isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.08)";
@@ -47,10 +61,10 @@ export default function HintTooltip({ text, isDark, size = 14 }: { text: string;
             {show && (
               <motion.div
                 role="tooltip"
-                initial={{ opacity: 0, scale: 0.94 }}
+                initial={reduce ? false : { opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                exit={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96 }}
+                transition={{ duration: reduce ? 0.01 : 0.16, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   position: "fixed",
                   top: pos.top,

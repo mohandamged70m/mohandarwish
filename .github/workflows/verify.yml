@@ -1,7 +1,7 @@
 # Fast signal on every push/PR without secrets or a production build.
 # Production deploys happen on Vercel (auto-deploy from main with project
 # env vars) — NOT via GitHub Pages, which can't serve API routes, the
-# proxy, or any Supabase-backed feature this app needs.
+# proxy, or any Convex-backed feature this app needs.
 name: Verify
 
 on:

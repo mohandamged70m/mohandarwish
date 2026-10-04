@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   Download,
   FileText,
@@ -223,6 +223,7 @@ function CvPaper(): ReactNode {
 export function CvModal({ open, onClose }: { open: boolean; onClose: () => void }): ReactNode {
   const closeRef = useRef<HTMLButtonElement>(null);
   const prevOverflowRef = useRef<string>("");
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (!open) return;
@@ -274,10 +275,10 @@ export function CvModal({ open, onClose }: { open: boolean; onClose: () => void 
               role="dialog"
               aria-modal="true"
               aria-labelledby="cv-modal-title"
-              initial={{ opacity: 0, y: 24, scale: 0.98 }}
+              initial={reduce ? false : { opacity: 0, y: 24, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.98 }}
-              transition={{ type: "spring", damping: 30, stiffness: 350, mass: 1 }}
+              exit={reduce ? { opacity: 1 } : { opacity: 0, y: 16, scale: 0.98 }}
+              transition={reduce ? { duration: 0.01 } : { type: "spring", damping: 30, stiffness: 350, mass: 1 }}
               onClick={(e) => e.stopPropagation()}
               data-lenis-prevent
               className="pointer-events-auto flex max-h-[90dvh] w-full max-w-[860px] flex-col overflow-hidden rounded-[20px] border border-border bg-bg-primary shadow-2xl"

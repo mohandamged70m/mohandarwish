@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { isAdminRequest } from "@/lib/admin";
+import { toBooking, toMessage, toAvailability } from "@/lib/convex-map";
 
 // Admin: mirror the site's real tables (bookings, messages, availability)
 // into the dashboard_docs the copy-pasted Canary UI reads:
@@ -37,23 +39,21 @@ type Message = {
 
 export async function POST(req: Request) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const supabase = supabaseServer();
-
-  const [{ data: bookings }, { data: messages }, { data: avail }] = await Promise.all([
-    supabase.from("bookings").select("*").order("created_at", { ascending: false }).limit(500),
-    supabase.from("messages").select("*").order("created_at", { ascending: false }).limit(500),
-    supabase.from("availability").select("*").eq("id", 1).maybeSingle(),
+  const [bookingRows, messageRows, availRow] = await Promise.all([
+    convexQuery<Record<string, unknown>[]>(api.bookings.list, {}),
+    convexQuery<Record<string, unknown>[]>(api.messages.list, {}),
+    convexQuery<Record<string, unknown>>(api.availability.get, {}),
   ]);
+  const bookings = (bookingRows ?? []).map(toBooking) as unknown as Booking[];
+  const messages = (messageRows ?? []).map(toMessage) as unknown as Message[];
+  const avail = toAvailability(availRow);
 
   const readDoc = async (path: string) => {
-    const { data } = await supabase.from("dashboard_docs").select("data").eq("path", path).maybeSingle();
-    return ((data?.data as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+    const data = await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, { path });
+    return (data ?? {}) as Record<string, unknown>;
   };
   const writeDoc = async (path: string, data: Record<string, unknown>) => {
-    await supabase.from("dashboard_docs").upsert(
-      { path, data, updated_at: new Date().toISOString() },
-      { onConflict: "path" }
-    );
+    await convexMutation(api.docs.setDoc, { path, data });
   };
 
   // --- Canary ---

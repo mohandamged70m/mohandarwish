@@ -22,7 +22,8 @@ import {
   tabSlideVariants,
 } from "@/components/transitions/booking";
 import { X, Send, Paperclip, User, Phone, MessageSquare, Check, Mail, Calendar, Clock, ChevronLeft, ChevronRight, Globe } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
+import { convexMutation, convexQuery } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import useSafeAlert from "@/hooks/useSafeAlert";
 import { AvailabilityConfig, DEFAULT_AVAILABILITY, parseAvailabilityConfig, buildHostSlots, isWorkingDay } from "@/lib/availability";
 import useTheme from "@/hooks/useTheme";
@@ -182,6 +183,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
     if (selectedDate < today0 || !checkAvailable(selectedDate)) {
       let searchDate = new Date(selectedDate); if (searchDate < today0) searchDate = new Date(today0);
       let found = false; for (let i = 0; i < 30; i++) { if (checkAvailable(searchDate)) { found = true; break; } searchDate.setDate(searchDate.getDate() + 1); }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (found && searchDate.toDateString() !== selectedDate.toDateString()) { setSelectedDate(searchDate); setCalendarDate(searchDate); }
     }
     hasAutoMoved.current = true;
@@ -234,16 +236,20 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
     if (!isValidEmail(formData.email)) { showAlert({ type: "warning", message: "Please enter a valid email address." }); return; }
     setIsSubmitting(true);
     try {
-      // try supabase storage upload if bucket exists
+      // upload to Convex storage if client is available
       const uploaded: { name: string; url: string }[] = [];
       if (formData.attachments.length > 0) {
         for (const file of formData.attachments) {
           try {
-            const path = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}/${file.name}`;
-            const { error } = await supabase.storage.from("attachments").upload(path, file, { upsert: false });
-            if (!error) {
-              const { data } = supabase.storage.from("attachments").getPublicUrl(path);
-              uploaded.push({ name: file.name, url: data.publicUrl });
+            const path = `attachments/${Date.now()}_${Math.random().toString(36).slice(2, 9)}/${file.name}`;
+            const uploadUrl = await convexMutation<string>(api.storage.getUploadUrl, {});
+            if (!uploadUrl) throw new Error("Convex not configured");
+            const res = await fetch(uploadUrl, { method: "POST", body: file });
+            if (res.ok) {
+              const { storageId } = (await res.json()) as { storageId: string };
+              const url = await convexQuery<string>(api.storage.getUrl, { storageId });
+              if (url) await convexMutation(api.storage.setMapping, { path, storageId, url, size: file.size, contentType: file.type });
+              uploaded.push({ name: file.name, url: url ?? "" });
             } else {
               uploaded.push({ name: file.name, url: "" });
             }

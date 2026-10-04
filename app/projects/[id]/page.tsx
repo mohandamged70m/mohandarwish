@@ -1,6 +1,5 @@
 import { ProjectDetailContent } from "@/components/sections/projects/ProjectDetailContent";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { BackToProjects } from "@/components/sections/projects/BackToProjects";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -77,13 +76,7 @@ export default async function ProjectPage({
       />
 
       <section className="mx-auto w-full max-w-3xl px-4 pt-32 pb-16 sm:px-6 sm:pt-40 sm:pb-20">
-        <Link
-          href="/projects"
-          className="mb-6 inline-flex items-center gap-2 font-heading text-sm text-text-secondary transition-colors duration-300 hover:text-accent focus-ring outline-none"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          All projects
-        </Link>
+        <BackToProjects />
         <div className="overflow-hidden rounded-[20px] border border-border bg-bg-surface shadow-[0_18px_56px_rgba(0,0,0,0.45)]">
           <ProjectDetailContent project={project} />
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Star, GitFork, Package, Users } from 'lucide-react';
 
 interface Stats {
@@ -23,11 +23,13 @@ const StatCard = ({
     value: number;
     delay: number;
     isLoading: boolean;
-}) => (
+}) => {
+    const reduce = useReducedMotion();
+    return (
     <motion.div
-        initial={{ opacity: 0, y: 14 }}
+        initial={reduce ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: reduce ? 0.01 : 0.5, delay: reduce ? 0 : delay, ease: [0.16, 1, 0.3, 1] }}
         className="github-stat-card"
         style={{
             position: 'relative',
@@ -95,7 +97,8 @@ const StatCard = ({
             {label}
         </div>
     </motion.div>
-);
+    );
+};
 
 const GitHubStats = () => {
     const [stats, setStats] = useState<Stats>({

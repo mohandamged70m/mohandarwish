@@ -599,7 +599,7 @@ function scrollToSection(id: string, moveFocus = false): void {
       }
     ).__lenis;
     if (lenis?.scrollTo) {
-      lenis.scrollTo(el, { offset: 0, duration: 1.1 });
+      lenis.scrollTo(el, { offset: -80, duration: 1.1 });
     } else {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }

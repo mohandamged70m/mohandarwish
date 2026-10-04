@@ -223,7 +223,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     useEffect(() => { if (!open) { convoRef.current = false; stopVoice(); } }, [open]);
     useEffect(() => () => { convoRef.current = false; stopVoice(); }, []);
 
-    // Spark's persistent memory (Supabase: dashboard_docs Spark/Memory). Loaded on
+    // Spark's persistent memory (Convex: dashboardDocs Spark/Memory). Loaded on
     // mount + when the panel opens — NOT gated on auth (the dashboard shell
     // itself is already behind ADMIN_TOKEN, and the extra verify round-trip
     // was the reason memory looked "unsaved" after reload).
@@ -240,7 +240,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
         } catch { /* keep local state; save will surface errors */ }
     }, []);
     // Loading remote memory into state from an effect is the intended
-    // set-state-in-effect case (syncing React with Supabase).
+    // set-state-in-effect case (syncing React with Convex).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { void loadMemory(); }, [loadMemory]);
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -666,7 +666,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             </div>
                             <p className="text-[10px] text-sec -mt-1">Tip: voices with “Natural”, “Google”, or “Online” in the name sound the most human. The mic button starts a hands-free voice chat.</p>
 
-                            {/* Memory - persists in Supabase (dashboard_docs Spark/Memory); Spark can also edit this herself */}
+                            {/* Memory - persists in Convex (dashboardDocs Spark/Memory); Spark can also edit this herself */}
                             <div className="pt-2 border-t border-[var(--section-border)] flex flex-col gap-2">
                                 <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sec uppercase tracking-wider"><Brain size={13} /> Memory</div>
                                 <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-xl border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec`} />

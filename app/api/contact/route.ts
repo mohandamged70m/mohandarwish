@@ -82,20 +82,18 @@ export async function POST(req: Request) {
     scheduledAt = `${preferredDate} ${preferredTime}${timezone ? ` (${timezone})` : ""}`;
   }
 
-  // Persist to Supabase messages + Resend (anon key, RLS public insert)
+  // Persist to Convex messages + Resend
   try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-      const { supabaseServer } = await import("@/lib/supabase/server");
-      const supabase = supabaseServer();
-      await supabase.from("messages").insert({
-        name,
-        email,
-        message,
-        number: null,
-        has_whatsapp: false,
-        files: scheduledAt ? [{ scheduledAt, timezone }] : [],
-      });
-    }
+    const { convexMutation } = await import("@/lib/convex");
+    const { api } = await import("@/convex/_generated/api");
+    await convexMutation(api.messages.create, {
+      name,
+      email,
+      message,
+      number: undefined,
+      hasWhatsapp: false,
+      files: scheduledAt ? [{ scheduledAt, timezone }] : [],
+    });
   } catch {}
 
   if (process.env.RESEND_API_KEY) {

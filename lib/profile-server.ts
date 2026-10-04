@@ -1,4 +1,5 @@
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 
 export type ProfileExperience = {
   id: string;
@@ -47,34 +48,41 @@ export type ProfileStackItem = {
   is_visible: boolean;
 };
 
-async function safeList<T>(table: string): Promise<T[]> {
+type ConvexRow = Record<string, unknown> & { _id: string };
+
+function mapRow(row: ConvexRow): Record<string, unknown> {
+  const out: Record<string, unknown> = { id: row._id };
+  for (const [key, val] of Object.entries(row)) {
+    if (key === "_id" || key === "_creationTime" || key === "createdAt" || key === "updatedAt") continue;
+    // Convert Convex camelCase keys back to the snake_case shape the
+    // public pages and admin form have always consumed.
+    const snake = key.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
+    out[snake] = val;
+  }
+  return out;
+}
+
+async function safeList<T>(table: "profileExperience" | "profileEducation" | "profileSkills" | "profileStack"): Promise<T[]> {
   try {
-    const supabase = supabaseServer();
-    const { data, error } = await supabase
-      .from(table)
-      .select("*")
-      .eq("is_visible", true)
-      .order("sort_order", { ascending: true })
-      .order("created_at", { ascending: true });
-    if (error) return [];
-    return (data ?? []) as T[];
+    const rows = await convexQuery<ConvexRow[]>(api.profile.listVisible, { table });
+    return ((rows ?? []).map(mapRow) as unknown) as T[];
   } catch {
     return [];
   }
 }
 
 export function getExperienceServer(): Promise<ProfileExperience[]> {
-  return safeList<ProfileExperience>("profile_experience");
+  return safeList<ProfileExperience>("profileExperience");
 }
 
 export function getEducationServer(): Promise<ProfileEducation[]> {
-  return safeList<ProfileEducation>("profile_education");
+  return safeList<ProfileEducation>("profileEducation");
 }
 
 export function getSkillsServer(): Promise<ProfileSkill[]> {
-  return safeList<ProfileSkill>("profile_skills");
+  return safeList<ProfileSkill>("profileSkills");
 }
 
 export function getStackServer(): Promise<ProfileStackItem[]> {
-  return safeList<ProfileStackItem>("profile_stack");
+  return safeList<ProfileStackItem>("profileStack");
 }

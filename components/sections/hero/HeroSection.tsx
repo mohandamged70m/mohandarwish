@@ -272,6 +272,17 @@ export default function HeroSection() {
         </button>
       </div>
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
+      {/* scroll cue — motion-safe, hides on reduced-motion via hero.css */}
+      <a
+        href="#stack-wrap"
+        aria-label="Scroll to stack"
+        className="mh-cue absolute bottom-4 left-1/2 z-[6] hidden -translate-x-1/2 flex-col items-center gap-1 text-text-muted transition-colors hover:text-accent-text focus-ring md:flex"
+      >
+        <span className="font-heading text-[10px] uppercase tracking-[0.2em]">Scroll</span>
+        <span aria-hidden="true" className="block h-8 w-[22px] rounded-full border border-current p-1">
+          <span className="mh-cue-dot mx-auto block h-1.5 w-1.5 rounded-full bg-current" />
+        </span>
+      </a>
     </section>
   );
 }

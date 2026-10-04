@@ -1,25 +1,18 @@
-// Drop-in Firestore-compatible data layer backed by Supabase.
+// Convex data layer, Firestore-compatible surface kept for the dashboard UI.
 //
-// The dashboard/ components were written against firebase/firestore. Instead of
-// rewriting ~12k lines of UI/logic, this module exposes the same function names
-// and snapshot shapes, persisted in the `dashboard_docs` table (path -> data).
-// Only the transport changed: Firebase is gone, Supabase is the backend.
+// Same function names and snapshot shapes as the old Firestore / document shim
+// versions, so the copy-pasted dashboard/ components keep working unchanged.
+// Only the transport moved: this time to Convex (real subscriptions, no
+// 30s poll fallback).
 //
-// Supported surface (everything dashboard/ uses):
-//   doc(db, ...segs) / collection(db, ...segs)  (also single "a/b/c" strings)
-//   query(col, ...constraints) with where(field,'==',v), orderBy(field,dir), limit(n)
+//   doc(db, ...segs) / collection(db, ...segs)
+//   query(col, ...constraints) with where(field,'==',v), orderBy, limit(n)
 //   onSnapshot(target, onNext, onError?) -> unsubscribe
-//   getDoc / getDocs / setDoc (with {merge}) / updateDoc (dotted keys) / deleteDoc
+//   getDoc / getDocs / setDoc ({merge}) / updateDoc (dotted keys) / deleteDoc
 //   deleteField() / serverTimestamp() / increment() / writeBatch(db)
-//
-// Analytics rollups are NOT written through here: concurrent writers would each read
-// the same pre-write total and one count would vanish. app/api/track uses the
-// dash_merge/dash_patch/dash_patch_seq SQL functions in supabase/dashboard-schema.sql
-// instead, which do the read-modify-write inside one statement.
 
-import { supabase } from "@/lib/supabase/client";
-
-const TABLE = "dashboard_docs";
+import { ConvexReactClient } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const DF = "__dash_delete_field__";
 const ST = "__dash_server_timestamp__";
@@ -58,12 +51,24 @@ function resolveSentinels(v: unknown): unknown {
   return v;
 }
 
-// Legacy default/named app handle: `import app, { db } from '.../lib/firebase'`.
-// The refs below ignore it (all functions take explicit paths), but the value
-// must exist for the copy-pasted imports to keep working.
+// Legacy default/named app handle: `import app, { db } from '.../lib/dash-db'`.
 export const db = { __dashDb: true };
 const app = { __dashApp: true };
 export default app;
+
+// ---------------------------------------------------------------------------
+// Convex client (lazy, tolerant of missing env so build/prerender survives)
+// ---------------------------------------------------------------------------
+
+let _client: ConvexReactClient | null = null;
+
+function convex(): ConvexReactClient | null {
+  if (_client) return _client;
+  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
+  if (!url) return null;
+  _client = new ConvexReactClient(url);
+  return _client;
+}
 
 export interface DocRef {
   kind: "doc";
@@ -121,17 +126,9 @@ export function limit(n: number): Constraint {
   return { t: "limit", n };
 }
 
-/**
- * Firestore's FieldValue.increment(). Kept as a sentinel here, exactly like
- * deleteField()/serverTimestamp() above, so call sites copied from the Firebase
- * version keep working.
- *
- * Note for writers that read-modify-write in JavaScript: this cannot be atomic the
- * way Firestore's was. `increment(n)` writes the literal n, so to take a count back
- * out you need the current value: `increment(current - 1)`. For rollups that many
- * writers touch at once, use the dash_merge/dash_patch SQL functions instead.
- */
 export function increment(n: number): number {
+  // See old note: write current+delta back for JS writers; real atomic
+  // increments happen server-side in convex/docs.ts merge functions.
   return n;
 }
 
@@ -163,6 +160,11 @@ export interface QuerySnapshot {
   size: number;
   empty: boolean;
   forEach: (cb: (d: QueryDocSnapshot) => void) => void;
+}
+
+interface Row {
+  path: string;
+  data: Record<string, unknown>;
 }
 
 function getPath(obj: unknown, dotted: string): unknown {
@@ -197,43 +199,8 @@ function delPath(obj: Record<string, unknown>, dotted: string): void {
 }
 
 // ---------------------------------------------------------------------------
-// Raw reads
+// Constraint + snapshot shaping (client-side, same as before)
 // ---------------------------------------------------------------------------
-
-async function readDocRow(path: string): Promise<Record<string, unknown> | undefined> {
-  const { data, error } = await supabase.from(TABLE).select("data").eq("path", path).maybeSingle();
-  if (error) throw error;
-  return (data?.data as Record<string, unknown> | undefined) ?? undefined;
-}
-
-interface Row {
-  path: string;
-  data: Record<string, unknown>;
-}
-
-async function readColRows(prefix: string): Promise<Row[]> {
-  // Fetch in pages (tables stay small; page defensively anyway).
-  const rows: Row[] = [];
-  let from = 0;
-  const page = 1000;
-  for (;;) {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select("path,data")
-      .like("path", `${prefix}/%`)
-      .range(from, from + page - 1);
-    if (error) throw error;
-    const batch = (data ?? []) as Row[];
-    // Firestore collections list DIRECT children only.
-    for (const r of batch) {
-      const rest = r.path.slice(prefix.length + 1);
-      if (rest && !rest.includes("/")) rows.push({ path: r.path, data: (r.data ?? {}) as Record<string, unknown> });
-    }
-    if (batch.length < page) break;
-    from += page;
-  }
-  return rows;
-}
 
 function applyConstraints(rows: Row[], constraints: Constraint[]): Row[] {
   let out = rows;
@@ -288,71 +255,11 @@ function querySnap(rows: Row[]): QuerySnapshot {
   return { docs, size: docs.length, empty: docs.length === 0, forEach: (cb) => docs.forEach(cb) };
 }
 
-async function fetchTarget(target: DocRef | ColRef | Query): Promise<DocSnapshot | QuerySnapshot> {
-  if (target.kind === "doc") return docSnap(target, await readDocRow(target.path));
-  if (target.kind === "query") {
-    const rows = await readColRows(target.col.path);
-    return querySnap(applyConstraints(rows, target.constraints));
-  }
-  return querySnap(await readColRows(target.path));
-}
-
 // ---------------------------------------------------------------------------
-// Live subscriptions: local emit + Supabase Realtime + safety poll
+// Live subscriptions — thin wrapper over Convex React client primitives.
+// Keeps the old onSnapshot(target, onNext, onError) shape. Convex pushes
+// updates; no polling, no realtime channel.
 // ---------------------------------------------------------------------------
-
-type Listener = {
-  target: DocRef | ColRef | Query;
-  onNext: (s: never) => void;
-  onError?: (e: { message: string; code?: string }) => void;
-};
-const listeners = new Set<Listener>();
-let channelStarted = false;
-let pollStarted = false;
-let notifyTimer: ReturnType<typeof setTimeout> | null = null;
-
-async function refetchAll(): Promise<void> {
-  const jobs = [...listeners].map(async (l) => {
-    try {
-      const snap = await fetchTarget(l.target);
-      l.onNext(snap as never);
-    } catch (e) {
-      l.onError?.(e instanceof Error ? e : new Error(String(e)));
-    }
-  });
-  await Promise.all(jobs);
-}
-
-function scheduleRefetch(): void {
-  if (notifyTimer) return;
-  notifyTimer = setTimeout(() => {
-    notifyTimer = null;
-    void refetchAll();
-  }, 50);
-}
-
-function ensureChannel(): void {
-  if (channelStarted || pollStarted) return;
-  pollStarted = true;
-  try {
-    supabase
-      .channel("dashboard_docs_live")
-      .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, () => scheduleRefetch())
-      .subscribe();
-    channelStarted = true;
-  } catch {
-    // Realtime unavailable (e.g. publication not enabled) — local emit + poll cover us.
-  }
-  // Safety net for other tabs / external writes when Realtime is off.
-  setInterval(() => {
-    if (listeners.size) void refetchAll();
-  }, 30000);
-  if (typeof document !== "undefined") {
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && listeners.size) void refetchAll();
-    });
-  }
-}
 
 export function onSnapshot(
   target: DocRef,
@@ -369,15 +276,45 @@ export function onSnapshot(
   onNext: (snap: never) => void,
   onError?: (e: { message: string; code?: string }) => void
 ): () => void {
-  ensureChannel();
-  const entry: Listener = { target, onNext, onError };
-  listeners.add(entry);
-  fetchTarget(target)
-    .then((snap) => onNext(snap as never))
-    .catch((e: Error) => onError?.(e));
-  return () => {
-    listeners.delete(entry);
-  };
+  const client = convex();
+  if (!client) {
+    const emptySnap =
+      target.kind === "doc" ? docSnap(target, undefined) : querySnap([]);
+    onNext(emptySnap as never);
+    return () => {};
+  }
+  try {
+    if (target.kind === "doc") {
+      const watch = client.watchQuery(api.docs.getDoc, { path: target.path });
+      const emit = () => {
+        const data = watch.localQueryResult();
+        onNext(docSnap(target, (data ?? undefined) as Record<string, unknown> | undefined) as never);
+      };
+      const dispose = watch.onUpdate(emit);
+      // Initial fetch so callers don't wait for the first sync round-trip.
+      client
+        .query(api.docs.getDoc, { path: target.path })
+        .then((data: unknown) => onNext(docSnap(target, (data ?? undefined) as Record<string, unknown> | undefined) as never))
+        .catch((e: Error) => onError?.({ message: e.message }));
+      return dispose;
+    }
+    const prefix = target.kind === "query" ? target.col.path : target.path;
+    const constraints = target.kind === "query" ? target.constraints : [];
+    const watch = client.watchQuery(api.docs.listCollection, { prefix });
+    const emit = () => {
+      const rows = (watch.localQueryResult() ?? []) as Row[];
+      onNext(querySnap(applyConstraints(rows, constraints)) as never);
+    };
+    const dispose = watch.onUpdate(emit);
+    client
+      .query(api.docs.listCollection, { prefix })
+      .then((rows: unknown) => onNext(querySnap(applyConstraints((rows ?? []) as Row[], constraints)) as never))
+      .catch((e: Error) => onError?.({ message: e.message }));
+    return dispose;
+  } catch (e) {
+    onError?.(e instanceof Error ? e : new Error(String(e)));
+    return () => {};
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -385,32 +322,43 @@ export function onSnapshot(
 // ---------------------------------------------------------------------------
 
 export async function getDoc(ref: DocRef): Promise<DocSnapshot> {
-  return docSnap(ref, await readDocRow(ref.path));
+  const client = convex();
+  if (!client) return docSnap(ref, undefined);
+  try {
+    const data = await client.query(api.docs.getDoc, { path: ref.path });
+    return docSnap(ref, (data ?? undefined) as Record<string, unknown> | undefined);
+  } catch {
+    return docSnap(ref, undefined);
+  }
 }
 
 export async function getDocs(target: ColRef | Query): Promise<QuerySnapshot> {
-  const snap = (await fetchTarget(target)) as QuerySnapshot;
-  return snap;
+  const client = convex();
+  if (!client) return querySnap([]);
+  const prefix = target.kind === "query" ? target.col.path : target.path;
+  try {
+    const rows = (await client.query(api.docs.listCollection, { prefix })) as Row[];
+    const constraints = target.kind === "query" ? target.constraints : [];
+    return querySnap(applyConstraints(rows, constraints));
+  } catch {
+    return querySnap([]);
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Writes (+ bridges to the site's real tables)
+// Writes (+ bridges to the site's real tables — same behavior, now on Convex)
 // ---------------------------------------------------------------------------
 
-async function upsertDoc(path: string, data: Record<string, unknown>): Promise<void> {
-  const { error } = await supabase.from(TABLE).upsert(
-    { path, data, updated_at: new Date().toISOString() },
-    { onConflict: "path" }
-  );
-  if (error) throw error;
+async function writeDoc(path: string, data: Record<string, unknown>): Promise<void> {
+  const client = convex();
+  if (!client) throw new Error("Convex not configured");
+  await client.mutation(api.docs.setDoc, { path, data });
 }
 
 function adminToken(): string {
   if (typeof window === "undefined") return "";
   const saved = localStorage.getItem("dashboard_token");
   if (saved) return saved;
-  // Cookie fallback (set by the dashboard shell alongside localStorage so
-  // server routes + middleware can also read it). Kept for compat.
   const m = document.cookie.match(/(?:^|;\s*)dashboard_token=([^;]+)/);
   if (!m) return "";
   try {
@@ -420,8 +368,6 @@ function adminToken(): string {
   }
 }
 
-// Mirror dashboard availability edits into the site's availability table,
-// so the booking flow sees them (D-Settings / D-Canary only write the doc).
 async function mirrorAvailability(data: Record<string, unknown>): Promise<void> {
   if (!Array.isArray(data.workingDays) || !Array.isArray(data.hours)) return;
   try {
@@ -435,7 +381,6 @@ async function mirrorAvailability(data: Record<string, unknown>): Promise<void> 
   }
 }
 
-// Mirror Canary meeting/email removals + meeting edits into bookings/messages.
 async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
   const token = adminToken();
   const jobs: Promise<unknown>[] = [];
@@ -467,8 +412,8 @@ async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
     if (typeof change.Time === "string") upd.time = change.Time;
     if (typeof change.Name === "string") upd.name = change.Name;
     if (typeof change["What For"] === "string") upd.reason = change["What For"];
-    if (typeof change.MeetingLink === "string") upd.meeting_link = change.MeetingLink;
-    if (typeof change.GoogleEventId === "string") upd.google_event_id = change.GoogleEventId;
+    if (typeof change.MeetingLink === "string") upd.meetingLink = change.MeetingLink;
+    if (typeof change.GoogleEventId === "string") upd.googleEventId = change.GoogleEventId;
     if (Object.keys(upd).length) jobs.push(call(`/api/booking/${id}`, { method: "PATCH", body: JSON.stringify(upd) }));
   }
   for (const [id, change] of emails) {
@@ -487,8 +432,8 @@ export async function setDoc(
   const clean = resolveSentinels(data) as Record<string, unknown>;
   let next: Record<string, unknown>;
   if (opts?.merge) {
-    const existing = (await readDocRow(ref.path)) ?? {};
-    next = { ...existing };
+    const existingSnap = await getDoc(ref);
+    next = { ...(existingSnap.data() ?? {}) };
     for (const [k, v] of Object.entries(clean)) {
       if (isDeleteField(v)) delete next[k];
       else next[k] = v;
@@ -496,14 +441,14 @@ export async function setDoc(
   } else {
     next = clean;
   }
-  await upsertDoc(ref.path, next);
-  scheduleRefetch();
+  await writeDoc(ref.path, next);
   if (ref.path === "Settings/Availability") void mirrorAvailability(next);
 }
 
 export async function updateDoc(ref: DocRef, patch: Record<string, unknown>): Promise<void> {
-  const existing = (await readDocRow(ref.path)) ?? {};
-  const next = { ...(existing as Record<string, unknown>) };
+  const existingSnap = await getDoc(ref);
+  const existing = (existingSnap.data() ?? {}) as Record<string, unknown>;
+  const next = { ...existing };
   for (const [key, val] of Object.entries(patch)) {
     if (isDeleteField(val)) {
       if (key.includes(".")) delPath(next, key);
@@ -514,16 +459,15 @@ export async function updateDoc(ref: DocRef, patch: Record<string, unknown>): Pr
       next[key] = resolveSentinels(val);
     }
   }
-  await upsertDoc(ref.path, next);
-  scheduleRefetch();
+  await writeDoc(ref.path, next);
   if (ref.path === "Settings/Availability") void mirrorAvailability(next);
   if (ref.path === "Settings/Canary") void mirrorCanary(patch);
 }
 
 export async function deleteDoc(ref: DocRef): Promise<void> {
-  const { error } = await supabase.from(TABLE).delete().eq("path", ref.path);
-  if (error) throw error;
-  scheduleRefetch();
+  const client = convex();
+  if (!client) throw new Error("Convex not configured");
+  await client.mutation(api.docs.deleteDoc, { path: ref.path });
 }
 
 interface Batch {
@@ -533,6 +477,7 @@ interface Batch {
   commit: () => Promise<void>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function writeBatch(_db: unknown): Batch {
   const ops: (() => Promise<void>)[] = [];
   const batch: Batch = {

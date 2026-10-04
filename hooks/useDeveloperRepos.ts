@@ -22,7 +22,7 @@ export function useDeveloperRepos() {
     let cancelled = false;
     let unsub: (() => void) | undefined;
 
-    // dash-db (supabase transport) loads lazily so it stays out of the
+    // dash-db (Convex transport) loads lazily so it stays out of the
     // initial bundle; behavior once loaded is unchanged.
     void (async () => {
       const { doc, onSnapshot, db } = await import("@/lib/dash-db");

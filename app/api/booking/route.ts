@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { EMAIL_RE, getOffsetFromUTCString, formatDateDDMMYYYY } from "@/lib/booking";
 import { sanitizeText } from "@/lib/sanitize";
 import { isAdminRequest } from "@/lib/admin";
@@ -7,6 +8,7 @@ import { parseJsonBody } from "@/lib/validate";
 import { bookingGuestHtml, bookingOwnerHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
+import { toBooking } from "@/lib/convex-map";
 
 type Body = {
   name?: string;
@@ -42,21 +44,19 @@ export async function POST(req: Request) {
   if (start.getTime() < Date.now() + 30 * 60 * 1000)
     return NextResponse.json({ error: "Slot must be at least 30 minutes ahead" }, { status: 400 });
 
-  const supabase = supabaseServer();
-
   // fetch availability for hostOffset
   let hostOffset = 2;
   try {
-    const { data } = await supabase.from("availability").select("timezone").eq("id", 1).maybeSingle();
-    if (data?.timezone) {
-      hostOffset = getOffsetFromUTCString(data.timezone);
+    const avail = await convexQuery<Record<string, unknown>>(api.availability.get, {});
+    if (avail && typeof avail.timezone === "string") {
+      hostOffset = getOffsetFromUTCString(avail.timezone);
     }
   } catch {}
 
   // rate limit: last booking within 5 min
   try {
-    const { data: last } = await supabase.from("bookings").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (last?.created_at && Date.now() - new Date(last.created_at).getTime() < RATE_LIMIT_MS) {
+    const last = await convexQuery<number | null>(api.bookings.getLastCreated, {});
+    if (last !== null && Date.now() - last < RATE_LIMIT_MS) {
       return NextResponse.json({ error: "Another booking just came in — please wait a few minutes and try again." }, { status: 429 });
     }
   } catch {}
@@ -73,8 +73,8 @@ export async function POST(req: Request) {
 
   // check slot not already taken
   try {
-    const { data: existing } = await supabase.from("bookings").select("id").eq("date", dateStr).eq("time", timeStr).limit(1);
-    if (existing && existing.length > 0) {
+    const taken = await convexQuery<boolean>(api.bookings.slotTaken, { date: dateStr, time: timeStr });
+    if (taken) {
       return NextResponse.json({ error: "That slot is already booked. Please pick another." }, { status: 409 });
     }
   } catch {}
@@ -104,35 +104,18 @@ export async function POST(req: Request) {
   }
 
   // insert booking
-  const { data: inserted, error: insertErr } = await supabase
-    .from("bookings")
-    .insert({
-      date: dateStr,
-      time: timeStr,
-      user_local_time: selectedTime || null,
-      user_timezone: userTimezone,
-      name,
-      email,
-      reason: reason || null,
-      meeting_link: meetLink || null,
-      google_event_id: googleEventId || null,
-    })
-    .select()
-    .single();
-
-  if (insertErr) {
-    // rollback calendar
-    if (googleEventId && syncUrl) {
-      try {
-        await fetch(syncUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "cancel", eventId: googleEventId, email, name, startTime: start.toISOString() }),
-        });
-      } catch {}
-    }
-    return NextResponse.json({ error: insertErr.message }, { status: 500 });
-  }
+  const insertedId = await convexMutation<string>(api.bookings.create, {
+    date: dateStr,
+    time: timeStr,
+    userLocalTime: selectedTime || undefined,
+    userTimezone: userTimezone ?? undefined,
+    name,
+    email,
+    reason: reason || undefined,
+    meetingLink: meetLink || undefined,
+    googleEventId: googleEventId || undefined,
+  });
+  const inserted = { id: insertedId };
 
   // emails (non-blocking, test-mode safe — guest send skipped until domain verified)
   const resendKey = process.env.RESEND_API_KEY;
@@ -162,8 +145,6 @@ export async function GET(req: Request) {
     // public not allowed to list PII
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const supabase = supabaseServer();
-  const { data, error } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ bookings: data });
+  const rows = await convexQuery<Record<string, unknown>[]>(api.bookings.list, {});
+  return NextResponse.json({ bookings: (rows ?? []).map(toBooking) });
 }

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FILTER_CATEGORIES } from "@/data/projects";
@@ -62,6 +62,8 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
   const isDeveloper = active === "Developer";
   const showEmpty = !isDeveloper && !loading && filtered.length === 0;
   const isLoading = isDeveloper ? false : loading;
+  const reduce = useReducedMotion();
+  const noMotion = reduce ? { initial: false } : {};
 
   return (
     <section
@@ -86,7 +88,8 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+            transition={{ duration: reduce ? 0.01 : 0.6, ease: [0.22, 1, 0.36, 1], delay: reduce ? 0 : 0.08 }}
+            {...noMotion}
             className="w-full min-w-0 overflow-hidden"
           >
             <ProjectsHeader active={active} />
@@ -135,10 +138,11 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{
-                    duration: 0.6,
+                    duration: reduce ? 0.01 : 0.6,
                     ease: [0.22, 1, 0.36, 1],
-                    delay: (i % 3) * 0.08,
+                    delay: reduce ? 0 : (i % 3) * 0.08,
                   }}
+                  {...noMotion}
                   className={i === 0 && filtered.length >= 4 ? "sm:col-span-2" : undefined}
                 >
                   <ProjectCard
@@ -158,7 +162,8 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
+            transition={{ duration: reduce ? 0.01 : 0.7, ease: [0.22, 1, 0.36, 1], delay: reduce ? 0 : 0.14 }}
+            {...noMotion}
             className="w-full max-w-full min-w-0 overflow-hidden"
           >
             <DeveloperTab />
@@ -170,7 +175,8 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.22 }}
+          transition={{ duration: reduce ? 0.01 : 0.5, delay: reduce ? 0 : 0.22 }}
+          {...noMotion}
           className="mx-auto flex w-full max-w-7xl flex-col items-center gap-5 px-4 sm:px-6 lg:px-8 pt-2"
         >
           {/* filter navbar — center bottom */}

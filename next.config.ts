@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "cdn.simpleicons.org" },
       { protocol: "https", hostname: "svgl.app" },
-      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "*.convex.cloud" },
     ],
   },
   experimental: {

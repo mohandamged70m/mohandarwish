@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { canonicalSocial, classifySource, type SourceKind } from "@/lib/analytics/source";
 import { linkOpenedHtml } from "@/lib/email";
 import { getResendFrom, sendSafe } from "@/lib/resend";
@@ -9,8 +10,8 @@ import { siteConfig } from "@/lib/metadata";
 //
 // The browser buffers a visit and POSTs numbered deltas here (lib/analytics/collect.ts);
 // this applies them. Deltas rather than snapshots, so two flushes racing cannot
-// overwrite each other, and every flush carries `seq` counting up from 1 - the server
-// applies a sequence check and the write in one statement (dash_patch_seq), so a retry
+// overwrite each other, and every flush carries `seq` counting up from 1 - the
+// Convex mutation applies the sequence check and the write together, so a retry
 // or a double-submit is counted exactly once.
 //
 // Three things this endpoint is careful about, because each one was a way the old
@@ -55,8 +56,6 @@ const EVENT_KINDS = new Set([
 ]);
 
 type Dict = Record<string, unknown>;
-
-type Supa = ReturnType<typeof supabaseServer>;
 
 // ── validation helpers ────────────────────────────────────────────────
 const isObj = (v: unknown): v is Dict => !!v && typeof v === "object" && !Array.isArray(v);
@@ -114,48 +113,14 @@ function dayOf(startedAt: unknown): string {
 }
 
 // ── document layer ────────────────────────────────────────────────────
-async function readDoc(supa: Supa, path: string): Promise<Dict> {
-  const { data } = await supa.from("dashboard_docs").select("data").eq("path", path).maybeSingle();
-  return (isObj(data?.data) ? (data!.data as Dict) : {}) as Dict;
+async function readDoc(path: string): Promise<Dict> {
+  const data = await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, { path });
+  return isObj(data) ? data : {};
 }
 
-/**
- * The in-process twin of the SQL dash_merge(): number + number adds, object + object
- * merges, anything else is overwritten. Used only as the fallback when the atomic
- * functions below are not installed (the migration has not been run) - identical
- * behaviour to the SQL version, minus the guarantee.
- */
-function mergeInto(base: Dict, patch: Dict): Dict {
-  const out: Dict = { ...base };
-  for (const [k, v] of Object.entries(patch)) {
-    const b = base[k];
-    if (isObj(b) && isObj(v)) out[k] = mergeInto(b, v);
-    else if (typeof b === "number" && typeof v === "number") out[k] = b + v;
-    else out[k] = v;
-  }
-  return out;
-}
-
-/**
- * Add to a document atomically. Two concurrent flushes each read the same
- * pre-write total and one count vanishes; the SQL function does the
- * read-modify-write inside a single statement, which is what Firestore's
- * FieldValue.increment() gave us before the Supabase port.
- */
-async function patchDoc(supa: Supa, path: string, patch: Dict): Promise<void> {
+async function patchDoc(path: string, patch: Dict): Promise<void> {
   if (!Object.keys(patch).length) return;
-  try {
-    const { error } = await supa.rpc("dash_patch", { p_path: path, p_patch: patch });
-    if (!error) return;
-  } catch {
-    /* function not installed - fall through */
-  }
-  const cur = await readDoc(supa, path);
-  await writeDoc(supa, path, mergeInto(cur, patch));
-}
-
-async function writeDoc(supa: Supa, path: string, data: Dict): Promise<void> {
-  await supa.from("dashboard_docs").upsert({ path, data, updated_at: new Date().toISOString() }, { onConflict: "path" });
+  await convexMutation(api.docs.patchDoc, { path, patch });
 }
 
 /**
@@ -166,42 +131,33 @@ async function writeDoc(supa: Supa, path: string, data: Dict): Promise<void> {
  * session's Events and Scroll was stale by definition.
  */
 async function patchSeq(
-  supa: Supa,
   path: string,
   patch: Dict,
   seq: number,
   events: unknown[]
 ): Promise<Dict | null> {
-  try {
-    const { data, error } = await supa.rpc("dash_patch_seq", {
-      p_path: path,
-      p_patch: patch,
-      p_max_seq: seq,
-      p_events: events,
-    });
-    if (!error) return (isObj(data) ? data : null) as Dict | null;
-  } catch {
-    /* function not installed - fall through */
-  }
-  const cur = await readDoc(supa, path);
-  if (num(cur.Seq, Number.MAX_SAFE_INTEGER) >= seq) return null;
-  const next = mergeInto(cur, patch);
-  next.Seq = seq;
-  next.Events = [...(Array.isArray(cur.Events) ? cur.Events : []), ...events];
-  await writeDoc(supa, path, next);
-  return next;
+  const data = await convexMutation<Record<string, unknown> | null>(api.docs.patchSeq, {
+    path,
+    patch,
+    seq,
+    events,
+  });
+  return isObj(data) ? data : null;
 }
 
 /** Sessions are capped, newest kept. Old visits are not interesting, and the tab is small. */
-async function trimSessions(supa: Supa): Promise<void> {
-  const { data: rows } = await supa.from("dashboard_docs").select("path,data").like("path", `${SESSIONS}/%`).limit(2000);
-  const list = ((rows ?? []) as { path: string; data: Dict }[]).sort(
+async function trimSessions(): Promise<void> {
+  const rows = await convexQuery<{ path: string; data: Dict }[]>(api.docs.listByPrefix, {
+    prefix: SESSIONS,
+    limit: 2000,
+  });
+  const list = (rows ?? []).sort(
     (a, b) => num(b.data?.LastSeenAt ?? b.data?.StartedAt, Number.MAX_SAFE_INTEGER) - num(a.data?.LastSeenAt ?? a.data?.StartedAt, Number.MAX_SAFE_INTEGER)
   );
   const extra = list.slice(MAX_SESSIONS);
   for (let i = 0; i < extra.length; i += 50) {
     const chunk = extra.slice(i, i + 50).map((r) => r.path);
-    if (chunk.length) await supa.from("dashboard_docs").delete().in("path", chunk);
+    if (chunk.length) await convexMutation(api.docs.deleteDocs, { paths: chunk });
   }
 }
 
@@ -225,16 +181,15 @@ interface LinkRow {
  * `null` means "no such link". `undefined` means "could not tell" (the read failed),
  * which the caller must treat differently from the former.
  */
-async function resolveLink(supa: Supa, code: unknown): Promise<LinkRow | null | undefined> {
+async function resolveLink(code: unknown): Promise<LinkRow | null | undefined> {
   if (typeof code !== "string" || !CODE_RE.test(code)) return null;
   try {
-    const { data: rows, error } = await supa
-      .from("dashboard_docs")
-      .select("path,data")
-      .like("path", `${LINKS}/%`)
-      .limit(1000);
-    if (error) return undefined;
-    for (const r of (rows ?? []) as { path: string; data: Dict }[]) {
+    const rows = await convexQuery<{ path: string; data: Dict }[]>(api.docs.listByPrefix, {
+      prefix: LINKS,
+      limit: 1000,
+    });
+    if (!rows) return undefined;
+    for (const r of rows) {
       const d = isObj(r?.data) ? r.data : {};
       if (d.Code === code) {
         const docId = r.path.slice(r.path.lastIndexOf("/") + 1);
@@ -401,11 +356,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const supa = supabaseServer();
-    // Two attempts: the second exists because a flush can lose a race to a newer one
-    // and then needs a fresh view of Events/Scroll before it can be applied.
-    let result = await applyFlush(supa, { id, seq, visitor, visit, body }, req);
-    if (result === "retry") result = await applyFlush(supa, { id, seq, visitor, visit, body }, req);
+    let result = await applyFlush({ id, seq, visitor, visit, body }, req);
+    if (result === "retry") result = await applyFlush({ id, seq, visitor, visit, body }, req);
     return NextResponse.json({
       ok: true,
       v: 2,
@@ -423,7 +375,6 @@ export async function POST(req: Request) {
 }
 
 async function applyFlush(
-  supa: Supa,
   ctx: { id: string; seq: number; visitor: string; visit: number; body: Dict },
   req: Request
 ): Promise<Applied | "retry"> {
@@ -431,7 +382,7 @@ async function applyFlush(
   const now = Date.now();
   const path = `${SESSIONS}/${id}`;
 
-  const existing = await readDoc(supa, path);
+  const existing = await readDoc(path);
   const isNew = !num(existing.StartedAt, Number.MAX_SAFE_INTEGER);
 
   // Idempotent: a retried or out-of-order flush is dropped rather than double-counted.
@@ -501,7 +452,7 @@ async function applyFlush(
   if (hello) {
     const code = str(hello.code, 40);
     if (CODE_RE.test(code)) {
-      const found = await resolveLink(supa, code);
+      const found = await resolveLink(code);
       if (found === undefined) linkLookupFailed = true;
       else linkRow = found;
     }
@@ -589,11 +540,11 @@ async function applyFlush(
     patch.EndedAt = now;
   }
 
-  const written = await patchSeq(supa, path, patch, seq, events);
+  const written = await patchSeq(path, patch, seq, events);
   if (written === null) {
     // Replay, or a newer flush won the race. Re-read and try once more with an
     // up-to-date view; a second loss means the newer one already covers this.
-    const after = await readDoc(supa, path);
+    const after = await readDoc(path);
     if (num(after.Seq, Number.MAX_SAFE_INTEGER) >= seq) return { tracked: true, hello: true };
     return "retry";
   }
@@ -603,7 +554,6 @@ async function applyFlush(
   // never counted: they would drown the real numbers.
   if (!owner && !existing.Owner) {
     await addCounts(
-      supa,
       {
         opened: isNew,
         visit,
@@ -626,10 +576,10 @@ async function applyFlush(
     // Recognised as the owner part-way through the visit: every flush before this one
     // was counted as a stranger's. Take them back out, or the totals and the link's
     // card would count a visit that Trails hides as the owner's own.
-    await addCounts(supa, countedSoFar(existing), -1, dayOf(existing.StartedAt), now);
+    await addCounts(countedSoFar(existing), -1, dayOf(existing.StartedAt), now);
   }
 
-  if (isNew && !owner) await trimSessions(supa);
+  if (isNew && !owner) await trimSessions();
 
   // Notification last: a mail failure must never cost us the visit.
   if (isNew && !owner && linkRow?.Notify) {
@@ -678,7 +628,7 @@ interface Counts {
  * sources and its link (sign 1), or take them back out (sign -1). Taking back never
  * creates a document: a link or project removed since stays removed.
  */
-async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: number): Promise<void> {
+async function addCounts(c: Counts, sign: 1 | -1, day: string, now: number): Promise<void> {
   const inc = (n: number) => Math.max(0, n) * sign;
   const projectOpens = sumBy(c.projects, "Opens");
   const socialClicks = sumBy(c.socials, "Clicks");
@@ -720,7 +670,6 @@ async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: 
         // One document per origin, so the dashboard can list them without reading
         // every visit back.
         await patchDoc(
-          supa,
           `${SOURCES}/${sourceKey}`,
           sign > 0
             ? { Name: c.source.Name, Kind: c.source.Kind, Sessions: inc(1), LastAt: now }
@@ -735,8 +684,8 @@ async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: 
     }
   }
 
-  await patchDoc(supa, `${DAYS}/${day}`, dayPatch);
-  await patchDoc(supa, TOTALS, totalsPatch);
+  await patchDoc(`${DAYS}/${day}`, dayPatch);
+  await patchDoc(TOTALS, totalsPatch);
 
   // Per-project engagement stays on the project itself: the public project modal
   // shows these counts to visitors, so they stay on Projects/{id}.Views.
@@ -746,7 +695,7 @@ async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: 
   // raise counters on a project that is already there, never create one.
   for (const [projectId, row] of Object.entries(c.projects)) {
     const path = `Projects/${projectId}`;
-    const exists = await readDoc(supa, path);
+    const exists = await readDoc(path);
     if (!Object.keys(exists).length) continue;
     const views: Dict = {};
     // Read through num() before adding: the delta has already been clamped, and inc()
@@ -759,11 +708,11 @@ async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: 
     if (live) views.Live = inc(live);
     if (gh) views.Github = inc(gh);
     if (dl) views.Download = inc(dl);
-    if (Object.keys(views).length) await patchDoc(supa, path, { Views: views });
+    if (Object.keys(views).length) await patchDoc(path, { Views: views });
   }
 
   for (const [name, row] of Object.entries(c.socials)) {
-    await patchDoc(supa, `${SOCIALS}/${name}`, {
+    await patchDoc(`${SOCIALS}/${name}`, {
       Clicks: inc(num(row.Clicks, 500)),
       AwayMs: inc(num(row.AwayMs, 6 * HOUR_MS)),
       ...(sign > 0 ? { LastAt: now } : {}),
@@ -773,10 +722,10 @@ async function addCounts(supa: Supa, c: Counts, sign: 1 | -1, day: string, now: 
   if (c.opened && c.linkDocId) {
     const linkPath = `${LINKS}/${c.linkDocId}`;
     if (sign > 0) {
-      await patchDoc(supa, linkPath, { Opens: inc(1), Sessions: inc(1), LastOpenAt: now });
+      await patchDoc(linkPath, { Opens: inc(1), Sessions: inc(1), LastOpenAt: now });
     } else {
-      const exists = await readDoc(supa, linkPath);
-      if (Object.keys(exists).length) await patchDoc(supa, linkPath, { Opens: inc(1), Sessions: inc(1) });
+      const exists = await readDoc(linkPath);
+      if (Object.keys(exists).length) await patchDoc(linkPath, { Opens: inc(1), Sessions: inc(1) });
     }
   }
 }

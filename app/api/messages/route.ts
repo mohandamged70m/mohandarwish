@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 import { EMAIL_RE } from "@/lib/booking";
 import { emailTemplate, escHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
+import { toMessage } from "@/lib/convex-map";
 
 export async function POST(req: Request) {
   let body: { name?: string; email?: string; message?: string; number?: string; hasWhatsapp?: boolean; files?: { name: string; url: string }[] } | null = null;
@@ -23,16 +25,13 @@ export async function POST(req: Request) {
   if (!email || !EMAIL_RE.test(email)) return NextResponse.json({ error: "Valid email required" }, { status: 400 });
   if (!message || message.length < 10) return NextResponse.json({ error: "Message too short" }, { status: 400 });
 
-  const supabase = supabaseServer();
-  // rate limit: messages table global 30s
   try {
-    const { data: last } = await supabase.from("messages").select("created_at").order("created_at", { ascending: false }).limit(1).maybeSingle();
-    if (last?.created_at && Date.now() - new Date(last.created_at).getTime() < 30_000) {
+    const last = await convexQuery<number | null>(api.messages.getLastCreated, {});
+    if (last !== null && Date.now() - last < 30_000) {
       return NextResponse.json({ error: "Please wait 30s before sending another message." }, { status: 429 });
     }
   } catch {}
-  const { error } = await supabase.from("messages").insert({ name, email, number: number || null, has_whatsapp: hasWhatsapp, message, files });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await convexMutation(api.messages.create, { name, email, number: number || undefined, hasWhatsapp, message, files });
 
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
@@ -57,8 +56,6 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const token = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
   if (!process.env.ADMIN_TOKEN || token !== process.env.ADMIN_TOKEN) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const supabase = supabaseServer();
-  const { data, error } = await supabase.from("messages").select("*").order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ messages: data });
+  const rows = await convexQuery<Record<string, unknown>[]>(api.messages.list, {});
+  return NextResponse.json({ messages: (rows ?? []).map(toMessage) });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 
 function checkAuth(req: Request): boolean {
   const t = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
@@ -8,8 +9,6 @@ function checkAuth(req: Request): boolean {
 export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
-  const supabase = supabaseServer();
-  const { error } = await supabase.from("messages").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await convexMutation(api.messages.remove, { id });
   return NextResponse.json({ ok: true });
 }

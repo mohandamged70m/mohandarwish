@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FILTER_CATEGORIES } from "@/data/projects";
 import type { FilterCategory } from "@/data/projects";
 import { ProjectFilter } from "./ProjectFilter";
@@ -145,6 +145,7 @@ export function Projects(): ReactNode {
   }, [filtered.length, active, updateScrollState]);
 
   // reset to first when section leaves viewport — fixes down->up->down staying at last project
+  // Skip when keyboard focus is inside the carousel so SR/keyboard users don't lose position.
   useEffect(() => {
     const root = sectionRef.current;
     const viewport = viewportRef.current;
@@ -156,6 +157,12 @@ export function Projects(): ReactNode {
         if (!entry) return;
         const isVisible = entry.isIntersecting;
         if (wasIntersecting && !isVisible) {
+          try {
+            if (viewport.contains(document.activeElement)) {
+              wasIntersecting = isVisible;
+              return;
+            }
+          } catch {}
           isSmoothScrolling.current = false;
           if (smoothTimer.current) {
             window.clearTimeout(smoothTimer.current);
@@ -311,7 +318,8 @@ export function Projects(): ReactNode {
   };
 
   const hasOverflow = filtered.length > 1;
-  const activeIdx = getNearestIndex();
+  // Memoized so render doesn't re-read offsetLeft/scrollLeft (layout thrash on every dot render).
+  const activeIdx = useMemo(() => getNearestIndex(), [getNearestIndex, progress]);
 
   return (
     <section
@@ -390,7 +398,7 @@ export function Projects(): ReactNode {
               onKeyDown={onKeyDown}
               onWheel={onWheel}
               style={{ scrollSnapType: "none" }}
-              className={`block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
+              className={`block w-full max-w-full min-w-0 box-border overflow-x-auto overflow-y-hidden overscroll-x-auto overscroll-behavior-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 py-2 [touch-action:pan-x_pan-y] [overscroll-behavior-inline:none] [scroll-behavior:auto]`}
             >
               <div ref={trackRef} className="flex w-max max-w-none items-start gap-4 sm:gap-6 lg:gap-8">
                 {filtered.map((project) => (

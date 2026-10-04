@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
+import { toBooking } from "@/lib/convex-map";
 
 function checkAuth(req: Request): boolean {
   const token = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
@@ -9,8 +11,7 @@ function checkAuth(req: Request): boolean {
 export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
-  const supabase = supabaseServer();
-  const { data: booking } = await supabase.from("bookings").select("*").eq("id", id).maybeSingle();
+  const booking = toBooking(await convexQuery<Record<string, unknown>>(api.bookings.get, { id }));
   const syncUrl = process.env.MEETING_SYNC_URL;
   if (booking?.google_event_id && syncUrl) {
     try {
@@ -27,8 +28,7 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
       });
     } catch {}
   }
-  const { error } = await supabase.from("bookings").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await convexMutation(api.bookings.remove, { id });
   return NextResponse.json({ ok: true });
 }
 
@@ -42,11 +42,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     reason?: string;
     date?: string;
     time?: string;
+    meetingLink?: string;
+    googleEventId?: string;
   } | null;
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 
-  const supabase = supabaseServer();
-  const { data: existing } = await supabase.from("bookings").select("*").eq("id", id).maybeSingle();
+  const existing = toBooking(await convexQuery<Record<string, unknown>>(api.bookings.get, { id }));
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const syncUrl = process.env.MEETING_SYNC_URL;
@@ -77,10 +78,14 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (body.time) patch.time = body.time;
   if (body.name) patch.name = body.name;
   if (body.reason !== undefined) patch.reason = body.reason;
+  if (body.meetingLink !== undefined) patch.meetingLink = body.meetingLink;
+  if (body.googleEventId !== undefined) patch.googleEventId = body.googleEventId;
 
   if (Object.keys(patch).length > 0) {
-    const { error } = await supabase.from("bookings").update(patch).eq("id", id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    await convexMutation(api.bookings.updateFields, {
+      id,
+      patch,
+    });
   }
   return NextResponse.json({ ok: true });
 }

@@ -295,7 +295,7 @@ export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
         <div
           ref={containerRef}
           className="absolute inset-0 cursor-grab select-none"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "pan-y" }}
         >
           {CHIPS.map((chip, i) => (
             <div

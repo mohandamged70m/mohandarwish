@@ -5,6 +5,7 @@ import { MotionConfig } from "motion/react";
 import { ReducedMotionProvider, isMotionForced } from "@/lib/motion";
 import { SmoothScroll } from "@/components/layout/smooth-scroll";
 import { ThemeProvider } from "next-themes";
+import { ConvexClientProvider } from "@/components/layout/convex-provider";
 
 export function Providers({ children }: { children: ReactNode }): ReactNode {
   // ?motion=full forces motion components on for previewing on a
@@ -27,7 +28,9 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
     >
       <MotionConfig reducedMotion={forced ? "never" : "user"}>
         <ReducedMotionProvider>
-          <SmoothScroll>{children}</SmoothScroll>
+          <SmoothScroll>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </SmoothScroll>
         </ReducedMotionProvider>
       </MotionConfig>
     </ThemeProvider>

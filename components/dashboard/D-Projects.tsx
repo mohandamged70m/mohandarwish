@@ -737,7 +737,7 @@ const DProjects = () => {
 
             // 6. Construct Document Data — everything the dashboard holds for this
             // project (tags, contributors, links, media, views, ordering) lands in
-            // the `dashboard_docs` row `Projects/<name>` + Supabase Storage files.
+            // the `dashboardDocs` row `Projects/<name>` + Convex storage files.
             const projectDoc = {
                 "Description": data.description,
                 "Live Link": data.liveLink,

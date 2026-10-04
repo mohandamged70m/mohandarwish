@@ -36,7 +36,7 @@ export const FAQS: readonly FaqItem[] = [
   },
   {
     question: `What is ${ME.name}'s tech stack?`,
-    answer: `The core stack is Next.js with the App Router, React, TypeScript, and Node.js, styled with Tailwind CSS and deployed on Vercel. Supporting work includes Supabase and PostgreSQL, REST and serverless API design, schema.org structured data, web performance, and WCAG-oriented accessibility.`,
+    answer: `The core stack is Next.js with the App Router, React, TypeScript, and Node.js, styled with Tailwind CSS and deployed on Vercel. Supporting work includes Convex, API design, schema.org structured data, web performance, and WCAG-oriented accessibility.`,
   },
   {
     question: `Is ${ME.name} available for freelance work or full-time roles?`,

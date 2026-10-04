@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import { ME } from "@/data/me";
 import { Stack, type StackChip } from "@/components/sections/stack/Stack";
@@ -17,6 +17,8 @@ export function StackSection(initial: StackSectionProps = {}): ReactNode {
   // hardcoded defaults inside Stack when the list is empty/undefined.
   const live = useProfile();
   const stack = initial.stack ?? live.stack;
+  const reduce = useReducedMotion();
+  const reveal = reduce ? { initial: false } : {};
 
   return (
     <section
@@ -38,7 +40,8 @@ export function StackSection(initial: StackSectionProps = {}): ReactNode {
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: reduce ? 0.01 : 0.6, ease: [0.22, 1, 0.36, 1] }}
+            {...reveal}
             className="flex flex-col items-start gap-5 lg:sticky lg:top-28 lg:self-start"
           >
             <p className="font-heading text-[11px] font-semibold uppercase tracking-[0.18em] text-accent-text">
@@ -93,7 +96,8 @@ export function StackSection(initial: StackSectionProps = {}): ReactNode {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+            transition={{ duration: reduce ? 0.01 : 0.7, ease: [0.22, 1, 0.36, 1], delay: reduce ? 0 : 0.1 }}
+            {...reveal}
             className="flex min-w-0 flex-col gap-4"
           >
             <Stack chips={stack} />

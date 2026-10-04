@@ -17,7 +17,7 @@ const MARKDOWN_HEADERS = {
  * /llms.txt — the short, quotable brief for AI answer engines.
  *
  * Served from a Route Handler rather than `public/llms.txt` on purpose: the
- * project list and skill list come straight from the same Supabase tables that
+ * project list and skill list come straight from the same Convex tables that
  * render the site, so this file can never go stale or contradict the page it
  * describes. (A static `public/` file at the same path would also collide with
  * this route.)
@@ -82,7 +82,7 @@ ${PROFILES.map((p) => `- ${p.label}: ${p.url}`).join("\n")}
 ${stackLine}
 
 ## Stack
-Next.js (App Router), React, TypeScript, Node.js, Tailwind CSS, Supabase / PostgreSQL, Vercel.
+Next.js (App Router), React, TypeScript, Node.js, Tailwind CSS, Convex, Vercel.
 
 ## Pages
 - [Home / About](${BASE}/)

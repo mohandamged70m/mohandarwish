@@ -46,6 +46,7 @@ function useDashboardToken() {
       saved = "";
     }
     if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       verify(saved).catch(() => {});
     }
   }, [verify]);

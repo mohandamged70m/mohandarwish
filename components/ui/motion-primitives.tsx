@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -16,6 +16,10 @@ export function FadeIn({
   duration?: number;
   className?: string;
 }): ReactNode {
+  const reduce = useReducedMotion();
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -39,11 +43,15 @@ export function ScaleUnblur({
   duration?: number;
   className?: string;
 }): ReactNode {
+  const reduce = useReducedMotion();
+  if (reduce) {
+    return <div className={className}>{children}</div>;
+  }
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.7, filter: "blur(20px)" }}
+      initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
       animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-      transition={{ duration, delay, ease: EASE }}
+      transition={{ duration: Math.min(duration, 0.5), delay, ease: EASE }}
       style={{ transformOrigin: "center" }}
       className={className}
     >

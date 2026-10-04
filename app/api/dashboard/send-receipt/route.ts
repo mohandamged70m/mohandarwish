@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFrom } from "@/lib/resend";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery, convexMutation } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 
 // Callable: sendReceipt — { to, subject, html, meta:{receiptNo,currency,total,balance,projectIds,projectNames} }
 // Sends via Resend, then appends the sent-receipt row to Treasury/receipts
@@ -46,9 +47,7 @@ export async function POST(req: Request) {
   // Log to Treasury/receipts history (best-effort; email already sent).
   try {
     const meta = body.meta ?? {};
-    const supabase = supabaseServer();
-    const { data } = await supabase.from("dashboard_docs").select("data").eq("path", "Treasury/receipts").maybeSingle();
-    const doc = ((data?.data as Record<string, unknown>) ?? {}) as Record<string, unknown>;
+    const doc = (await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, { path: "Treasury/receipts" })) ?? {};
     const entries = ((doc.entries as Record<string, unknown>) ?? {}) as Record<string, unknown>;
     const id = meta.receiptNo || `r_${Date.now().toString(36)}`;
     entries[id] = {
@@ -62,10 +61,7 @@ export async function POST(req: Request) {
       balance: meta.balance ?? 0,
       sentAt: Date.now(),
     };
-    await supabase.from("dashboard_docs").upsert(
-      { path: "Treasury/receipts", data: { ...doc, entries }, updated_at: new Date().toISOString() },
-      { onConflict: "path" }
-    );
+    await convexMutation(api.docs.setDoc, { path: "Treasury/receipts", data: { ...doc, entries } });
   } catch {
     // history is a nice-to-have
   }

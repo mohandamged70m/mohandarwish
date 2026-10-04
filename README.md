@@ -13,7 +13,7 @@ This is not a static one-pager. It's a full product:
 
 - **Marketing site** — hero, projects showcase, stack, contact, project detail pages, CV modal
 - **Booking system** — visitors can book a call (availability + booked-slots APIs, email receipts)
-- **Contact pipeline** — contact form → validation/sanitization → Supabase + email via Resend
+- **Contact pipeline** — contact form → validation/sanitization → Convex + email via Resend
 - **Owner dashboard (`/dashboard`)** — CMS for projects, tags, contributors, experience, inbox/messages, bookings, site settings, hero images, analytics
 - **Analytics & tracking** — project views, dashboard charts (Recharts), Vercel Analytics
 
@@ -31,7 +31,7 @@ This is not a static one-pager. It's a full product:
 ### Home sections
 
 1. **Hero** — animated split-text intro, morphing portrait (light/dark aware, dashboard-overridable), `Book a call` + `View projects` CTAs, location badge
-2. **Projects** — featured carousel/grid driven by Supabase (`listing` order), live data with static fallback
+2. **Projects** — featured carousel/grid driven by Convex (`listing` order), live data with static fallback
 3. **Stack** — sticky intro + interactive Stack playground (Matter.js, dashboard-driven)
 4. **Contact** — contact card + booking entry point, validated form with spam protection
 
@@ -39,11 +39,11 @@ This is not a static one-pager. It's a full product:
 
 - **Project showcase CMS-driven** — projects, tags (with color + icon), contributors (with socials), images/videos all edited in the dashboard, mapped via `data/projects.ts` (`mapDashboardDocToProject`)
 - **Booking flow** — `BookButton` → `BookingModal` → custom time picker → `POST /api/booking` → availability check → Resend receipt to visitor + notification to owner → sync to dashboard
-- **Contact flow** — `POST /api/contact` with sanitization (`lib/sanitize.ts`), rate-limit friendly, stored in Supabase, emailed via Resend (`lib/email.ts`, `lib/replyEmail.ts`, `lib/receipt.ts`)
+- **Contact flow** — `POST /api/contact` with sanitization (`lib/sanitize.ts`), rate-limit friendly, stored in Convex, emailed via Resend (`lib/email.ts`, `lib/replyEmail.ts`, `lib/receipt.ts`)
 - **Dashboard CMS** — token auth (`lib/dash-auth.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
 - **Theming** — `next-themes` dark (default, black `#0A0A0A` + wine/mahogany) / light (warm paper `#FAF6F0`), AA-checked contrast, theme-aware hero images
 - **Motion** — GSAP + Motion + Lenis smooth scroll, section pager (`components/transitions`), portrait morph, tab pill, scroll reveals; `prefers-reduced-motion` respected
-- **SEO** — dynamic metadata (`lib/metadata.ts`), OG images, `sitemap.ts` (includes Supabase projects), `robots.ts`, semantic HTML
+- **SEO** — dynamic metadata (`lib/metadata.ts`), OG images, `sitemap.ts` (includes Convex projects), `robots.ts`, semantic HTML
 - **CV modal** — in-app CV viewer (`components/cv/CvModal`), downloadable `/cv.pdf` from `public/`
 
 ## Tech Stack
@@ -54,7 +54,7 @@ This is not a static one-pager. It's a full product:
 | Styling | Tailwind CSS v4, CSS variables design tokens (`app/globals.css`) |
 | Fonts | Space Grotesk (display), IBM Plex Mono (nav/code/labels), Inter (body) via `next/font` |
 | Motion | GSAP, Motion (`motion`), Lenis, animejs, OGL / matter-js playgrounds |
-| Backend / Data | Supabase (`@supabase/supabase-js`), dashboard DB layer in `lib/dash-*` |
+| Backend / Data | Convex, dashboard DB layer in `lib/dash-*` |
 | Email | Resend (`resend`) |
 | Analytics / Charts | Vercel Analytics, Recharts |
 | Content | react-markdown + remark-gfm (dashboard markdown) |
@@ -81,10 +81,10 @@ components/
   ui/                 # button, badge, alert, selects, motion-primitives
   transitions/        # SectionTransition, SectionSlide, ScrollReveal, RouteCurtain
 data/                 # me.ts (profile/socials), projects.ts (types + dashboard mapping)
-lib/                  # supabase client/server, booking, availability, categories,
+lib/                  # convex client helpers, booking, availability, categories,
                       # timezones, email/resend, receipt, metadata, dash-*
 hooks/ types/         # shared client logic (hooks/ has index.ts barrel)
-supabase/             # schema.sql, dashboard-schema.sql
+convex/                # schema + functions (docs, bookings, messages, profile, storage)
 public/               # cv.pdf, me/* portraits, svgs/, site.webmanifest
 apps-script/          # companion Google Apps Script (if used for sheets/mail sync)
 DESIGN.md             # design system source of truth
@@ -113,8 +113,7 @@ Open http://localhost:3000.
 Create `.env.local` (never commit it):
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+NEXT_PUBLIC_CONVEX_URL=...
 RESEND_API_KEY=...
 OWNER_EMAIL=...
 ADMIN_TOKEN=...
@@ -122,7 +121,7 @@ ADMIN_TOKEN=...
 
 | Var | Used for |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public project + dashboard reads (`lib/supabase/*`) |
+| `NEXT_PUBLIC_CONVEX_URL` | Public project + dashboard reads/writes (`lib/convex.ts`, `lib/dash-*`) |
 | `RESEND_API_KEY` | Contact/booking/reply emails (`lib/resend.ts`) |
 | `OWNER_EMAIL` | Booking/contact notification recipient |
 | `ADMIN_TOKEN` | Gates `/dashboard` and `app/api/dashboard/*` (`lib/dash-auth.ts`) |
@@ -130,9 +129,8 @@ ADMIN_TOKEN=...
 Database setup:
 
 ```bash
-# in Supabase SQL editor, run in order:
-supabase/schema.sql
-supabase/dashboard-schema.sql
+# Convex dev/codegen + functions are deployed by:
+npx convex dev
 ```
 
 ## Design System
@@ -152,7 +150,7 @@ Optimized for **Vercel**:
 2. Set the env vars above in Project Settings
 3. Deploy — Next.js build handles AVIF/WebP image optimization, sitemap, and analytics automatically
 
-Image remote hosts are allowlisted in `next.config.ts` (picsum, simpleicons, svgl, `*.supabase.co`).
+Image remote hosts are allowlisted in `next.config.ts` (picsum, simpleicons, svgl, Convex storage).
 
 ## Author
 

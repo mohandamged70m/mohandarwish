@@ -124,7 +124,7 @@ ${ME.location} (${ME.timezone}) with teams in other time zones.
 ${stackLine}
 
 Secondary: design systems, component libraries, API design, serverless
-functions, PostgreSQL, Supabase, schema.org structured data, technical SEO,
+functions, PostgreSQL, Convex, schema.org structured data, technical SEO,
 Generative Engine Optimization, web accessibility (WCAG), Core Web Vitals.
 
 ## 5. Stack
@@ -135,7 +135,7 @@ Generative Engine Optimization, web accessibility (WCAG), Core Web Vitals.
 | UI | React, Tailwind CSS, Radix-style primitives |
 | Language | TypeScript, JavaScript |
 | Runtime / server | Node.js, Route Handlers, Server Components |
-| Data | Supabase, PostgreSQL |
+| Data | Convex |
 | Deployment | Vercel |
 | Motion | Motion, GSAP, Lenis |
 

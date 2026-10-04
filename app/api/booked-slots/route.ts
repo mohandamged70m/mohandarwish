@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase/server";
+import { convexQuery } from "@/lib/convex";
+import { api } from "@/convex/_generated/api";
 
 export async function GET() {
   try {
-    const supabase = supabaseServer();
-    const { data, error } = await supabase.from("bookings").select("date,time");
-    if (error) throw error;
-    return NextResponse.json({ slots: data ?? [] });
+    const rows = await convexQuery<{ date: string; time: string }[]>(api.bookings.listSlots, {});
+    return NextResponse.json({ slots: rows ?? [] });
   } catch {
     return NextResponse.json({ slots: [] });
   }

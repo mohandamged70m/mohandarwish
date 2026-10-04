@@ -10,6 +10,7 @@ export function useObjectURL(file: string | File | Blob | null | undefined): str
 
   useEffect(() => {
     if (!file || typeof file === "string") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUrl(typeof file === "string" ? file : null);
       return;
     }

@@ -170,13 +170,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
 
   return (
     <div className="flex w-full flex-col">
-      {/* HERO SHOWCASE 100vh */}
+      {/* HERO SHOWCASE 100svh (dvh fallback via style) */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          height: "100vh",
-          minHeight: "100vh",
+          height: "100svh",
+          minHeight: "100svh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

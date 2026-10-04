@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';
 import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark, IdCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +31,12 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
     const [activeTab, setActiveTab] = useState('projects');
     const [profileImage, setProfileImage] = useState<string>('');
+    const mainRef = useRef<HTMLElement>(null);
+
+    // Tab switch: reset main scroller to top so users never strand mid-list.
+    useEffect(() => {
+        mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    }, [activeTab]);
     // In-dashboard AI copilot ("Spark") can be switched off from Settings → MCP.
     // Defaults on; only skips mounting when explicitly disabled in Settings/MCP.
     const [aiEnabled, setAiEnabled] = useState(true);
@@ -255,6 +261,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
             {/* Main Content Area */}
             <main
+                ref={mainRef}
                 className={`
                     flex-1 h-full min-h-0 w-full overflow-y-auto overflow-x-hidden relative min-w-0 overscroll-contain
                     ${isExtraSmall ? 'p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]' : isSmall ? 'p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]' : 'p-8'}

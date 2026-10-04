@@ -38,9 +38,9 @@ export const wrapperMotion: MotionBundle = {
 export const PANEL_ORIGIN = "top center";
 
 export const panelMotion: MotionBundle = {
-  initial: { opacity: 0, scale: 0.3, y: -400 },
+  initial: { opacity: 0, scale: 0.95, y: -16 },
   animate: { opacity: 1, scale: 1, y: 0 },
-  exit: { opacity: 0, scale: 0.3, y: 400 },
+  exit: { opacity: 0, scale: 0.95, y: 16 },
   transition: { type: "spring", damping: 30, stiffness: 350, mass: 1 },
 };
 

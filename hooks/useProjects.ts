@@ -10,8 +10,8 @@ import {
   type TagDirectory,
 } from "@/data/projects";
 
-// Live Firestore-style subscriptions, but the supabase transport
-// (@/lib/dash-db → @supabase/supabase-js, ~237KB) is imported lazily inside
+// Live Firestore-style subscriptions, but the Convex transport
+// (@/lib/dash-db) is imported lazily inside
 // the effects so it never lands in the initial bundle or blocks TTI.
 // Pass server-rendered `initial` (see getProjectsServer) for instant
 // first paint; the subscriptions still attach ~after mount and keep the
@@ -89,6 +89,7 @@ export function useProjects(initial?: Project[]) {
     if (!hasLive) return;
     try {
       const mapped = rows.map((r) => mapDashboardDocToProject(r.id, r.data, { tags: tagDir, contributors: contribDir }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProjects(sortProjects(mapped));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load projects");

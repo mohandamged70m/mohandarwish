@@ -6,6 +6,8 @@ import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { AboutSection } from "@/components/sections/about/AboutSection";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { SectionSlide, SectionTransition } from "@/components/transitions";
+import { PagerDots } from "@/components/transitions/PagerDots";
+import { ScrollTop } from "@/components/layout/ScrollTop";
 
 import { getStackServer } from "@/lib/profile-server";
 import { getProjectsServer } from "@/lib/projects-server";
@@ -68,11 +70,14 @@ export default function Home() {
             </SectionSlide>
           </div>
           <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+            <span id="booking" aria-hidden="true" className="block h-0 w-0" />
             <SectionSlide section="contact-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
               <ContactCard />
             </SectionSlide>
           </div>
           <BookingHashHandler />
+          <PagerDots />
+          <ScrollTop />
         </div>
       </main>
     </SectionTransition>
@@ -81,7 +86,7 @@ export default function Home() {
 
 // Below-fold data streams in after the hero: these async Server Components
 // suspend independently, so the hero HTML (and the LCP image preload) flush
-// to the browser without waiting on Supabase. Same server-rendered cards and
+// to the browser without waiting on Convex. Same server-rendered cards and
 // client live subscriptions as before — just no longer TTFB-blocking.
 // Wrappers stay min-h-100svh, so late arrival causes no layout shift.
 async function ProjectsData() {

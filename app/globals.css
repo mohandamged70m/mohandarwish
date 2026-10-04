@@ -243,7 +243,7 @@ html.lenis body {
   /* fix hover snap-back: CSS snap disabled, JS handles snap */
   scroll-snap-type: none;
   scroll-behavior: auto;
-  touch-action: pan-x;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
   padding-inline: 16px;
 }

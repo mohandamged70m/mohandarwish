@@ -1,13 +1,4 @@
-/* New hero — keyframes only. All static styling lives in Tailwind utilities
- * in HeroSection.tsx (portfolio tokens: bg-bg-primary, text-text-primary,
- * text-accent-text, border-border, bg-accent, …). Nothing here targets the
- * rest of the site. */
-
 @keyframes mh-up { to { transform: none; } }
-
-/* Letter-by-letter rise for every hero text line. Each char starts clipped
- * below its overflow-hidden line and springs up with a per-letter delay
- * set inline from HeroSection.tsx. */
 @keyframes mh-letter {
   from { transform: translateY(110%) rotate(5deg); opacity: 0; }
   to { transform: translate(0, 0) rotate(0deg); opacity: 1; }
@@ -17,9 +8,10 @@
 
 @keyframes mh-pl { 50% { opacity: 0.35; } }
 
-/* Portrait / narrow screens (original used max-aspect-ratio: 1/1 — not
- * expressible as a Tailwind variant, so it lives here). Scoped to the hero
- * section; hook classes (mh-nm, mh-me, …) carry no base styles themselves. */
+@keyframes mh-cue { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(6px); opacity: 0.5; } }
+.mh-cue-dot { animation: mh-cue 1.8s ease-in-out infinite; }
+
+
 @media (max-aspect-ratio: 1/1) {
   section[aria-label="Introduction"] .mh-nm { font-size: 21vw; }
   section[aria-label="Introduction"] #mh-a { top: 12%; left: 5vw; }
@@ -31,10 +23,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Every hero animation compresses to instant — EXCEPT the letter
-   * stagger (data-mh-letter), which the user explicitly requested.
-   * Letters use a gentle opacity-only fade with their stagger delays
-   * preserved, so no vestibular motion but still letter-by-letter. */
+
+  .mh-cue, .mh-cue-dot { animation: none !important; display: none !important; }
+
   section[aria-label="Introduction"] [class*="animate-"]:not([data-mh-letter]) {
     animation-duration: 0.01s !important;
     animation-delay: 0s !important;

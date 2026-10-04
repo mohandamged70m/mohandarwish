@@ -102,6 +102,15 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     const containerRef = useRef<HTMLDivElement>(null);
     const graphRef = useRef<HTMLDivElement>(null);
     const [containerWidth, setContainerWidth] = useState(0);
+    const [prefersReduced, setPrefersReduced] = useState(false);
+
+    useEffect(() => {
+        const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+        setPrefersReduced(mql.matches);
+        const onChange = () => setPrefersReduced(mql.matches);
+        mql.addEventListener("change", onChange);
+        return () => mql.removeEventListener("change", onChange);
+    }, []);
 
     // Wheel / touch navigation refs
     const lastNavTime = useRef(0);
@@ -505,16 +514,16 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                             const isHovered = hoveredDay?.date === day.date && !isEmpty;
                                             const isToday = day.date === todayStr;
                                             
-                                            const staggerDelay = (wi * 0.006) + (di * 0.012);
+                                            const staggerDelay = prefersReduced ? 0 : (wi * 0.006) + (di * 0.012);
                                             
                                             return (
                                                 <motion.div
                                                     key={di}
-                                                    initial={{ opacity: 0, scale: 0 }}
+                                                    initial={prefersReduced ? false : { opacity: 0, scale: 0 }}
                                                     animate={hasAppeared ? { 
                                                         opacity: isEmpty ? 0 : 1, 
                                                         scale: isEmpty ? 0 : 1,
-                                                        ...(isToday ? {
+                                                        ...(isToday && !prefersReduced ? {
                                                             boxShadow: [
                                                                 '0 0 5px var(--accent)',
                                                                 '0 0 15px var(--accent)',
@@ -522,14 +531,14 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                                             ]
                                                         } : {})
                                                     } : {}}
-                                                    transition={isToday ? {
+                                                    transition={isToday && !prefersReduced ? {
                                                         boxShadow: {
                                                             repeat: Infinity,
                                                             duration: 2,
                                                             ease: "easeInOut"
                                                         },
                                                         default: { duration: 0.3, delay: staggerDelay, ease: [0.34, 1.56, 0.64, 1] }
-                                                    } : { duration: 0.3, delay: staggerDelay, ease: [0.34, 1.56, 0.64, 1] }}
+                                                    } : { duration: prefersReduced ? 0.01 : 0.3, delay: staggerDelay, ease: [0.34, 1.56, 0.64, 1] }}
                                                     // handleCellHover reads containerRef only when the
                                                     // mouse actually enters a cell - an event handler,
                                                     // never during render.
@@ -562,8 +571,8 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
 
             {/* ── Legend ── */}
             <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ duration: prefersReduced ? 0.01 : 0.5, delay: prefersReduced ? 0 : 0.6 }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3, marginTop: 10 }}
             >
                 <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginRight: 4, fontWeight: 600, letterSpacing: '0.02em' }}>Less</span>
