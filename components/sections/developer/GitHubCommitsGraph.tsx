@@ -15,30 +15,34 @@ interface GitHubCommitsGraphProps {
 }
 
 /** Count consecutive contribution days ending today (or yesterday if today is empty).
- *  Uses UTC date formatting to match the API + cell rendering, which also use UTC.
- *  This avoids off-by-one errors near midnight in non-UTC timezones. */
+ *  Uses the viewer's LOCAL calendar days: GitHub buckets a contribution under
+ *  the commit's local date (a 00:20 +0300 commit lands on that date even though
+ *  it is still "yesterday" in UTC), and github.com renders per-viewer — so UTC
+ *  math undercounts every evening/morning for UTC+N visitors. */
 function calculateStreak(yearlyData: Record<number, ContributionDay[]>): number {
     const countByDate = new Map<string, number>();
     Object.values(yearlyData).forEach(days =>
         days.forEach(d => { if (d.count >= 0) countByDate.set(d.date, d.count); }),
     );
 
-    // UTC-based YYYY-MM-DD - matches what the API returns and what we render
+    // Local YYYY-MM-DD - matches the dates GitHub buckets commits under.
     const fmt = (d: Date) =>
-        `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+    // Noon-anchored so DST transitions can never skip a step.
     const today = new Date();
+    today.setHours(12, 0, 0, 0);
     const check = new Date(today);
 
     // If today has no contributions yet, start counting from yesterday
     if ((countByDate.get(fmt(today)) || 0) === 0) {
-        check.setUTCDate(check.getUTCDate() - 1);
+        check.setDate(check.getDate() - 1);
     }
 
     let streak = 0;
     while ((countByDate.get(fmt(check)) || 0) > 0) {
         streak++;
-        check.setUTCDate(check.getUTCDate() - 1);
+        check.setDate(check.getDate() - 1);
     }
     return streak;
 }
@@ -53,11 +57,12 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     const [availableYears, setAvailableYears] = useState<number[]>([thisYear]);
     const [currentYear, setCurrentYear] = useState<number>(thisYear);
 
-    // Computed once per render - used inside the cell map below
-    // UTC to match the API's date format (avoids off-by-one near midnight in non-UTC zones)
+    // Computed once per render - used inside the cell map below.
+    // Viewer-local date: "today" must be the same day GitHub buckets the
+    // commits under (see calculateStreak).
     const todayStr = useMemo(() => {
         const today = new Date();
-        return `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+        return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
     }, []);
     const [slideDir, setSlideDir] = useState<number>(0); // -1 = left (older), 1 = right (newer)
     const [isLoading, setIsLoading] = useState(true);
@@ -127,10 +132,12 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
             setCurrentYear(years[years.length - 1]);
             setIsLoading(false);
 
-            // Report streak (guarded - parent may have unmounted)
+            // Report streak (guarded - parent may have unmounted).
+            // Always the viewer's local calculation: the server may run in a
+            // different timezone, and only the viewer's "today" matches the
+            // dates GitHub buckets commits under.
             if (!ignore) {
-                const serverStreak = typeof data.currentStreak === 'number' ? data.currentStreak : null;
-                onStreakCalculated?.(serverStreak ?? calculateStreak(byYear));
+                onStreakCalculated?.(calculateStreak(byYear));
             }
             return true;
         };
@@ -165,8 +172,11 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
             if (ignore) return;
 
             // 3) Final fallback: small error state, no mock numbers.
+            // Still report a streak so the parent stops showing the loading
+            // placeholder in StreakCircle.
             setIsLoading(false);
             setError((prev) => prev ?? 'Could not load GitHub contributions.');
+            onStreakCalculated?.(0);
         };
 
         fetchAll();
@@ -293,9 +303,8 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         const result: ContributionDay[][] = [];
         let week: ContributionDay[] = [];
 
-        // UTC weekday - the API date strings are UTC midnight; using local getDay()
-        // shifts the whole grid by one row for visitors west of UTC.
-        const startDay = new Date(contributions[0].date).getUTCDay();
+        // Local weekday - matches how github.com renders the grid for the viewer.
+        const startDay = new Date(contributions[0].date).getDay();
         for (let i = 0; i < startDay; i++) week.push({ date: '', count: -1, level: -1 });
 
         contributions.forEach(day => {
@@ -314,7 +323,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         weeks.forEach((w, wi) => {
             const valid = w.find(d => d.date && d.count >= 0);
             if (valid) {
-                const m = new Date(valid.date).getUTCMonth();
+                const m = new Date(valid.date).getMonth();
                 if (m !== last) { labels.push({ label: names[m], weekIndex: wi }); last = m; }
             }
         });

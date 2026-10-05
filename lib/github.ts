@@ -107,28 +107,41 @@ export interface StreakStats {
   longestStreak: number;
 }
 
-export function toUtcDateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+/** Local YYYY-MM-DD for `d`. GitHub buckets a contribution under the commit's
+ *  local calendar date (not UTC) — verified: a 00:20 +0300 commit lands on
+ *  that local date even though it is still "yesterday" in UTC. Streak math
+ *  must therefore use viewer-local days, matching github.com's per-viewer
+ *  rendering. */
+export function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function computeStreakStats(days: ContributionDay[]): StreakStats {
+/** Calendar day before `key` (YYYY-MM-DD). Noon-anchored so DST transitions
+ *  (23/25-hour days) can never skip or repeat a date. */
+function prevDateKey(key: string): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, m - 1, d, 12);
+  dt.setDate(dt.getDate() - 1);
+  return toDateKey(dt);
+}
+
+export function computeStreakStats(days: ContributionDay[], todayKey: string = toDateKey(new Date())): StreakStats {
   const active = new Set<string>();
   const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
   for (const d of sorted) if (d.contributionCount > 0) active.add(d.date);
 
-  const today = toUtcDateKey(new Date());
-  let start = today;
+  let start = todayKey;
   if (!active.has(start)) {
     // If today has 0 contributions but yesterday has some, the streak is
     // still alive — start counting from yesterday.
-    start = toUtcDateKey(new Date(Date.now() - 24 * 60 * 60 * 1000));
+    start = prevDateKey(start);
   }
 
   let currentStreak = 0;
   let cursor = start;
   while (active.has(cursor)) {
     currentStreak++;
-    cursor = toUtcDateKey(new Date(new Date(cursor + "T00:00:00Z").getTime() - 24 * 60 * 60 * 1000));
+    cursor = prevDateKey(cursor);
   }
 
   let longestStreak = 0;
@@ -209,12 +222,15 @@ export function computeGitHubStats(
   profile: GitHubProfile | null,
   repos: GitHubRepo[],
   contributionDays: ContributionDay[] | null,
+  todayKey?: string,
 ): GitHubStatsPayload {
   const safeRepos = Array.isArray(repos) ? repos : [];
   const forkedRepos = safeRepos.filter((r) => r.fork === true).length;
   const forksReceived = safeRepos.reduce((sum, r) => sum + (typeof r.forks_count === "number" ? r.forks_count : 0), 0);
   const totalStars = safeRepos.reduce((sum, r) => sum + (typeof r.stargazers_count === "number" ? r.stargazers_count : 0), 0);
-  const streaks = contributionDays ? computeStreakStats(contributionDays) : { currentStreak: 0, longestStreak: 0 };
+  const streaks = contributionDays
+    ? computeStreakStats(contributionDays, todayKey ?? toDateKey(new Date()))
+    : { currentStreak: 0, longestStreak: 0 };
   return {
     followers: profile?.followers ?? 0,
     totalStars,

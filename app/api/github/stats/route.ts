@@ -14,8 +14,16 @@ export const revalidate = 3600; // 1 hour ISR
 // Server-side fetch = one shared cached response for all visitors instead
 // of every browser calling api.github.com (unauthenticated limit is only
 // 60 req/hr per IP, which is what caused the 403s).
-export async function GET() {
-  const CACHE_KEY = "gh:stats:v3";
+export async function GET(req: Request) {
+  // Viewer-local "today" (YYYY-MM-DD): the server may run in UTC while the
+  // visitor is in UTC+N, and the streak must be counted for the visitor's
+  // day — same date GitHub buckets the commits under. Falls back to the
+  // server's local day when absent/invalid. Part of the cache key so a
+  // payload computed for one date is never served as another date's streak.
+  const url = new URL(req.url);
+  const todayParam = url.searchParams.get("today");
+  const todayKey = /^\d{4}-\d{2}-\d{2}$/.test(todayParam ?? "") ? (todayParam as string) : undefined;
+  const CACHE_KEY = `gh:stats:v3:${todayKey ?? "server"}`;
 
   try {
     const cached = getCached(CACHE_KEY);
@@ -34,7 +42,7 @@ export async function GET() {
       fetchContributionCalendar(),
     ]);
 
-    const payload = computeGitHubStats(profile, repos, contributionDays);
+    const payload = computeGitHubStats(profile, repos, contributionDays, todayKey);
     setCached(CACHE_KEY, payload);
 
     return NextResponse.json(payload, {

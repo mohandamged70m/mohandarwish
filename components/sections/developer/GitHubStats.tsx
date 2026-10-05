@@ -138,7 +138,11 @@ const GitHubStats = () => {
                 // Same-origin proxy (app/api/github/stats): server-side fetch
                 // with shared caching + optional GITHUB_TOKEN, so visitors
                 // never hit api.github.com's 60 req/hr unauthenticated limit.
-                const res = await fetch('/api/github/stats', {
+                // ?today carries the viewer's local date so the returned streak
+                // is counted for the visitor's day, not the server's timezone.
+                const now = new Date();
+                const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const res = await fetch(`/api/github/stats?today=${todayKey}`, {
                     signal: controller.signal,
                 });
                 clearTimeout(tid);
