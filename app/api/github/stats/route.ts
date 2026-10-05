@@ -15,7 +15,7 @@ export const revalidate = 3600; // 1 hour ISR
 // of every browser calling api.github.com (unauthenticated limit is only
 // 60 req/hr per IP, which is what caused the 403s).
 export async function GET() {
-  const CACHE_KEY = "gh:stats:v2";
+  const CACHE_KEY = "gh:stats:v3";
 
   try {
     const cached = getCached(CACHE_KEY);

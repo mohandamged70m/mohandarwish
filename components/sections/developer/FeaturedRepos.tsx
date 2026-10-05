@@ -207,7 +207,7 @@ const FeaturedRepos = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const CACHE_KEY = 'gh_featured_repos';
+        const CACHE_KEY = 'gh_featured_repos_v3';
         const CACHE_TTL = 30 * 60 * 1000;
         let isMounted = true;
         // Set once the first snapshot (or error) arrives — drives the

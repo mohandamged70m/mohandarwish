@@ -19,7 +19,7 @@ const LEVEL_BY_API: Record<string, number> = {
 // GET /api/github/contributions — real contribution calendar via GitHub GraphQL.
 // Server-side only; GITHUB_TOKEN never reaches the browser.
 export async function GET() {
-  const CACHE_KEY = "gh:contributions:v2";
+  const CACHE_KEY = "gh:contributions:v3";
   try {
     const cached = getCached(CACHE_KEY);
     if (cached) {

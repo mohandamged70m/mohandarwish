@@ -117,7 +117,7 @@ const GitHubStats = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const CACHE_KEY = 'gh_stats_overview_v2';
+        const CACHE_KEY = 'gh_stats_overview_v3';
         const CACHE_TTL = 60 * 60 * 1000; // 60 min
 
         const applyStats = (s: Stats) => {

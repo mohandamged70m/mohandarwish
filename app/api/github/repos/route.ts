@@ -50,8 +50,8 @@ export async function GET(req: Request) {
   const cacheKey = names.length
     ? `gh:repos:names:${names.join(",").toLowerCase()}`
     : allParam === "1"
-      ? "gh:repos:all:v2"
-      : `gh:repos:top:v2:${topParam ?? "3"}`;
+      ? "gh:repos:all:v3"
+      : `gh:repos:top:v3:${topParam ?? "3"}`;
 
   try {
     const cached = getCached<GhRepo[]>(cacheKey);

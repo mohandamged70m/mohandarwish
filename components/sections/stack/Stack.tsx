@@ -1,7 +1,7 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type Matter from "matter-js";
 
 export type StackChip = {
@@ -45,7 +45,19 @@ type ChipState = {
 };
 
 export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
-  const CHIPS = chips && chips.length > 0 ? chips : DEFAULT_CHIPS;
+  // Chips are keyed by label below, so duplicate labels from the CMS would
+  // both warn (React key collision) and render twin chips in the physics
+  // playground. Dedupe by label, memoized — CHIPS sits in the simulation
+  // effect's deps, so a fresh array each render would restart it constantly.
+  const CHIPS = useMemo(() => {
+    const source = chips && chips.length > 0 ? chips : DEFAULT_CHIPS;
+    const seen = new Set<string>();
+    return source.filter((chip) => {
+      if (seen.has(chip.label)) return false;
+      seen.add(chip.label);
+      return true;
+    });
+  }, [chips]);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
   const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
