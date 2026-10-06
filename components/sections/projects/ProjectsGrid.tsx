@@ -150,30 +150,32 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
         Showing {filtered.length} projects
       </p>
 
-      {/* Search — for-your-project glass bar, wine tokens */}
-      <div className="w-full max-w-[600px]">
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-bg-surface px-4 py-3 shadow-sm">
-          <Search size={20} className="shrink-0 text-text-muted" aria-hidden="true" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search projects by title, tags, or contributor..."
-            aria-label="Search projects"
-            className="w-full border-none bg-transparent font-body text-base text-text-primary outline-none placeholder:text-text-muted"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              aria-label="Clear search"
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary"
-            >
-              <X size={16} aria-hidden="true" />
-            </button>
-          )}
+      {/* Search — only when there are at least 6 projects to search through */}
+      {showSearch && (
+        <div className="w-full max-w-[600px]">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-bg-surface px-4 py-3 shadow-sm">
+            <Search size={20} className="shrink-0 text-text-muted" aria-hidden="true" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search projects by title, tags, or contributor..."
+              aria-label="Search projects"
+              className="w-full border-none bg-transparent font-body text-base text-text-primary outline-none placeholder:text-text-muted"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-muted transition-colors hover:bg-bg-surface-hover hover:text-text-primary"
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tag filter — for-your-project "Filter View" row */}
       {availableTags.length > 0 && (
