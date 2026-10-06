@@ -5,6 +5,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { ME } from "@/data/me";
 import { useTailor } from "@/lib/analytics/tailor";
+import { GlassChip, GlassPill } from "@/components/ui/glassy-button";
 import "./hero.css";
 const BookingModal = dynamic(() => import("@/components/booking/BookingModal"), { ssr: false });
 
@@ -201,7 +202,7 @@ export default function HeroSection() {
       className="relative h-svh min-h-[540px] overflow-hidden bg-bg-primary [color-scheme:dark] [&>*]:absolute"
     >
       <h1 data-pager-focus tabIndex={-1} className="sr-only">
-        {ME.name} — {ME.role}
+        {ME.name} — {ME.role}. {ME.tagline}
       </h1>
       <div
         id="mh-a"
@@ -253,23 +254,24 @@ export default function HeroSection() {
       <div
         className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.6s_forwards] flex-wrap gap-[10px] opacity-0"
       >
-        <span className="flex items-center gap-2 rounded-full border border-border bg-[color-mix(in_srgb,var(--bg-surface)_82%,transparent)] px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-primary no-underline backdrop-blur-[6px]">
+        <GlassPill className="font-heading no-underline">
           <i
             aria-hidden="true"
             className="h-2 w-2 animate-[mh-pl_1.8s_ease-in-out_infinite] rounded-full bg-accent-text shadow-[0_0_10px_var(--accent-ring)]"
           />
           {ME.location} <b suppressHydrationWarning className="font-medium text-text-secondary">{clock}</b>
-        </span>
-        <button
+        </GlassPill>
+        <GlassChip
           type="button"
+          active
           onClick={() => setBookingOpen(true)}
           onMouseEnter={prefetchBookingModal}
           onFocus={prefetchBookingModal}
           data-track="contact-open"
-          className="flex cursor-pointer items-center gap-2 rounded-full border border-accent bg-accent px-4 py-2.5 font-heading text-[clamp(10px,0.85vw,13px)] font-medium text-text-on-accent no-underline shadow-[0_0_20px_var(--accent-ring)] backdrop-blur-[6px] transition-colors hover:border-accent-hover hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="font-heading no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           Book a call &rarr;
-        </button>
+        </GlassChip>
       </div>
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
       {/* scroll cue — motion-safe, hides on reduced-motion via hero.css */}

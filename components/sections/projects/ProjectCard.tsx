@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import type { Project } from "@/data/projects";
+import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { canMorph, tagMorph, transitionOrUpdate, untagMorph } from "@/lib/view-transitions";
 
 type Props = {
@@ -15,8 +16,109 @@ type Props = {
   fluid?: boolean;
 };
 
-export function ProjectCard({ project, featured = false, fluid = false }: Props) {
+function CardVideo({ src, isActive, label }: { src: string; isActive: boolean; label: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isActive) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [isActive]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-label={label}
+      onLoadedMetadata={(e) => {
+        // Random starting frame so looping previews never look frozen.
+        const video = e.currentTarget;
+        if (video.duration && Number.isFinite(video.duration)) {
+          try {
+            video.currentTime = Math.random() * video.duration;
+          } catch {
+            // non-fatal: starts from 0
+          }
+        }
+      }}
+      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+    />
+  );
+}
+
+function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: boolean }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {/* Skeleton shimmer while the image decodes. */}
+      <div
+        aria-hidden
+        className={`absolute inset-0 z-10 overflow-hidden bg-white/5 transition-opacity duration-700 ${
+          loaded ? "pointer-events-none opacity-0" : "opacity-100"
+        }`}
+      >
+        {!loaded && (
+          <div className="absolute inset-0 motion-safe:animate-[shimmer-fast_1.2s_infinite_ease-in-out] motion-safe:bg-gradient-to-r motion-safe:from-transparent motion-safe:via-white/20 motion-safe:to-transparent" />
+        )}
+      </div>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        loading={eager ? "eager" : "lazy"}
+        onLoad={() => setLoaded(true)}
+        className="object-cover transition-all duration-500 ease-out group-hover:scale-105"
+        style={{
+          filter: loaded ? "blur(0px)" : "blur(20px)",
+          opacity: loaded ? 1 : 0,
+        }}
+      />
+    </>
+  );
+}
+
+export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
   const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [showContributors, setShowContributors] = useState(false);
+
+  const slides = [...(project.images ?? []), ...(project.videos ?? [])];
+  const media = slides.length > 0 ? slides : [project.image];
+  const tags = (
+    project.tagsDetailed?.length
+      ? project.tagsDetailed.map((t) => ({ name: t.name, color: t.color ?? getTechColor(t.name) }))
+      : (project.stack ?? []).map((name) => ({ name, color: getTechColor(name) }))
+  ).slice(0, 8);
+  const contributors = project.contributors ?? [];
+
+  // Hover slideshow: step through media every 2s while hovered.
+  useEffect(() => {
+    if (!isHovered || media.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => {
+      setCurrent((prev) => (prev + 1) % media.length);
+    }, 2000);
+    return () => window.clearInterval(id);
+  }, [isHovered, media.length]);
+
+  // Alternate the top-left overlay between tags and contributors.
+  useEffect(() => {
+    if (contributors.length === 0) return;
+    const id = window.setInterval(() => {
+      setShowContributors((prev) => !prev);
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [contributors.length]);
 
   // Shared-element open: tag this card's media as the morph source, then
   // navigate inside a view transition so it morphs into the modal hero.
@@ -53,81 +155,127 @@ export function ProjectCard({ project, featured = false, fluid = false }: Props)
       href={project.href}
       scroll={false}
       onClick={handleOpen}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setCurrent(0);
+      }}
+      onFocus={() => setIsHovered(true)}
+      onBlur={() => {
+        setIsHovered(false);
+        setCurrent(0);
+      }}
       data-project-card={project.id}
       aria-label={`${project.title} — ${project.category}`}
-      className={`group relative flex min-w-0 shrink-0 flex-col bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary ${
-        fluid
-          ? "w-full min-w-0"
-          : "w-[min(82vw,360px)] sm:w-[420px] md:w-[440px] lg:w-[520px] xl:w-[560px]"
-      }`}
+      className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-border bg-bg-surface/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
     >
-      {/* frameless media - no border, no chrome, just image */}
-      <div data-morph-img className="relative aspect-[16/10] w-full overflow-hidden rounded-sm bg-bg-primary">
-        <Image
-          src={project.image}
-          alt={project.title}
-          fill
-          sizes={
-            fluid
-              ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              : "(max-width: 640px) 82vw, (max-width: 768px) 420px, (max-width: 1024px) 440px, (max-width: 1440px) 520px, 560px"
-          }
-          className="object-cover motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-[0.22,1,0.36,1] motion-safe:group-hover:scale-[1.04] motion-safe:group-focus-visible:scale-[1.04]"
-        />
-        {/* soft vignette only - no frame */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
-
-        {/* minimal top badge */}
-        <div className="absolute left-3 top-3 flex items-center gap-2">
-          <Badge
-            variant="default"
-            className="bg-bg-surface/85 backdrop-blur-md border-0 text-[11px] px-2.5 py-1 shadow-none"
-          >
-            {project.category}
-          </Badge>
-          {featured && (
-            <Badge variant="accent" className="hidden sm:inline-flex text-[10px] px-2 py-1 border-0">
-              Featured
-            </Badge>
-          )}
+      {/* media — fixed height, hover slideshow across images + videos */}
+      <div data-morph-img className="relative h-[200px] w-full overflow-hidden">
+        <div
+          aria-hidden={media.length < 2}
+          className="flex h-full transition-transform duration-500 ease-in-out"
+          style={{
+            width: `${media.length * 100}%`,
+            transform: `translateX(-${(current * 100) / media.length}%)`,
+          }}
+        >
+          {media.map((src, i) => (
+            <div
+              key={`${src}-${i}`}
+              style={{ width: `${100 / media.length}%` }}
+              className="relative h-full overflow-hidden"
+            >
+              {isVideoFile(src) ? (
+                <CardVideo src={src} isActive={isHovered && current === i} label={`${project.title} preview`} />
+              ) : (
+                <CardImage src={src} alt={i === 0 ? project.title : ""} eager={eager && i === 0} />
+              )}
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+            </div>
+          ))}
         </div>
 
-        {/* persistent open hint — always visible, never hover-only (touch + keyboard) */}
-        <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-2 motion-safe:transition-all motion-safe:duration-300 motion-safe:group-hover:translate-y-0 motion-safe:group-focus-visible:translate-y-0">
-          <span className="inline-flex items-center gap-1.5 rounded-sm bg-bg-surface/95 backdrop-blur-md px-3 py-1.5 font-heading text-xs text-text-primary shadow-[0_4px_16px_rgba(0,0,0,0.15)]">
-            View case study <ArrowUpRight className="h-3.5 w-3.5 text-accent-text" aria-hidden="true" />
-          </span>
+        {/* top-left overlay: tags ↔ contributor avatars */}
+        <div className="absolute left-4 top-4 z-10">
+          <AnimatePresence mode="wait">
+            {!showContributors || contributors.length === 0 ? (
+              <motion.ul
+                key="tags"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-wrap gap-1.5"
+                aria-label={`Built with ${tags.map((t) => t.name).join(", ")}`}
+              >
+                {tags.slice(0, 2).map((tag) => (
+                  <li
+                    key={tag.name}
+                    className="flex items-center gap-1.5 rounded-full border border-border bg-bg-primary/70 px-2.5 py-1 font-heading text-xs font-semibold text-text-secondary shadow-sm backdrop-blur-md"
+                  >
+                    <span
+                      aria-hidden
+                      className="h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ background: tag.color }}
+                    />
+                    {tag.name}
+                  </li>
+                ))}
+                {tags.length > 2 && (
+                  <li className="rounded-full border border-border bg-bg-primary/70 px-2.5 py-1 font-heading text-xs font-semibold text-text-muted shadow-sm backdrop-blur-md">
+                    +{tags.length - 2} more
+                  </li>
+                )}
+              </motion.ul>
+            ) : (
+              <motion.div
+                key="contributors"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center"
+              >
+                <ul className="flex pl-2" aria-label={`${contributors.length} contributors`}>
+                  {contributors.slice(0, 3).map((c) => (
+                    <li
+                      key={c.name}
+                      title={c.name}
+                      className="-ml-2 h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-bg-surface shadow-sm"
+                    >
+                      {c.image ? (
+                        <Image src={c.image} alt={c.name} width={32} height={32} loading="lazy" unoptimized className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center bg-bg-surface text-[10px] font-bold text-text-muted">
+                          {c.name ? c.name.charAt(0) : "?"}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                  {contributors.length > 3 && (
+                    <li
+                      aria-label={`${contributors.length - 3} more contributors`}
+                      className="-ml-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-accent text-[0.7rem] font-bold text-text-on-accent shadow-sm"
+                    >
+                      +{contributors.length - 3}
+                    </li>
+                  )}
+                </ul>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* editorial footer - transparent, no box */}
-      <div className="flex flex-col gap-1.5 px-1 pt-4 pb-1">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display font-semibold text-[18px] leading-tight text-text-primary group-hover:text-accent-text transition-colors line-clamp-1">
-            {project.title}
-          </h3>
-          <span className="inline-flex shrink-0 items-center gap-1 font-heading text-[11px] uppercase tracking-wide text-text-muted group-hover:text-accent-text transition-colors" aria-hidden="true">
-            {project.year ?? ""} <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-          </span>
-        </div>
+      {/* body — title + 3-line description */}
+      <div className="flex flex-1 flex-col gap-2.5 p-6">
+        <h3 className="line-clamp-1 font-heading text-base font-semibold leading-tight text-text-primary">
+          {project.title}
+        </h3>
         {project.description && (
-          <p className="font-body text-[13px] leading-relaxed text-text-secondary line-clamp-2">
+          <p className="line-clamp-3 font-body text-sm leading-relaxed text-text-secondary">
             {project.description}
           </p>
-        )}
-        {(project.stack?.length ?? 0) > 0 && (
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {project.stack!.slice(0, 3).map((s) => (
-              <Badge key={s} variant="soft" className="text-[11px] leading-none">
-                {s}
-              </Badge>
-            ))}
-            {project.stack!.length > 3 && (
-              <Badge variant="default" className="text-[11px] leading-none" aria-label={`${project.stack!.length - 3} more technologies`}>
-                +{project.stack!.length - 3}
-              </Badge>
-            )}
-          </div>
         )}
       </div>
     </Link>

@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import { GlassCircleButton } from "@/components/ui/glassy-button";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { getBackgroundPath } from "@/components/layout/path-memory";
@@ -87,6 +88,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia, project
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing the navigated media into modal context (external navigation state)
     if (initialMedia) setActiveMedia(initialMedia);
   }, [initialMedia]);
 
@@ -260,34 +262,21 @@ export function ProjectModal({ children, backHref, marker, initialMedia, project
             }}
           />
         )}
-        {/* floating close - Mohand */}
-        <button
+        {/* floating close - glass circle, red hover */}
+        <GlassCircleButton
           ref={closeRef}
+          danger
           type="button"
           onClick={close}
           aria-label="Close project details"
-          className="fixed z-[110] inline-flex items-center justify-center rounded-full border text-white cursor-pointer focus-ring outline-none"
+          className="fixed z-[110] focus-ring outline-none"
           style={{
             top: isMobile ? 16 : 28,
             right: isMobile ? 16 : 28,
-            width: isMobile ? 44 : 56,
-            height: isMobile ? 44 : 56,
-            background: "rgba(255,255,255,0.1)",
-            borderColor: "rgba(255,255,255,0.15)",
-            backdropFilter: "blur(10px)",
-            transition: "all 0.3s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#ef4444";
-            e.currentTarget.style.transform = "scale(1.1) rotate(90deg)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-            e.currentTarget.style.transform = "scale(1) rotate(0deg)";
           }}
         >
           <X size={isMobile ? 20 : 24} />
-        </button>
+        </GlassCircleButton>
 
         {/* cinema container - 90vw/90vh - this is the scroll container */}
         <motion.div

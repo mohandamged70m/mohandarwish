@@ -212,9 +212,9 @@ export function StackSurvey(): React.JSX.Element {
         @media (prefers-reduced-motion: reduce) {
           .stacksurvey-line { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
         }
-        .stacksurvey-station { cursor: pointer; outline: none; transition: opacity 150ms ease; }
+        .stacksurvey-station { cursor: pointer; transition: opacity 150ms ease; }
         .stacksurvey-station:focus { outline: none; }
-        .stacksurvey-station:focus-visible { outline: none; }
+        .stacksurvey-station:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 3px; }
         .stacksurvey-station .station-bg { transition: fill 150ms ease; }
         .stacksurvey-station text { transition: fill 150ms ease; }
         .stacksurvey-station .station-focus-ring { opacity: 0; transition: opacity 150ms ease; }
@@ -311,11 +311,20 @@ export function StackSurvey(): React.JSX.Element {
                   tabIndex={0}
                   role="button"
                   aria-label={s.label}
+                  aria-pressed={isActive}
                   opacity={dimmed ? 0.25 : 1}
                   onMouseEnter={() => setActiveId(s.id)}
                   onFocus={() => setActiveId(s.id)}
                   onBlur={() => setActiveId(null)}
                   onClick={() => setActiveId(s.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveId((prev) => (prev === s.id ? null : s.id));
+                    } else if (e.key === "Escape") {
+                      setActiveId(null);
+                    }
+                  }}
                 >
                   <circle cx={s.x} cy={s.y} r={HIT_R} fill="transparent" />
                   <circle
@@ -431,6 +440,7 @@ export function StackSurvey(): React.JSX.Element {
                   tabIndex={0}
                   role="button"
                   aria-label={s.label}
+                  aria-pressed={isActive}
                   opacity={dimmed ? 0.25 : 1}
                   onPointerEnter={(e) => {
                     if (e.pointerType === "mouse") setActiveId(s.id);
@@ -443,6 +453,14 @@ export function StackSurvey(): React.JSX.Element {
                     setActiveId(s.id);
                   }}
                   onBlur={() => setActiveId(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveId((prev) => (prev === s.id ? null : s.id));
+                    } else if (e.key === "Escape") {
+                      setActiveId(null);
+                    }
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     // A tap focuses first (activating the station); swallow

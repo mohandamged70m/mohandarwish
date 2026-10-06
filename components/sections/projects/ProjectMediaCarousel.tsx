@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isVideoFile } from "@/lib/project-utils";
+import { GlassCircleButton } from "@/components/ui/glassy-button";
 import { VideoPlayer } from "./VideoPlayer";
 
 type Props = {
@@ -177,32 +178,28 @@ export function ProjectMediaCarousel({ media, onIndexChange, isMobile }: Props) 
 
       {sorted.length > 1 && (
         <>
-          <button
+          <GlassCircleButton
             onClick={prev}
             aria-label="Previous image"
-            className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-xl border border-white/15 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black transition hover:bg-white/20 active:scale-95"
+            className="absolute top-1/2 -translate-y-1/2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             style={{
               left: isMobile ? "8px" : "20px",
-              width: isMobile ? "44px" : "48px",
-              height: isMobile ? "44px" : "48px",
               zIndex: 8,
             }}
           >
             <ChevronLeft size={isMobile ? 18 : 20} aria-hidden="true" />
-          </button>
-          <button
+          </GlassCircleButton>
+          <GlassCircleButton
             onClick={next}
             aria-label="Next image"
-            className="absolute top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-xl border border-white/15 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black transition hover:bg-white/20 active:scale-95"
+            className="absolute top-1/2 -translate-y-1/2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             style={{
               right: isMobile ? "8px" : "20px",
-              width: isMobile ? "44px" : "48px",
-              height: isMobile ? "44px" : "48px",
               zIndex: 8,
             }}
           >
             <ChevronRight size={isMobile ? 18 : 20} aria-hidden="true" />
-          </button>
+          </GlassCircleButton>
         </>
       )}
 

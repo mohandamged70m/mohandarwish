@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Pause, Play, Volume2, VolumeX, Maximize } from "lucide-react";
+import { GlassHub, GlassPlayButton } from "@/components/ui/glassy-button";
 
 type Props = {
   src: string;
@@ -173,29 +174,16 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.8, opacity: 0 }}
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.15)" }}
                     style={{
-                      width: isMobile ? "54px" : "80px",
-                      height: isMobile ? "54px" : "80px",
-                      background: "rgba(255,255,255,0.08)",
-                      backdropFilter: "blur(32px)",
-                      WebkitBackdropFilter: "blur(32px)",
-                      borderRadius: "50%",
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      color: "white",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
                       pointerEvents: "auto",
-                      cursor: "pointer",
                       zIndex: 6,
-                      boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
                     }}
-                    onClick={togglePlay}
                   >
-                    <span style={{ marginLeft: isMobile ? "3px" : "5px" }}>
-                      <Play size={isMobile ? 22 : 32} fill="white" strokeWidth={1.5} />
-                    </span>
+                    <GlassPlayButton onClick={togglePlay}>
+                      <span style={{ marginLeft: isMobile ? "3px" : "5px" }}>
+                        <Play size={isMobile ? 22 : 32} fill="white" strokeWidth={1.5} />
+                      </span>
+                    </GlassPlayButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -277,41 +265,20 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
               </div>
               <div style={{ display: "flex", gap: 12, justifyContent: isMobile ? "space-between" : "flex-end", alignItems: "center" }}>
                 {!isMobile && (
-                  <div
-                    style={{
-                      background: "rgba(255,255,255,0.1)",
-                      backdropFilter: "blur(24px)",
-                      borderRadius: 16,
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      pointerEvents: "auto",
-                      height: 40,
-                      width: 60,
-                      overflow: "hidden",
-                    }}
-                  >
+                  <GlassHub>
                     <button
                       onClick={togglePlay}
                       aria-label={userInteracted && playing ? "Pause video" : "Play video"}
-                      style={{ width: "100%", height: "100%", background: "none", border: "none", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                      style={{ width: 60 }}
                     >
                       {userInteracted && playing ? <Pause size={18} fill="white" /> : <Play size={18} fill="white" />}
                     </button>
-                  </div>
+                  </GlassHub>
                 )}
-                <div
+                <GlassHub
                   style={{
-                    background: "rgba(255,255,255,0.1)",
-                    backdropFilter: "blur(24px)",
                     borderRadius: isMobile ? 12 : 16,
-                    border: "1px solid rgba(255,255,255,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    pointerEvents: "auto",
                     height: isMobile ? 36 : 40,
-                    overflow: "hidden",
                   }}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -319,28 +286,20 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
                     <button
                       onClick={togglePlay}
                       aria-label={userInteracted && playing ? "Pause video" : "Play video"}
-                      style={{ height: "100%", padding: "0 12px", background: "none", border: "none", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                     >
                       {userInteracted && playing ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" />}
                     </button>
                   )}
-                  <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-                    <button
-                      onClick={toggleMute}
-                      aria-label={muted ? "Unmute video" : "Mute video"}
-                      style={{ height: "100%", padding: "0 12px", background: "none", border: "none", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >
-                      {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </button>
-                    <button
-                      onClick={toggleFullscreen}
-                      aria-label="Toggle fullscreen"
-                      style={{ height: "100%", padding: "0 12px", background: "none", border: "none", color: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >
-                      <Maximize size={16} />
-                    </button>
-                  </div>
-                </div>
+                  <button
+                    onClick={toggleMute}
+                    aria-label={muted ? "Unmute video" : "Mute video"}
+                  >
+                    {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  </button>
+                  <button onClick={toggleFullscreen} aria-label="Toggle fullscreen">
+                    <Maximize size={16} />
+                  </button>
+                </GlassHub>
               </div>
             </div>
           </motion.div>

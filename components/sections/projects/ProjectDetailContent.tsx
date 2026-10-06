@@ -3,10 +3,11 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { Project } from "@/data/projects";
+import type { Project, ProjectContributor } from "@/data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { sanitizeSvg } from "@/lib/sanitize";
 import { GlassPanel } from "./GlassPanel";
+import { MContributorView } from "./MContributorView";
 import { ScrollReveal } from "@/components/transitions/ScrollReveal";
 import { ProjectMediaCarousel } from "./ProjectMediaCarousel";
 import { useProjectModal } from "./ProjectModal";
@@ -130,6 +131,8 @@ type Props = { project: Project; headingLevel?: "h1" | "h2" };
 export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
   const { setActiveMedia, isMobile, inModal } = useProjectModal();
   const [windowWidth, setWindowWidth] = useState(1024);
+  // for-your-project: Team entries open the contributor pop-up.
+  const [selectedContributor, setSelectedContributor] = useState<ProjectContributor | null>(null);
   const Title = headingLevel;
   const Section = headingLevel === "h1" ? "h2" : "h3";
   const Sub = headingLevel === "h1" ? "h3" : "h4";
@@ -537,9 +540,15 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
               </Sub>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {project.contributors.map((c) => (
-                  <div key={`${c.name}-${c.role}`} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <button
+                    key={`${c.name}-${c.role}`}
+                    type="button"
+                    onClick={() => setSelectedContributor(c)}
+                    aria-label={`View ${c.name} — contributor details`}
+                    style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, cursor: "pointer", borderRadius: 12 }}
+                  >
                     {c.image ? (
-                      <img src={c.image} alt={c.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
+                      <img src={c.image} alt="" aria-hidden="true" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
                     ) : (
                       <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(163,230,53,0.15)", color: "var(--accent-primary)", fontWeight: 800 }}>
                         {c.name.charAt(0).toUpperCase()}
@@ -549,7 +558,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                       <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
                       <p style={{ margin: 0, fontSize: "0.75rem", color: "rgba(255,255,255,0.55)" }}>{c.role}</p>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             </GlassPanel>
@@ -557,6 +566,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
         </div>
       </div>
       </MatrixReveal>
+
+      {selectedContributor && (
+        <MContributorView
+          contributor={selectedContributor}
+          onClose={() => setSelectedContributor(null)}
+        />
+      )}
     </div>
   );
 }

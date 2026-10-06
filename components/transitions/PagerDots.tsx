@@ -38,10 +38,17 @@ export function PagerDots(): React.ReactNode {
             aria-label={`Go to ${s.label}`}
             aria-current={on ? "true" : undefined}
             onClick={() => (pagerEnabled() ? navigateTo(s.id) : requestSectionNavigate(s.id))}
-            className={`h-2 rounded-full transition-all duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-              on ? "w-6 bg-accent" : "w-2 bg-border-strong hover:bg-text-muted"
+            className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-300 focus-ring outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              on ? "" : "hover:bg-bg-surface"
             }`}
-          />
+          >
+            <span
+              aria-hidden
+              className={`block h-2 rounded-full transition-all duration-300 ${
+                on ? "w-6 bg-accent" : "w-2 bg-border-strong"
+              }`}
+            />
+          </button>
         );
       })}
     </nav>

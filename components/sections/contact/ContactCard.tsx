@@ -49,7 +49,7 @@ export function ContactCard(): ReactNode {
               <div className="relative grid gap-8 p-6 sm:gap-10 sm:p-7 md:grid-cols-[1.25fr_0.9fr] md:items-stretch md:gap-6 md:p-6">
                 <div className="flex flex-col gap-5">
                   <div className="space-y-3">
-                    <h2 data-pager-focus tabIndex={-1} className="font-heading font-semibold leading-[0.95] tracking-tight text-text-primary text-[clamp(2rem,4vw+1rem,3.25rem)]">
+                    <h2 data-pager-focus tabIndex={-1} className="font-display font-semibold leading-[0.95] tracking-tight text-text-primary text-[clamp(2rem,4vw+1rem,3.25rem)]">
                       Let&rsquo;s build
                     </h2>
                     <p className="max-w-[36ch] font-body text-[16px] leading-[1.5] tracking-tight text-text-secondary sm:text-[17px]">
@@ -90,7 +90,7 @@ export function ContactCard(): ReactNode {
                       rel="noopener noreferrer"
                       data-track="cv"
                       data-value="download"
-                      className="focus-ring inline-flex items-center gap-1.5 text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                      className="focus-ring inline-flex items-center gap-1.5 text-text-secondary underline decoration-border underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent"
                     >
                       <FileText className="h-3.5 w-3.5" aria-hidden />
                       Download CV
@@ -107,26 +107,26 @@ export function ContactCard(): ReactNode {
                   <div className="flex flex-col items-center gap-2 text-center">
                     <a
                       href={`mailto:${ME.email}`}
-                      className="focus-ring font-heading text-sm font-medium text-accent underline-offset-4 hover:underline"
+                      className="focus-ring font-heading text-sm font-medium text-accent-text underline-offset-4 hover:underline"
                     >
                       {ME.email}
                     </a>
                     {/* Contentinfo landmark for the page. The copyright line
                         doubles as the site's machine-readable attribution, so
                         the author is present in the HTML on every route. */}
-                    <footer className="font-body text-[13px] tracking-tight text-text-muted">
+                    <div role="contentinfo" className="font-body text-[13px] tracking-tight text-text-muted">
                       <p>
                         {new Date().getFullYear()} © {ME.name} · {ME.role} · Built with Next.js ·{" "}
                         <a
                           href={ME.socials.github}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="underline decoration-border underline-offset-4 hover:text-accent"
+                          className="underline decoration-border underline-offset-4 hover:text-accent-text"
                         >
                           View source
                         </a>
                       </p>
-                    </footer>
+                    </div>
                     <p className="inline-flex items-center gap-1.5 font-body text-[12px] tracking-tight text-text-muted">
                       <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
                       {ME.location} · {ME.timezone} · {ME.availability}
@@ -162,7 +162,7 @@ function SocialIcon({
     <Link
       href={href}
       aria-label={label}
-      className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
+      className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-bg-surface text-text-secondary transition-colors hover:border-border-strong hover:text-accent-text focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
       {...props}
     >
       {LucideIcon ? (

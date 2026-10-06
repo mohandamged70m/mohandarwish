@@ -40,7 +40,15 @@ const nextConfig: NextConfig = {
     // Per docs/01-app/02-guides/package-bundling.md + optimizePackageImports.md:
     // only loads actually-used modules. lucide-react/recharts already
     // optimized by default; motion is the landing-critical one to add.
-    optimizePackageImports: ["motion", "@vercel/analytics"],
+    optimizePackageImports: [
+      "motion",
+      "@vercel/analytics",
+      "recharts",
+      "animejs",
+      "matter-js",
+      "lottie-react",
+      "react-icons",
+    ],
   },
   allowedDevOrigins: ["192.168.1.11"],
 };

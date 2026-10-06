@@ -1,5 +1,3 @@
-"use client";
-
 import type { TargetAndTransition, Transition, Variants } from "motion/react";
 
 // Shared motion kit for the booking modal (backdrop, panel, tabs, calendar,
