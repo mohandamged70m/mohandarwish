@@ -16,8 +16,6 @@ const STRETCH_EASE: [number, number, number, number] = [0.5, 0, 0.2, 1];
 const STRETCH_MIDPOINT = 0.45;
 const KNOB_GLOW_COVERAGE = "55%";
 
-/* Labels use the site's own mono (self-hosted IBM Plex Mono). */
-
 export type ProjectsTabItem = { id: string; label: string };
 
 type ProjectsTabsProps = {
@@ -26,8 +24,6 @@ type ProjectsTabsProps = {
   onChange: (id: string) => void;
   /** Accessible name for the tablist. Defaults to "Sections". */
   ariaLabel?: string;
-  /** Hover/focus intent hook, e.g. prefetch the chunk behind a tab. */
-  onPreviewTab?: (id: string) => void;
 };
 
 type Frame = { left: number; width: number };
@@ -42,7 +38,6 @@ export function ProjectsTabs({
   value,
   onChange,
   ariaLabel = "Sections",
-  onPreviewTab,
 }: ProjectsTabsProps) {
   const innerRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
@@ -216,7 +211,7 @@ export function ProjectsTabs({
       role="tablist"
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
-      className="inline-flex rounded-full border border-border bg-bg-surface shadow-[inset_0_2px_8px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-neutral-950 dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.65)]"
+      className="inline-flex rounded-full border border-white/10 bg-neutral-950 shadow-[inset_0_2px_8px_rgba(0,0,0,0.65)]"
       style={{ padding: TRACK_PADDING }}
     >
       <div ref={innerRef} className="relative flex">
@@ -245,12 +240,10 @@ export function ProjectsTabs({
               onClick={() => {
                 if (tab.id !== value) onChange(tab.id);
               }}
-              onMouseEnter={() => onPreviewTab?.(tab.id)}
-              onFocus={() => onPreviewTab?.(tab.id)}
               className={`projects-tabs-tab relative z-10 flex cursor-pointer items-center justify-center rounded-full border-0 bg-transparent font-mono font-bold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
                 selected
-                  ? "text-text-on-accent"
-                  : "text-text-secondary/60 hover:text-text-primary"
+                  ? "text-white"
+                  : "text-white/50 hover:text-white/80"
               }`}
               style={{
                 width: TAB_WIDTH,

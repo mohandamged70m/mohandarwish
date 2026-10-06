@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useState, useRef, useMemo, useCallback, startTransition } from 'react';
+import { motion } from 'motion/react';
 
 interface ContributionDay {
     date: string;
@@ -67,11 +67,14 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     const [slideDir, setSlideDir] = useState<number>(0); // -1 = left (older), 1 = right (newer)
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [hasAppeared, setHasAppeared] = useState(false);
     const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
     const graphRef = useRef<HTMLDivElement>(null);
+    // Cached container rect — avoids a getBoundingClientRect on the
+    // container for every cell hover (was 2 forced layouts per mousemove).
+    const containerRectRef = useRef<{ left: number; top: number } | null>(null);
+    const tooltipRafRef = useRef(0);
     const [containerWidth, setContainerWidth] = useState(0);
     const [prefersReduced, setPrefersReduced] = useState(false);
 
@@ -188,24 +191,41 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [username]);
 
-    // ── Cascade animation on load & year change ──
-    useEffect(() => {
-        if (!isLoading && yearlyData[currentYear]?.length > 0) {
-            const t = setTimeout(() => setHasAppeared(true), 60);
-            return () => clearTimeout(t);
-        }
-    }, [isLoading, currentYear, yearlyData]);
-
-    // ── Measure container width ──
+    // ── Measure container width (rAF-batched) + cache container offset ──
+    // ResizeObserver fires at high frequency; setState per entry keeps
+    // React re-rendering mid-resize and hurts INP on rotation/split-view.
     useEffect(() => {
         const el = graphRef.current;
+        const cont = containerRef.current;
         if (!el) return;
+        let raf = 0;
+        const cacheOffset = () => {
+            // Read once per resize/scroll, not once per cell hover.
+            if (cont) {
+                const br = cont.getBoundingClientRect();
+                containerRectRef.current = { left: br.left, top: br.top };
+            }
+        };
         const obs = new ResizeObserver(entries => {
-            for (const entry of entries) setContainerWidth(entry.contentRect.width);
+            const last = entries[entries.length - 1];
+            if (!last) return;
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+                setContainerWidth(last.contentRect.width);
+                cacheOffset();
+            });
         });
         obs.observe(el);
         setContainerWidth(el.clientWidth);
-        return () => obs.disconnect();
+        cacheOffset();
+        window.addEventListener("scroll", cacheOffset, { passive: true });
+        window.addEventListener("resize", cacheOffset);
+        return () => {
+            cancelAnimationFrame(raf);
+            obs.disconnect();
+            window.removeEventListener("scroll", cacheOffset);
+            window.removeEventListener("resize", cacheOffset);
+        };
     }, []);
 
     // ── Year navigation ──
@@ -217,15 +237,19 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         const now = Date.now();
         if (now - lastNavTime.current < 600) return; // cooldown
         lastNavTime.current = now;
+        cancelAnimationFrame(tooltipRafRef.current);
         setHoveredDay(null);
-        setHasAppeared(false);
 
         setSlideDir(dir);
-        setCurrentYear(prev => {
-            const idx = availableYears.indexOf(prev);
-            const next = idx + dir;
-            if (next >= 0 && next < availableYears.length) return availableYears[next];
-            return prev;
+        // INP: year swap re-renders ~365 cells. Defer it so the chevron
+        // click paints first; the grid follows in a transition.
+        startTransition(() => {
+            setCurrentYear(prev => {
+                const idx = availableYears.indexOf(prev);
+                const next = idx + dir;
+                if (next >= 0 && next < availableYears.length) return availableYears[next];
+                return prev;
+            });
         });
     }, [availableYears]);
 
@@ -330,18 +354,35 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         return labels;
     }, [weeks]);
 
-    // ── Tooltip positioning ──
+    // ── Tooltip positioning (rAF-throttled, 1 layout per hover) ──
+    // Previously 2 getBoundingClientRect calls + 2 setStates per cell
+    // enter. Now: container rect is cached, work is batched in rAF, and
+    // a repeat hover on the same day skips setState entirely.
     const handleCellHover = useCallback((day: ContributionDay, e: React.MouseEvent<HTMLDivElement>) => {
         if (day.count < 0) return;
         const cell = e.currentTarget;
-        const cont = containerRef.current;
-        if (!cell || !cont) return;
-        const cr = cell.getBoundingClientRect();
-        const br = cont.getBoundingClientRect();
-        setTooltipPos({ x: cr.left + cr.width / 2 - br.left, y: cr.top - br.top - 8 });
-        setHoveredDay(day);
+        cancelAnimationFrame(tooltipRafRef.current);
+        tooltipRafRef.current = requestAnimationFrame(() => {
+            const cached = containerRectRef.current;
+            const cr = cell.getBoundingClientRect();
+            const base = cached ?? { left: 0, top: 0 };
+            if (!cached) {
+                const cont = containerRef.current;
+                if (cont) {
+                    const br = cont.getBoundingClientRect();
+                    containerRectRef.current = { left: br.left, top: br.top };
+                }
+            }
+            setTooltipPos({ x: cr.left + cr.width / 2 - base.left, y: cr.top - base.top - 8 });
+            setHoveredDay(prev => (prev?.date === day.date ? prev : day));
+        });
     }, []);
-    const handleCellLeave = useCallback(() => { setHoveredDay(null); }, []);
+    const handleCellLeave = useCallback(() => {
+        cancelAnimationFrame(tooltipRafRef.current);
+        setHoveredDay(null);
+    }, []);
+
+    useEffect(() => () => cancelAnimationFrame(tooltipRafRef.current), []);
 
     // ── Dynamic cell sizing ──
     const NUM_WEEKS = weeks.length || 52;
@@ -366,12 +407,9 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         borderRadius: 8,
     });
 
-    // ── Slide animation variants ──
-    const slideVariants = {
-        enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-        center: { x: 0, opacity: 1 },
-        exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
-    };
+    // ── Year-slide direction only drives the single container's
+    // transform (one compositor animation, not 365 staggered cells).
+    const yearEnterX = slideDir > 0 ? 24 : slideDir < 0 ? -24 : 0;
 
     return (
         <div ref={containerRef} style={{ position: 'relative' }}>
@@ -407,23 +445,16 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                     <button onClick={() => canGoOlder && navigateYear(-1)} style={chevronBtn(canGoOlder)} aria-label="Previous year">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
                     </button>
-                    <AnimatePresence mode="wait" custom={slideDir}>
-                        <motion.span
-                            key={currentYear}
-                            custom={slideDir}
-                            initial={{ opacity: 0, y: slideDir >= 0 ? 8 : -8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: slideDir >= 0 ? -8 : 8 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            style={{
-                                fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)',
-                                minWidth: 38, textAlign: 'center', display: 'inline-block',
-                                letterSpacing: '-0.01em',
-                            }}
-                        >
-                            {currentYear}
-                        </motion.span>
-                    </AnimatePresence>
+                    <span
+                        key={currentYear}
+                        style={{
+                            fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)',
+                            minWidth: 38, textAlign: 'center', display: 'inline-block',
+                            letterSpacing: '-0.01em',
+                        }}
+                    >
+                        {currentYear}
+                    </span>
                     <button onClick={() => canGoNewer && navigateYear(1)} style={chevronBtn(canGoNewer)} aria-label="Next year">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                     </button>
@@ -440,19 +471,19 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                 >@{username}</a>
             </motion.div>
 
-            {/* ── Graph ── */}
+            {/* ── Graph: single container animation, plain-div cells ── */}
+            {/* INP: was AnimatePresence mode=wait (double render) + 365
+                motion.divs with staggered delays + an infinite boxShadow
+                loop. Now one transform/opacity slide on the container and
+                static cells — year clicks commit ~1 animation, not 365. */}
             <div ref={graphRef} style={{ overflow: 'hidden', paddingBottom: 2 }}>
-                <AnimatePresence mode="wait" custom={slideDir}>
-                    <motion.div
-                        key={currentYear}
-                        custom={slideDir}
-                        variants={slideVariants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-                        style={{ position: 'relative', paddingTop: 16 }}
-                    >
+                <motion.div
+                    key={currentYear}
+                    initial={prefersReduced ? false : { x: yearEnterX, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: prefersReduced ? 0.01 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ position: 'relative', paddingTop: 16, willChange: 'transform, opacity' }}
+                >
                         {/* Month Labels */}
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14 }}>
                             {monthLabels.map((m, i) => (
@@ -484,35 +515,10 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                             const isEmpty = day.count < 0;
                                             const isHovered = hoveredDay?.date === day.date && !isEmpty;
                                             const isToday = day.date === todayStr;
-                                            
-                                            const staggerDelay = prefersReduced ? 0 : (wi * 0.006) + (di * 0.012);
-                                            
+
                                             return (
-                                                <motion.div
+                                                <div
                                                     key={di}
-                                                    initial={prefersReduced ? false : { opacity: 0, scale: 0 }}
-                                                    animate={hasAppeared ? { 
-                                                        opacity: isEmpty ? 0 : 1, 
-                                                        scale: isEmpty ? 0 : 1,
-                                                        ...(isToday && !prefersReduced ? {
-                                                            boxShadow: [
-                                                                '0 0 5px var(--accent)',
-                                                                '0 0 15px var(--accent)',
-                                                                '0 0 5px var(--accent)'
-                                                            ]
-                                                        } : {})
-                                                    } : {}}
-                                                    transition={isToday && !prefersReduced ? {
-                                                        boxShadow: {
-                                                            repeat: Infinity,
-                                                            duration: 2,
-                                                            ease: "easeInOut"
-                                                        },
-                                                        default: { duration: 0.3, delay: staggerDelay, ease: [0.34, 1.56, 0.64, 1] }
-                                                    } : { duration: prefersReduced ? 0.01 : 0.3, delay: staggerDelay, ease: [0.34, 1.56, 0.64, 1] }}
-                                                    // handleCellHover reads containerRef only when the
-                                                    // mouse actually enters a cell - an event handler,
-                                                    // never during render.
                                                     // eslint-disable-next-line react-hooks/refs
                                                     onMouseEnter={(e) => handleCellHover(day, e)}
                                                     onMouseLeave={handleCellLeave}
@@ -520,13 +526,20 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                                         width: CELL, height: CELL, borderRadius: 3,
                                                         background: isEmpty ? 'transparent' : (isToday ? 'var(--accent)' : `var(--commits-l${day.level})`),
                                                         cursor: isEmpty ? 'default' : 'pointer',
-                                                        transition: 'transform 0.18s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.18s ease, border 0.2s ease',
+                                                        // Transform-only hover: no re-render-driven
+                                                        // style recalc beyond the two toggled cells.
+                                                        transition: 'transform 0.15s ease-out, box-shadow 0.15s ease',
                                                         transform: isHovered ? 'scale(1.3)' : 'scale(1)',
-                                                        boxShadow: isHovered && day.level > 0 
-                                                            ? `0 0 8px var(--commits-l${day.level})` 
-                                                            : 'none',
+                                                        // Static today glow — the old infinite
+                                                        // boxShadow keyframe loop kept the
+                                                        // compositor busy permanently.
+                                                        boxShadow: isToday
+                                                            ? '0 0 8px var(--accent)'
+                                                            : isHovered && day.level > 0
+                                                                ? `0 0 8px var(--commits-l${day.level})`
+                                                                : 'none',
                                                         border: isToday ? '2px solid white' : 'none',
-                                                        zIndex: (isHovered || isToday) ? 10 : 1, 
+                                                        zIndex: (isHovered || isToday) ? 10 : 1,
                                                         position: 'relative',
                                                     }}
                                                 />
@@ -537,7 +550,6 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                             )}
                         </div>
                     </motion.div>
-                </AnimatePresence>
             </div>
 
             {!isLoading && error && (
@@ -546,10 +558,8 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                 </p>
             )}
 
-            {/* ── Legend ── */}
-            <motion.div
-                initial={prefersReduced ? false : { opacity: 0 }} animate={{ opacity: 1 }}
-                transition={{ duration: prefersReduced ? 0.01 : 0.5, delay: prefersReduced ? 0 : 0.6 }}
+            {/* ── Legend (static — was a motion.div animating on mount) ── */}
+            <div
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 3, marginTop: 10 }}
             >
                 <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginRight: 4, fontWeight: 600, letterSpacing: '0.02em' }}>Less</span>
@@ -563,24 +573,18 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                     />
                 ))}
                 <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginLeft: 4, fontWeight: 600, letterSpacing: '0.02em' }}>More</span>
-            </motion.div>
+            </div>
 
-            {/* ── Tooltip ── */}
-            <AnimatePresence>
-                {hoveredDay && hoveredDay.count >= 0 && (
+            {/* ── Tooltip (instant — was AnimatePresence + motion + backdrop-blur
+                on the hover path; blur(20px) repainted every mousemove) ── */}
+            {hoveredDay && hoveredDay.count >= 0 && (
                     <div style={{
                         position: 'absolute', left: tooltipPos.x, top: tooltipPos.y,
                         pointerEvents: 'none', zIndex: 200, transform: 'translate(-50%, -100%)',
                     }}>
-                        <motion.div
-                            key={hoveredDay.date}
-                            initial={{ opacity: 0, y: 4, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 3, scale: 0.95 }}
-                            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                        >
+                        <div key={hoveredDay.date}>
                             <div style={{
-                                background: 'var(--tooltip-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+                                background: 'var(--tooltip-bg)',
                                 color: 'var(--tooltip-text)', padding: '7px 11px', borderRadius: 8,
                                 fontSize: '0.7rem', fontWeight: 600, whiteSpace: 'nowrap',
                                 boxShadow: '0 6px 20px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)',
@@ -599,10 +603,9 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                 border: '1px solid var(--section-border)', borderTop: 'none', borderLeft: 'none',
                                 transform: 'rotate(45deg)', position: 'absolute', bottom: -3, left: '50%', marginLeft: -3.5,
                             }} />
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
         </div>
     );
 };

@@ -47,12 +47,14 @@ export function ScaleUnblur({
   if (reduce) {
     return <div className={className}>{children}</div>;
   }
+  // INP: opacity + transform only. The previous filter: blur() forced a
+  // full repaint every frame for the whole subtree.
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95, filter: "blur(8px)" }}
-      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: Math.min(duration, 0.5), delay, ease: EASE }}
-      style={{ transformOrigin: "center" }}
+      style={{ transformOrigin: "center", willChange: "opacity, transform" }}
       className={className}
     >
       {children}

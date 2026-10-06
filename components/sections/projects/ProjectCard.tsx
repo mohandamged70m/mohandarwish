@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import type { Project } from "@/data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { canMorph, tagMorph, transitionOrUpdate, untagMorph } from "@/lib/view-transitions";
@@ -90,7 +89,6 @@ export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [current, setCurrent] = useState(0);
-  const [showContributors, setShowContributors] = useState(false);
 
   const slides = [...(project.images ?? []), ...(project.videos ?? [])];
   const media = slides.length > 0 ? slides : [project.image];
@@ -111,14 +109,11 @@ export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
     return () => window.clearInterval(id);
   }, [isHovered, media.length]);
 
-  // Alternate the top-left overlay between tags and contributors.
-  useEffect(() => {
-    if (contributors.length === 0) return;
-    const id = window.setInterval(() => {
-      setShowContributors((prev) => !prev);
-    }, 3000);
-    return () => window.clearInterval(id);
-  }, [contributors.length]);
+  // INP: the old 3s setInterval toggled tags ↔ contributors on EVERY
+  // card forever (N timers + AnimatePresence exit/enter each cycle),
+  // keeping the main thread warm between real interactions. Now the
+  // overlay swaps on hover/focus only — zero ambient React work.
+  const showContributors = isHovered && contributors.length > 0;
 
   // Shared-element open: tag this card's media as the morph source, then
   // navigate inside a view transition so it morphs into the modal hero.
@@ -195,19 +190,13 @@ export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
           ))}
         </div>
 
-        {/* top-left overlay: tags ↔ contributor avatars */}
+        {/* top-left overlay: tags, contributors on hover/focus */}
         <div className="absolute left-4 top-4 z-10">
-          <AnimatePresence mode="wait">
-            {!showContributors || contributors.length === 0 ? (
-              <motion.ul
-                key="tags"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-wrap gap-1.5"
-                aria-label={`Built with ${tags.map((t) => t.name).join(", ")}`}
-              >
+          {!showContributors ? (
+            <ul
+              className="flex flex-wrap gap-1.5"
+              aria-label={`Built with ${tags.map((t) => t.name).join(", ")}`}
+            >
                 {tags.slice(0, 2).map((tag) => (
                   <li
                     key={tag.name}
@@ -226,14 +215,9 @@ export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
                     +{tags.length - 2} more
                   </li>
                 )}
-              </motion.ul>
+              </ul>
             ) : (
-              <motion.div
-                key="contributors"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{ duration: 0.3 }}
+              <div
                 className="flex items-center"
               >
                 <ul className="flex pl-2" aria-label={`${contributors.length} contributors`}>
@@ -261,9 +245,8 @@ export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
                     </li>
                   )}
                 </ul>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
       </div>
 

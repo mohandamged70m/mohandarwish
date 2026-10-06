@@ -21,12 +21,6 @@ const CONTENT_FADE_DURATION = 0.15;
 
 const SECTION_TABS = FILTER_CATEGORIES.map((c) => ({ id: c, label: c }));
 
-// Warms the Developer chunk on hover/focus intent so the first tab click
-// never pays dynamic-import + mount inside one frame.
-function prefetchDeveloperTab() {
-  void import("./DeveloperTab");
-}
-
 /**
  * Homepage projects section — for-your-project grid with a
  * Projects | Developer tab switch. Live Convex data with server-rendered
@@ -47,7 +41,6 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
         <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
           <motion.div
-            key={active}
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
@@ -64,9 +57,6 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
               value={active}
               onChange={(id) => setActive(id as FilterCategory)}
               ariaLabel="Projects or developer profile"
-              onPreviewTab={(id) => {
-                if (id === "Developer") prefetchDeveloperTab();
-              }}
             />
           </div>
 

@@ -78,12 +78,56 @@ export function SmoothScroll({
       // bookkeeping and the GSAP ticker's perpetual rAF wakeups, for no
       // visual effect. GSAP is still lazily loaded where it IS used (the
       // nav menu timeline), just not here.
+      // INP: the old loop ran lenis.raf() every frame forever, keeping
+      // the main thread hot and raising input delay for every click.
+      // Now the loop sleeps after 2.5s idle and wakes on real activity,
+      // plus it never pumps frames while the tab is hidden.
+      const IDLE_MS = 2500;
       let raf = 0;
+      let lastActivity = performance.now();
       const loop = (time: number): void => {
-        lenis.raf(time);
-        raf = requestAnimationFrame(loop);
+        if (document.hidden) {
+          raf = 0;
+          return;
+        }
+        const scrolling =
+          (lenis as unknown as { isScrolling?: boolean }).isScrolling === true;
+        if (scrolling || performance.now() - lastActivity < IDLE_MS) {
+          lenis.raf(time);
+          raf = requestAnimationFrame(loop);
+        } else {
+          raf = 0; // sleep until wake()
+        }
+      };
+      const wake = (): void => {
+        lastActivity = performance.now();
+        if (!raf) raf = requestAnimationFrame(loop);
       };
       raf = requestAnimationFrame(loop);
+
+      const markActive = (): void => {
+        lastActivity = performance.now();
+      };
+      try {
+        (lenis as unknown as { on?: (ev: string, cb: () => void) => void }).on?.(
+          "scroll",
+          markActive
+        );
+      } catch {
+        // non-fatal: idle timer alone still sleeps the loop
+      }
+      window.addEventListener("wheel", wake, { passive: true });
+      window.addEventListener("touchmove", wake, { passive: true });
+      window.addEventListener("keydown", wake);
+      const handleVisibility = (): void => {
+        if (document.hidden) {
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+        } else {
+          wake();
+        }
+      };
+      document.addEventListener("visibilitychange", handleVisibility);
 
       function handleAnchorClick(e: MouseEvent): void {
         const target = e.target as HTMLElement;
@@ -102,6 +146,7 @@ export function SmoothScroll({
         if (!element) return;
 
         e.preventDefault();
+        wake();
         lenis.scrollTo(element as HTMLElement, { offset: -80 });
       }
 
@@ -109,7 +154,11 @@ export function SmoothScroll({
 
       cleanup = () => {
         document.removeEventListener("click", handleAnchorClick);
-        cancelAnimationFrame(raf);
+        document.removeEventListener("visibilitychange", handleVisibility);
+        window.removeEventListener("wheel", wake);
+        window.removeEventListener("touchmove", wake);
+        window.removeEventListener("keydown", wake);
+        if (raf) cancelAnimationFrame(raf);
         try {
           delete (window as unknown as { __lenis?: unknown }).__lenis;
         } catch {}
