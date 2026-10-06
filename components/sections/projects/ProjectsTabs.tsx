@@ -211,7 +211,7 @@ export function ProjectsTabs({
       role="tablist"
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
-      className="inline-flex rounded-full border border-white/10 bg-neutral-950 shadow-[inset_0_2px_8px_rgba(0,0,0,0.65)]"
+      className="inline-flex rounded-full border border-border bg-bg-surface shadow-[inset_0_2px_8px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-neutral-950 dark:shadow-[inset_0_2px_8px_rgba(0,0,0,0.65)]"
       style={{ padding: TRACK_PADDING }}
     >
       <div ref={innerRef} className="relative flex">
@@ -242,8 +242,8 @@ export function ProjectsTabs({
               }}
               className={`projects-tabs-tab relative z-10 flex cursor-pointer items-center justify-center rounded-full border-0 bg-transparent font-mono font-bold transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] ${
                 selected
-                  ? "text-white"
-                  : "text-white/50 hover:text-white/80"
+                  ? "text-text-on-accent"
+                  : "text-text-secondary/60 hover:text-text-primary"
               }`}
               style={{
                 width: TAB_WIDTH,
