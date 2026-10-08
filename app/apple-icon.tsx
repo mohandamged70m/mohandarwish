@@ -15,14 +15,17 @@ export default function AppleIcon() {
           justifyContent: "center",
           background: "#0a0a0a",
           borderRadius: "40px",
-          color: "#faf6f0",
+          // Hairline wine frame mirrors public/logo.svg.
+          border: "2px solid rgba(173,40,49,0.5)",
+          color: "#fff7ed",
           fontFamily: "system-ui, -apple-system, sans-serif",
           fontSize: 78,
           fontWeight: 800,
           letterSpacing: "-0.04em",
         }}
       >
-        M<span style={{ color: "#ad2831" }}>D</span>
+        {/* Ember (not wine): #ad2831 text on black fails AA — see DESIGN.md §7. */}
+        M<span style={{ color: "#e8624a" }}>D</span>
       </div>
     ),
     { ...size },

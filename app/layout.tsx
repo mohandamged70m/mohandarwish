@@ -80,6 +80,11 @@ export const metadata: Metadata = {
       "text/markdown": "/llms.txt",
     },
   },
+  // Crisp SVG brand mark first; the generated /icon PNG route stays as
+  // fallback (and feeds the PWA manifest, which requires PNG).
+  icons: {
+    icon: [{ url: "/logo.svg", type: "image/svg+xml" }],
+  },
   // `me` links are the standard way to claim an identity across profiles.
   other: {
     "me": [...SAME_AS],

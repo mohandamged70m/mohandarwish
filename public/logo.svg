@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="md-logo-title">
+  <title id="md-logo-title">Mohand Darwish — MD monogram</title>
+  <!-- Canvas: black base, same 112px radius as the generated PNG icons -->
+  <rect width="512" height="512" rx="112" fill="#0a0a0a"/>
+  <!-- Hairline wine frame -->
+  <rect x="30" y="30" width="452" height="452" rx="86" fill="none" stroke="#ad2831" stroke-opacity="0.45" stroke-width="2"/>
+  <!-- Beacon diamond: Alexandria lighthouse nod, wine -->
+  <path d="M256 104 L268 116 L256 128 L244 116 Z" fill="#ad2831"/>
+  <!-- D bowl first (ember, AA-safe on black), endpoints tucked under the stem -->
+  <path d="M278 176 C402 176 402 352 278 352" fill="none" stroke="#e8624a" stroke-width="30" stroke-linecap="butt"/>
+  <!-- M in warm ivory, sharing its right stem with the D -->
+  <path d="M110 352 L110 176 L198 290 L286 176 L286 352" fill="none" stroke="#fff7ed" stroke-width="30" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>
