@@ -102,7 +102,7 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
                             Code in the open<span aria-hidden className="text-accent-text">.</span>
                         </h1>
                         <p className="max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
-                            Commits, streaks and handpicked repos — synced from GitHub and updated daily.
+                            Commits, streaks and handpicked repos, synced from GitHub and updated daily.
                         </p>
                     </header>
                 )}

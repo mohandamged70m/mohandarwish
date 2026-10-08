@@ -17,7 +17,7 @@ export const revalidate = 3600;
 export const metadata = createMetadata({
   title: "Software Engineer & AI Product Builder in Egypt",
   description:
-    "Mohand Darwish is a software engineer and AI product builder in Alexandria, Egypt. He builds fast, accessible full-stack web apps with Next.js, TypeScript and Node.js — projects, stack, and booking.",
+    "Mohand Darwish is a software engineer and AI product builder in Alexandria, Egypt. He builds fast, accessible full-stack web apps with Next.js, TypeScript and Node.js. Projects, stack and booking are on this page.",
   path: "/",
 });
 

@@ -229,7 +229,7 @@ export function StackSurvey(): React.JSX.Element {
           Stack
         </h2>
         <p className="mt-4 max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
-          A field survey of the tools I build with — pick a station and trace its
+          A field survey of the tools I build with. Pick a station and trace its
           lines.
         </p>
 

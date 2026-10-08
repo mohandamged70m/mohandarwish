@@ -4,7 +4,7 @@ export const siteConfig = {
   name: "Mohand Darwish",
   tagline: "Software Engineer | AI Product Builder",
   description:
-    "Mohand Darwish is a software engineer in Alexandria, Egypt (GMT+2), working worldwide. Next.js, TypeScript and Node — clean architecture, fast interfaces, accessibility.",
+    "Mohand Darwish is a software engineer in Alexandria, Egypt (GMT+2), working worldwide. Next.js, TypeScript and Node for clean architecture, fast interfaces and accessibility.",
   url: "https://mohanddarwish.vercel.app",
   locale: "en_US",
   creator: "@mohand_darwish",

@@ -53,10 +53,10 @@ export function AboutSection(): ReactNode {
         <div className="mt-6 max-w-[62ch] space-y-4 font-body text-[15px] leading-relaxed text-text-secondary sm:text-base">
           <p>
             {ME.name} is a frontend-leaning full-stack engineer. He ships Next.js App Router
-            products end to end — data model, API layer, interface, deployment — and treats
-            performance, accessibility and readable code as part of the feature rather than a
-            follow-up ticket. He builds AI product features with the same discipline, wiring
-            language models into real product surfaces instead of demos.
+            products end to end: data model, API layer, interface, deployment. Performance,
+            accessibility and readable code ship as part of the feature, not as a follow-up
+            ticket. He builds AI product features the same way, wiring language models into
+            real product surfaces instead of demos.
           </p>
           <p>
             He works remotely from {ME.location} ({ME.timezone}) with teams in other time zones,
