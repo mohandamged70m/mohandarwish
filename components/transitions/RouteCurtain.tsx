@@ -69,25 +69,25 @@ export function RouteCurtain() {
       aria-hidden
       className='pointer-events-none fixed inset-0 z-[90]'
     >
-      {/* trailing dark panel for depth */}
+      {/* trailing deep-maroon panel for depth */}
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: exiting ? '-100%' : '0%' }}
         transition={{ duration: exiting ? 0.42 : 0.4, ease: EASE, delay: 0.05 }}
-        className='absolute inset-0 bg-black/40 backdrop-blur-md'
+        className='absolute inset-0 bg-[#160404]/70 backdrop-blur-md'
       />
-      {/* signature red blur curtain */}
+      {/* cinematic red gradient curtain (play red → deep maroon + vignette) */}
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: exiting ? '-100%' : '0%' }}
         transition={{ duration: exiting ? 0.4 : 0.38, ease: EASE }}
-        className='absolute inset-0 flex items-center justify-center bg-red-600/65 backdrop-blur-xl'
+        className='absolute inset-0 flex items-center justify-center bg-gradient-to-b from-[#E11D48]/85 via-[#B30F23]/75 to-[#7F1D1D]/90 shadow-[inset_0_0_200px_rgba(0,0,0,0.55)] backdrop-blur-xl'
       >
         <motion.span
           initial={{ opacity: 0, y: 14 }}
           animate={exiting ? { opacity: 0, y: -10 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: EASE, delay: exiting ? 0 : 0.18 }}
-          className='font-heading text-sm font-semibold uppercase tracking-[0.3em] text-text-on-accent'
+          className='font-heading text-sm font-semibold uppercase tracking-[0.3em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)]'
         >
           {pathname ?? '/'}
         </motion.span>
