@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { ME } from "@/data/me";
 import { useTailor } from "@/lib/analytics/tailor";
 import { GlassChip, GlassPill } from "@/components/ui/glassy-button";
+import TopoBackground from "@/components/topo-background";
 import "./hero.css";
 const BookingModal = dynamic(() => import("@/components/booking/BookingModal"), { ssr: false });
 
@@ -199,8 +200,9 @@ export default function HeroSection() {
       ref={heroRef}
       aria-label="Introduction"
       style={{ "--px": "0px", "--py": "0px" } as CSSProperties}
-      className="relative h-svh min-h-[540px] overflow-hidden bg-bg-primary [color-scheme:dark] [&>*]:absolute"
+      className="relative isolate h-svh min-h-[540px] overflow-hidden bg-bg-primary [color-scheme:dark] [&>*]:absolute"
     >
+      <TopoBackground />
       <h1 data-pager-focus tabIndex={-1} className="sr-only">
         {ME.name} — {ME.role}. {ME.tagline}
       </h1>
