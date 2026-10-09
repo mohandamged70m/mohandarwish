@@ -415,19 +415,19 @@ function SectionCurtain({
 
   return createPortal(
     <div aria-hidden className="fixed inset-0 z-[200]">
-      {/* trailing dark panel for depth (lags the wine panel slightly) */}
+      {/* trailing dark panel for depth (lags the red panel slightly) */}
       <motion.div
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
         transition={{ duration: exiting ? 0.24 : 0.2, ease: EASE, delay: 0.06 }}
-        className="absolute inset-0 overflow-hidden bg-bg-surface"
+        className="absolute inset-0 overflow-hidden bg-black/40 backdrop-blur-md"
       />
-      {/* signature wine curtain */}
+      {/* signature red blur curtain */}
       <motion.div
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
         transition={{ duration: exiting ? 0.28 : 0.2, ease: EASE }}
-        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-accent"
+        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-red-600/65 backdrop-blur-xl"
       >
         <span className="flex overflow-hidden font-heading text-[clamp(1.75rem,5vw,3rem)] font-bold uppercase tracking-[0.12em] text-text-on-accent">
           {letters.map((ch, i) => (

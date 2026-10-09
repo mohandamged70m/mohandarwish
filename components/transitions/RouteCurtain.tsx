@@ -74,14 +74,14 @@ export function RouteCurtain() {
         initial={{ y: '100%' }}
         animate={{ y: exiting ? '-100%' : '0%' }}
         transition={{ duration: exiting ? 0.42 : 0.4, ease: EASE, delay: 0.05 }}
-        className='absolute inset-0 bg-bg-surface'
+        className='absolute inset-0 bg-black/40 backdrop-blur-md'
       />
-      {/* signature wine curtain */}
+      {/* signature red blur curtain */}
       <motion.div
         initial={{ y: '100%' }}
         animate={{ y: exiting ? '-100%' : '0%' }}
         transition={{ duration: exiting ? 0.4 : 0.38, ease: EASE }}
-        className='absolute inset-0 flex items-center justify-center bg-accent'
+        className='absolute inset-0 flex items-center justify-center bg-red-600/65 backdrop-blur-xl'
       >
         <motion.span
           initial={{ opacity: 0, y: 14 }}
