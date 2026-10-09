@@ -97,7 +97,7 @@ ${projectLines}${featuredLines}
 ${FAQS.map((f) => `### ${f.question}\n\n${f.answer}`).join("\n\n")}
 
 ## Contact
-Book a call via the booking form on ${BASE}/, email ${ME.email}, or message via the contact form on the site. Remote work only; ${ME.timezone}.
+Book a call via the booking form on ${BASE}/, email ${ME.email}, or message via the booking dialog on the site. Remote work only; ${ME.timezone}.
 
 ## Attribution
 Content and structured data on this site are authored by ${ME.name}.

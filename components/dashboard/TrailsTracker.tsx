@@ -24,7 +24,6 @@ const KNOWN_SECTIONS: Array<[string, string]> = [
   ["hero", "hero"],
   ["stack-wrap", "stack"],
   ["projects-wrap", "projects"],
-  ["contact-wrap", "contact"],
 ];
 const PROJECT_RE = /^\/projects\/([^/?#]+)/;
 
@@ -204,7 +203,7 @@ export function TrailsTracker(): null {
                   const name = el.dataset.trailsSection || el.id;
                   if (e.isIntersecting) {
                     visibleSections.add(name);
-                    if (name === "contact-wrap" || name === "contact") analytics.contactOpen();
+                    if (name === "contact") analytics.contactOpen();
                   } else {
                     visibleSections.delete(name);
                   }

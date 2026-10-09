@@ -2,7 +2,6 @@
 import HeroSection from "@/components/sections/hero/HeroSection";
 import ProjectsSection from "@/components/sections/projects/ProjectsSection";
 import { StackSurvey } from "@/components/sections/stack/StackSurvey";
-import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { AboutSection } from "@/components/sections/about/AboutSection";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
 import { SectionSlide, SectionTransition } from "@/components/transitions";
@@ -32,7 +31,6 @@ const SECTIONS = [
   { id: "hero", label: "Home" },
   { id: "stack-wrap", label: "Stack" },
   { id: "projects-wrap", label: "Projects" },
-  { id: "contact-wrap", label: "Contact" },
 ] as const;
 
 export default function Home() {
@@ -66,12 +64,7 @@ export default function Home() {
               </Suspense>
             </SectionSlide>
           </div>
-          <div id="contact-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
-            <span id="booking" aria-hidden="true" className="block h-0 w-0" />
-            <SectionSlide section="contact-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-              <ContactCard />
-            </SectionSlide>
-          </div>
+          <span id="booking" aria-hidden="true" className="block h-0 w-0" />
           <BookingHashHandler />
           <PagerDots />
           <ScrollTop />

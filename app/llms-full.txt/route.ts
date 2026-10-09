@@ -149,15 +149,15 @@ ${FAQS.map((f) => `### ${f.question}\n\n${f.answer}`).join("\n\n")}
 
 ## 8. How to contact
 
-- Booking form (confirms a call slot): ${BASE}/ — the "Book a call" button in the hero or the contact section.
+- Booking form (confirms a call slot): ${BASE}/ — the "Book a call" button in the hero or the Contact menu (both open the booking dialog).
 - Email: ${ME.email}
-- Contact form: the contact section of ${BASE}/.
+- Message form: inside the booking dialog on ${BASE}/ (Send a Message tab).
 - Engagement: remote contract, fractional/product, and full-time engineering work.
 - Response time: within one business day.
 
 ## 9. Indexable routes
 
-- ${BASE}/ — home, about, stack, FAQ, contact
+- ${BASE}/ — home, about, stack, FAQ
 - ${BASE}/projects — full project archive
 - ${BASE}/projects/<id> — one case study per project
 - ${BASE}/sitemap.xml — XML sitemap

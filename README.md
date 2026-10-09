@@ -72,7 +72,6 @@ components/
     hero/             # HeroSection, TextAnimated, PortraitMorph
     projects/         # ProjectsSection, cards, detail views, DeveloperTab
     stack/            # StackSection + interactive Stack playground (Matter.js)
-    contact/          # ContactCard + form
     developer/        # Developer profile, GitHub stats/graphs, repos
   booking/            # BookButton, BookingModal, CustomTimePicker
   dashboard/          # CMS modules (D-*, M-*) + Assistant + primitives/

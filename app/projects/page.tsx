@@ -1,4 +1,3 @@
-import { ContactCard } from "@/components/sections/contact/ContactCard";
 import { Projects } from "@/components/sections/projects/Projects";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { ScrollReveal } from "@/components/transitions";
@@ -61,7 +60,6 @@ export default async function ProjectsPage(): Promise<ReactNode> {
       <ScrollReveal>
         <Projects />
       </ScrollReveal>
-      <ContactCard />
       <div className="h-12 sm:h-16" />
     </main>
   );

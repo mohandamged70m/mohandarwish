@@ -25,7 +25,6 @@ export function PagerDots(): React.ReactNode {
     { id: "hero", label: "Home" },
     { id: "stack-wrap", label: "Stack" },
     { id: "projects-wrap", label: "Projects" },
-    { id: "contact-wrap", label: "Contact" },
   ];
   return (
     <nav aria-label="Sections" className="fixed right-4 top-1/2 z-[80] hidden -translate-y-1/2 flex-col gap-2 md:flex">
