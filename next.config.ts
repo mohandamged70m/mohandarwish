@@ -50,7 +50,7 @@ const nextConfig: NextConfig = {
       "react-icons",
     ],
   },
-  allowedDevOrigins: ["192.168.1.11"],
+  allowedDevOrigins: [],
 };
 
 export default nextConfig;

@@ -200,7 +200,7 @@ export default function HeroSection() {
       ref={heroRef}
       aria-label="Introduction"
       style={{ "--px": "0px", "--py": "0px" } as CSSProperties}
-      className="relative isolate h-svh min-h-[540px] overflow-hidden bg-bg-primary [color-scheme:dark] [&>*]:absolute"
+      className="relative isolate h-svh min-h-[540px] overflow-hidden bg-bg-primary [&>*]:absolute"
     >
       <TopoBackground />
       <h1 data-pager-focus tabIndex={-1} className="sr-only">
@@ -209,7 +209,7 @@ export default function HeroSection() {
       <div
         id="mh-a"
         aria-hidden="true"
-        className="mh-nm left-[4vw] top-[15%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
+        className="mh-nm left-[4vw] top-[15%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[clamp(3rem,11vw,11rem)] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
       >
         <span className="block">
           <Letters text={FIRST_NAME} base={0.55} step={0.06} />
@@ -218,7 +218,7 @@ export default function HeroSection() {
       <div
         id="mh-b"
         aria-hidden="true"
-        className="mh-nm right-[1vw] top-[47%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[11vw] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
+        className="mh-nm right-[1vw] top-[47%] z-[2] overflow-hidden p-[0.04em_0.02em] font-hero-display text-[clamp(3rem,11vw,11rem)] font-normal uppercase leading-[0.88] text-text-primary [transform:translate(calc(var(--px)*-0.35),calc(var(--py)*-0.35))]"
       >
         <span className="block">
           <Letters text={LAST_NAME} base={1.0} step={0.06} />

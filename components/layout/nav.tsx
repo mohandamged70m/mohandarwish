@@ -670,7 +670,7 @@ function scrollToSection(id: string, moveFocus = false): void {
             aria-label="Mohand Darwish — home"
           >
             <span aria-hidden="true" className="bottom-nav__wordmark">
-              Mohandarwish<span className="bottom-nav__wordmark-accent">.©</span>
+              Mohand Darwish<span className="bottom-nav__wordmark-accent">.</span>
             </span>
           </Link>
           <div className="bottom-nav__actions">

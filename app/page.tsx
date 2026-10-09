@@ -39,8 +39,8 @@ export default function Home() {
       {/* Single <main> landmark for the whole page. Was previously a bare
           fragment, so assistive tech and crawlers had no main region. */}
       <main id="main-content" className="flex w-full max-w-full min-w-0 flex-1 flex-col">
-        <div className="w-full max-w-full min-w-0 overflow-x-hidden">
-          <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+        <div className="w-full max-w-full min-w-0 overflow-x-clip">
+          <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
             <SectionSlide section="hero" className="flex w-full min-w-0 flex-1 flex-col">
               <HeroSection />
             </SectionSlide>
@@ -52,12 +52,12 @@ export default function Home() {
               Kept server-rendered and in the accessibility tree on purpose:
               this is the sentence answer engines quote. */}
           <AboutSection />
-          <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
             <SectionSlide section="stack-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
               <StackSurvey />
             </SectionSlide>
           </div>
-          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-hidden supports-[min-height:100dvh]:min-h-[100dvh]">
+          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
             <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
               <Suspense fallback={null}>
                 <ProjectsData />

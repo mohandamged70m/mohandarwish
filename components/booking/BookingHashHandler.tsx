@@ -11,18 +11,13 @@ const BookingModal = dynamic(() => import("./BookingModal"), { ssr: false });
 export function BookingHashHandler() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    const cleanUrl = (): void => {
-      if (window.location.hash) {
-        history.replaceState(null, "", window.location.pathname);
-      }
-    };
     const check = () => {
       const h = window.location.hash;
-      // legacy/hash deep-links (#booking, #contact) still open the modal,
-      // but the hash is stripped right away so the URL stays clean
+      // legacy/hash deep-links (#booking, #contact) still open the modal.
+      // The hash stays in the URL while open so the link remains shareable
+      // and copyable; it is cleared on close (see onClose below).
       if (h === "#booking" || h === "#contact") {
         setOpen(true);
-        cleanUrl();
       }
     };
     // cross-page nav from elsewhere (nav stores this, URL stays "/")

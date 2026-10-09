@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { Anton, Inter, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -157,6 +158,24 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           <CvModalHost />
           <RouteCurtain />
           {children}
+          <footer className="w-full border-t border-border bg-bg-primary">
+            <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-8 sm:flex-row sm:px-6 lg:px-8">
+              <p className="font-heading text-xs uppercase tracking-[0.12em] text-text-muted">
+                © {new Date().getFullYear()} Mohand Darwish — Alexandria, EG · GMT+2
+              </p>
+              <nav aria-label="Footer" className="flex items-center gap-5 font-heading text-xs uppercase tracking-[0.12em]">
+                <Link href="/projects" className="text-text-secondary transition-colors hover:text-accent-text">
+                  Projects
+                </Link>
+                <Link href="/llms.txt" className="text-text-secondary transition-colors hover:text-accent-text">
+                  llms.txt
+                </Link>
+                <a href="#booking" className="text-text-secondary transition-colors hover:text-accent-text">
+                  Book a call
+                </a>
+              </nav>
+            </div>
+          </footer>
           <ModalViewport modal={modal} />
         </Providers>
         <Analytics />

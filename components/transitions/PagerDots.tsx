@@ -3,7 +3,7 @@
 import { useSectionTransition, requestSectionNavigate, pagerEnabled } from "@/components/transitions/SectionTransition";
 import { useEffect, useState } from "react";
 
-/** Fixed pager dots: position cue for the 4-screen desktop pager.
+/** Fixed pager dots: position cue for the 3-screen desktop pager.
  *  Renders only when the pager is active (md+ fine pointer, full motion). */
 export function PagerDots(): React.ReactNode {
   const { activeId, navigateTo } = useSectionTransition();

@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+  "https://mohanddarwish.vercel.app";
+
 export const siteConfig = {
   name: "Mohand Darwish",
   tagline: "Software Engineer | AI Product Builder",
   description:
     "Mohand Darwish is a software engineer in Alexandria, Egypt (GMT+2), working worldwide. Next.js, TypeScript and Node for clean architecture, fast interfaces and accessibility.",
-  url: "https://mohanddarwish.vercel.app",
+  // Override with NEXT_PUBLIC_SITE_URL on the custom domain before sharing —
+  // otherwise canonical + OG URLs bake in the vercel.app origin.
+  url: SITE_URL,
   locale: "en_US",
   creator: "@mohand_darwish",
   authors: [
     {
       name: "Mohand Darwish",
-      url: "https://mohanddarwish.vercel.app",
+      url: SITE_URL,
     },
   ],
   keywords: [
@@ -69,6 +75,8 @@ export function createMetadata({
       // No explicit images here: the file-based `app/opengraph-image.tsx`
       // route auto-generates og:image tags for every segment. Passing an
       // explicit `image` overrides it (used by project pages if needed).
+      // Default twitter image mirrors the OG route so shares unfurl even
+      // when no explicit image is passed.
       ...(image
         ? {
             images: [
@@ -87,7 +95,7 @@ export function createMetadata({
       title: resolvedTitle,
       description: resolvedDescription,
       creator: siteConfig.creator,
-      ...(image ? { images: [image] } : {}),
+      images: [image ?? `${siteConfig.url}/opengraph-image`],
     },
     robots: noIndex
       ? { index: false, follow: false }

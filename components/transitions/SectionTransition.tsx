@@ -58,7 +58,7 @@ const COVER_MS = 240;
 const HOLD_MS = 680;
 // Must cover the wine panel's 0.28s exit duration or the lift gets clipped.
 const EXIT_MS = 340;
-const COOLDOWN_MS = 1350;
+const COOLDOWN_MS = 950;
 const WHEEL_THRESHOLD = 60;
 
 type LenisHandle = {
@@ -208,7 +208,13 @@ export function SectionTransition({
     const label = list.find((s) => s.id === id)?.label ?? id;
 
     // Mobile / touch / reduced-motion: silent instant jump, no curtain.
-    if (!pagerEnabled()) {
+    // A modal open (project / booking) also skips the curtain — the wipe
+    // would bury the shared-element morph and the dialog backdrop.
+    if (
+      !pagerEnabled() ||
+      (typeof document !== "undefined" &&
+        document.querySelector('[role="dialog"]'))
+    ) {
       activeRef.current = id;
       setActiveId(id);
       scrollToSectionNow(id);
@@ -487,9 +493,9 @@ export function SectionSlide({
       controls.set({ y: 0, opacity: 1 });
       return;
     }
-    controls.set({ y: direction * 44, opacity: 0 });
+    controls.set({ y: direction * 28, opacity: 0 });
     controls
-      .start({ y: 0, opacity: 1, transition: { duration: 0.55, ease: EASE } })
+      .start({ y: 0, opacity: 1, transition: { duration: 0.45, ease: EASE } })
       .catch(() => {
         // transition superseded — safe to ignore
       });

@@ -41,10 +41,10 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
         <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 14 }}
+            initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: reduce ? 0.01 : 0.6, ease: [0.22, 1, 0.36, 1], delay: reduce ? 0 : 0.08 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: reduce ? 0.01 : 0.45, ease: [0.22, 1, 0.36, 1], delay: 0 }}
             {...noMotion}
             className="w-full min-w-0 overflow-hidden"
           >
