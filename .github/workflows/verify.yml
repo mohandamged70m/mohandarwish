@@ -12,6 +12,14 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    env:
+      # Test-only placeholders (public, not secrets): let the Auth.js code
+      # paths run without throwing during build and browser checks. Real
+      # credentials live in Vercel and .env.local, never here.
+      AUTH_SECRET: ci-test-placeholder-not-a-secret-use-npx-auth-secret
+      AUTH_GOOGLE_ID: ci-test-google-client-id
+      AUTH_GOOGLE_SECRET: ci-test-google-client-secret
+      DASHBOARD_OWNER_EMAIL: owner@example.com
     steps:
       - name: Checkout
         uses: actions/checkout@v4
