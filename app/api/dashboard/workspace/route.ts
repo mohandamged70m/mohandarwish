@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { convexMutation, convexQuery } from "@/lib/convex";
 import { isAdminRequest } from "@/lib/admin";
 export async function GET(req: Request) {
-  if (!isAdminRequest(req))
+  if (!(await isAdminRequest(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const projectId = new URL(req.url).searchParams.get("projectId");
@@ -22,7 +22,7 @@ export async function GET(req: Request) {
   }
 }
 export async function POST(req: Request) {
-  if (!isAdminRequest(req))
+  if (!(await isAdminRequest(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const b = await req.json().catch(() => null);
   if (!b?.args || typeof b.args !== "object")

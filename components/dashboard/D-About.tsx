@@ -17,18 +17,11 @@ const SECTIONS: { id: Section; label: string }[] = [
   { id: "stack", label: "Stack" },
 ];
 
-function adminToken(): string {
-  try {
-    return ""; // Owner session travels in an HttpOnly cookie.
-  } catch {
-    return "";
-  }
-}
-
 async function api<T>(section: Section, init?: RequestInit, suffix = ""): Promise<T> {
+  // Owner session travels in the HttpOnly Auth.js cookie (same-origin fetch).
   const res = await fetch(`/api/profile/${section}${suffix}`, {
     ...init,
-    headers: { "Content-Type": "application/json", "x-admin-token": adminToken(), ...(init?.headers || {}) },
+    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
   });
   const json = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok) throw new Error(json.error || `Request failed (${res.status})`);

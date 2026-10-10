@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminRequest } from "@/lib/admin";
-export function proxy(req: NextRequest) {
-  return isAdminRequest(req)
+
+// Defense-in-depth for dashboard APIs: the Auth.js owner session is re-checked
+// here before route handlers run. Handlers enforce ownership again themselves,
+// so this layer can never accidentally grant access.
+export async function proxy(req: NextRequest) {
+  return (await isAdminRequest(req))
     ? NextResponse.next()
     : NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }

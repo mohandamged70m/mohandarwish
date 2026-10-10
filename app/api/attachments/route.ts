@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { api } from "@/convex/_generated/api";
 import { convexMutation, convexQuery } from "@/lib/convex";
-import { sameOrigin } from "@/lib/session";
+import { sameOrigin } from "@/lib/request";
 import { allowRequest } from "@/lib/rate-limit";
 const TYPES = new Set([
   "image/png",

@@ -112,7 +112,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ section: string
   if (!section) return NextResponse.json({ error: "Unknown section" }, { status: 404 });
   const url = new URL(req.url);
   const includeHidden = url.searchParams.get("all") === "1";
-  if (includeHidden && !isAdminRequest(req)) {
+  if (includeHidden && !(await isAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const rows = await convexQuery<Record<string, unknown> & { _id?: string }[]>(
@@ -125,7 +125,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ section: string
 export async function POST(req: Request, ctx: { params: Promise<{ section: string }> }) {
   const section = getSection(await ctx.params);
   if (!section) return NextResponse.json({ error: "Unknown section" }, { status: 404 });
-  if (!isAdminRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await parseJsonBody<Record<string, unknown>>(req);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 

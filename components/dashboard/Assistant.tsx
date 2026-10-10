@@ -225,8 +225,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
     // Spark's persistent memory (Convex: dashboardDocs Spark/Memory). Loaded on
     // mount + when the panel opens — NOT gated on auth (the dashboard shell
-    // itself is already behind ADMIN_TOKEN, and the extra verify round-trip
-    // was the reason memory looked "unsaved" after reload).
+    // itself is already behind the Auth.js owner session, and the extra verify
+    // round-trip was the reason memory looked "unsaved" after reload).
     const [memory, setMemory] = useState<SparkMemory>({});
     const memoryRef = useRef<SparkMemory>(memory);
     useEffect(() => { memoryRef.current = memory; }, [memory]);

@@ -1,110 +1,37 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 
-const project = {
-  _id: "project-1",
-  title: "Product launch",
-  clientName: "Demo client",
-  clientEmail: "client@example.com",
-  summary: "Deliver a focused MVP",
-  status: "active",
-  paymentStatus: "unpaid",
-  invoiceUrl: "",
-  dueDate: "2026-12-01",
-  createdAt: 1,
-  updatedAt: 1,
-};
-async function ownerFixture(page: Page) {
-  const writes: { operation: string; args: Record<string, unknown> }[] = [];
-  await page.route("**/api/**", async (route) => {
-    const url = new URL(route.request().url());
-    let body: unknown = { data: null };
-    if (url.pathname === "/api/auth/owner") body = { authenticated: true };
-    if (url.pathname === "/api/data") {
-      const args = route.request().postDataJSON();
-      body = {
-        data:
-          args.operation === "listCollection"
-            ? []
-            : args.args.path === "Settings/MCP"
-              ? { assistantEnabled: false }
-              : null,
-      };
-    }
-    if (url.pathname === "/api/dashboard/workspace") {
-      if (route.request().method() === "POST") {
-        writes.push(route.request().postDataJSON());
-        body = { data: null };
-      } else if (url.searchParams.has("projectId")) {
-        body = {
-          data: writes
-            .filter((w) => w.operation === "addNote")
-            .map((w, i) => ({
-              _id: String(i),
-              projectId: project._id,
-              body: w.args.body,
-              createdAt: Date.now(),
-            })),
-        };
-      } else
-        body = { data: { projects: [project], leads: [], milestones: [] } };
-    }
-    await route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify(body),
-    });
-  });
-  return writes;
-}
-test("owner workspace saves a private project note", async ({ page }) => {
-  const writes = await ownerFixture(page);
-  await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Workspace", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Private workspace" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: /Product launch/ }).click();
-  await page.getByLabel("New note").fill("Approve launch checklist");
-  await page.getByRole("button", { name: "Save note", exact: true }).click();
-  await expect(
-    page.getByText("Approve launch checklist", { exact: true }),
-  ).toBeVisible();
-  expect(writes).toContainEqual({
-    operation: "addNote",
-    args: { projectId: project._id, body: "Approve launch checklist" },
-  });
-  await page.screenshot({
-    path: "test-results/owner-workspace.png",
-    fullPage: true,
-  });
-});
-test("workspace fits a narrow mobile screen", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await ownerFixture(page);
-  await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Workspace", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Private workspace" }),
-  ).toBeVisible();
-  const overflow = await page
-    .locator("main")
-    .evaluate((el) => el.scrollWidth > el.clientWidth + 1);
-  expect(overflow).toBe(false);
-  await page.screenshot({
-    path: "test-results/owner-mobile.png",
-    fullPage: true,
-  });
-});
-test("case-study metrics can be edited without rewriting unfinished input", async ({
+// Owner authentication is server-enforced (Auth.js Google sign-in), so these
+// checks hit the real built server: unauthenticated visitors see the Google
+// sign-in gate, denied accounts see access-denied, and private APIs stay 401.
+// Authenticated owner UI flows need a real Google session and are verified
+// manually against a preview (see OWNER_WORKSPACE.md); fixtures cannot mint
+// Auth.js sessions.
+test("dashboard shows Google sign-in when unauthenticated", async ({
   page,
 }) => {
-  await ownerFixture(page);
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Add Project", exact: true }).click();
-  const metrics = page.getByLabel("Results / metrics", { exact: true });
-  await metrics.fill("Latency");
-  await expect(metrics).toHaveValue("Latency");
-  await metrics.fill("Latency: 120ms\nTime saved: 4h/week");
-  await expect(metrics).toHaveValue("Latency: 120ms\nTime saved: 4h/week");
+  await expect(
+    page.getByRole("button", { name: "Sign in with Google" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Owner-only. Sign in with Google to manage your portfolio."),
+  ).toBeVisible();
+  // No private UI leaks before sign-in.
+  await expect(
+    page.getByRole("heading", { name: "Private workspace" }),
+  ).toHaveCount(0);
+});
+test("denied Google accounts see the access-denied state", async ({
+  page,
+}) => {
+  await page.goto("/dashboard?error=AccessDenied");
+  await expect(
+    page.getByRole("heading", { name: "Access denied" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Try a different account" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
 });
 test("personal portfolio exposes no portal and rejects unauthenticated workspace access", async ({
   page,
@@ -121,17 +48,14 @@ test("personal portfolio exposes no portal and rejects unauthenticated workspace
   expect((await request.get("/portal")).status()).toBe(404);
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
-  await expect(page.getByRole("link", { name: "View my work" })).toBeVisible();
-  await expect(
-    page.getByText(
-      "I build SaaS MVPs, AI features and automation that turn business problems into working products.",
-    ),
-  ).toBeVisible();
+  await expect(page.getByRole("button", { name: /Book a call/ })).toBeVisible();
+  // Location pill renders once visibly (animated/duplicate nodes exist for the
+  // hero effect), so assert on the first match instead of strict single-match.
+  await expect(page.getByText("Alexandria, Egypt").first()).toBeVisible();
   expect(await page.locator('a[href^="/portal"]').count()).toBe(0);
   await expect(page.locator(".mh-pills")).toHaveCSS("opacity", "1");
   const hero = page.getByRole("region", { name: "Introduction" });
   for (const target of [
-    hero.getByRole("link", { name: "View my work" }),
     hero.getByRole("button", { name: /Book a call/ }),
   ]) {
     expect(

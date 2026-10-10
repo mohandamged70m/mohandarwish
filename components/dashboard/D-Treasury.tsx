@@ -13,10 +13,8 @@ import {
 import {
     ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, TooltipProps,
 } from 'recharts';
-import { onAuthStateChanged } from '@/lib/dash-auth';
 import { ref, listAll, deleteObject, getStorage } from '@/lib/dash-storage';
 import app, { db } from '@/lib/dash-db';
-import { appAuth } from '@/lib/dash-auth';
 // Lazy Dashboard chunk - keeps firebase/storage out of the eager bundle.
 const storage = getStorage(app);
 import {
@@ -328,10 +326,9 @@ const DTreasury = () => {
     }, [tab]);
 
     useEffect(() => {
-        // Treasury docs are admin-only - attach the listeners ONLY once a user is
-        // signed in, so we never fire an unauthenticated read (which Firestore
-        // rejects with permission-denied). onAuthStateChanged also re-attaches if
-        // the session restores after this mounts (e.g. dashboard kept on refresh).
+        // Treasury docs are owner-only and this tab only mounts inside the
+        // server-gated dashboard, so attach the listeners directly. If the
+        // session expires the gateway answers 401 and onErr surfaces it.
         let unsubs: Array<() => void> = [];
         const detach = () => { unsubs.forEach(u => u()); unsubs = []; };
         // Caught error handler → never an "uncaught snapshot listener" console error.
@@ -387,11 +384,8 @@ const DTreasury = () => {
             }, e => { onErr(e); setSettingsLoaded(true); }));
         };
 
-        const offAuth = onAuthStateChanged(appAuth(), user => {
-            detach();
-            if (user) attach(); else { setLoading(false); setSettingsLoaded(true); }
-        });
-        return () => { offAuth(); detach(); };
+        attach();
+        return () => { detach(); };
     }, []);
 
     const showToast = useCallback((text: string, tone: 'good' | 'warn' | 'info') => {

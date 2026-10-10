@@ -2,7 +2,6 @@
 
 import { memo, useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ME } from "@/data/me";
 import { useTailor } from "@/lib/analytics/tailor";
@@ -255,10 +254,15 @@ export default function HeroSection() {
       </p>
 
       <div
-        className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.6s_forwards] flex-wrap gap-[10px] opacity-0"
+        className="mh-pills bottom-[5%] left-[4vw] z-[5] flex animate-[mh-fade_0.8s_ease_2.6s_forwards] flex-col items-start gap-[10px] opacity-0"
       >
-        <p className="w-full max-w-[32rem] rounded bg-bg-primary/90 px-3 py-2 font-heading text-sm leading-relaxed text-text-primary">I build SaaS MVPs, AI features and automation that turn business problems into working products.</p>
-        <Link href="/projects" className="inline-flex items-center rounded-full border border-border bg-bg-primary/90 px-5 py-3 font-heading text-sm text-text-primary focus-ring">View my work &rarr;</Link>
+        <GlassPill className="font-heading no-underline">
+          <i
+            aria-hidden="true"
+            className="h-2 w-2 animate-[mh-pl_1.8s_ease-in-out_infinite] rounded-full bg-accent-text shadow-[0_0_10px_var(--accent-ring)]"
+          />
+          {ME.location} <b suppressHydrationWarning className="font-medium text-text-secondary">{clock}</b>
+        </GlassPill>
         <GlassChip
           type="button"
           active
@@ -270,13 +274,6 @@ export default function HeroSection() {
         >
           Book a call &rarr;
         </GlassChip>
-        <GlassPill className="font-heading no-underline">
-          <i
-            aria-hidden="true"
-            className="h-2 w-2 animate-[mh-pl_1.8s_ease-in-out_infinite] rounded-full bg-accent-text shadow-[0_0_10px_var(--accent-ring)]"
-          />
-          {ME.location} <b suppressHydrationWarning className="font-medium text-text-secondary">{clock}</b>
-        </GlassPill>
       </div>
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
       {/* scroll cue — motion-safe, hides on reduced-motion via hero.css */}

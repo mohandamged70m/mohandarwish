@@ -128,7 +128,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (!isAdminRequest(req))
+  if (!(await isAdminRequest(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const rows = await convexQuery<Record<string, unknown>[]>(
     api.messages.list,

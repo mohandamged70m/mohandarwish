@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { convexQuery, convexMutation } from "@/lib/convex";
 import { isAdminRequest } from "@/lib/admin";
 export async function POST(req: Request) {
-  if (!isAdminRequest(req))
+  if (!(await isAdminRequest(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const b = await req.json().catch(() => null),
     a = b?.args;

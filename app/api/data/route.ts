@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { api } from "@/convex/_generated/api";
 import { convexQuery, convexMutation } from "@/lib/convex";
 import { isAdminRequest } from "@/lib/admin";
-import { sameOrigin } from "@/lib/session";
+import { sameOrigin } from "@/lib/request";
 import { isPublicPath, publicDocument } from "@/lib/public-docs";
 export async function POST(req: Request) {
   if (!sameOrigin(req))
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     op = b?.operation;
   if (!a || typeof a !== "object" || typeof op !== "string")
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  const owner = isAdminRequest(req);
+  const owner = await isAdminRequest(req);
   if (
     !owner &&
     !(op === "getDoc" && typeof a.path === "string" && isPublicPath(a.path)) &&

@@ -34,7 +34,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  if (!isAdminRequest(req)) {
+  if (!(await isAdminRequest(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = await req.json().catch(() => null) as { workingDays?: number[]; hours?: number[]; timezone?: string } | null;

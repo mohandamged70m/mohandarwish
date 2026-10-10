@@ -9,35 +9,50 @@ flow. Visitors continue to use contact and booking.
 | Variable                 | Next.js / Vercel                                  | Convex                     |
 | ------------------------ | ------------------------------------------------- | -------------------------- |
 | `NEXT_PUBLIC_CONVEX_URL` | Deployment URL                                    | —                          |
-| `ADMIN_TOKEN`            | Strong owner access key                           | —                          |
-| `SESSION_SECRET`         | Independent random secret, at least 32 characters | —                          |
+| `DASHBOARD_OWNER_EMAIL`  | The only Gmail allowed into `/dashboard`          | —                          |
+| `AUTH_SECRET`            | Random Auth.js session secret (≥32 chars)         | —                          |
+| `AUTH_GOOGLE_ID`         | Google OAuth client ID                            | —                          |
+| `AUTH_GOOGLE_SECRET`     | Google OAuth client secret                        | —                          |
+| `RATE_LIMIT_SECRET`      | Optional rate-limit key (falls back to `AUTH_SECRET`) | —                      |
 | `CONVEX_SERVER_KEY`      | Independent random secret                         | Identical server-key value |
 
-Generate strong independent secrets with a password manager. Configure the Convex
-server key in its deployment settings or `npx convex env set CONVEX_SERVER_KEY`.
-Do not commit credentials. Preserve existing email, calendar and other server
-environment variables. `.env.example` contains placeholders only.
+Generate `AUTH_SECRET` (and the optional `RATE_LIMIT_SECRET`) with `npx auth secret`
+or a password manager. Create the Google OAuth client in Google Cloud Console →
+APIs & Services → Credentials → OAuth client ID (Web application), registering
+these exact redirect URIs:
 
-All exported Convex functions now require the server key. Only Next.js passes it.
-Owner access uses a signed, 24-hour HttpOnly, SameSite Strict cookie, Secure in
-production. Legacy raw credential headers, query parameters and cookies are
-rejected; old browser storage is cleared on dashboard entry. Sign out to expire
-the current cookie. Rotating `SESSION_SECRET` expires all existing sessions.
+- `http://localhost:3000/api/auth/callback/google`
+- `https://<your-production-domain>/api/auth/callback/google`
+
+Configure the Convex server key in its deployment settings or
+`npx convex env set CONVEX_SERVER_KEY`. Do not commit credentials. Preserve
+existing email, calendar and other server environment variables. `.env.example`
+contains placeholders only.
+
+All exported Convex functions still require the server key. Only Next.js passes
+it. Owner access uses “Sign in with Google” (Auth.js): only the verified Gmail
+address in `DASHBOARD_OWNER_EMAIL` (compared case-insensitively, Google's
+verified-email claim required) may use `/dashboard` and the private APIs — every
+other Google account lands on an access-denied state, and every private page,
+API route, upload and dashboard operation re-checks ownership server-side.
+There is no `/portal`, client login or invitation flow. Sign out ends the Auth.js
+session; rotating `AUTH_SECRET` expires all sessions.
 
 ## Deployment order
 
 1. Use a separate Convex development/preview deployment and configure its server
    key. Run `npx convex dev` to validate schema and regenerate API declarations.
-2. Configure a Vercel preview with its matching URL and server key, plus owner and
-   session secrets. Deploy the updated Convex functions and test the preview.
+2. Configure a Vercel preview with its matching URL and server key, plus the owner
+   email, Auth.js secret and Google OAuth client. Deploy the updated Convex functions and test the preview.
 3. Run lint, typecheck, unit tests, production build and browser checks. In the
    preview, also verify an actual contact submission, owner sign-in, project
    save, upload and booked call using configured integrations.
 4. Schedule the production transition: update Convex and deploy the app together.
    The old app cannot call the new authenticated functions, so an uncoordinated
    deployment causes failed reads/writes. Keep writes paused during the switch.
-5. Confirm the private workspace returns 401 without an owner session and public
-   contact/booking save records before reporting success.
+5. Confirm the private workspace returns 401 without an owner session, a
+   non-owner Google account sees access-denied, and public contact/booking save
+   records before reporting success.
 
 The schema adds new tables and optional booking fields; existing public projects,
 messages and confirmed legacy bookings remain valid. The PR does not configure

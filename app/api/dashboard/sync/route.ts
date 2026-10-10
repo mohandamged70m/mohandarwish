@@ -36,7 +36,7 @@ type Message = {
 };
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await checkAuth(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const [bookingRows, messageRows, availRow] = await Promise.all([
     convexQuery<Record<string, unknown>[]>(api.bookings.list, {}),
     convexQuery<Record<string, unknown>[]>(api.messages.list, {}),
