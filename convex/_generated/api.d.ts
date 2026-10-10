@@ -8,14 +8,15 @@
  * @module
  */
 
-import type * as trails from "../trails.js";
-import type * as rateLimits from "../rateLimits.js";
+import type * as access from "../access.js";
 import type * as availability from "../availability.js";
 import type * as bookings from "../bookings.js";
 import type * as docs from "../docs.js";
 import type * as messages from "../messages.js";
 import type * as profile from "../profile.js";
+import type * as rateLimits from "../rateLimits.js";
 import type * as storage from "../storage.js";
+import type * as trails from "../trails.js";
 
 import type {
   ApiFromModules,
@@ -24,14 +25,15 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  trails: typeof trails;
-  rateLimits: typeof rateLimits;
+  access: typeof access;
   availability: typeof availability;
   bookings: typeof bookings;
   docs: typeof docs;
   messages: typeof messages;
   profile: typeof profile;
+  rateLimits: typeof rateLimits;
   storage: typeof storage;
+  trails: typeof trails;
 }>;
 
 /**
