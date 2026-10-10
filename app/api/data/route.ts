@@ -88,7 +88,11 @@ export async function POST(req: Request) {
       { data },
       { headers: { "Cache-Control": "no-store" } },
     );
-  } catch {
+  } catch (e) {
+    // Server-side only: lands in Vercel logs, never sent to the client.
+    // The client gets a generic 503; this line carries the actual cause
+    // (missing function, Unauthorized serverKey, Convex unreachable...).
+    console.error("[api/data]", op, e instanceof Error ? e.message : e);
     return NextResponse.json(
       { error: "Data request unavailable" },
       { status: 503 },

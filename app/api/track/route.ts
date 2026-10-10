@@ -130,8 +130,11 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "";
-    if (/Unauthorized/.test(msg))
+    if (/Unauthorized/.test(msg)) {
+      console.error("[api/track] backend unavailable:", msg);
       return NextResponse.json({ ok: false, terminal: false, reason: "unavailable" }, { status: 500 });
+    }
+    console.error("[api/track] applyFlush failed:", msg || e);
     return NextResponse.json({ ok: false, terminal: false, reason: "internal" }, { status: 500 });
   }
 }
