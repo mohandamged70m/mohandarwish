@@ -79,7 +79,7 @@ const SOURCE_KINDS: Record<string, { label: string; color: string }> = {
     direct: { label: 'Typed in', color: '#64748b' },
 };
 
-type StoryFilter = 'all' | 'live' | 'links' | 'contacted';
+type StoryFilter = 'all' | 'live' | 'links' | 'direct' | 'contacted';
 type TrailsView = 'stories' | 'overview' | 'links';
 
 
@@ -732,6 +732,7 @@ const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
     { id: 'all', label: 'Everyone' },
     { id: 'live', label: 'Reading now' },
     { id: 'links', label: 'From a link' },
+    { id: 'direct', label: 'Direct' },
     { id: 'contacted', label: 'Reached contact' },
 ];
 
@@ -916,6 +917,7 @@ const DTrails = () => {
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
             if (storyFilter === 'live' && !isLive(s)) return false;
             if (storyFilter === 'links' && !s.Link?.Id) return false;
+            if (storyFilter === 'direct' && s.Link?.Id) return false;
             if (storyFilter === 'contacted' && !(s.Contact?.Opens || s.Contact?.Sent)) return false;
             if (!needle) return true;
             return [
@@ -1038,11 +1040,14 @@ const DTrails = () => {
         });
     }, [dailySeries, chartFilter, windowWidth]);
 
-    // ── link actions ─────────────────────────────────────────────────────
     // All link/visit writes go through transactional server operations
     // (app/api/data -> convex/trails.ts): the server allocates collision-safe
     // ids/codes, matches visits by Link.DocId, reconciles every aggregate and
     // tombstones removed visits so delayed retries cannot recreate them.
+    // Failures surface the server's reason (notably 503 while the Convex
+    // deployment predates trails.*) instead of a generic message.
+    const failMsg = (e: unknown, fallback: string) =>
+        e instanceof Error && e.message ? `${fallback} (${e.message})` : fallback;
     const createLink = async () => {
         if (!name.trim() || !forField.trim()) return;
         setIsLoading(true);
@@ -1059,8 +1064,8 @@ const DTrails = () => {
             setName('');
             setForField('');
             showAlert({ type: 'success', message: 'Link ready. It emails you the moment it is opened.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not create that link.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not create that link.') });
         } finally {
             setIsLoading(false);
         }
@@ -1071,8 +1076,8 @@ const DTrails = () => {
             await dataCall('updateLink', { docId: id, patch });
             if (message) showAlert({ type: 'success', message });
             return true;
-        } catch {
-            showAlert({ type: 'error', message: 'Could not save that change.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not save that change.') });
             return false;
         }
     }, [showAlert]);
@@ -1098,8 +1103,8 @@ const DTrails = () => {
         try {
             await dataCall('deleteLink', { docId: id });
             showAlert({ type: 'success', message: 'Link removed. Its visits are still on record.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not remove that link.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not remove that link.') });
         }
     };
 
@@ -1112,8 +1117,8 @@ const DTrails = () => {
         try {
             const r = await dataCall<{ deleted: number }>('forgetLinkVisits', { docId: id });
             showAlert({ type: 'success', message: `Forgot ${r.deleted} visit${r.deleted === 1 ? '' : 's'}.` });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not clear those visits.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not clear those visits.') });
         } finally {
             setIsLoading(false);
         }
@@ -1127,8 +1132,8 @@ const DTrails = () => {
             setOpenStoryId(null);
             setPendingStory('');
             showAlert({ type: 'success', message: 'Visit deleted.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not delete that visit.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not delete that visit.') });
         }
     };
 
@@ -1163,15 +1168,15 @@ const DTrails = () => {
     };
 
     // Returning is what separates visits from unique browsers. Someone who
-    // opened the link three times is one browser and three visits. "People"
+    // opened the portfolio three times is one browser and three visits. "People"
     // would claim a verified identity the tracker never has: the link label
     // ("Who it is for") is an owner note, not proof of who visited.
-    // Every stored visit came through a share link (direct visits are never
-    // recorded), so lifetime visits and link-attributed visits are the same
-    // number — shown once, not twice.
+    // Every visit is recorded — link and direct alike — so lifetime visits and
+    // link-attributed visits differ again: shown as Visits and Via links.
     const counters = [
         { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#ef4444' },
         { label: 'Unique browsers', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
+        { label: 'Via links', value: totals?.LinkOpens ?? 0, icon: <Link2 size={18} />, tint: '#a855f7' },
         { label: 'Reached contact', value: totals?.Contacts ?? 0, icon: <Mail size={18} />, tint: '#ec4899' },
     ];
     const returning = totals?.Returning ?? 0;
@@ -1262,7 +1267,7 @@ const DTrails = () => {
                                     <div className="flex flex-col gap-1">
                                         <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Stories</h1>
                                         <p className="text-muted text-sm">
-                                            Latest 300 visits kept, newest first
+                                            Latest 300 visits kept, newest first — links and direct arrivals
                                             {updatedAt ? ` · updated ${new Date(updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : ''}
                                         </p>
                                     </div>

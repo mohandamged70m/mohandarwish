@@ -8,11 +8,15 @@ client accounts.
 
 ## What is (and is not) tracked
 
-**Share-link-only.** Nothing records until a Trails link code is known: from
-`/mohanddarwish/<code>`, from the `trails_link` sessionStorage backup the
-landing page stashed, or from a live `track("link")` handoff. Ordinary direct
-visits without an active, valid link attribution are **never stored**
-(`untracked`). The cost of a direct visit is the tracker doing nothing.
+**Every visit, in full detail.** Share-link recipients and direct arrivals
+alike get a complete story: sections, projects, outbound clicks, socials, CV,
+contact funnel, scroll, copies, prints, rage, performance, device, geo and
+attribution. A hello code that matches a link attributes the visit to it
+(greeting, pinned projects, open notification); a code that matches nothing
+is dropped and the visit continues as a direct one.
+
+Only the owner (server-verified Auth.js session), obvious bots, and local dev
+stay out: no init, no flush, no beacon for them.
 
 ## Definitions
 
@@ -54,9 +58,10 @@ visits without an active, valid link attribution are **never stored**
   recipient definitely visited.
 - Unknown referrer/geo stays **unknown**. A missing referrer does not prove
   someone typed the URL ("unknown origin", never "direct").
-- **Opens and Sessions are one number.** Every attributed open increments
-  both together, so the link card shows **visits** once. Lifetime totals are
-  labelled as such; stories are the latest 300 retained.
+- **Opens and Sessions differ again.** `Totals.Sessions` counts every visit;
+  `Totals.LinkOpens` counts link-attributed ones. On a single link card both
+  counters still move together per open, so the card shows **visits** once.
+  Lifetime totals are labelled as such; stories are the latest 300 retained.
 - **Project scores are heuristic** engagement weights
   (view×1, demo×4, repo×3, download×6) — not conversion probabilities.
 - Charts use **UTC days**; missing days are zero. Weekly/monthly ghost lines
@@ -82,7 +87,9 @@ resolve to one counted visit.
   per flush; keepalive bodies stay under ~55 KB by trimming oldest-first.
 
 Terminal responses (never retried): `bad-identity`, `bad-batch`, `expired`
-(410), `unknown-visit` (404), `deleted` (tombstoned), `bot`. Retryable
+(410), `unknown-visit` (404), `deleted` (tombstoned), `bot`. A hello code
+matching no link returns `linkDropped` with the visit kept as direct; the
+client clears the stale attribution and keeps recording. Retryable
 failures back off (1 s…30 s, 8 tries) with a bounded persisted outbox (5
 batches in sessionStorage). **After a browser forcibly terminates
 (`pagehide`/`beforeunload` keepalive), delivery is best-effort, not promised.**
@@ -118,6 +125,10 @@ batches in sessionStorage). **After a browser forcibly terminates
 - No PII is stored: paths carry no query strings, referrers are stripped to
   origin+path, copies count events without contents, form text and clipboard
   data are never recorded.
+- **Consent banner required.** Tracking every visitor with a persistent
+  browser id (`trails_vid` in localStorage) needs visitor consent in the EU
+  and similar regimes. Do not run all-traffic Trails in production without a
+  consent gate that keeps the tracker off until accepted.
 - Server-side abuse protection: per-IP rate limit (90 flushes/min), strict
   identity validation, payload/event caps, bot user-agent rejection. Client
   heuristics alone are not authoritative.

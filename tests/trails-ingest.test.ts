@@ -162,18 +162,39 @@ it("resolves simultaneous opens to a single counted visit", async () => {
   expect(totals.Sessions).toBe(1);
 });
 
-it("leaves direct visits untracked and rejects invalid/expired sessions terminally", async () => {
+it("records direct visits with full detail and no link", async () => {
   const t = convexTest(schema, modules);
   await seedLink(t);
   const direct: any = await t.mutation(
     api.trails.applyFlush,
     flush({ id: "direct01-abcdef12", batchId: "b-direct55", hello: hello("") }),
   );
-  expect(direct.status).toBe("untracked");
-  expect(
-    await t.query(api.docs.getDoc, { serverKey, path: "Analytics/Sessions/Items/direct01-abcdef12" }),
-  ).toBeNull();
+  expect(direct.status).toBe("applied");
+  expect(direct.tracked).toBe(true);
+  const s: any = await sessionOf(t, "direct01-abcdef12");
+  expect(s.Link).toBeNull();
+  expect(s.ActiveMs).toBe(800);
+  const totals: any = await t.query(api.docs.getDoc, { serverKey, path: "Analytics/Totals" });
+  expect(totals.Sessions).toBe(1);
+  expect(totals.LinkOpens || 0).toBe(0);
+});
 
+it("drops an invalid hello code and keeps the visit as direct", async () => {
+  const t = convexTest(schema, modules);
+  await seedLink(t);
+  const r: any = await t.mutation(
+    api.trails.applyFlush,
+    flush({ id: "stale01-abcdef12", batchId: "b-stale0001", hello: hello("DELETED1") }),
+  );
+  expect(r.status).toBe("applied");
+  expect(r.linkDropped).toBe(true);
+  const s: any = await sessionOf(t, "stale01-abcdef12");
+  expect(s.Link).toBeNull();
+});
+
+it("rejects invalid/expired sessions terminally", async () => {
+  const t = convexTest(schema, modules);
+  await seedLink(t);
   const bad: any = await t.mutation(api.trails.applyFlush, flush({ id: "!!!", batchId: "b-bad66666" }));
   expect(bad.status).toBe("terminal");
 
