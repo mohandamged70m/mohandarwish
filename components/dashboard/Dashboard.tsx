@@ -16,9 +16,7 @@ const DDeveloper = dynamic(() => import("./D-Developer"), { loading: () => <p cl
 const DTreasury = dynamic(() => import("./D-Treasury"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 const Assistant = dynamic(() => import("./Assistant"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 import { doc, onSnapshot } from '@/lib/dash-db';
-import { onAuthStateChanged } from '@/lib/dash-auth';
 import { db } from '@/lib/dash-db';
-import { appAuth } from '@/lib/dash-auth';
 
 const DWorkspace = dynamic(() => import("./D-Workspace"), { loading: () => <p className="p-6" role="status">Loading private workspace…</p> });
 
@@ -50,15 +48,10 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     const isSmall = windowWidth < 640;        // 400px - 639px
     const isMobile = windowWidth < 768;       // 640px - 767px
 
-    // Auth gate: the dashboard is admin-only. If there's no signed-in user (e.g.
-    // it was restored on refresh without a session), bounce home so we never fire
-    // admin-only reads/writes that Firestore would reject with permission-denied.
-    useEffect(() => {
-        const off = onAuthStateChanged(appAuth(), (user) => {
-            if (!user) onNavigate?.('home');
-        });
-        return () => off();
-    }, [onNavigate]);
+    // Auth gate: the server dashboard page only renders this component for the
+    // verified owner session, so unauthenticated gateway reads/writes cannot
+    // happen from here. If the session expires mid-visit the gateway returns
+    // 401 and the snapshot error handlers surface it.
 
     useEffect(() => {
         const unsub = onSnapshot(doc(db, 'Settings', 'Account'), (docSnap) => {

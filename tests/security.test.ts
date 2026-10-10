@@ -1,15 +1,35 @@
-import { beforeEach, expect, it } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { convexTest } from "convex-test";
 import schema from "../convex/schema";
 import { api } from "../convex/_generated/api";
-import { signSession, readSession } from "../lib/session";
+import { isOwnerEmail, isOwnerSession, normalizeEmail } from "../lib/owner";
 import { isAdminRequest } from "../lib/admin";
+import { allowRequest } from "../lib/rate-limit";
+import { createHmac } from "node:crypto";
 import { publicDocument } from "../lib/public-docs";
+const { ownerSession, consumeKey } = vi.hoisted(() => ({
+  ownerSession: { value: null as unknown },
+  consumeKey: vi.fn(),
+}));
+vi.mock("@/auth", () => ({
+  auth: () => Promise.resolve(ownerSession.value),
+}));
+// server-only throws outside React Server Components; tests run in Node.
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/convex", () => ({
+  convexMutation: (...args: unknown[]) => consumeKey(...args),
+  convexQuery: () => Promise.resolve(null),
+}));
 const modules = import.meta.glob("../convex/**/*.ts");
 const serverKey = "test-key";
+const ownerEmail = "owner@example.com";
 beforeEach(() => {
   process.env.CONVEX_SERVER_KEY = serverKey;
-  process.env.SESSION_SECRET = "s".repeat(64);
+  process.env.DASHBOARD_OWNER_EMAIL = ownerEmail;
+  delete process.env.AUTH_SECRET;
+  delete process.env.RATE_LIMIT_SECRET;
+  ownerSession.value = null;
+  consumeKey.mockReset();
 });
 it("rejects direct reads, writes, uploads, and private workspace access without the server key", async () => {
   const t = convexTest(schema, modules);
@@ -45,32 +65,67 @@ it("does not persist server keys", async () => {
     "serverKey",
   );
 });
-it("rejects modified, expired and cross-origin sessions and legacy URL tokens", () => {
-  const token = signSession({ role: "owner", exp: Date.now() + 60000 });
-  expect(readSession(token)?.role).toBe("owner");
-  expect(readSession(token + "x")).toBeNull();
-  expect(readSession(signSession({ role: "owner", exp: 1 }))).toBeNull();
+it("only the verified owner Gmail passes the email check", () => {
+  expect(normalizeEmail("  Owner@Example.COM ")).toBe(ownerEmail);
+  expect(isOwnerEmail("owner@example.com", true)).toBe(true);
+  expect(isOwnerEmail("OWNER@EXAMPLE.COM", true)).toBe(true);
+  expect(isOwnerEmail("owner@example.com", false)).toBe(false);
+  expect(isOwnerEmail("owner@example.com")).toBe(false);
+  expect(isOwnerEmail("stranger@example.com", true)).toBe(false);
+  expect(isOwnerEmail("owner@example.com.evil.com", true)).toBe(false);
+  expect(isOwnerEmail("", true)).toBe(false);
+  expect(isOwnerEmail(null, true)).toBe(false);
+  delete process.env.DASHBOARD_OWNER_EMAIL;
+  expect(isOwnerEmail("owner@example.com", true)).toBe(false);
+  process.env.DASHBOARD_OWNER_EMAIL = ownerEmail;
+});
+it("accepts only owner sessions and rejects legacy credential markers", async () => {
+  const owner = () =>
+    new Request("https://site.example/api/dashboard/workspace");
+  ownerSession.value = {
+    user: { email: "owner@example.com", isOwner: true },
+  };
+  expect(await isAdminRequest(owner())).toBe(true);
+  // Another Google account (or a tampered flag) is denied.
+  ownerSession.value = { user: { email: "stranger@example.com", isOwner: true } };
+  expect(await isAdminRequest(owner())).toBe(false);
+  ownerSession.value = { user: { email: "owner@example.com" } };
+  expect(await isAdminRequest(owner())).toBe(false);
+  // Unauthenticated and expired sessions fail closed.
+  ownerSession.value = null;
+  expect(await isAdminRequest(owner())).toBe(false);
+  // Cross-origin writes are rejected even with an owner session.
+  ownerSession.value = {
+    user: { email: "owner@example.com", isOwner: true },
+  };
   expect(
-    isAdminRequest(
+    await isAdminRequest(
       new Request("https://site.example/api/dashboard", {
         method: "POST",
         headers: {
-          cookie: `owner_session=${token}`,
+          cookie: "authjs.session-token=present",
           origin: "https://evil.example",
         },
       }),
     ),
   ).toBe(false);
+  // Legacy access-key markers no longer grant anything on their own.
+  ownerSession.value = null;
   expect(
-    isAdminRequest(
+    await isAdminRequest(
       new Request("https://site.example/api/dashboard?admin=secret", {
         headers: {
           "x-admin-token": "secret",
-          cookie: "dashboard_token=secret",
+          cookie: "dashboard_token=secret; owner_session=secret",
         },
       }),
     ),
   ).toBe(false);
+  expect(
+    isOwnerSession({ user: { email: "owner@example.com", isOwner: true } }),
+  ).toBe(true);
+  expect(isOwnerSession({ user: { email: "owner@example.com" } })).toBe(false);
+  expect(isOwnerSession(null)).toBe(false);
 });
 it("projects only public document fields", () => {
   expect(publicDocument("Settings/MCP", { apiKey: "secret" })).toBeNull();
@@ -104,6 +159,42 @@ it("reserves one slot atomically and rejects an overlapping custom time", async 
   await expect(
     t.mutation(api.bookings.create, { ...body, time: "09:30 AM" }),
   ).rejects.toThrow("SLOT_TAKEN");
+});
+it("rate-limits with a server-only secret and fails closed without one", async () => {
+  const visitor = () =>
+    new Request("https://site.example/api/contact", {
+      method: "POST",
+      headers: { "x-forwarded-for": "1.2.3.4" },
+    });
+  delete process.env.RATE_LIMIT_SECRET;
+  delete process.env.AUTH_SECRET;
+  await expect(allowRequest(visitor(), "contact")).rejects.toThrow(
+    /Rate limiting/,
+  );
+  expect(consumeKey).not.toHaveBeenCalled();
+  process.env.AUTH_SECRET = "a".repeat(32);
+  consumeKey.mockResolvedValue(true);
+  await expect(allowRequest(visitor(), "contact")).resolves.toBe(true);
+  expect(consumeKey).toHaveBeenLastCalledWith(
+    expect.anything(),
+    expect.objectContaining({
+      key: createHmac("sha256", "a".repeat(32))
+        .update("contact:1.2.3.4")
+        .digest("hex"),
+    }),
+  );
+  process.env.RATE_LIMIT_SECRET = "r".repeat(32);
+  await expect(allowRequest(visitor(), "contact")).resolves.toBe(true);
+  expect(consumeKey).toHaveBeenLastCalledWith(
+    expect.anything(),
+    expect.objectContaining({
+      key: createHmac("sha256", "r".repeat(32))
+        .update("contact:1.2.3.4")
+        .digest("hex"),
+    }),
+  );
+  delete process.env.RATE_LIMIT_SECRET;
+  delete process.env.AUTH_SECRET;
 });
 it("rate-limits visitors independently", async () => {
   const t = convexTest(schema, modules);

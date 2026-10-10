@@ -24,7 +24,7 @@ function defaultModel(prov: Provider): string {
 }
 
 export async function GET(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await checkAuth(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const prov = serverProvider();
   const url = new URL(req.url);
   if (url.searchParams.get("action") === "models") {
@@ -62,7 +62,7 @@ type Body = {
 };
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await checkAuth(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const prov = serverProvider();
   const key = process.env.LLM_API_KEY;
   if (!prov || !key) {

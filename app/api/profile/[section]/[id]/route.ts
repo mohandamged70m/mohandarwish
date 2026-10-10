@@ -42,7 +42,7 @@ function snakePatchToConvex(body: Record<string, unknown>): Record<string, unkno
 export async function PATCH(req: Request, ctx: { params: Promise<{ section: string; id: string }> }) {
   const { section: s, id } = await ctx.params;
   if (!(s in TABLES)) return NextResponse.json({ error: "Unknown section" }, { status: 404 });
-  if (!isAdminRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await parseJsonBody<Record<string, unknown>>(req);
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   const section = s as Section;
@@ -57,7 +57,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ section: stri
 export async function DELETE(req: Request, ctx: { params: Promise<{ section: string; id: string }> }) {
   const { section: s, id } = await ctx.params;
   if (!(s in TABLES)) return NextResponse.json({ error: "Unknown section" }, { status: 404 });
-  if (!isAdminRequest(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await isAdminRequest(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   await convexMutation(api.profile.remove, { table: TABLES[s as Section], id });
   return NextResponse.json({ ok: true });
 }

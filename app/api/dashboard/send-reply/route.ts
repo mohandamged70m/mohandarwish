@@ -10,7 +10,7 @@ import { getResendFrom } from "@/lib/resend";
 const checkAuth = isAdminRequest;
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await checkAuth(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => null)) as {
     to?: string;
     subject?: string;

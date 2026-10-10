@@ -49,7 +49,9 @@ test("personal portfolio exposes no portal and rejects unauthenticated workspace
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
   await expect(page.getByRole("button", { name: /Book a call/ })).toBeVisible();
-  await expect(page.getByText("Alexandria, Egypt")).toBeVisible();
+  // Location pill renders once visibly (animated/duplicate nodes exist for the
+  // hero effect), so assert on the first match instead of strict single-match.
+  await expect(page.getByText("Alexandria, Egypt").first()).toBeVisible();
   expect(await page.locator('a[href^="/portal"]').count()).toBe(0);
   await expect(page.locator(".mh-pills")).toHaveCSS("opacity", "1");
   const hero = page.getByRole("region", { name: "Introduction" });

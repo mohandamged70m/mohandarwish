@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 const checkAuth = isAdminRequest;
 
 export async function POST(req: Request) {
-  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await checkAuth(req))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body?.action) return NextResponse.json({ error: "action required" }, { status: 400 });
 

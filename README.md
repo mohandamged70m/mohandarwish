@@ -41,7 +41,7 @@ Personal portfolio with a private workspace for managing content and client work
 - **Project showcase CMS-driven** — projects, tags (with color + icon), contributors (with socials), images/videos all edited in the dashboard, mapped via `data/projects.ts` (`mapDashboardDocToProject`)
 - **Booking flow** — `BookButton` → `BookingModal` → custom time picker → `POST /api/booking` → availability check → Resend receipt to visitor + notification to owner → sync to dashboard
 - **Contact flow** — `POST /api/contact` with sanitization (`lib/sanitize.ts`), rate-limit friendly, stored in Convex, emailed via Resend (`lib/email.ts`, `lib/replyEmail.ts`, `lib/receipt.ts`)
-- **Dashboard CMS** — signed owner session (`lib/session.ts`, `lib/dash-auth.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
+- **Dashboard CMS** — Auth.js Google sign-in restricted to the owner Gmail (`auth.ts`, `lib/owner.ts`, `lib/admin.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
 - **Theming** — `next-themes` dark (default, black `#0A0A0A` + wine/mahogany) / light (warm paper `#FAF6F0`), AA-checked contrast, theme-aware hero images
 - **Motion** — GSAP + Motion + Lenis smooth scroll, section pager (`components/transitions`), portrait morph, tab pill, scroll reveals; `prefers-reduced-motion` respected
 - **SEO** — dynamic metadata (`lib/metadata.ts`), OG images, `sitemap.ts` (includes Convex projects), `robots.ts`, semantic HTML
@@ -119,21 +119,34 @@ Create `.env.local` (never commit it):
 NEXT_PUBLIC_CONVEX_URL=...
 RESEND_API_KEY=...
 OWNER_EMAIL=...
-ADMIN_TOKEN=...
-SESSION_SECRET=...
+DASHBOARD_OWNER_EMAIL=...
+AUTH_SECRET=...
+AUTH_GOOGLE_ID=...
+AUTH_GOOGLE_SECRET=...
 CONVEX_SERVER_KEY=...
 ```
 
-| Var | Used for |
-|---|---|
-| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL; requests go through Next.js gateways |
-| `RESEND_API_KEY` | Contact/booking/reply emails (`lib/resend.ts`) |
-| `OWNER_EMAIL` | Booking/contact notification recipient |
-| `ADMIN_TOKEN` | Owner credential exchanged for a 24-hour signed session; never persisted in browser storage |
-| `SESSION_SECRET` | Server-only random secret (at least 32 characters) for owner sessions and rate-limit keys |
-| `CONVEX_SERVER_KEY` | Server-only secret, identical in Next.js and Convex deployment environments |
-| `MEETING_SYNC_URL` | Optional Apps Script calendar integration |
-| `RESEND_FROM` | Verified email sender |
+| Var | Used for | Where it comes from |
+|---|---|---|
+| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL; requests go through Next.js gateways | Convex dashboard → Settings → URL |
+| `RESEND_API_KEY` | Contact/booking/reply emails (`lib/resend.ts`) | Resend dashboard → API keys |
+| `OWNER_EMAIL` | Booking/contact notification recipient | Your inbox address |
+| `DASHBOARD_OWNER_EMAIL` | The ONLY Gmail allowed into `/dashboard` (case-insensitive, verified claim required) | Your Gmail address |
+| `AUTH_SECRET` | Encrypts Auth.js sessions (≥32 chars); rotating signs everyone out | Generated: `npx auth secret` |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | Google OAuth client for “Sign in with Google” | Google Cloud Console → APIs & Services → Credentials → OAuth client ID (Web application) |
+| `RATE_LIMIT_SECRET` | Optional; hashes visitor addresses for rate limits (falls back to `AUTH_SECRET`) | Generated like `AUTH_SECRET` |
+| `CONVEX_SERVER_KEY` | Server-only secret, identical in Next.js and Convex deployment environments | Generated; `npx convex env set CONVEX_SERVER_KEY` |
+| `MEETING_SYNC_URL` | Optional Apps Script calendar integration | Your Apps Script deployment URL |
+| `RESEND_FROM` | Verified email sender | Your verified Resend domain |
+
+### Google OAuth setup (one-time, in your Google Cloud project)
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials → Create Credentials → OAuth client ID → Application type **Web application**.
+2. Under **Authorized redirect URIs** add exactly:
+   - `http://localhost:3000/api/auth/callback/google` (local dev)
+   - `https://<your-production-domain>/api/auth/callback/google` (e.g. `https://mohanddarwish.vercel.app/api/auth/callback/google`)
+3. Copy the Client ID → `AUTH_GOOGLE_ID` and Client secret → `AUTH_GOOGLE_SECRET` in `.env.local` (local) and Vercel Project Settings → Environment Variables (Preview + Production).
+4. Set `DASHBOARD_OWNER_EMAIL` to your Gmail and `AUTH_SECRET` to `npx auth secret` output in the same places. Never commit real values — `.env.example` holds placeholders only.
 
 Copy `.env.example` and read [OWNER_WORKSPACE.md](./OWNER_WORKSPACE.md) before deploying.
 

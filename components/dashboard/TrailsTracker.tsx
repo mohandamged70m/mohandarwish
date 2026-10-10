@@ -41,12 +41,41 @@ interface PendingLink {
   For: string;
 }
 
-/** Owner's own coding/testing never records — only real recipients of a link. */
-function isOwner(): boolean {
+/** Owner's own coding/testing never records — only real recipients of a link.
+ * The owner holds an Auth.js session cookie; when one is present the session is
+ * checked once (cached for the visit) and recording stays off for the owner. */
+let ownerCheck: Promise<boolean> | null = null;
+function isOwnerSessionCookie(): boolean {
   try {
-    if (localStorage.getItem("owner_signed_in")) return true;
-    if (new URLSearchParams(window.location.search).get("admin")) return true;
-    if (/^(localhost|127\.|192\.168\.|10\.)/.test(window.location.hostname)) return true;
+    return /(?:^|;\s*)(?:__Secure-)?authjs\.session-token=/.test(
+      document.cookie,
+    );
+  } catch {
+    return false;
+  }
+}
+function checkOwner(): Promise<boolean> {
+  if (!ownerCheck) {
+    ownerCheck = (async () => {
+      try {
+        if (!isOwnerSessionCookie()) return false;
+        const r = await fetch("/api/auth/session", { cache: "no-store" });
+        if (!r.ok) return false;
+        const b = (await r.json().catch(() => null)) as {
+          user?: { isOwner?: boolean };
+        } | null;
+        return b?.user?.isOwner === true;
+      } catch {
+        return false;
+      }
+    })();
+  }
+  return ownerCheck;
+}
+function isOwnerSync(): boolean {
+  try {
+    if (/^(localhost|127\.|192\.168\.|10\.)/.test(window.location.hostname))
+      return true;
   } catch {
     /* ignore */
   }
@@ -111,20 +140,27 @@ export function TrailsTracker(): null {
       // Everything below this point only exists once a link code is known, so a
       // direct visit attaches no observers and holds no timers at all.
       const begin = (link: PendingLink) => {
-        if (live || dead || !link.Id || isOwner()) return;
-        live = true;
-        analytics.start({
-          section: sectionNow(curPath),
-          code: link.Id,
-          isOwner,
-          onTailor: (tailor, resolved) => {
-            const full: Tailor = { ...tailor, LinkName: link.Name, LinkFor: link.For };
-            stashTailor(tailor, { Name: link.Name, For: link.For });
-            announceTailor(full);
-            void resolved;
-          },
+        if (live || dead || !link.Id || isOwnerSync()) return;
+        // Owner check needs the Auth.js session endpoint; resolve it before
+        // recording anything so the owner's own visits never start the collector.
+        void checkOwner().then((owned) => {
+          if (live || dead || owned) return;
+          live = true;
+          analytics.start({
+            section: sectionNow(curPath),
+            code: link.Id,
+            // Ownership was already resolved above; recording only starts for
+            // non-owners, so the collector's owner flag stays off.
+            isOwner: () => false,
+            onTailor: (tailor, resolved) => {
+              const full: Tailor = { ...tailor, LinkName: link.Name, LinkFor: link.For };
+              stashTailor(tailor, { Name: link.Name, For: link.For });
+              announceTailor(full);
+              void resolved;
+            },
+          });
+          observeSections();
         });
-        observeSections();
       };
 
       // ── manual API for components ──────────────────────────────────

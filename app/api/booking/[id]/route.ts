@@ -10,7 +10,7 @@ export async function DELETE(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  if (!checkAuth(req))
+  if (!(await checkAuth(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
   const booking = toBooking(
@@ -40,7 +40,7 @@ export async function PATCH(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  if (!checkAuth(req))
+  if (!(await checkAuth(req)))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as {

@@ -261,7 +261,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  if (!isAdminRequest(req)) {
+  if (!(await isAdminRequest(req))) {
     // public not allowed to list PII
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
