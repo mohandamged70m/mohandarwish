@@ -5,14 +5,10 @@ import { usePathname } from "next/navigation";
 import { analytics } from "@/lib/analytics/collect";
 import { announceTailor, clearTailor, stashTailor, type Tailor } from "@/lib/analytics/tailor";
 
-// Global Trails tracker: LINK-ONLY — one live visit per share-link recipient.
-//
-// Nothing records until a Trails link code is known: from the URL
-// (/mohanddarwish/<code>), from the sessionStorage backup the landing page stashed
-// (a refresh on `/` after the redirect, where the URL no longer carries it), or from
-// a live track("link") handoff. Direct visits never start: no init, no flush, no
-// beacon, and no listeners either — the cost of a direct visit is this file doing
-// nothing.
+// Global Trails tracker: every visit is recorded — share-link recipients and
+// direct arrivals alike — with the full story (sections, projects, socials,
+// CV, contact funnel, scroll, rage, perf). Owner visits and bots never start:
+// no init, no flush, no beacon for them.
 //
 // All the buffering, numbering and retry logic lives in lib/analytics/collect.ts. This
 // file is only the bridge: it decides *which* section is on screen, and turns the
@@ -154,28 +150,35 @@ export function TrailsTracker(): null {
       };
 
       // ── waking up ──────────────────────────────────────────────────
-      // Everything below this point only exists once a link code is known, so a
-      // direct visit attaches no observers and holds no timers at all.
-      const begin = (link: PendingLink) => {
-        if (live || dead || !link.Id || isLocalDev()) return;
+      // Every visit starts the collector: with a link code when one is
+      // known (URL, stashed backup, or live handoff), or as a direct visit
+      // otherwise. Only the owner and local dev stay out.
+      const begin = (link: PendingLink | null) => {
+        if (live || dead || isLocalDev()) return;
         // Owner check hits the session endpoint; resolve it before
         // recording anything so the owner's own visits never start the collector.
         // The server re-resolves ownership authoritatively per flush, so a
-        // spoofed client hint can never pollute recipient metrics.
+        // spoofed client hint can never pollute visitor metrics.
         void checkOwner().then((owned) => {
           if (live || dead || owned) return;
           live = true;
           analytics.start({
             section: sectionNow(curPath),
-            code: link.Id,
+            ...(link?.Id ? { code: link.Id } : {}),
             isOwner: () => false,
             onTailor: (tailor, resolved) => {
-              const full: Tailor = { ...tailor, LinkName: link.Name, LinkFor: link.For };
-              stashTailor(tailor, { Name: link.Name, For: link.For });
+              const full: Tailor = { ...tailor, LinkName: link?.Name || "", LinkFor: link?.For || "" };
+              stashTailor(tailor, { Name: link?.Name || "", For: link?.For || "" });
               announceTailor(full);
               void resolved;
             },
           });
+          // A direct visit is not a tailored one: scrub any greeting left
+          // over from a previous link in the same tab.
+          if (!link?.Id) {
+            clearTailor();
+            announceTailor(null);
+          }
           observeSections();
         });
       };
@@ -188,8 +191,9 @@ export function TrailsTracker(): null {
         track: (kind: string, value?: string) => {
           try {
             if (kind === "link" && value) {
-              // Share-link attribution (landing page handoff). This is also the
-              // wake-up call for a visit that started dormant.
+              // Share-link attribution (landing page handoff). If the tab is
+              // already recording a direct visit (or another link), restart
+              // under the new code so attribution is never inherited.
               const link = parseLink(value);
               if (link) {
                 try {
@@ -198,7 +202,8 @@ export function TrailsTracker(): null {
                 } catch {
                   /* ignore */
                 }
-                begin(link);
+                if (live) analytics.restartWithCode(link.Id, sectionNow(curPath));
+                else begin(link);
               }
               return;
             }
@@ -369,22 +374,11 @@ export function TrailsTracker(): null {
         } catch {
           /* ignore */
         }
-      }
-      if (!live) {
+      } else {
         const stored = readStoredLink();
-        if (stored) begin(stored);
-      }
-
-      // A visit with no link is not a tailored visit, and must be scrubbed of the
-      // last one. Tailoring lives in sessionStorage, which belongs to the TAB rather
-      // than the page, so it outlives the link that set it: open a share link and then
-      // type the bare domain in the same tab and the greeting meant for someone else
-      // was still there, addressing you by their name. Clearing the store is not
-      // enough on its own - anything already mounted has read it - so the empty
-      // tailoring is announced the same way a real one would be.
-      if (!live) {
-        clearTailor();
-        announceTailor(null);
+        // A share link if one is stashed, otherwise a plain direct visit.
+        // Either way the visit is recorded; only the attribution differs.
+        begin(stored);
       }
 
       return () => {

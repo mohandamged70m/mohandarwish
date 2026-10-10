@@ -352,6 +352,10 @@ export const applyFlush = mutation({
       if (Object.keys(tomb).length)
         return { status: "terminal", reason: "deleted", tracked: false as const, hello: true as const };
     }
+    // Every visitor is recorded — link holders and direct arrivals alike.
+    // A hello code that matches no link (deleted/invalid) is dropped and the
+    // visit continues as a direct one; the client is told to clear the stale
+    // attribution so the tab cannot inherit a previous link's greeting.
     let linkRow: {
       docId: string;
       path: string;
@@ -361,6 +365,7 @@ export const applyFlush = mutation({
       Notify: boolean;
       Tailor: { AutoCv: boolean; Greeting: string; Pinned: string[] };
     } | null = null;
+    let linkDropped = false;
     if (!hasSession && hello) {
       const code = str(hello.code, 40);
       if (CODE_RE.test(code)) {
@@ -399,11 +404,11 @@ export const applyFlush = mutation({
             Notify: d.Notify !== false,
             Tailor: readTailor(d.Tailor),
           };
+        } else {
+          // Code carried but no such link: drop it, track as direct.
+          linkDropped = true;
         }
       }
-      // No valid link: share-link-only tracking stays untracked.
-      if (!linkRow)
-        return { status: "untracked", tracked: false as const, hello: true as const };
     }
 
     const owner = args.owner === true;
@@ -767,6 +772,7 @@ export const applyFlush = mutation({
       tracked: true as const,
       hello: true as const,
       seq,
+      ...(linkDropped ? { linkDropped: true as const } : {}),
       ...(linkRow
         ? {
             tailor: linkRow.Tailor,

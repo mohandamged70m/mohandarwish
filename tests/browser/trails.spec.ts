@@ -11,7 +11,7 @@ test("unknown share codes fall back honestly", async ({ page, request }) => {
   await expect(page.getByRole("link", { name: "Back to the portfolio" })).toBeVisible();
 });
 
-test("track rejects bad identities terminally and leaves codeless visits untracked", async ({
+test("track rejects bad identities terminally and records codeless visits", async ({
   request,
 }) => {
   const bad = await request.post("/api/track", {
@@ -47,6 +47,7 @@ test("track rejects bad identities terminally and leaves codeless visits untrack
   });
   expect(codeless.ok()).toBe(true);
   const body = await codeless.json();
-  expect(body.tracked).toBe(false);
+  // Direct visits are recorded with full detail and no link.
+  expect(body.tracked).toBe(true);
   expect(body.hello).toBe(true);
 });

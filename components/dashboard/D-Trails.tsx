@@ -79,7 +79,7 @@ const SOURCE_KINDS: Record<string, { label: string; color: string }> = {
     direct: { label: 'Typed in', color: '#64748b' },
 };
 
-type StoryFilter = 'all' | 'live' | 'links' | 'contacted';
+type StoryFilter = 'all' | 'live' | 'links' | 'direct' | 'contacted';
 type TrailsView = 'stories' | 'overview' | 'links';
 
 
@@ -732,6 +732,7 @@ const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
     { id: 'all', label: 'Everyone' },
     { id: 'live', label: 'Reading now' },
     { id: 'links', label: 'From a link' },
+    { id: 'direct', label: 'Direct' },
     { id: 'contacted', label: 'Reached contact' },
 ];
 
@@ -916,6 +917,7 @@ const DTrails = () => {
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
             if (storyFilter === 'live' && !isLive(s)) return false;
             if (storyFilter === 'links' && !s.Link?.Id) return false;
+            if (storyFilter === 'direct' && s.Link?.Id) return false;
             if (storyFilter === 'contacted' && !(s.Contact?.Opens || s.Contact?.Sent)) return false;
             if (!needle) return true;
             return [
@@ -1163,15 +1165,15 @@ const DTrails = () => {
     };
 
     // Returning is what separates visits from unique browsers. Someone who
-    // opened the link three times is one browser and three visits. "People"
+    // opened the portfolio three times is one browser and three visits. "People"
     // would claim a verified identity the tracker never has: the link label
     // ("Who it is for") is an owner note, not proof of who visited.
-    // Every stored visit came through a share link (direct visits are never
-    // recorded), so lifetime visits and link-attributed visits are the same
-    // number — shown once, not twice.
+    // Every visit is recorded — link and direct alike — so lifetime visits and
+    // link-attributed visits differ again: shown as Visits and Via links.
     const counters = [
         { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#ef4444' },
         { label: 'Unique browsers', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
+        { label: 'Via links', value: totals?.LinkOpens ?? 0, icon: <Link2 size={18} />, tint: '#a855f7' },
         { label: 'Reached contact', value: totals?.Contacts ?? 0, icon: <Mail size={18} />, tint: '#ec4899' },
     ];
     const returning = totals?.Returning ?? 0;
@@ -1262,7 +1264,7 @@ const DTrails = () => {
                                     <div className="flex flex-col gap-1">
                                         <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Stories</h1>
                                         <p className="text-muted text-sm">
-                                            Latest 300 visits kept, newest first
+                                            Latest 300 visits kept, newest first — links and direct arrivals
                                             {updatedAt ? ` · updated ${new Date(updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : ''}
                                         </p>
                                     </div>

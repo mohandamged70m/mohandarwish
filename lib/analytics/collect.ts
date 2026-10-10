@@ -522,6 +522,65 @@ class Collector {
     await this.drain();
   }
 
+  /**
+   * Open a new visit under a different share-link code in the same tab
+   * (direct visit -> share link, or link A -> link B). The previous visit is
+   * ended honestly via beacon, then a fresh visit starts: a new code never
+   * inherits the old session, its greeting, or its events.
+   */
+  restartWithCode(code: string, section: string): void {
+    const clean = (code || "").slice(0, 120);
+    if (!this.started || this.terminal) {
+      if (!this.started) this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
+      return;
+    }
+    if (!clean || clean === this.code) return;
+    try {
+      const body = JSON.stringify({
+        v: 2,
+        id: this.sessionId,
+        seq: this.seq + 1,
+        batchId: batchIdOf(),
+        visitor: this.visitorId,
+        visit: this.visit,
+        end: true,
+        add: {},
+        set: { exitSection: this.section },
+        events: [],
+      });
+      navigator.sendBeacon?.(ENDPOINT, body);
+    } catch {
+      /* best effort */
+    }
+    this.detach();
+    this.started = false;
+    this.stopped = false;
+    this.buf = emptyBuffer();
+    this.queue = [];
+    this.seq = 0;
+    this.dirty = false;
+    this.sessionId = "";
+    this.section = "home";
+    this.scrollMax = {};
+    this.scrollSent = {};
+    this.openProject = null;
+    this.openProjectAt = 0;
+    this.awaySocial = null;
+    this.contactTab = "";
+    this.contactSent = "";
+    this.perf = null;
+    this.helloAcked = false;
+    this.hello = null;
+    safeSession.remove(SID_KEY);
+    safeSession.remove(SID_START_KEY);
+    safeSession.remove(SID_ACTIVE_KEY);
+    safeSession.remove(SEQ_KEY);
+    safeSession.remove(HELLO_KEY);
+    safeSession.remove(ENDED_KEY);
+    safeSession.remove(QUEUE_KEY);
+    this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
+  }
+
   // ── internals ────────────────────────────────────────────────────────
   private project(id: string): ProjectDelta {
     const key = id.slice(0, 80);
@@ -937,21 +996,19 @@ class Collector {
     }
 
     if (res.ok && data && (data as Dict).ok === true) {
-      // Share-link-only tracking: the server found no valid link for this
-      // visit (deleted/invalid code). Clear the stale attribution so the tab
-      // cannot inherit a previous link's greeting or events, then stop.
-      if ((data as Dict).status === "untracked") {
+      // The hello code matched no link (deleted/invalid): the visit is kept
+      // as a direct one. Clear the stale attribution so the tab cannot
+      // inherit a previous link's greeting or events, and keep recording.
+      if ((data as Dict).linkDropped === true) {
         try {
           sessionStorage.removeItem(LINK_KEY);
           sessionStorage.removeItem(LINK_AT_KEY);
-          sessionStorage.removeItem("trails_tailor");
           sessionStorage.removeItem("trails_entry");
+          sessionStorage.removeItem("trails_tailor");
           window.dispatchEvent(new CustomEvent("trails:tailor", { detail: null }));
         } catch {
           /* ignore */
         }
-        this.terminal = true;
-        return true;
       }
       if ((data as Dict).hello === true && (batch.body as Dict).hello) {
         this.helloAcked = true;
