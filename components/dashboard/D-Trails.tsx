@@ -1040,11 +1040,14 @@ const DTrails = () => {
         });
     }, [dailySeries, chartFilter, windowWidth]);
 
-    // ── link actions ─────────────────────────────────────────────────────
     // All link/visit writes go through transactional server operations
     // (app/api/data -> convex/trails.ts): the server allocates collision-safe
     // ids/codes, matches visits by Link.DocId, reconciles every aggregate and
     // tombstones removed visits so delayed retries cannot recreate them.
+    // Failures surface the server's reason (notably 503 while the Convex
+    // deployment predates trails.*) instead of a generic message.
+    const failMsg = (e: unknown, fallback: string) =>
+        e instanceof Error && e.message ? `${fallback} (${e.message})` : fallback;
     const createLink = async () => {
         if (!name.trim() || !forField.trim()) return;
         setIsLoading(true);
@@ -1061,8 +1064,8 @@ const DTrails = () => {
             setName('');
             setForField('');
             showAlert({ type: 'success', message: 'Link ready. It emails you the moment it is opened.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not create that link.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not create that link.') });
         } finally {
             setIsLoading(false);
         }
@@ -1073,8 +1076,8 @@ const DTrails = () => {
             await dataCall('updateLink', { docId: id, patch });
             if (message) showAlert({ type: 'success', message });
             return true;
-        } catch {
-            showAlert({ type: 'error', message: 'Could not save that change.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not save that change.') });
             return false;
         }
     }, [showAlert]);
@@ -1100,8 +1103,8 @@ const DTrails = () => {
         try {
             await dataCall('deleteLink', { docId: id });
             showAlert({ type: 'success', message: 'Link removed. Its visits are still on record.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not remove that link.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not remove that link.') });
         }
     };
 
@@ -1114,8 +1117,8 @@ const DTrails = () => {
         try {
             const r = await dataCall<{ deleted: number }>('forgetLinkVisits', { docId: id });
             showAlert({ type: 'success', message: `Forgot ${r.deleted} visit${r.deleted === 1 ? '' : 's'}.` });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not clear those visits.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not clear those visits.') });
         } finally {
             setIsLoading(false);
         }
@@ -1129,8 +1132,8 @@ const DTrails = () => {
             setOpenStoryId(null);
             setPendingStory('');
             showAlert({ type: 'success', message: 'Visit deleted.' });
-        } catch {
-            showAlert({ type: 'error', message: 'Could not delete that visit.' });
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not delete that visit.') });
         }
     };
 
