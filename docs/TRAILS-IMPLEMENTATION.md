@@ -109,7 +109,6 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
 (`firebasestorage.googleapis.com`). No runtime dependency.
 
 ## Phase verification log
-
 - **Phase 1 (2026-10-11):** inspected portfolio files on clean tree after
   `git fetch origin --prune`; staged reference extraction from
   TemRevil/revil @ `19b85f3f` into git-ignored `D-trails/` (manifest in
@@ -117,4 +116,31 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
   attribution in `NOTICE`. Verification: `npm.cmd run typecheck` PASS;
   `npm.cmd run test -- --run tests/trails-ingest.test.ts
   tests/trails-links.test.ts tests/trails-source.test.ts` — 19/19 PASS.
+  Status: PASS.
+- **Phase 2 (2026-10-11):** new typed store in `convex/schema.ts` +
+  `convex/trailStore.ts`, additive alongside the live `dashboardDocs` backend
+  (no traffic moved; cutover is Phase 6).
+  - Tables/validators/indexes: `trailLinks` (by_code, by_created), `trailVisitors`
+    (by_visitor), `trailSessions` (by_sid, by_started, by_visitor_started,
+    by_link_started), `trailEvents` (by_session_t), `trailBatches` (by_batch,
+    by_session), `trailDays` (by_day), `trailTotals` (by_key), `trailSources` /
+    `trailSocials` / `trailProjects` (by_name/by_project), `trailTombs` (by_sid);
+    `trailOutbox` reused. Relations use Convex document IDs (`linkId`);
+    share codes are lookup values only.
+  - Functions: `applyBatch` (transactional ingest, same add/set/max/append
+    semantics + batchId dedupe + tombstones + owner exclusion/reversal +
+    outbox queue), `createLink`/`resolveLink`/`listLinks`/`updateLink`/
+    `deleteLink` (retain history), `listSessions` (composite (startedAt,_id)
+    cursor pagination, link/date/activity/search filters), `getStory`,
+    `overview`, `distinctVisitors`, `deleteSession`, `forgetLinkVisits`,
+    `pruneSessions` (keeps totals), `outboxList`/`outboxSet`, `diagnostics`.
+    Every private op verifies `CONVEX_SERVER_KEY`; the key never leaves the
+    server (gateway pattern kept — no browser `ConvexProvider`; subscription
+    identity bridge is a Phase 4 decision).
+  - Verification: `tests/trail-store.test.ts` 9/9 PASS (auth, code uniqueness,
+    indexed resolve, transactional counters, duplicate/replay, owner reversal,
+    delete+forget reconciliation, tombstoned-retry terminal, pagination,
+    distinct browsers); full suite 46/46 PASS; `typecheck` PASS; scoped
+    `eslint` on touched files clean (0 errors). `convex/_generated/api.d.ts`
+    hand-extended for `trailStore` until the next `npx convex dev` codegen.
   Status: PASS.
