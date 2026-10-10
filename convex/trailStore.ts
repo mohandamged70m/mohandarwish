@@ -593,6 +593,7 @@ export const applyBatch = mutation({
           eventsCut: false,
           perf: { loadMs: 0, lcpMs: 0 },
           appliedBatches: [],
+          confirmed: [],
         });
 
     const s: any = hasSession
@@ -1158,8 +1159,66 @@ export const distinctVisitors = query({
   },
 });
 
-// ── deletion ──────────────────────────────────────────────────────────────
+/**
+ * Server-confirmed conversion for the typed store. Same contract as
+ * trails.confirmConversion: the booking/message route calls this after its own
+ * persistence succeeds; retried deliveries of one submission confirm once.
+ */
+export const markConversion = mutation({
+  args: {
+    serverKey: v.string(),
+    sid: v.string(),
+    sub: v.string(),
+    kind: v.union(v.literal("message"), v.literal("meeting"), v.literal("book")),
+  },
+  handler: async (ctx, { serverKey, sid, sub, kind }) => {
+    requireServer(serverKey);
+    const id = str(sid, 40);
+    const s = str(sub, 64);
+    if (!ID_RE.test(id) || !/^[A-Za-z0-9-]{8,64}$/.test(s))
+      return { confirmed: false as const, reason: "bad-identity" };
+    const session = await ctx.db
+      .query("trailSessions")
+      .withIndex("by_sid", (q: any) => q.eq("sid", id))
+      .unique();
+    if (!session) return { confirmed: false as const, reason: "unknown-visit" };
+    const tomb = await ctx.db
+      .query("trailTombs")
+      .withIndex("by_sid", (q: any) => q.eq("sid", id))
+      .unique();
+    if (tomb) return { confirmed: false as const, reason: "deleted" };
+    const confirmed = [...((session as any).confirmed as Array<{ sub: string; kind: string; at: number }>)];
+    if (confirmed.some((c) => c.sub === s))
+      return { confirmed: true as const, duplicate: true as const };
+    const now = Date.now();
+    while (confirmed.length >= 20) confirmed.shift();
+    confirmed.push({ sub: s, kind, at: now });
+    await ctx.db.patch((session as any)._id, {
+      contact: { opens: (session as any).contact.opens, tab: (session as any).contact.tab, sent: kind },
+      confirmed,
+    });
+    const count = (
+      await ctx.db
+        .query("trailEvents")
+        .withIndex("by_session_t", (q: any) => q.eq("sessionId", (session as any)._id))
+        .collect()
+    ).length;
+    if (count < MAX_EVENTS_TOTAL) {
+      const started = num((session as any).startedAt, Number.MAX_SAFE_INTEGER) || now;
+      await ctx.db.insert("trailEvents", {
+        sessionId: (session as any)._id,
+        t: Math.max(0, Math.min(now - started, 24 * HOUR_MS)),
+        k: "contact_sent",
+        v: kind,
+      });
+    } else {
+      await ctx.db.patch((session as any)._id, { eventsCut: true });
+    }
+    return { confirmed: true as const };
+  },
+});
 
+// ── deletion ──────────────────────────────────────────────────────────────
 export const deleteSession = mutation({
   args: { serverKey: v.string(), sid: v.string() },
   handler: async (ctx, { serverKey, sid }) => {

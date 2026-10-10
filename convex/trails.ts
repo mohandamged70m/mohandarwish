@@ -1198,6 +1198,62 @@ export const outboxMarkBySession = mutation({  args: {
   },
 });
 
+/**
+ * Server-confirmed conversion. Booking/message routes call this AFTER their
+ * own persistence succeeds, attaching the visit id + a stable submission id
+ * the client generated for that submit click. Retried deliveries of the same
+ * submission confirm once; the client never writes contact_sent itself, so an
+ * arbitrary browser claim cannot fabricate a conversion. No aggregates move
+ * (Contacts counts opens; Sent is state), so nothing needs reconciling.
+ */
+export const confirmConversion = mutation({
+  args: {
+    serverKey: v.string(),
+    sessionId: v.string(),
+    sub: v.string(),
+    kind: v.union(v.literal("message"), v.literal("meeting"), v.literal("book")),
+  },
+  handler: async (ctx, { serverKey, sessionId, sub, kind }) => {
+    requireServer(serverKey);
+    const id = str(sessionId, 40);
+    const s = str(sub, 64);
+    if (!ID_RE.test(id) || !/^[A-Za-z0-9-]{8,64}$/.test(s))
+      return { confirmed: false as const, reason: "bad-identity" };
+    const path = `${SESSIONS}/${id}`;
+    const existing = await getData(ctx, path);
+    if (!Object.keys(existing).length)
+      return { confirmed: false as const, reason: "unknown-visit" };
+    const tomb = await getData(ctx, `${TOMBS}/${id}`);
+    if (Object.keys(tomb).length)
+      return { confirmed: false as const, reason: "deleted" };
+    const confirmed = isObj(existing.Confirmed)
+      ? { ...((existing.Confirmed as Dict) as Record<string, number>) }
+      : {};
+    if (typeof confirmed[s] === "number")
+      return { confirmed: true as const, duplicate: true as const };
+    const now = Date.now();
+    const keys = Object.keys(confirmed);
+    if (keys.length >= 20) delete confirmed[keys[0]];
+    confirmed[s] = now;
+    const next: Dict = { ...(existing as Dict), Confirmed: confirmed };
+    const c = isObj(next.Contact) ? { ...(next.Contact as Dict) } : {};
+    c.Sent = kind;
+    next.Contact = c;
+    const prevEvents = Array.isArray(next.Events) ? (next.Events as unknown[]) : [];
+    if (prevEvents.length < MAX_EVENTS_TOTAL) {
+      const started = num(next.StartedAt, Number.MAX_SAFE_INTEGER) || now;
+      next.Events = [
+        ...prevEvents,
+        { t: Math.max(0, Math.min(now - started, 24 * HOUR_MS)), k: "contact_sent", v: kind },
+      ];
+    } else {
+      next.EventsCut = true;
+    }
+    await upsertData(ctx, path, next);
+    return { confirmed: true as const };
+  },
+});
+
 /** Corruption audit over retained sessions (read-only; see repairSessionFields).
  *
  * The pre-transactional writer summed timestamps, scroll maxima and

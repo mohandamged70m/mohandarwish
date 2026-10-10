@@ -144,3 +144,24 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
     `eslint` on touched files clean (0 errors). `convex/_generated/api.d.ts`
     hand-extended for `trailStore` until the next `npx convex dev` codegen.
   Status: PASS.
+- **Phase 3 (2026-10-11):** server-confirmed conversions; tracking producers
+  were already connected (sections, project open/close/outbound incl.
+  demo/repo/download, CV, social outbound+return, contact open, message/booking
+  persistence) with immutable-batch dedupe and explicit field semantics, so no
+  producer changes were needed.
+  - `trails.confirmConversion` + `trailStore.markConversion`: called by
+    `/api/booking` (`meeting`) and `/api/messages` (`message`) only after
+    their own persistence succeeds; dedupe by stable per-submit id (capped
+    ledger), terminal-safe on unknown/deleted visits, never throws into the
+    booking/message response. No aggregates move (Sent is state).
+  - Client is no longer a writer: `BookingModal` attaches `{sid, sub}` via the
+    new `window.__trails.sid()` bridge (`analytics.currentSessionId()`); the
+    `contact-sent` client claims were removed. `collect.contactSubmit` and the
+    tracker `contact-sent` bridge remain as a compatibility path.
+  - Verification: `tests/trails-convert.test.ts` 3/3 PASS (once-per-submission,
+    unknown-visit safety, typed-store parity);
+    `tests/trails-convert-routes.test.ts` 4/4 PASS (confirm on persist for both
+    routes, submission surviving confirm failure, untouched saves without
+    attribution); full suite 53/53 PASS; `typecheck` PASS; scoped `eslint`
+    clean (0 errors, 0 warnings).
+  Status: PASS.

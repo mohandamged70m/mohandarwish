@@ -516,6 +516,16 @@ class Collector {
     this.enqueue(true); // never risk losing this one to a hard close
   }
 
+  /**
+   * Current visit id for server-confirmed conversions. Booking/message forms
+   * attach this plus a stable per-submit id to their persistence request; the
+   * server confirms the conversion after saving. Empty when not recording.
+   */
+  currentSessionId(): string {
+    if (!this.isRunning() || !this.sessionId) return "";
+    return this.sessionId;
+  }
+
   /** Test/diagnostic hook: force a flush and wait for it. */
   async flushNow(): Promise<void> {
     this.enqueue(true);

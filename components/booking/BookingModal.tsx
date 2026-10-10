@@ -188,6 +188,24 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
   }, [existingMeetings, hostTimezoneString, selectedDate, timeSlots, getMeetingsForDate, isTimePassed, activeTab, availConfig, availLoaded, slotsLoaded, open]);
   useEffect(() => { hasAutoMoved.current = false; }, [open]);
 
+  const trailsRef = (): { sid: string; sub: string } | undefined => {
+    // Stable per-submit identity for server-confirmed conversions: the visit
+    // id plus one id for this submit click, so retried deliveries confirm once
+    // and a client claim can never fabricate a conversion.
+    try {
+      const sid =
+        (window as unknown as { __trails?: { sid?: () => string } }).__trails?.sid?.() || "";
+      if (!sid) return undefined;
+      const sub =
+        typeof crypto?.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `sub-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      return { sid, sub: sub.slice(0, 64) };
+    } catch {
+      return undefined;
+    }
+  };
+
   const handleMeetingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedTime) return;
@@ -202,16 +220,15 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
       const y = selectedDate.getFullYear(), m = selectedDate.getMonth(), d = selectedDate.getDate();
       const startDateUTC = new Date(Date.UTC(y, m, d, hours, minutes) - userTimezone * 3600000);
       const endDateUTC = new Date(startDateUTC.getTime() + 3600000);
-      const r = await fetch("/api/booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: meetingData.name, email: meetingData.email.trim(), reason: meetingData.reason, startTime: startDateUTC.toISOString(), endTime: endDateUTC.toISOString(), userTimezone, selectedTime }) });
+      const ref = trailsRef();
+      const r = await fetch("/api/booking", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: meetingData.name, email: meetingData.email.trim(), reason: meetingData.reason, startTime: startDateUTC.toISOString(), endTime: endDateUTC.toISOString(), userTimezone, selectedTime, ...(ref ? { trails: ref } : {}) }) });
       const j = await r.json() as { error?: string; link?: string; id?: string; date?: string; time?: string };
       if (!r.ok) throw new Error(j.error || "Booking failed");
       const meetLink = j.link || "";
       setBookingSuccess({ date: formatDateDDMMYYYY(selectedDate), time: selectedTime || "", link: meetLink || "" });
       setMeetingData({ name: "", email: "", reason: "" });
-      try {
-        (window as unknown as { __trails?: { track: (k: string, v?: string) => void } })
-          .__trails?.track("contact-sent", "meeting");
-      } catch { /* analytics never breaks booking */ }
+      // Conversion is confirmed server-side after persistence (see trailsRef);
+      // no client contact-sent claim here.
       // refresh slots
       fetch("/api/booked-slots").then((rr) => rr.json()).then((jj) => { const slots = (jj.slots || []) as Array<{ date: string; time: string }>; setExistingMeetings(slots.filter((s) => s && s.date && s.time).map((s) => ({ Date: s.date, Time: s.time, Name: "", Email: "", dateObj: new Date(s.date) }))); }).catch(() => {});
     } catch (error: unknown) { const err = error as { message?: string }; const msg = err.message?.includes("Invalid attendee email") ? "Invalid Email Address provided." : err.message || "Could not book meeting"; showAlert({ type: "error", message: msg }); } finally { setIsSubmitting(false); }
@@ -245,14 +262,12 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
           const body=new FormData();body.set("file",file);const response=await fetch("/api/attachments",{method:"POST",body});const result=await response.json();if(!response.ok)throw new Error(result.error||"Attachment upload failed");uploaded.push({name:file.name,url:result.url});
         }
       }
-      const r = await fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: formData.name, email: formData.email.trim(), message: formData.message, number: formData.number, hasWhatsapp: formData.hasWhatsapp, files: uploaded }) });
+      const ref = trailsRef();
+      const r = await fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: formData.name, email: formData.email.trim(), message: formData.message, number: formData.number, hasWhatsapp: formData.hasWhatsapp, files: uploaded, ...(ref ? { trails: ref } : {}) }) });
       const j = await r.json().catch(() => ({})) as { error?: string };
       if (!r.ok) throw new Error(j.error || "Send failed");
       showAlert({ type: "success", message: "Message sent! I'll get back to you soon." });
-      try {
-        (window as unknown as { __trails?: { track: (k: string, v?: string) => void } })
-          .__trails?.track("contact-sent", "message");
-      } catch { /* analytics never breaks contact */ }
+      // Conversion is confirmed server-side after persistence; no client claim.
       setFormData({ name: "", email: "", number: "", hasWhatsapp: false, message: "", attachments: [] });
       setTimeout(onClose, 1200);
     } catch (err) { showAlert({ type: "error", message: err instanceof Error ? err.message : "Failed to send message." }); } finally { setIsSubmitting(false); }

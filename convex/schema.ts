@@ -238,6 +238,9 @@ export default defineSchema({
     eventsCut: v.boolean(),
     perf: v.object({ loadMs: v.number(), lcpMs: v.number() }),
     appliedBatches: v.array(v.string()),
+    confirmed: v.array(
+      v.object({ sub: v.string(), kind: v.string(), at: v.number() }),
+    ),
   })
     .index("by_sid", ["sid"])
     .index("by_started", ["startedAt"])

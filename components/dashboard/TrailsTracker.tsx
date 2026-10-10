@@ -29,8 +29,14 @@ const CONTACT_OPEN_COOLDOWN_MS = 10_000;
 
 type TrackFn = (kind: string, value?: string) => void;
 
+interface TrailsBridge {
+  track: TrackFn;
+  /** Current visit id ("" when not recording) for conversion attribution. */
+  sid: () => string;
+}
+
 interface TrailsWindow extends Window {
-  __trails?: { track: TrackFn };
+  __trails?: TrailsBridge;
   __trails_active?: boolean;
   __trails_nav_seen?: boolean;
 }
@@ -185,9 +191,19 @@ export function TrailsTracker(): null {
 
       // ── manual API for components ──────────────────────────────────
       // window.__trails.track("link" | "contact-open" | "cv" | "social" | ...)
-      // Contact/booking successes are reported explicitly by BookingModal;
-      // no global fetch interception (it double-counted and missed /api/messages).
+      // Booking/message forms attach window.__trails.sid() plus a stable
+      // per-submit id to their persistence request; the server confirms the
+      // conversion after saving (contact-sent is server-written, never a
+      // client claim). No global fetch interception (it double-counted and
+      // missed /api/messages).
       w.__trails = {
+        sid: () => {
+          try {
+            return analytics.currentSessionId();
+          } catch {
+            return "";
+          }
+        },
         track: (kind: string, value?: string) => {
           try {
             if (kind === "link" && value) {
