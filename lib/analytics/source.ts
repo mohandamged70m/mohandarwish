@@ -113,6 +113,26 @@ function matchSourceHost(host: string): [string, SourceKind] | null {
 }
 
 /**
+ * A token can be a bare word ("chatgpt"), a host ("x.com") or a full URL
+ * pasted into utm_source / ref ("https://chatgpt.com/share/abc?x=1").
+ * Normalize to a hostname before classification so one origin is always one
+ * row, regardless of how the caller spelled it.
+ */
+function normalizeToken(raw: string): string {
+  let token = raw.trim().toLowerCase();
+  if (!token) return "";
+  if (token.includes("://") || (token.includes("/") && token.includes("."))) {
+    try {
+      const url = new URL(token.includes("://") ? token : `https://${token}`);
+      if (url.hostname) token = url.hostname;
+    } catch {
+      /* not a URL - fall through to word handling */
+    }
+  }
+  return token;
+}
+
+/**
  * Resolve the visit's origin to one name and one kind.
  *
  * A referrer host is no longer the whole answer. Assistants are the reason: some
@@ -136,9 +156,9 @@ export function classifySource(entry: {
 
   // What the LINK claims beats what the browser reports: an assistant that strips
   // the referrer still tags the URL, and that tag is the only thing naming it.
-  let token = String(utm.source || utm.ref || "").trim().toLowerCase();
-  if (!token) token = String(entry.Ref || "").trim().toLowerCase();
-  if (!token) token = String(entry.Referrer || "").trim().toLowerCase();
+  let token = normalizeToken(String(utm.source || utm.ref || ""));
+  if (!token) token = normalizeToken(String(entry.Ref || ""));
+  if (!token) token = normalizeToken(String(entry.Referrer || ""));
   if (!token && utm.gclid) token = "google.com";
   if (!token && utm.fbclid) token = "facebook.com";
 

@@ -208,6 +208,10 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
       const meetLink = j.link || "";
       setBookingSuccess({ date: formatDateDDMMYYYY(selectedDate), time: selectedTime || "", link: meetLink || "" });
       setMeetingData({ name: "", email: "", reason: "" });
+      try {
+        (window as unknown as { __trails?: { track: (k: string, v?: string) => void } })
+          .__trails?.track("contact-sent", "meeting");
+      } catch { /* analytics never breaks booking */ }
       // refresh slots
       fetch("/api/booked-slots").then((rr) => rr.json()).then((jj) => { const slots = (jj.slots || []) as Array<{ date: string; time: string }>; setExistingMeetings(slots.filter((s) => s && s.date && s.time).map((s) => ({ Date: s.date, Time: s.time, Name: "", Email: "", dateObj: new Date(s.date) }))); }).catch(() => {});
     } catch (error: unknown) { const err = error as { message?: string }; const msg = err.message?.includes("Invalid attendee email") ? "Invalid Email Address provided." : err.message || "Could not book meeting"; showAlert({ type: "error", message: msg }); } finally { setIsSubmitting(false); }
@@ -245,6 +249,10 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
       const j = await r.json().catch(() => ({})) as { error?: string };
       if (!r.ok) throw new Error(j.error || "Send failed");
       showAlert({ type: "success", message: "Message sent! I'll get back to you soon." });
+      try {
+        (window as unknown as { __trails?: { track: (k: string, v?: string) => void } })
+          .__trails?.track("contact-sent", "message");
+      } catch { /* analytics never breaks contact */ }
       setFormData({ name: "", email: "", number: "", hasWhatsapp: false, message: "", attachments: [] });
       setTimeout(onClose, 1200);
     } catch (err) { showAlert({ type: "error", message: err instanceof Error ? err.message : "Failed to send message." }); } finally { setIsSubmitting(false); }

@@ -10,7 +10,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, TooltipProps } from 'recharts';
-import { doc, onSnapshot, updateDoc, collection, getDocs, setDoc, deleteDoc, query, orderBy, limit as fsLimit, where, increment } from '@/lib/dash-db';
+import { doc, onSnapshot, collection, query, orderBy, limit as fsLimit } from '@/lib/dash-db';
+import { dataCall } from '@/lib/dash-transport';
 import { db } from '@/lib/dash-db';
 import FileImage from '@/components/dashboard/primitives/FileImage';
 import Loader from '@/components/dashboard/primitives/reactbits/Loader';
@@ -632,7 +633,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                             Project Rankings
                         </h3>
                         <p className={`${isDark ? 'text-[#666]' : 'text-slate-400'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
-                            Weighted engagement score
+                            Heuristic engagement score — not a conversion probability
                         </p>
                     </div>
                 </div>
@@ -767,6 +768,16 @@ const DTrails = () => {
 
     const [chartFilter, setChartFilter] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
+    // "Reading now" is derived from LastSeenAt with Date.now(), but unchanged
+    // polling snapshots emit nothing — so presence is recomputed on a small
+    // clock even when the data is identical.
+    const [, setNow] = useState(() => Date.now());
+    useEffect(() => {
+        const t = setInterval(() => setNow(Date.now()), 15_000);
+        return () => clearInterval(t);
+    }, []);
+    const [updatedAt, setUpdatedAt] = useState(0);
+
     const [name, setName] = useState('');
     const [forField, setForField] = useState('');
     const [copied, setCopied] = useState<string | null>(null);
@@ -811,7 +822,10 @@ const DTrails = () => {
 
         const stories = onSnapshot(
             query(collection(db, 'Analytics', 'Sessions', 'Items'), orderBy('StartedAt', 'desc'), fsLimit(300)),
-            snap => setSessions(snap.docs.map(d => ({ ...(d.data() as SessionDoc), Id: d.id }))),
+            snap => {
+                setSessions(snap.docs.map(d => ({ ...(d.data() as SessionDoc), Id: d.id })));
+                setUpdatedAt(Date.now());
+            },
             onDenied,
         );
 
@@ -918,12 +932,25 @@ const DTrails = () => {
         let aggregated: ChartDataPoint[] = [];
 
         if (chartFilter === 'daily') {
+            // Fill missing days with zero so gaps read as gaps, not as a
+            // line that never dipped. Day keys are UTC; the chart is UTC days.
+            const byDate = new Map(dailySeries.map(s => [s.date, s]));
+            const start = dailySeries[0].date;
+            const end = dailySeries[dailySeries.length - 1].date;
+            const filled: typeof dailySeries = [];
+            const cur = new Date(`${start}T00:00:00Z`);
+            const stop = new Date(`${end}T00:00:00Z`);
+            while (cur <= stop && filled.length < 730) {
+                const key = cur.toISOString().split('T')[0];
+                filled.push(byDate.get(key) || { date: key, value: 0, projectViews: 0, socialClicks: 0 });
+                cur.setUTCDate(cur.getUTCDate() + 1);
+            }
             const sliceCount = windowWidth < 450 ? -30 : windowWidth < 768 ? -60 : -180;
-            aggregated = dailySeries.slice(sliceCount).map(s => {
-                const d = new Date(s.date);
+            aggregated = filled.slice(sliceCount).map(s => {
+                const d = new Date(`${s.date}T00:00:00Z`);
                 return {
-                    label: `${d.getDate()}/${d.getMonth() + 1}`,
-                    dateNum: d.getDate(),
+                    label: `${d.getUTCDate()}/${d.getUTCMonth() + 1}`,
+                    dateNum: d.getUTCDate(),
                     value: s.value,
                     projectViews: s.projectViews,
                     socialClicks: s.socialClicks,
@@ -977,42 +1004,58 @@ const DTrails = () => {
             }).sort((a, b) => a.fullDate.localeCompare(b.fullDate));
         }
 
-        // Same date a year earlier, for the ghost comparison line.
+        // Previous-period comparison on the SAME aggregation: a weekly total is
+        // compared with that week's total a year earlier (not one daily value),
+        // and likewise for months. Daily keeps the same-date comparison.
         const byDate = new Map(dailySeries.map(s => [s.date, s.value]));
+        const weekTotals = new Map<string, number>();
+        const monthTotals = new Map<string, number>();
+        if (chartFilter !== 'daily') {
+            for (const s of dailySeries) {
+                const d = new Date(`${s.date}T00:00:00Z`);
+                if (isNaN(d.getTime())) continue;
+                const day = d.getUTCDay();
+                const monday = new Date(d);
+                monday.setUTCDate(d.getUTCDate() - day + (day === 0 ? -6 : 1));
+                const wkey = monday.toISOString().split('T')[0];
+                weekTotals.set(wkey, (weekTotals.get(wkey) || 0) + s.value);
+                const mkey = s.date.slice(0, 7);
+                monthTotals.set(mkey, (monthTotals.get(mkey) || 0) + s.value);
+            }
+        }
+        const shiftYear = (iso: string): string => {
+            const m = iso.match(/^(\d{4})(.*)$/);
+            if (!m) return '';
+            return `${Number(m[1]) - 1}${m[2]}`;
+        };
         return aggregated.map(item => {
-            const d = new Date(item.fullDate);
+            if (item.type === 'weekly') return { ...item, prevValue: weekTotals.get(shiftYear(item.fullDate)) || 0 };
+            if (item.type === 'monthly') return { ...item, prevValue: monthTotals.get(shiftYear(item.fullDate)) || 0 };
+            const d = new Date(`${item.fullDate}T00:00:00Z`);
             if (isNaN(d.getTime())) return { ...item, prevValue: 0 };
-            d.setFullYear(d.getFullYear() - 1);
+            d.setUTCFullYear(d.getUTCFullYear() - 1);
             return { ...item, prevValue: byDate.get(d.toISOString().split('T')[0]) || 0 };
         });
     }, [dailySeries, chartFilter, windowWidth]);
 
     // ── link actions ─────────────────────────────────────────────────────
+    // All link/visit writes go through transactional server operations
+    // (app/api/data -> convex/trails.ts): the server allocates collision-safe
+    // ids/codes, matches visits by Link.DocId, reconciles every aggregate and
+    // tombstones removed visits so delayed retries cannot recreate them.
     const createLink = async () => {
         if (!name.trim() || !forField.trim()) return;
         setIsLoading(true);
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        let code = '';
-        for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
 
         try {
-            const existing = await getDocs(collection(db, 'Analytics', 'Links', 'Items'));
-            const ids = existing.docs.map(d => parseInt(d.id)).filter(id => !isNaN(id));
-            const nextId = (ids.length ? Math.max(...ids) + 1 : 1).toString();
-
-            await setDoc(doc(db, 'Analytics', 'Links', 'Items', nextId), {
-                Code: code,
-                Name: name.trim(),
-                For: forField.trim(),
-                Created: Date.now(),
-                Opens: 0,
-                Sessions: 0,
-                LastOpenAt: null,
-                Notify: true,
+            await dataCall('createLink', {
+                name: name.trim(),
+                for: forField.trim(),
+                notify: true,
                 // HR / recruiter links open the CV modal on arrival, so default
                 // the toggle on for them (still switchable in the editor).
-                Tailor: { AutoCv: HR_LINK_RE.test(`${name} ${forField}`), Greeting: '', Pinned: [] },
-            } satisfies LinkDoc);
+                autoCv: HR_LINK_RE.test(`${name} ${forField}`),
+            });
             setName('');
             setForField('');
             showAlert({ type: 'success', message: 'Link ready. It emails you the moment it is opened.' });
@@ -1025,30 +1068,35 @@ const DTrails = () => {
 
     const patchLink = useCallback(async (id: string, patch: Record<string, unknown>, message?: string) => {
         try {
-            await updateDoc(doc(db, 'Analytics', 'Links', 'Items', id), patch);
+            await dataCall('updateLink', { docId: id, patch });
             if (message) showAlert({ type: 'success', message });
+            return true;
         } catch {
             showAlert({ type: 'error', message: 'Could not save that change.' });
+            return false;
         }
     }, [showAlert]);
 
     const saveDraft = async () => {
         if (!editingLink || !draft) return;
         if (!draft.Name.trim() || !draft.For.trim()) return;
-        await patchLink(editingLink.id, {
+        // Keep the editor and its input open on failure; close only on success.
+        const ok = await patchLink(editingLink.id, {
             Name: draft.Name.trim(),
             For: draft.For.trim(),
             Notify: draft.Notify,
             Tailor: { AutoCv: draft.AutoCv, Greeting: draft.Greeting.trim().slice(0, 160), Pinned: draft.Pinned },
         }, 'Link updated.');
-        setEditingLink(null);
-        setDraft(null);
+        if (ok) {
+            setEditingLink(null);
+            setDraft(null);
+        }
     };
 
     const deleteLink = async (id: string) => {
         setActiveMenu(null);
         try {
-            await deleteDoc(doc(db, 'Analytics', 'Links', 'Items', id));
+            await dataCall('deleteLink', { docId: id });
             showAlert({ type: 'success', message: 'Link removed. Its visits are still on record.' });
         } catch {
             showAlert({ type: 'error', message: 'Could not remove that link.' });
@@ -1056,20 +1104,14 @@ const DTrails = () => {
     };
 
     /** Throw away every story that came through one link, and zero its counters.
-     *  Sessions store the link Code in Link.Id (see landing.tsx handoff), so
-     *  visits are matched by Code while the link doc itself is reset by its
-     *  numeric doc id. */
-    const forgetLinkVisits = async (id: string, code: string) => {
+     *  Visits are matched server-side by Link.DocId (never the share Code) and
+     *  every aggregate is reconciled in the same transaction. */
+    const forgetLinkVisits = async (id: string) => {
         setActiveMenu(null);
         setIsLoading(true);
         try {
-            const found = await getDocs(query(
-                collection(db, 'Analytics', 'Sessions', 'Items'),
-                where('Link.Id', '==', code),
-            ));
-            await Promise.all(found.docs.map(d => deleteDoc(d.ref)));
-            await updateDoc(doc(db, 'Analytics', 'Links', 'Items', id), { Opens: 0, Sessions: 0, LastOpenAt: null });
-            showAlert({ type: 'success', message: `Forgot ${found.size} visit${found.size === 1 ? '' : 's'}.` });
+            const r = await dataCall<{ deleted: number }>('forgetLinkVisits', { docId: id });
+            showAlert({ type: 'success', message: `Forgot ${r.deleted} visit${r.deleted === 1 ? '' : 's'}.` });
         } catch {
             showAlert({ type: 'error', message: 'Could not clear those visits.' });
         } finally {
@@ -1078,26 +1120,13 @@ const DTrails = () => {
     };
 
     const deleteStory = async (id: string) => {
-        const story = sessions.find(s => s.Id === id);
         try {
-            await deleteDoc(doc(db, 'Analytics', 'Sessions', 'Items', id));
-            // The link counted this visit; take it back so its card agrees with the
-            // list. An owner visit was never counted. A removed link has no card.
-            const linkId = story && !story.Owner ? story.Link?.Id : undefined;
-            let recounted = true;
-            if (linkId && links.some(l => l.Code === linkId || l.id === linkId)) {
-                try {
-                    await updateDoc(doc(db, 'Analytics', 'Links', 'Items', linkId), {
-                        Opens: increment(-1),
-                        Sessions: increment(-1),
-                    });
-                } catch { recounted = false; }
-            }
+            // The server subtracts this visit's contribution from every
+            // aggregate in the same transaction that deletes it.
+            await dataCall('deleteSession', { sessionId: id });
             setOpenStoryId(null);
             setPendingStory('');
-            showAlert(recounted
-                ? { type: 'success', message: 'Visit deleted.' }
-                : { type: 'error', message: 'Visit deleted, but its link still counts it.' });
+            showAlert({ type: 'success', message: 'Visit deleted.' });
         } catch {
             showAlert({ type: 'error', message: 'Could not delete that visit.' });
         }
@@ -1133,13 +1162,16 @@ const DTrails = () => {
         setActiveMenu(null);
     };
 
-    // Returning is what separates visits from people. Someone who opened the link
-    // three times is one person and three visits; showing only the session count
-    // made that read as three people.
+    // Returning is what separates visits from unique browsers. Someone who
+    // opened the link three times is one browser and three visits. "People"
+    // would claim a verified identity the tracker never has: the link label
+    // ("Who it is for") is an owner note, not proof of who visited.
+    // Every stored visit came through a share link (direct visits are never
+    // recorded), so lifetime visits and link-attributed visits are the same
+    // number — shown once, not twice.
     const counters = [
         { label: 'Visits', value: totals?.Sessions ?? 0, icon: <Footprints size={18} />, tint: '#ef4444' },
-        { label: 'People', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
-        { label: 'Link opens', value: totals?.LinkOpens ?? 0, icon: <Link2 size={18} />, tint: '#a855f7' },
+        { label: 'Unique browsers', value: totals?.Visitors ?? 0, icon: <Users size={18} />, tint: '#10b981' },
         { label: 'Reached contact', value: totals?.Contacts ?? 0, icon: <Mail size={18} />, tint: '#ec4899' },
     ];
     const returning = totals?.Returning ?? 0;
@@ -1202,10 +1234,10 @@ const DTrails = () => {
                     </button>
                 )}
 
-                {/* Sessions vs people. Only worth saying once somebody came back. */}
+                {/* Sessions vs browsers. Only worth saying once somebody came back. */}
                 {returning > 0 && (
                     <p className="text-xs text-muted m-0 ml-auto hidden md:block">
-                        {counters[1].value.toLocaleString()} {counters[1].value === 1 ? 'person' : 'people'},
+                        {counters[1].value.toLocaleString()} unique {counters[1].value === 1 ? 'browser' : 'browsers'},
                         {' '}{counters[0].value.toLocaleString()} visits
                         {' — '}{returning.toLocaleString()} {returning === 1 ? 'was' : 'were'} a return
                     </p>
@@ -1229,7 +1261,10 @@ const DTrails = () => {
                                 <div className="shrink-0 flex flex-col gap-5 pb-5">
                                     <div className="flex flex-col gap-1">
                                         <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Stories</h1>
-                                        <p className="text-muted text-sm">Every visit, in the order it happened</p>
+                                        <p className="text-muted text-sm">
+                                            Latest 300 visits kept, newest first
+                                            {updatedAt ? ` · updated ${new Date(updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : ''}
+                                        </p>
                                     </div>
 
                                     {/* filters */}
@@ -1350,7 +1385,7 @@ const DTrails = () => {
                                                                 )}
                                                             </span>
                                                             <span className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>
-                                                                {when} · {story.Entry?.Ref ? `from ${story.Entry.Ref}` : 'direct'}
+                                                                {when} · {story.Entry?.Ref ? `from ${story.Entry.Ref}` : 'unknown origin'}
                                                             </span>
                                                         </span>
 
@@ -1408,7 +1443,7 @@ const DTrails = () => {
                                 <div className="shrink-0 flex flex-col gap-1 pb-8">
                                     <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Overview</h1>
                                     <p className="text-muted text-sm">
-                                        {dailySeries.length ? `Since ${dailySeries[0].date}` : 'Nothing recorded yet'}
+                                        {dailySeries.length ? `Since ${dailySeries[0].date} · UTC days · lifetime totals` : 'Nothing recorded yet'}
                                     </p>
                                 </div>
 
@@ -1593,7 +1628,8 @@ const DTrails = () => {
                                                     </div>
 
                                                     <div className="flex items-center gap-4 text-[11px] font-bold tabular-nums" style={{ color: 'var(--text-muted)' }}>
-                                                        <span className="flex items-center gap-1.5"><Eye size={13} />{link.Opens || 0} opens</span>
+                                                        {/* Opens and Sessions are incremented together on every
+                                                            attributed open, so they are one number shown once. */}
                                                         <span className="flex items-center gap-1.5"><Footprints size={13} />{link.Sessions || 0} visits</span>
                                                         {link.LastOpenAt ? (
                                                             <span className="truncate">{new Date(link.LastOpenAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
@@ -1660,13 +1696,12 @@ const DTrails = () => {
                         <button
                             onClick={() => {
                                 const id = activeMenu;
-                                const link = links.find(x => x.id === id);
                                 setConfirmConfig({
                                     isOpen: true,
                                     title: 'Forget this link’s visits',
                                     message: 'Every story recorded through this link is deleted and its counters go back to zero. The link itself keeps working.',
                                     type: 'warning',
-                                    onConfirm: () => forgetLinkVisits(id, link?.Code || ''),
+                                    onConfirm: () => forgetLinkVisits(id),
                                 });
                             }}
                             className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-orange-500/10"
@@ -1811,7 +1846,7 @@ const DTrails = () => {
                 onDelete={id => setConfirmConfig({
                     isOpen: true,
                     title: 'Delete this visit',
-                    message: 'The story and everything in it goes. The daily totals it already contributed to stay as they are.',
+                    message: 'The story goes and its contribution is subtracted from every total, so the numbers stay agreed.',
                     type: 'danger',
                     onConfirm: () => deleteStory(id),
                 })}

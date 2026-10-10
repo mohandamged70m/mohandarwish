@@ -48,6 +48,37 @@ export async function POST(req: Request) {
       if (typeof a.path !== "string") throw new Error();
       await convexMutation(api.docs.deleteDoc, { path: a.path });
       data = null;
+    } else if (op === "createLink" && owner) {
+      if (!a.name || !a.for || typeof a.name !== "string" || typeof a.for !== "string")
+        throw new Error();
+      data = await convexMutation(api.trails.createLink, {
+        name: a.name,
+        for: a.for,
+        notify: a.notify,
+        autoCv: a.autoCv,
+      });
+    } else if (op === "updateLink" && owner) {
+      if (typeof a.docId !== "string" || !a.patch || typeof a.patch !== "object")
+        throw new Error();
+      data = await convexMutation(api.trails.updateLink, {
+        docId: a.docId,
+        patch: a.patch,
+      });
+    } else if (op === "deleteLink" && owner) {
+      if (typeof a.docId !== "string") throw new Error();
+      data = await convexMutation(api.trails.deleteLink, { docId: a.docId });
+    } else if (op === "deleteSession" && owner) {
+      if (typeof a.sessionId !== "string") throw new Error();
+      data = await convexMutation(api.trails.deleteSession, {
+        sessionId: a.sessionId,
+      });
+    } else if (op === "forgetLinkVisits" && owner) {
+      if (typeof a.docId !== "string") throw new Error();
+      data = await convexMutation(api.trails.forgetLinkVisits, {
+        docId: a.docId,
+      });
+    } else if (op === "trailsDiagnostics" && owner) {
+      data = await convexQuery(api.trails.diagnostics, {});
     } else
       return NextResponse.json(
         { error: "Unsupported operation" },

@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as trails from "../trails.js";
 import type * as workspace from "../workspace.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as availability from "../availability.js";
@@ -24,6 +25,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  trails: typeof trails;
   workspace: typeof workspace;
   rateLimits: typeof rateLimits;
   availability: typeof availability;

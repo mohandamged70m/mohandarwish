@@ -154,4 +154,22 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_order", ["sortOrder", "createdAt"]),
+  // ── Trails notification outbox (ingest writes, sender drains)
+  trailOutbox: defineTable({
+    sessionId: v.string(),
+    linkCode: v.string(),
+    linkName: v.string(),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("sent"),
+      v.literal("failed"),
+      v.literal("skipped"),
+    ),
+    attempts: v.number(),
+    createdAt: v.number(),
+    sentAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+  })
+    .index("by_status", ["status", "createdAt"])
+    .index("by_session", ["sessionId"]),
 });
