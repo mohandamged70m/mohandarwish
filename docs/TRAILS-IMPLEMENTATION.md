@@ -1,11 +1,10 @@
 # TRAILS Implementation — Convex-native (phased)
 
-Reference: `D-trails/` was empty at inspection (2026-10-11, branch
-`feat/d-trails-editing`, tree clean, fetched `origin --prune`). There is no
-extracted Firebase source to convert. This doc therefore maps the **existing
-portfolio Trails implementation** against the 7-phase goal and records what is
-done vs. what remains. No reference-owner content, credentials, domain, or mail
-config is copied here.
+Reference: `D-trails/` (git-ignored local extraction from
+https://github.com/TemRevil/revil @ `19b85f3f`, 2026-10-05; manifest in
+`D-trails/README.md`). Compared file-by-file against the portfolio below. No
+reference-owner content, credentials, domain, or mail config is copied.
+License attribution for reused code is kept in `NOTICE` (MIT, Tem Revil).
 
 Existing spec: `docs/D-TRAILS.md` (authoritative for semantics/honesty rules).
 
@@ -33,18 +32,33 @@ tab / sent. `contact_sent` is **browser-reported** (`BookingModal` on
 successful `/api/booking`|`/api/messages` persistence) — claimed, not
 server-confirmed (known limit, labelled honestly in UI/docs).
 
-### Firebase → Convex mapping
+### Firebase → Convex mapping (reference → portfolio destination)
 
-No Firebase imports, Firestore collections/listeners/writes, Storage calls,
-Cloud Functions, or App Check assumptions exist in the Trails path. Every
-historical Firebase operation already has a Convex destination:
+The reference backend is Firebase: `trackSession` HTTPS Cloud Function
+(`D-trails/functions/analytics.ts`, manual App Check, `WriteBatch` commit —
+not a transaction), Firestore collections with admin-only rules and zero
+client writes (`D-trails/firestore.rules`), direct client link CRUD, and
+nodemailer-via-Resend-SMTP notifications (no outbox, no tombstones). Every
+reference operation has a Convex destination in this repo:
 
-| Firebase concept | Trails replacement (this repo) |
+| Reference (Firebase) | Portfolio (Convex) destination |
 |---|---|
-| Firestore collections (`Analytics/*`) | `dashboardDocs` rows (`Analytics/Sessions/Items/*`, `Days/*`, `Links/*`, `Sources/*`, `Socials/*`, `Totals`, `Tombstones/*`) + typed `trailOutbox` |
-| `onSnapshot` listeners | `lib/dash-db.ts` polling snapshots over `POST /api/data` (functional; Phase 4 replaces with authenticated Convex subscriptions) |
-| Client writes / Cloud Functions | `POST /api/track` → `trails.applyFlush` transaction; link ops `createLink`/`updateLink`/`deleteLink`/`deleteSession`/`forgetLinkVisits`/`pruneSessions`; notify via Resend inline + outbox drain |
-| App Check | Replaced by: Auth.js owner session, `CONVEX_SERVER_KEY` server gate, per-IP rate limit, strict identity/batch validation, bot UA reject, payload caps |
+| `trackSession` CF + `WriteBatch` | `POST /api/track` → `trails.applyFlush` single transaction (session + day/totals/sources/socials/link/project deltas + batch dedupe + outbox row commit/rollback together) |
+| `Analytics/Sessions/Items/*`, `Days/*`, `Sources/*`, `Socials/*`, `Totals`, `Projects/{id}.Views` | Same shapes in generic `dashboardDocs` (`Analytics/*` path emulation); typed `trailOutbox` table. Typed `trail*` tables are Phase 2. |
+| `Links` query `where("Code","==",code)` | Same bounded scan inside `applyFlush` (indexed `trailLinks` table is the planned follow-up per `docs/D-TRAILS.md`) |
+| Client `onSnapshot` listeners | `lib/dash-db.ts` polling snapshots over `POST /api/data` (authenticated Convex subscriptions are Phase 4) |
+| Client link CRUD (random code + numeric `max+1` id) | Server `trails.createLink` (collision-safe id/code), `updateLink`, `deleteLink` |
+| Client story delete + `increment(-1)` | `trails.deleteSession` / `forgetLinkVisits` with aggregate reconciliation + tombstones (delayed retries → terminal `deleted`) |
+| Manual App Check + `revil_owner` localStorage | Auth.js owner session verified server-side per flush/gateway call; per-IP rate limit, strict identity/batch validation, bot UA reject, payload caps |
+| `sendOpenedEmail` (SMTP, fire-and-forget) | Resend inline send + `trailOutbox` row; failure stays `pending` for owner drain `POST /api/dashboard/trails-outbox` |
+| `geoip.ts` (IP never stored) | Edge headers (`x-vercel-ip-country`/`cf-ipcountry`) only; unknown stays unknown |
+| `{origin}/revil/{Code}`, `?s=` story link | `/mohanddarwish/[code]` landing + `/dashboard?s=` story park |
+| `/book` + `useBookTrail` (`contact_sent: book`) | No `/book` route; `contact_sent: book` kept only for legacy rows |
+
+Deliberately excluded: reference MCP amplification (`functions/src/mcp.ts`
+Trails reads), `notifyCanary`/login/receipt LLM callables, meeting-sync
+proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
+`direct`), dead-click `rage:dead`, email/phone copy classification (PII).
 
 ### Gaps vs. phases 2–7 (file-by-file plan)
 
@@ -96,10 +110,11 @@ historical Firebase operation already has a Convex destination:
 
 ## Phase verification log
 
-- **Phase 1 (2026-10-11):** inspected files above on clean tree after
-  `git fetch origin --prune`. `D-trails/` confirmed empty; no Firebase runtime
-  in Trails; mapping table complete. Verification: `npm.cmd run typecheck`
-  PASS; `npm.cmd run test -- --run tests/trails-ingest.test.ts
+- **Phase 1 (2026-10-11):** inspected portfolio files on clean tree after
+  `git fetch origin --prune`; staged reference extraction from
+  TemRevil/revil @ `19b85f3f` into git-ignored `D-trails/` (manifest in
+  `D-trails/README.md`); completed Firebase→Convex mapping above; added MIT
+  attribution in `NOTICE`. Verification: `npm.cmd run typecheck` PASS;
+  `npm.cmd run test -- --run tests/trails-ingest.test.ts
   tests/trails-links.test.ts tests/trails-source.test.ts` — 19/19 PASS.
-  Status: PASS (mapping committed as
-  `docs(trails): map extracted feature to portfolio and Convex`).
+  Status: PASS.
