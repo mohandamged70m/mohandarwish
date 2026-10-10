@@ -9,13 +9,13 @@
 
 ## Overview
 
-Personal portfolio with a private workspace for managing content and client work:
+Personal portfolio with a private dashboard for managing content:
 
 - **Marketing site** — hero, projects showcase, stack, contact, project detail pages, CV modal
 - **Booking system** — visitors can book a call (availability + booked-slots APIs, email receipts)
 - **Contact pipeline** — contact form → validation/sanitization → Convex + email via Resend
 - **Owner dashboard (`/dashboard`)** — CMS for projects, tags, contributors, experience, inbox/messages, bookings, site settings, hero images, analytics
-- **Private workspace** — lead pipeline, client projects, milestones, invoice status and internal notes; no client accounts
+- **Treasury** — finance tracking (projects, income, expenses, accounts, receipts); no client accounts
 - **Analytics & tracking** — project views, dashboard charts (Recharts), Vercel Analytics
 
 ## Pages & Sections
@@ -148,7 +148,7 @@ CONVEX_SERVER_KEY=...
 3. Copy the Client ID → `AUTH_GOOGLE_ID` and Client secret → `AUTH_GOOGLE_SECRET` in `.env.local` (local) and Vercel Project Settings → Environment Variables (Preview + Production).
 4. Set `DASHBOARD_OWNER_EMAIL` to your Gmail and `AUTH_SECRET` to `npx auth secret` output in the same places. Never commit real values — `.env.example` holds placeholders only.
 
-Copy `.env.example` and read [OWNER_WORKSPACE.md](./OWNER_WORKSPACE.md) before deploying.
+Copy `.env.example` before deploying.
 
 Database setup:
 
@@ -171,7 +171,7 @@ Single source of truth: [`DESIGN.md`](./DESIGN.md) + tokens in `app/globals.css`
 Optimized for **Vercel**:
 
 1. Push to GitHub, import into Vercel
-2. Follow [OWNER_WORKSPACE.md](./OWNER_WORKSPACE.md) to configure both Next.js and Convex
+2. Configure both Next.js and Convex env vars (see Environment Variables above)
 3. Validate a preview before coordinating the backend and app deployment
 
 Image remote hosts are allowlisted in `next.config.ts` (picsum, simpleicons, svgl, Convex storage).

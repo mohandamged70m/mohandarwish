@@ -17,7 +17,6 @@ vi.mock("@/auth", () => ({
 vi.mock("server-only", () => ({}));
 import { POST as contact } from "../app/api/contact/route";
 import { POST as booking } from "../app/api/booking/route";
-import { GET as workspace } from "../app/api/dashboard/workspace/route";
 import { GET as diag } from "../app/api/diag/route";
 import { POST as dataRequest } from "../app/api/data/route";
 import { PATCH as editBooking } from "../app/api/booking/[id]/route";
@@ -140,23 +139,13 @@ it("rejects booking conflicts and unavailable hours", async () => {
     ).status,
   ).toBe(400);
 });
-it("keeps the workspace and diagnostics private without an owner session", async () => {
-  expect(
-    (
-      await workspace(
-        new Request("https://site.example/api/dashboard/workspace"),
-      )
-    ).status,
-  ).toBe(401);
-  expect(query).not.toHaveBeenCalled();
+it("keeps diagnostics private without an owner session", async () => {
   expect(
     (await diag(new Request("https://site.example/api/diag"))).status,
   ).toBe(401);
   // A signed-in non-owner is denied too.
   ownerSession.value = { user: { email: "stranger@example.com" } };
-  expect((await workspace(authed("/api/dashboard/workspace"))).status).toBe(
-    401,
-  );
+  expect((await diag(authed("/api/diag"))).status).toBe(401);
 });
 it("maps case-study evidence into the public detail page", () => {
   const p = mapDashboardDocToProject("Demo", {

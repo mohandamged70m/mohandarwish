@@ -872,7 +872,7 @@ const DTreasury = () => {
 
                     {tab === 'projects' && (
                         <div className="flex flex-col gap-6">
-                            {/* Dual-Pane active workspace */}
+                            {/* Dual-Pane active pane */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                                 {/* Left Column: Active Projects slider (col-span-2) */}
                                 <div className="lg:col-span-2 glass-panel p-5 flex flex-col gap-4">
@@ -1505,3 +1505,4 @@ const DTreasury = () => {
 };
 
 export default DTreasury;
+
