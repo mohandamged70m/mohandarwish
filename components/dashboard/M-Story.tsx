@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import {
@@ -28,9 +28,14 @@ export const flagOf = (code?: string): string => {
     }
 };
 
-/** A visit is live if it has not ended and we heard from it inside a minute. */
-export const isLive = (s: SessionDoc): boolean =>
-    !s.Ended && Date.now() - (s.LastSeenAt || 0) < 60_000;
+/** A visit is live if it has not ended and we heard from it inside a minute.
+ *  Future timestamps (clock skew or forged payloads) are never live; only
+ *  recent visible activity counts — not proven reading. */
+export const isLive = (s: SessionDoc): boolean => {
+    if (s.Ended) return false;
+    const age = Date.now() - (s.LastSeenAt || 0);
+    return age >= 0 && age < 60_000;
+};
 
 const EVENT_COLOR: Record<string, string> = {
     section: '#ef4444',
@@ -131,6 +136,25 @@ interface MStoryProps {
 
 const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) => {
     const wide = windowWidth >= 900;
+    const closeRef = useRef<HTMLButtonElement>(null);
+
+    // Dialog semantics: Escape closes, focus lands on Close on open.
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', onKey);
+        closeRef.current?.focus();
+        return () => document.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    // Presence ("reading now") must expire without new snapshots: recompute
+    // on a small clock so an open modal stops claiming live on its own.
+    const [, setTick] = useState(0);
+    useEffect(() => {
+        const t = setInterval(() => setTick(v => v + 1), 15_000);
+        return () => clearInterval(t);
+    }, []);
 
     const sections = useMemo(() => {
         if (!story) return [];
@@ -179,6 +203,9 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
             onClick={onClose}
         >
             <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Visit from ${story.Geo?.Country || 'unknown origin'}${story.Link?.Name ? ` via ${story.Link.Name}` : ''}`}
                 initial={{ opacity: 0, scale: 0.97, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
@@ -352,7 +379,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             <Fact label="Window" value={device.Viewport} isDark={isDark} />
                             <Fact label="Language" value={device.Language} isDark={isDark} />
                             <Fact label="Theme" value={device.Theme} isDark={isDark} />
-                            <Fact label="Came from" value={story.Source?.Name || entry.Ref || 'Direct'} isDark={isDark} />
+                            <Fact label="Came from" value={story.Source?.Name || entry.Ref || 'Unknown'} isDark={isDark} />
                             <Fact label="Landed on" value={entry.Section} isDark={isDark} />
                             <Fact label="Left from" value={story.Exit?.Section || ''} isDark={isDark} />
                             <Fact label="Idle" value={formatMs(story.IdleMs || 0)} isDark={isDark} />
@@ -391,7 +418,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                     >
                         <Trash2 size={14} /> Delete this visit
                     </button>
-                    <button type="button" onClick={onClose} className="btn btn-secondary !px-6 !py-2.5">Close</button>
+                    <button type="button" ref={closeRef} onClick={onClose} className="btn btn-secondary !px-6 !py-2.5">Close</button>
                 </div>
             </motion.div>
         </div>,

@@ -26,8 +26,6 @@ const FLUSH_MS = 20_000;
 const IDLE_MS = 60_000;
 /** Gap of inactivity after which coming back is a new visit, not a continuation. */
 const SESSION_GAP_MS = 30 * 60_000;
-/** A tab reopened after this long forgets stale link attribution. */
-const LINK_STALE_MS = 12 * 60 * 60_000;
 /** Timeline cap. ~500 events is a very busy visit and still a small document. */
 const MAX_EVENTS = 500;
 /** Per-visit flush ceiling, matching the server's. Stops a stuck tab writing forever. */
@@ -56,8 +54,6 @@ const LINK_KEY = "trails_link";
 const LINK_AT_KEY = "trails_link_at";
 const QUEUE_KEY = "trails_queue";
 
-const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]{2,}/;
-const PHONE_RE = /(?:\+?\d[\d\s()-]{7,}\d)/;
 const BOT_RE =
   /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|preview|monitor|scrape|curl|wget|python-requests|axios|node-fetch/i;
 

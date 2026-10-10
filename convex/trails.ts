@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireServer } from "./access";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   canonicalSocial,
   classifySource,
@@ -26,6 +27,7 @@ const LINKS = "Analytics/Links/Items";
 const SOURCES = "Analytics/Sources/Items";
 const SOCIALS = "Analytics/Socials/Items";
 const TOTALS = "Analytics/Totals";
+const TOMBS = "Analytics/Tombstones";
 
 const MAX_SEQ = 300;
 const MAX_EVENTS_PER_FLUSH = 120;
@@ -335,6 +337,12 @@ export const applyFlush = mutation({
 
     // Share-link resolution, opening only. Scans the bounded link collection
     // inside this same transaction. (Indexed trailLinks table is P2.)
+    // A tombstoned session id is never recreated by a delayed retry.
+    if (!hasSession) {
+      const tomb = await getData(ctx, `${TOMBS}/${id}`);
+      if (Object.keys(tomb).length)
+        return { status: "terminal", reason: "deleted", tracked: false as const, hello: true as const };
+    }
     let linkRow: {
       docId: string;
       path: string;
@@ -789,5 +797,399 @@ export const outboxMark = mutation({
       sentAt: status === "sent" ? Date.now() : undefined,
       error: error?.slice(0, 300),
     });
+  },
+});
+
+// ── link + visit management (owner dashboard) ───────────────────────────
+// These replace the old browser read-modify-write path (getDocs + setDoc +
+// increment(-1), which wrote the literal -1 and used the share Code as a
+// document id). Every operation below is one transaction: counters and rows
+// can never disagree, concurrent edits cannot interleave, and removed visits
+// leave tombstones so delayed retries cannot recreate them.
+
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+
+async function deleteDocRow(ctx: any, path: string): Promise<void> {
+  const row: any = await ctx.db
+    .query("dashboardDocs")
+    .withIndex("by_path", (q: any) => q.eq("path", path))
+    .unique();
+  if (row) await ctx.db.delete(row._id);
+}
+
+/** Everything one visit contributed to the rollups, read back from its row. */
+function countedSoFar(s: Dict): {
+  visit: number;
+  countryCode: string;
+  source: { Name: string; Kind: SourceKind } | null;
+  deviceType: string;
+  linkDocId: string;
+  activeMs: number;
+  projects: Record<string, Dict>;
+  socials: Record<string, Dict>;
+  contactOpens: number;
+  cvOpens: number;
+  events: number;
+} {
+  const obj = (val: unknown): Dict => (isObj(val) ? val : {});
+  const rows = (val: unknown, fields: string[]): Record<string, Dict> => {
+    const out: Record<string, Dict> = {};
+    for (const [key, row] of Object.entries(obj(val))) {
+      if (!safeKey(key) || !isObj(row)) continue;
+      out[key] = Object.fromEntries(
+        fields.map((f) => [f, num((row as Dict)[f], Number.MAX_SAFE_INTEGER)]),
+      );
+    }
+    return out;
+  };
+  const source = obj(s.Source);
+  return {
+    visit: Math.max(1, num(s.Visit, 100000)),
+    countryCode: safeKey(obj(s.Geo).Code) || "",
+    source:
+      typeof source.Name === "string"
+        ? { Name: source.Name, Kind: ((source.Kind as string) || "referral") as SourceKind }
+        : null,
+    deviceType: safeKey(obj(s.Device).Type) || "",
+    linkDocId: str(obj(s.Link).DocId, 40),
+    activeMs: num(s.ActiveMs, Number.MAX_SAFE_INTEGER),
+    projects: rows(s.Projects, ["Opens", "Live", "Github", "Download"]),
+    socials: rows(s.Socials, ["Clicks", "AwayMs"]),
+    contactOpens: num(obj(s.Contact).Opens, Number.MAX_SAFE_INTEGER),
+    cvOpens: num(obj(s.Cv).Opens, Number.MAX_SAFE_INTEGER),
+    events: Array.isArray(s.Events) ? s.Events.length : 0,
+  };
+}
+
+async function subtractSession(ctx: any, session: Dict, now: number): Promise<void> {
+  if (session.Owner === true) return; // owner visits were never counted
+  const c = countedSoFar(session);
+  const inc = (n: number) => -Math.max(0, n);
+  const projectOpens = sumBy(c.projects, "Opens");
+  const socialClicks = sumBy(c.socials, "Clicks");
+  const day = dayOf(session.StartedAt, now);
+
+  const dayDoc = await getData(ctx, `${DAYS}/${day}`);
+  const dayNext: Dict = { ...(dayDoc as Dict) };
+  const dayAdd = (k: string, delta: number) => {
+    if (delta) dayNext[k] = Math.max(0, num(dayNext[k], Number.MAX_SAFE_INTEGER) + delta);
+  };
+  dayAdd("Sessions", inc(1));
+  if (c.visit <= 1) dayAdd("Visitors", inc(1));
+  else dayAdd("Returning", inc(1));
+  dayAdd("ActiveMs", inc(c.activeMs));
+  dayAdd("Projects", inc(projectOpens));
+  dayAdd("Socials", inc(socialClicks));
+  dayAdd("Contacts", inc(c.contactOpens));
+  dayAdd("Cv", inc(c.cvOpens));
+  if (c.linkDocId) dayAdd("LinkOpens", inc(1));
+  if (c.countryCode && isObj(dayNext.Countries)) {
+    const m = { ...((dayNext.Countries as Dict) as Record<string, number>) };
+    m[c.countryCode] = Math.max(0, num(m[c.countryCode], Number.MAX_SAFE_INTEGER) - 1);
+    dayNext.Countries = m;
+  }
+  if (c.deviceType && isObj(dayNext.Devices)) {
+    const m = { ...((dayNext.Devices as Dict) as Record<string, number>) } ;
+    m[c.deviceType] = Math.max(0, num(m[c.deviceType], Number.MAX_SAFE_INTEGER) - 1);
+    dayNext.Devices = m;
+  }
+  await upsertData(ctx, `${DAYS}/${day}`, dayNext);
+
+  const totalsDoc = await getData(ctx, TOTALS);
+  const totalsNext: Dict = { ...(totalsDoc as Dict) };
+  const totAdd = (k: string, delta: number) => {
+    if (delta) totalsNext[k] = Math.max(0, num(totalsNext[k], Number.MAX_SAFE_INTEGER) + delta);
+  };
+  totAdd("Sessions", inc(1));
+  if (c.visit <= 1) totAdd("Visitors", inc(1));
+  else totAdd("Returning", inc(1));
+  totAdd("Events", inc(c.events));
+  totAdd("Projects", inc(projectOpens));
+  totAdd("Socials", inc(socialClicks));
+  totAdd("Contacts", inc(c.contactOpens));
+  totAdd("Cv", inc(c.cvOpens));
+  if (c.linkDocId) totAdd("LinkOpens", inc(1));
+  await upsertData(ctx, TOTALS, totalsNext);
+
+  if (c.source) {
+    const key = safeKey(c.source.Name);
+    if (key) {
+      const sp = `${SOURCES}/${key}`;
+      const sdoc = await getData(ctx, sp);
+      if (Object.keys(sdoc).length) {
+        const snext: Dict = { ...(sdoc as Dict) };
+        snext.Sessions = Math.max(0, num(snext.Sessions, Number.MAX_SAFE_INTEGER) - 1);
+        await upsertData(ctx, sp, snext);
+      }
+    }
+  }
+  for (const [name, row] of Object.entries(c.socials)) {
+    const sp = `${SOCIALS}/${name}`;
+    const sdoc = await getData(ctx, sp);
+    if (!Object.keys(sdoc).length) continue;
+    const snext: Dict = { ...(sdoc as Dict) };
+    snext.Clicks = Math.max(0, num(snext.Clicks, Number.MAX_SAFE_INTEGER) - num(row.Clicks, 500));
+    snext.AwayMs = Math.max(0, num(snext.AwayMs, Number.MAX_SAFE_INTEGER) - num(row.AwayMs, 6 * HOUR_MS));
+    await upsertData(ctx, sp, snext);
+  }
+  for (const [projectId, row] of Object.entries(c.projects)) {
+    const ppath = `Projects/${projectId}`;
+    const pdoc = await getData(ctx, ppath);
+    if (!Object.keys(pdoc).length) continue;
+    const pnext: Dict = { ...(pdoc as Dict) };
+    const views = isObj(pnext.Views) ? { ...(pnext.Views as Dict) } : {};
+    const sub = (k: string, delta: number) => {
+      if (delta) views[k] = Math.max(0, num(views[k], Number.MAX_SAFE_INTEGER) - delta);
+    };
+    sub("Project", num(row.Opens, 500));
+    sub("Live", num(row.Live, 500));
+    sub("Github", num(row.Github, 500));
+    sub("Download", num(row.Download, 500));
+    pnext.Views = views;
+    await upsertData(ctx, ppath, pnext);
+  }
+  if (c.linkDocId) {
+    const linkPath = `${LINKS}/${c.linkDocId}`;
+    const ldoc = await getData(ctx, linkPath);
+    if (Object.keys(ldoc).length) {
+      const lnext: Dict = { ...(ldoc as Dict) };
+      lnext.Opens = Math.max(0, num(lnext.Opens, Number.MAX_SAFE_INTEGER) - 1);
+      lnext.Sessions = Math.max(0, num(lnext.Sessions, Number.MAX_SAFE_INTEGER) - 1);
+      await upsertData(ctx, linkPath, lnext);
+    }
+  }
+}
+
+async function tombstone(ctx: any, sessionId: string, now: number): Promise<void> {
+  await upsertData(ctx, `${TOMBS}/${sessionId}`, { deletedAt: now });
+}
+
+export const createLink = mutation({
+  args: {
+    serverKey: v.string(),
+    name: v.string(),
+    for: v.string(),
+    notify: v.optional(v.boolean()),
+    autoCv: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { serverKey, name, for: forWho, notify, autoCv }) => {
+    requireServer(serverKey);
+    const Name = str(name, 120).trim();
+    const For = str(forWho, 120).trim();
+    if (!Name || !For) throw new Error("Name and For are required");
+    const now = Date.now();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      let code = "";
+      const bytes = new Uint32Array(8);
+      crypto.getRandomValues(bytes);
+      for (let i = 0; i < 8; i++) code += CODE_ALPHABET[bytes[i] % CODE_ALPHABET.length];
+      const docId = `${now.toString(36)}-${code.slice(0, 4).toLowerCase()}${attempt || ""}`;
+      if (Object.keys(await getData(ctx, `${LINKS}/${docId}`)).length) continue;
+      const all: any[] = await ctx.db.query("dashboardDocs").collect();
+      let taken = false;
+      let scanned = 0;
+      for (const r of all) {
+        if (!r.path.startsWith(LINKS + "/")) continue;
+        if (++scanned > 2000) break;
+        if (isObj(r.data) && (r.data as Dict).Code === code) {
+          taken = true;
+          break;
+        }
+      }
+      if (taken) continue;
+      await upsertData(ctx, `${LINKS}/${docId}`, {
+        Code: code,
+        Name,
+        For,
+        Created: now,
+        Opens: 0,
+        Sessions: 0,
+        LastOpenAt: null,
+        Notify: notify !== false,
+        Tailor: { AutoCv: autoCv === true, Greeting: "", Pinned: [] },
+      });
+      return { docId, code };
+    }
+    throw new Error("Could not allocate a link code");
+  },
+});
+
+export const updateLink = mutation({
+  args: {
+    serverKey: v.string(),
+    docId: v.string(),
+    patch: v.any(),
+  },
+  handler: async (ctx, { serverKey, docId, patch }) => {
+    requireServer(serverKey);
+    const id = str(docId, 80);
+    if (!id || id.includes("/")) throw new Error("Bad link id");
+    const path = `${LINKS}/${id}`;
+    const existing = await getData(ctx, path);
+    if (!Object.keys(existing).length) throw new Error("Not found");
+    const p = isObj(patch) ? (patch as Dict) : {};
+    const next: Dict = { ...(existing as Dict) };
+    if (p.Name !== undefined) {
+      const v = str(p.Name, 120).trim();
+      if (!v) throw new Error("Name is required");
+      next.Name = v;
+    }
+    if (p.For !== undefined) {
+      const v = str(p.For, 120).trim();
+      if (!v) throw new Error("For is required");
+      next.For = v;
+    }
+    if (p.Notify !== undefined) next.Notify = p.Notify !== false;
+    if (p.Tailor !== undefined) {
+      const t = isObj(p.Tailor) ? (p.Tailor as Dict) : {};
+      const pinned = Array.isArray(t.Pinned)
+        ? t.Pinned.map((x) => safeKey(x)).filter((x): x is string => !!x).slice(0, 12)
+        : [];
+      next.Tailor = {
+        AutoCv: t.AutoCv === true,
+        Greeting: str(t.Greeting, 160),
+        Pinned: pinned,
+      };
+    }
+    await upsertData(ctx, path, next);
+    return { docId: id };
+  },
+});
+
+export const deleteLink = mutation({
+  args: { serverKey: v.string(), docId: v.string() },
+  handler: async (ctx, { serverKey, docId }) => {
+    requireServer(serverKey);
+    const id = str(docId, 80);
+    if (!id || id.includes("/")) throw new Error("Bad link id");
+    // Retains historic visits and aggregates; only the link itself goes.
+    await deleteDocRow(ctx, `${LINKS}/${id}`);
+    return { docId: id };
+  },
+});
+
+/** Delete one visit by session id, subtracting its contribution everywhere. */
+export const deleteSession = mutation({
+  args: { serverKey: v.string(), sessionId: v.string() },
+  handler: async (ctx, { serverKey, sessionId }) => {
+    requireServer(serverKey);
+    const id = str(sessionId, 40);
+    if (!id) throw new Error("Bad session id");
+    const now = Date.now();
+    const path = `${SESSIONS}/${id}`;
+    const existing = await getData(ctx, path);
+    if (!Object.keys(existing).length) return { deleted: false };
+    await subtractSession(ctx, existing, now);
+    await deleteDocRow(ctx, path);
+    await tombstone(ctx, id, now);
+    return { deleted: true };
+  },
+});
+
+/**
+ * Forget every visit attributed to one link (matched by Link.DocId, never by
+ * the share Code) and zero that link's own counters. Other aggregates are
+ * reconciled per visit. Returns the deleted count plus whether more remain
+ * (call again to page through large links).
+ */
+export const forgetLinkVisits = mutation({
+  args: { serverKey: v.string(), docId: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, { serverKey, docId, limit }) => {
+    requireServer(serverKey);
+    const id = str(docId, 80);
+    if (!id || id.includes("/")) throw new Error("Bad link id");
+    const now = Date.now();
+    const cap = Math.min(Math.max(limit ?? 200, 1), 500);
+    const all: any[] = await ctx.db.query("dashboardDocs").collect();
+    const matched: string[] = [];
+    for (const r of all) {
+      if (!r.path.startsWith(SESSIONS + "/")) continue;
+      const d = isObj(r.data) ? (r.data as Dict) : null;
+      const link = d && isObj(d.Link) ? (d.Link as Dict) : null;
+      if (link && str(link.DocId, 80) === id)
+        matched.push(String(r.path).slice(String(r.path).lastIndexOf("/") + 1));
+      if (matched.length >= cap) break;
+    }
+    for (const sid of matched) {
+      const s = await getData(ctx, `${SESSIONS}/${sid}`);
+      if (Object.keys(s).length) {
+        await subtractSession(ctx, s, now);
+        await deleteDocRow(ctx, `${SESSIONS}/${sid}`);
+        await tombstone(ctx, sid, now);
+      }
+    }
+    const linkPath = `${LINKS}/${id}`;
+    const ldoc = await getData(ctx, linkPath);
+    if (Object.keys(ldoc).length) {
+      const lnext: Dict = { ...(ldoc as Dict), Opens: 0, Sessions: 0, LastOpenAt: null };
+      await upsertData(ctx, linkPath, lnext);
+    }
+    return { deleted: matched.length, docId: id };
+  },
+});
+
+/** Explicit retention prune: drops old sessions but KEEPS lifetime totals. */
+export const pruneSessions = mutation({
+  args: {
+    serverKey: v.string(),
+    olderThanMs: v.number(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { serverKey, olderThanMs, limit }) => {
+    requireServer(serverKey);
+    const now = Date.now();
+    const cutoff = now - Math.max(24 * 60 * 60_000, olderThanMs);
+    const cap = Math.min(Math.max(limit ?? 100, 1), 500);
+    const all: any[] = await ctx.db.query("dashboardDocs").collect();
+    const victims: Array<{ sid: string; seen: number }> = [];
+    for (const r of all) {
+      if (!r.path.startsWith(SESSIONS + "/")) continue;
+      const d = isObj(r.data) ? (r.data as Dict) : {};
+      const seen = num(d.LastSeenAt ?? d.StartedAt, Number.MAX_SAFE_INTEGER);
+      if (seen > 0 && seen < cutoff)
+        victims.push({ sid: String(r.path).slice(String(r.path).lastIndexOf("/") + 1), seen });
+    }
+    victims.sort((a, b) => a.seen - b.seen);
+    let pruned = 0;
+    for (const v of victims.slice(0, cap)) {
+      await deleteDocRow(ctx, `${SESSIONS}/${v.sid}`);
+      await tombstone(ctx, v.sid, now);
+      pruned++;
+    }
+    return { pruned, remaining: victims.length - pruned };
+  },
+});
+
+/** Read-only ingest health for the dashboard/diagnostics. */
+export const diagnostics = query({
+  args: { serverKey: v.string() },
+  handler: async (ctx, { serverKey }) => {
+    requireServer(serverKey);
+    const all: any[] = await ctx.db.query("dashboardDocs").collect();
+    let sessions = 0;
+    let links = 0;
+    let tombs = 0;
+    for (const r of all) {
+      if (r.path.startsWith(SESSIONS + "/")) sessions++;
+      else if (r.path.startsWith(LINKS + "/")) links++;
+      else if (r.path.startsWith(TOMBS + "/")) tombs++;
+    }
+    const totals = await getData(ctx, TOTALS);
+    const pending = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_status", (q: any) => q.eq("status", "pending"))
+      .take(1);
+    return {
+      sessions,
+      links,
+      tombstones: tombs,
+      totals: {
+        Sessions: num(totals.Sessions, Number.MAX_SAFE_INTEGER),
+        Visitors: num(totals.Visitors, Number.MAX_SAFE_INTEGER),
+        Returning: num(totals.Returning, Number.MAX_SAFE_INTEGER),
+        LinkOpens: num(totals.LinkOpens, Number.MAX_SAFE_INTEGER),
+      },
+      outboxPending: pending.length,
+    };
   },
 });
