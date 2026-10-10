@@ -46,6 +46,10 @@ export interface ProjectData {
   id?: string | number;
   name: string;
   description: string;
+  problem?: string;
+  role?: string;
+  highlights?: string[];
+  metrics?: {label:string;value:string}[];
   tags: TagData[];
   contributors: ContributorData[];
   repoLink: string;

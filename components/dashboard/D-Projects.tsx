@@ -512,6 +512,10 @@ const DProjects = () => {
                     id: doc.id,
                     name: doc.id,
                     description: data.Description || '',
+                    problem:data.Problem||'',
+                    role:data.Role||'',
+                    highlights:Array.isArray(data.Highlights)?data.Highlights:[],
+                    metrics:Array.isArray(data.Metrics)?data.Metrics:[],
                     liveLink: data["Live Link"] || '',
                     repoLink: data["Repository Link"] || '',
                     downloadLink: data["Download Link"] || '',
@@ -741,6 +745,10 @@ const DProjects = () => {
             // the `dashboardDocs` row `Projects/<name>` + Convex storage files.
             const projectDoc = {
                 "Description": data.description,
+                "Problem":data.problem||'',
+                "Role":data.role||'',
+                "Highlights":(data.highlights||[]).map(h=>h.trim()).filter(Boolean),
+                "Metrics":(data.metrics||[]).filter(m=>m.label.trim()&&m.value.trim()),
                 "Live Link": data.liveLink,
                 "Download Link": data.downloadLink || '',
                 "Project Icon": iconUrl,

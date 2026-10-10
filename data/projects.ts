@@ -80,6 +80,10 @@ function inferCategory(stack: string[]): ProjectCategory {
 /** Raw dashboard_docs row data for path `Projects/<name>` (see D-Projects handleSaveProject). */
 export type DashboardProjectRow = {
   Description?: unknown;
+  Problem?: unknown;
+  Role?: unknown;
+  Highlights?: unknown;
+  Metrics?: unknown;
   "Live Link"?: unknown;
   "Download Link"?: unknown;
   "Project Icon"?: unknown;
@@ -235,6 +239,10 @@ export function mapDashboardDocToProject(
     tagsDetailed,
     contributors: contributors.length ? contributors : undefined,
     description,
+    problem:typeof data.Problem==="string"?data.Problem:undefined,
+    role:typeof data.Role==="string"?data.Role:undefined,
+    highlights:Array.isArray(data.Highlights)?data.Highlights.filter((h):h is string=>typeof h==="string"):undefined,
+    metrics:Array.isArray(data.Metrics)?data.Metrics.filter((m):m is {label:string;value:string}=>!!m&&typeof m==="object"&&typeof m.label==="string"&&typeof m.value==="string"):undefined,
     featured: listing > 0 ? listing <= 6 : true,
     liveUrl,
     githubUrl,

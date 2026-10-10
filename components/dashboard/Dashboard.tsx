@@ -1,23 +1,26 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- admin dashboard: thumbnails come from dynamic sources (Firebase, object URLs, user uploads) the optimizer cannot handle; LCP advisory does not apply here */
 
+import dynamic from 'next/dynamic';
 import { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';
 import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark, IdCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import DProjects from './D-Projects';
-import DAbout from './D-About';
-import DTags from './D-Tags';
-import DTrails from './D-Trails';
-import DSettings from './D-Settings';
-import DCanary from './D-Canary';
-import DDeveloper from './D-Developer';
-import DTreasury from './D-Treasury';
-import Assistant from './Assistant';
+const DProjects = dynamic(() => import("./D-Projects"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DAbout = dynamic(() => import("./D-About"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DTags = dynamic(() => import("./D-Tags"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DTrails = dynamic(() => import("./D-Trails"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DSettings = dynamic(() => import("./D-Settings"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DCanary = dynamic(() => import("./D-Canary"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DDeveloper = dynamic(() => import("./D-Developer"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const DTreasury = dynamic(() => import("./D-Treasury"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
+const Assistant = dynamic(() => import("./Assistant"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 import { doc, onSnapshot } from '@/lib/dash-db';
 import { onAuthStateChanged } from '@/lib/dash-auth';
 import { db } from '@/lib/dash-db';
 import { appAuth } from '@/lib/dash-auth';
+
+const DWorkspace = dynamic(() => import("./D-Workspace"), { loading: () => <p className="p-6" role="status">Loading private workspace…</p> });
 
 // The parameter name in the function type would trigger `no-unused-vars` in some
 // ESLint configurations, so we suppress that rule for the following type alias.
@@ -109,6 +112,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
     const menuItems = [
         { id: 'projects', label: 'Projects', icon: Layout },
+        { id: 'workspace', label: 'Workspace', icon: User },
         { id: 'about', label: 'About', icon: IdCard },
         { id: 'tags', label: 'Tags', icon: Tag },
         { id: 'trails', label: 'Trails', icon: Footprints },
@@ -193,6 +197,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                         return (
                             <button
                                 key={item.id}
+                                aria-label={item.label}
                                 onClick={() => setActiveTab(item.id)}
                                 className={`
                                     sidebar-item relative w-full flex items-center transition-all duration-200 border-0 cursor-pointer
@@ -242,6 +247,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 {/* Bottom Actions - Locked at the end */}
                 <div className="pt-4 mt-2 border-t border-[var(--section-border)]">
                     <button
+                        aria-label="Logout"
                         onClick={() => onNavigate && onNavigate('home')}
                         className={`
                             sidebar-item w-full flex items-center transition-all duration-200 border-0 cursor-pointer bg-transparent text-sec
@@ -306,7 +312,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                 transition={{ duration: 0.15, ease: 'easeInOut' }}
                                 className="w-full h-full flex flex-col"
                             >
-                                {activeTab === 'projects' ? (
+                                {activeTab === 'workspace' ? (
+                                    <DWorkspace />
+                                ) : activeTab === 'projects' ? (
                                     <DProjects />
                                 ) : activeTab === 'about' ? (
                                     <DAbout />
