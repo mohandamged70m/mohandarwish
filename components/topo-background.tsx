@@ -118,8 +118,8 @@ export default function TopoBackground() {
                   d={hillRingPath(hill, ring, factors, rotation)}
                   pathLength={1}
                   className="topo-ring"
-                  strokeWidth={emphasized ? 1.6 : 1}
-                  strokeOpacity={emphasized ? 0.28 : 0.14}
+                  strokeWidth={emphasized ? 2.2 : 1.4}
+                  strokeOpacity={emphasized ? 0.42 : 0.24}
                   strokeLinecap="round"
                   style={{ animationDelay: `${delay.toFixed(2)}s` }}
                 />
