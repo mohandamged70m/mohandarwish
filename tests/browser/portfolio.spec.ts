@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 // checks hit the real built server: unauthenticated visitors see the Google
 // sign-in gate, denied accounts see access-denied, and private APIs stay 401.
 // Authenticated owner UI flows need a real Google session and are verified
-// manually against a preview (see OWNER_WORKSPACE.md); fixtures cannot mint
+// manually against a preview; fixtures cannot mint
 // Auth.js sessions.
 test("dashboard shows Google sign-in when unauthenticated", async ({
   page,
@@ -16,10 +16,6 @@ test("dashboard shows Google sign-in when unauthenticated", async ({
   await expect(
     page.getByText("Owner-only. Sign in with Google to manage your portfolio."),
   ).toBeVisible();
-  // No private UI leaks before sign-in.
-  await expect(
-    page.getByRole("heading", { name: "Private workspace" }),
-  ).toHaveCount(0);
 });
 test("denied Google accounts see the access-denied state", async ({
   page,
@@ -33,11 +29,11 @@ test("denied Google accounts see the access-denied state", async ({
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
 });
-test("personal portfolio exposes no portal and rejects unauthenticated workspace access", async ({
+test("personal portfolio exposes no portal and rejects unauthenticated private access", async ({
   page,
   request,
 }) => {
-  expect((await request.get("/api/dashboard/workspace")).status()).toBe(401);
+  expect((await request.get("/api/diag")).status()).toBe(401);
   expect(
     (
       await request.post("/api/data", {

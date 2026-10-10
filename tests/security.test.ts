@@ -31,7 +31,7 @@ beforeEach(() => {
   ownerSession.value = null;
   consumeKey.mockReset();
 });
-it("rejects direct reads, writes, uploads, and private workspace access without the server key", async () => {
+it("rejects direct reads, writes, and uploads without the server key", async () => {
   const t = convexTest(schema, modules);
   await expect(
     t.query(api.docs.getDoc, { serverKey: "wrong", path: "Settings/MCP" }),
@@ -48,9 +48,6 @@ it("rejects direct reads, writes, uploads, and private workspace access without 
   ).rejects.toThrow("Unauthorized");
   await expect(
     t.mutation(api.storage.getUploadUrl, { serverKey: "wrong" }),
-  ).rejects.toThrow("Unauthorized");
-  await expect(
-    t.query(api.workspace.list, { serverKey: "wrong" }),
   ).rejects.toThrow("Unauthorized");
 });
 it("does not persist server keys", async () => {
@@ -81,7 +78,7 @@ it("only the verified owner Gmail passes the email check", () => {
 });
 it("accepts only owner sessions and rejects legacy credential markers", async () => {
   const owner = () =>
-    new Request("https://site.example/api/dashboard/workspace");
+    new Request("https://site.example/api/dashboard");
   ownerSession.value = {
     user: { email: "owner@example.com", isOwner: true },
   };
@@ -258,7 +255,7 @@ it("overwrites sequence numbers while adding counters", async () => {
   expect(second?.Seq).toBe(2);
   expect(second?.Views).toBe(2);
 });
-it("creates a lead with a contact and converts it when a project is saved", async () => {
+it("stores a contact message", async () => {
   const t = convexTest(schema, modules);
   await t.mutation(api.messages.create, {
     serverKey,
@@ -268,50 +265,6 @@ it("creates a lead with a contact and converts it when a project is saved", asyn
     message: "Build an MVP",
     files: [],
   });
-  const data = await t.query(api.workspace.list, { serverKey });
-  expect(data.leads[0].stage).toBe("inquiry");
-  await t.mutation(api.workspace.saveProject, {
-    serverKey,
-    leadId: data.leads[0]._id,
-    title: "MVP",
-    clientName: "Client",
-    clientEmail: "client@example.com",
-    summary: "",
-    status: "active",
-    paymentStatus: "unpaid",
-    invoiceUrl: "",
-    dueDate: "",
-  });
-  expect(
-    (await t.query(api.workspace.list, { serverKey })).leads[0].stage,
-  ).toBe("won");
-});
-it("rejects moving a milestone into a different project", async () => {
-  const t = convexTest(schema, modules);
-  const make = (title: string) => ({
-    serverKey,
-    title,
-    clientName: "Client",
-    clientEmail: "client@example.com",
-    summary: "",
-    status: "active" as const,
-    paymentStatus: "unpaid" as const,
-    invoiceUrl: "",
-    dueDate: "",
-  });
-  const a = await t.mutation(api.workspace.saveProject, make("A")),
-    b = await t.mutation(api.workspace.saveProject, make("B"));
-  const fields = {
-    serverKey,
-    projectId: a,
-    title: "Preview",
-    description: "",
-    previewUrl: "https://example.com",
-    dueDate: "",
-    status: "review" as const,
-  };
-  const id = await t.mutation(api.workspace.saveMilestone, fields);
-  await expect(
-    t.mutation(api.workspace.saveMilestone, { ...fields, id, projectId: b }),
-  ).rejects.toThrow("Not found");
+  const messages = await t.query(api.messages.list, { serverKey });
+  expect(messages[0].email).toBe("client@example.com");
 });

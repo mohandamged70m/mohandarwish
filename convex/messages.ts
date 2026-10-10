@@ -42,14 +42,6 @@ export const create = mutation({
     requireServer(serverKey);
     const { createdAt, ...rest } = args;
     const now = Date.now();
-    await ctx.db.insert("leads", {
-      name: args.name,
-      email: args.email,
-      stage: "inquiry",
-      note: args.message.slice(0, 5000),
-      createdAt: now,
-      updatedAt: now,
-    });
     return await ctx.db.insert("messages", {
       ...rest,
       createdAt: createdAt ?? now,

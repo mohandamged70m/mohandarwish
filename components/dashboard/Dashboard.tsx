@@ -18,8 +18,6 @@ const Assistant = dynamic(() => import("./Assistant"), { loading: () => <p class
 import { doc, onSnapshot } from '@/lib/dash-db';
 import { db } from '@/lib/dash-db';
 
-const DWorkspace = dynamic(() => import("./D-Workspace"), { loading: () => <p className="p-6" role="status">Loading private workspace…</p> });
-
 // The parameter name in the function type would trigger `no-unused-vars` in some
 // ESLint configurations, so we suppress that rule for the following type alias.
 type OnNavigate = (section: 'home' | 'stack' | 'projects' | 'secret' | 'dashboard' | 'view_link') => void;
@@ -105,7 +103,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
     const menuItems = [
         { id: 'projects', label: 'Projects', icon: Layout },
-        { id: 'workspace', label: 'Workspace', icon: User },
         { id: 'about', label: 'About', icon: IdCard },
         { id: 'tags', label: 'Tags', icon: Tag },
         { id: 'trails', label: 'Trails', icon: Footprints },
@@ -305,9 +302,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                 transition={{ duration: 0.15, ease: 'easeInOut' }}
                                 className="w-full h-full flex flex-col"
                             >
-                                {activeTab === 'workspace' ? (
-                                    <DWorkspace />
-                                ) : activeTab === 'projects' ? (
+                                {activeTab === 'projects' ? (
                                     <DProjects />
                                 ) : activeTab === 'about' ? (
                                     <DAbout />
@@ -348,3 +343,4 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 };
 
 export default Dashboard;
+
