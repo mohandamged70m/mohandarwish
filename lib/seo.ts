@@ -71,7 +71,13 @@ const websiteNode = {
   "@id": WEBSITE_ID,
   url: `${SITE_URL}/`,
   name: siteConfig.name,
-  alternateName: "Mohandarwish",
+  // Google site-names fallback: if the preferred `name` isn't selected,
+  // Google strongly considers `alternateName` entries in order — ending
+  // with the lowercase hostname keeps the fallback on this site's own
+  // domain instead of the shared `vercel.app` apex brand ("Vercel").
+  // Derived from SITE_URL so it stays correct on a custom domain.
+  // https://developers.google.com/search/docs/appearance/site-names
+  alternateName: [new URL(SITE_URL).hostname.toLowerCase()],
   description: siteConfig.description,
   inLanguage: "en",
   author: { "@id": PERSON_ID },

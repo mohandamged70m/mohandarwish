@@ -3,7 +3,7 @@
 import { FileText, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { pagerEnabled, requestSectionNavigate } from "@/components/transitions";
 import { requestCvOpen } from "@/components/cv/CvModal";
@@ -220,6 +220,7 @@ function NavDocLink({ onOpen }: { onOpen?: () => void }): ReactNode {
 
 export function Nav(): ReactNode {
   const pathname = usePathname();
+  const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
@@ -232,7 +233,11 @@ export function Nav(): ReactNode {
   const [open, setOpen] = useState(false);
   const [gsapReady, setGsapReady] = useState(false);
   const openRef = useRef(false);
-  openRef.current = open;
+  // Mirror into the ref post-render: handlers (Escape, outside click,
+  // resize) read it, render never does — ref access during render breaks.
+  useEffect(() => {
+    openRef.current = open;
+  });
   // Dimensions cache: measuring forces a reflow (style write → offsetWidth
   // read), so measure on mount/resize/font-load only — never per toggle.
   const dimsRef = useRef<NavDims | null>(null);
@@ -331,6 +336,26 @@ export function Nav(): ReactNode {
         setOpen(false);
       }
     };
+    // Minimal focus trap: only Tab at the panel boundaries is intercepted,
+    // so all existing open/close/focus behavior is untouched.
+    const onTabTrap = (e: KeyboardEvent): void => {
+      if (e.key !== "Tab" || !openRef.current) return;
+      const panel = panelRef.current;
+      if (!panel || !panel.contains(document.activeElement)) return;
+      const items = Array.from(
+        panel.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")
+      ).filter((el) => el.offsetParent !== null);
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = (): void => {
       clearTimeout(resizeTimer);
@@ -361,11 +386,13 @@ export function Nav(): ReactNode {
       }, 150);
     };
     document.addEventListener("keydown", onKeydown);
+    document.addEventListener("keydown", onTabTrap);
     document.addEventListener("click", onDocClick);
     window.addEventListener("resize", onResize);
     return () => {
       clearTimeout(resizeTimer);
       document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onTabTrap);
       document.removeEventListener("click", onDocClick);
       window.removeEventListener("resize", onResize);
     };
@@ -576,10 +603,10 @@ export function Nav(): ReactNode {
     };
   }, []);
 
-  // close menu on route change
+  // close menu on route change (external router state; same-value bail-out, no cascade)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync with navigation; setOpen(false) bails out when already closed
     setOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
 // Section navigation: desktop pager plays the curtain + slide (via the
@@ -628,7 +655,9 @@ function scrollToSection(id: string, moveFocus = false): void {
     if (id === "booking") {
       if (pathname !== "/") {
         sessionStorage.setItem("pending-booking", "1");
-        window.location.href = "/";
+        // Client nav (not location.href): keeps tab state; the home page's
+        // mount effects consume pending-booking / scroll-target on arrival.
+        router.push("/");
         return;
       }
       window.dispatchEvent(new CustomEvent("open-booking"));
@@ -636,7 +665,7 @@ function scrollToSection(id: string, moveFocus = false): void {
     }
     if (pathname !== "/") {
       sessionStorage.setItem("scroll-target", id);
-      window.location.href = "/";
+      router.push("/");
       return;
     }
     const moveFocus = e.detail === 0;

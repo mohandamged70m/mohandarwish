@@ -11,12 +11,13 @@ import StreakErrorBoundary from './StreakErrorBoundary';
 const Lottie = lazy(() => import('lottie-react').then((m) => ({ default: m.Lottie })));
 
 interface StreakCircleProps {
-    streak: number;
+    // null = unknown (contributions failed to load): renders "–", never 0.
+    streak: number | null;
     isLoading?: boolean;
 }
 
 const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
-    const hasStreak = streak > 0;
+    const hasStreak = (streak ?? 0) > 0;
     const lottieRef = useRef<LottieHandle>(null);
     const [fireData, setFireData] = useState<object | null>(null);
     const [prefersReduced, setPrefersReduced] = useState(
@@ -129,7 +130,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                     textAlign: 'center',
                 }}
             >
-                {isLoading ? '-' : streak}
+                {isLoading ? '-' : (streak ?? '–')}
             </div>
 
             {/* Label */}
@@ -144,7 +145,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                     transition: 'color 0.4s ease',
                 }}
             >
-                day streak
+                {streak === null && !isLoading ? 'streak unknown' : 'day streak'}
             </div>
         </motion.div>
     );

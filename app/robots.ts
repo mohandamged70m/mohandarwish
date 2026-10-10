@@ -55,6 +55,7 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${base}/sitemap.xml`,
-    host: base,
+    // Bare hostname only: the robots `Host` directive takes no scheme.
+    host: new URL(base).hostname,
   };
 }

@@ -47,10 +47,10 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
     const activityRef = useRef<HTMLDivElement>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
-    const [streak, setStreak] = useState<number>(0);
+    const [streak, setStreak] = useState<number | null>(0);
     const [streakLoading, setStreakLoading] = useState(true);
 
-    const handleStreakCalculated = useCallback((s: number) => {
+    const handleStreakCalculated = useCallback((s: number | null) => {
         setStreak(s);
         setStreakLoading(false);
     }, []);

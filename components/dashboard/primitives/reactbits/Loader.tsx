@@ -16,6 +16,7 @@ export default function Loader({ isOpen, isFullScreen }: Props) {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- prop mirror for the exit-animation delay; idempotent when already shown
       setShow(true);
       return;
     }

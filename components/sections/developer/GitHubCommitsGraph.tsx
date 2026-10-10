@@ -11,7 +11,9 @@ interface ContributionDay {
 
 interface GitHubCommitsGraphProps {
     username?: string;
-    onStreakCalculated?: (streak: number) => void;
+    // null = unknown (load failed): the parent must render "unavailable",
+    // never a confident 0-day streak.
+    onStreakCalculated?: (streak: number | null) => void;
 }
 
 /** Count consecutive contribution days ending today (or yesterday if today is empty).
@@ -166,20 +168,24 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
 
             if (ignore) return;
 
-            // 2) Try localStorage cache
+            // 2) Try localStorage cache (discarded past 15 min — ancient
+            // snapshots are how stale zeros haunted the UI after recovery)
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
-                if (cached && applyData(JSON.parse(cached))) return;
+                if (cached) {
+                    const json = JSON.parse(cached);
+                    const ts = typeof json?.fetchedAt === 'number' ? json.fetchedAt : 0;
+                    if (Date.now() - ts < 15 * 60 * 1000 && applyData(json)) return;
+                }
             } catch { /* corrupt cache */ }
 
             if (ignore) return;
 
             // 3) Final fallback: small error state, no mock numbers.
-            // Still report a streak so the parent stops showing the loading
-            // placeholder in StreakCircle.
+            // Report unknown (null), not 0 — a failed load is not a broken streak.
             setIsLoading(false);
             setError((prev) => prev ?? 'Could not load GitHub contributions.');
-            onStreakCalculated?.(0);
+            onStreakCalculated?.(null);
         };
 
         fetchAll();

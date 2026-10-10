@@ -13,6 +13,7 @@ export function Providers({ children }: { children: ReactNode }): ReactNode {
   const [forced, setForced] = useState(false);
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot read of the ?motion=full override after mount (avoids SSR mismatch)
       setForced(isMotionForced());
     } catch {
       // non-fatal: fall back to respecting the OS setting

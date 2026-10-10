@@ -33,6 +33,7 @@ export function ScrollReveal({
   // variant in a post-hydration update instead of a hydration mismatch.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot mount flag so SSR + hydration render identically
     setMounted(true);
   }, []);
   const reduceMotion = mounted ? reduceMotionRaw : false;

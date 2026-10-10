@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { RotateCcw } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type Matter from "matter-js";
@@ -67,6 +68,7 @@ export function Stack({ chips }: { chips?: StackChip[] }): ReactNode {
 
   useEffect(() => {
     const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot media query read after mount (avoids SSR mismatch)
     setPrefersReducedMotion(mql.matches);
     const onChange = () => setPrefersReducedMotion(mql.matches);
     mql.addEventListener("change", onChange);
@@ -343,13 +345,13 @@ function ChipPill({ chip }: { chip: Chip }): ReactNode {
         style={{ borderRadius: `${ICON_RADIUS}px` }}
         aria-hidden="true"
       >
-        <img
+        {/* unoptimized: below-fold icon, any dashboard-provided host; low priority keeps hero LCP clear */}
+        <Image
           src={chip.iconUrl ?? `https://cdn.simpleicons.org/${chip.slug}`}
           alt=""
           width={18}
           height={18}
-          // Below-fold stack icons: keep them (and React 19's auto-preload
-          // of them) from competing with the hero LCP on first paint.
+          unoptimized
           fetchPriority="low"
           className="h-5 w-5"
           draggable={false}

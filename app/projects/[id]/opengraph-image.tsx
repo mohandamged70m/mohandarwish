@@ -2,25 +2,34 @@ import { ImageResponse } from "next/og";
 import { decodeProjectId } from "@/data/projects";
 import { getProjectServer } from "@/lib/projects-server";
 
-export const alt = "Project — Mohand Darwish";
+export const alt = "Project by Mohand Darwish — Software Engineer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-type Props = { params: Promise<{ id: string }> };
-
-export default async function Image({ params }: Props) {
-  const { id } = await params;
-  let title = decodeProjectId(id).replace(/-/g, " ");
-  let category = "Project";
+// Per-project share card: project title + category + stack on the wine
+// system. Falls back to the generic site card when the project is missing,
+// so a share never 500s on a stale id.
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  let title = "Mohand Darwish";
+  let eyebrow = "ALEXANDRIA · GMT+2 · WORLDWIDE";
+  let sub = "Software Engineer | AI Product Builder";
   try {
+    const { id } = await params;
     const project = await getProjectServer(decodeProjectId(id));
     if (project) {
       title = project.title;
-      category = project.category;
+      eyebrow = `MOHAND DARWISH — ${project.category.toUpperCase()}`;
+      sub = project.stack?.slice(0, 4).join(" · ") || "Case study";
     }
   } catch {
-    // Fall back to the slug-derived title — card always renders.
+    // fallback art below
   }
+
+  const titleSize = title.length > 44 ? 54 : title.length > 24 ? 70 : 88;
 
   return new ImageResponse(
     (
@@ -37,19 +46,31 @@ export default async function Image({ params }: Props) {
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
-        <div style={{ fontSize: 26, letterSpacing: "0.22em", color: "#ad2831" }}>
-          {category.toUpperCase()} · MOHAND DARWISH
-        </div>
         <div
           style={{
-            fontSize: 76,
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-            lineHeight: 1.05,
-            marginTop: "24px",
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+            marginBottom: "28px",
           }}
         >
+          <div
+            style={{
+              width: "14px",
+              height: "14px",
+              borderRadius: "9999px",
+              background: "#ad2831",
+            }}
+          />
+          <div style={{ fontSize: 26, letterSpacing: "0.22em", color: "#a8a29e" }}>
+            {eyebrow}
+          </div>
+        </div>
+        <div style={{ fontSize: titleSize, fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1.05 }}>
           {title}
+        </div>
+        <div style={{ fontSize: 34, color: "#d6d3d1", marginTop: "20px" }}>
+          {sub}
         </div>
         <div
           style={{

@@ -170,7 +170,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <Toggle checked={countsTowardNetProfit} onChange={setCountsTowardNetProfit} aria-label="Counts toward net profit" />
                             <span className="text-sm text-primary font-medium flex items-center gap-1.5"><TrendingUp size={14} /> Counts toward net profit</span>
                         </div>
-                        <p className="text-[11px] text-sec mt-1.5 ml-7">Turn off for money that isn't real business P&amp;L (e.g. savings, a client's escrow) - income/expenses here still update this account's balance, just not Net profit or the earnings chart.</p>
+                        <p className="text-[11px] text-sec mt-1.5 ml-7">Turn off for money that isn&apos;t real business P&amp;L (e.g. savings, a client&apos;s escrow) - income/expenses here still update this account&apos;s balance, just not Net profit or the earnings chart.</p>
                     </div>
 
                     {isEdit && (

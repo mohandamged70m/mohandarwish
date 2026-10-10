@@ -6,7 +6,7 @@ import {
   setCached,
 } from "@/lib/github";
 
-export const revalidate = 3600; // 1 hour ISR
+export const revalidate = 900; // 15 min ISR (matches the server cache TTL)
 
 const LEVEL_BY_API: Record<string, number> = {
   NONE: 0,
@@ -24,7 +24,7 @@ export async function GET() {
     const cached = getCached(CACHE_KEY);
     if (cached) {
       return NextResponse.json(cached, {
-        headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200", "X-Cache": "HIT" },
+        headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800", "X-Cache": "HIT" },
       });
     }
 
@@ -48,10 +48,11 @@ export async function GET() {
       contributions,
       total,
       ...computeStreakStats(days),
+      fetchedAt: Date.now(),
     };
     setCached(CACHE_KEY, payload);
     return NextResponse.json(payload, {
-      headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200", "X-Cache": "MISS" },
+      headers: { "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800", "X-Cache": "MISS" },
     });
   } catch (e) {
     const cached = getCached(CACHE_KEY);

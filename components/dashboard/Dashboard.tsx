@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- admin dashboard: thumbnails come from dynamic sources (Firebase, object URLs, user uploads) the optimizer cannot handle; LCP advisory does not apply here */
 
 import { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';

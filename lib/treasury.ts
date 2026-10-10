@@ -261,7 +261,7 @@ export function projectPayments(p: TreasuryProject, income: TreasuryIncome[]): P
     .map((i) => ({ id: i.id, date: i.date || "", amount: i.amount || 0, currency: i.currency }));
 }
 
-export function paymentTimeLabel(_i: ProjectPayment): string {
+export function paymentTimeLabel(): string {
   // Income rows carry dates but no clock time — no time part to show.
   return "";
 }

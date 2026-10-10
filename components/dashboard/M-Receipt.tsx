@@ -137,7 +137,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
             // months of history beside a one-month Paid would not add up.
             const onePayment = !!p.monthly || (!!perPayment[p.id] && hasInstallments(p));
             const rows = (onePayment ? all.slice(-1) : all).map(i => {
-                const time = paymentTimeLabel(i);
+                const time = paymentTimeLabel();
                 return {
                     date: i.date,
                     dateLabel: `${humanDate(i.date)}${time ? `, ${time}` : ''}`,

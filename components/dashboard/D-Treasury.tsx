@@ -890,7 +890,7 @@ const DTreasury = () => {
                                     <p className="text-xs text-sec -mt-2">Drag cards to reorder - active & pending projects. Click a card to focus details.</p>
                                     
                                     {activeProjects.length === 0 ? (
-                                        <div className="border-2 border-dashed border-input-border rounded-2xl p-8 text-center text-sec text-sm">No active projects. Click "+ Project" to add one.</div>
+                                        <div className="border-2 border-dashed border-input-border rounded-2xl p-8 text-center text-sec text-sm">No active projects. Click &quot;+ Project&quot; to add one.</div>
                                     ) : (
                                         <Reorder.Group as="div" layoutScroll axis="x" values={activeProjects} onReorder={handleReorderActive} className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar">
                                             {activeProjects.map(p => {
@@ -1183,7 +1183,7 @@ const DTreasury = () => {
                             {/* Body */}
                             <div className="p-5">
                                 {moneyRows.length === 0 ? (
-                                    <div className="glass-surface p-6 text-center text-sec text-sm">Nothing yet. Click "+ Add money" to log income or an expense.</div>
+                                    <div className="glass-surface p-6 text-center text-sec text-sm">Nothing yet. Click &quot;+ Add money&quot; to log income or an expense.</div>
                                 ) : !selectedDay && visibleRows.length === 0 ? (
                                     <div className="glass-surface p-6 text-center text-sec text-sm">No entries match these filters.</div>
                                 ) : selectedDay ? (
@@ -1400,7 +1400,7 @@ const DTreasury = () => {
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-sec uppercase tracking-wider">Default for new entries</label>
-                                    <p className="text-xs text-sec -mt-1">Used when you don't name a currency - e.g. "add 100" vs "add 100$". New projects & expenses are added in this currency.</p>
+                                    <p className="text-xs text-sec -mt-1">Used when you don&apos;t name a currency - e.g. &quot;add 100&quot; vs &quot;add 100$&quot;. New projects &amp; expenses are added in this currency.</p>
                                     <div className={`flex rounded-xl border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
                                             <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-emerald-500 text-white shadow' : 'text-sec hover:text-primary'}`}>{c}</button>

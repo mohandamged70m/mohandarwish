@@ -8,7 +8,7 @@ import {
   computeGitHubStats,
 } from "@/lib/github";
 
-export const revalidate = 3600; // 1 hour ISR
+export const revalidate = 900; // 15 min ISR (matches the server cache TTL)
 
 // GET /api/github/stats — aggregated overview for the Developer section.
 // Server-side fetch = one shared cached response for all visitors instead
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     if (cached) {
       return NextResponse.json(cached, {
         headers: {
-          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+          "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800",
           "X-Cache": "HIT",
         },
       });
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(payload, {
       headers: {
-        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+        "Cache-Control": "public, s-maxage=900, stale-while-revalidate=1800",
         "X-Cache": "MISS",
       },
     });

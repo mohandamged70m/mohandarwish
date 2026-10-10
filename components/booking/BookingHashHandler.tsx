@@ -23,6 +23,7 @@ export function BookingHashHandler() {
     // cross-page nav from elsewhere (nav stores this, URL stays "/")
     if (sessionStorage.getItem("pending-booking") === "1") {
       sessionStorage.removeItem("pending-booking");
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot consumption of cross-page intent after mount
       setOpen(true);
     }
     const openFromEvent = (): void => setOpen(true);

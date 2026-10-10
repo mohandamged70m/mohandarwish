@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from "lucide-react";
 
 export type AlertType = "success" | "error" | "warning" | "info";

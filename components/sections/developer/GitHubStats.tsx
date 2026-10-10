@@ -12,6 +12,14 @@ interface Stats {
     repoCount: number;
     currentStreak: number;
     longestStreak: number;
+    contributionsOk: boolean;
+    fetchedAt: number;
+}
+
+function syncedAgo(fetchedAt: number): string {
+    if (!fetchedAt) return "";
+    const min = Math.max(0, Math.round((Date.now() - fetchedAt) / 60000));
+    return min < 1 ? "synced just now" : `synced ${min} min ago`;
 }
 
 const StatCard = ({
@@ -112,13 +120,15 @@ const GitHubStats = () => {
         repoCount: 0,
         currentStreak: 0,
         longestStreak: 0,
+        contributionsOk: true,
+        fetchedAt: 0,
     });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const CACHE_KEY = 'gh_stats_overview_v3';
-        const CACHE_TTL = 60 * 60 * 1000; // 60 min
+        const CACHE_TTL = 15 * 60 * 1000; // 15 min (matches the server cache)
 
         const applyStats = (s: Stats) => {
             setStats(s);
@@ -157,6 +167,8 @@ const GitHubStats = () => {
                         repoCount: data.repoCount || 0,
                         currentStreak: data.currentStreak || 0,
                         longestStreak: data.longestStreak || 0,
+                        contributionsOk: data.contributionsOk !== false,
+                        fetchedAt: typeof data.fetchedAt === 'number' ? data.fetchedAt : Date.now(),
                     });
                 } else {
                     // Non-OK must still end loading (previously hung forever).
@@ -179,9 +191,21 @@ const GitHubStats = () => {
             if (raw) {
                 const { data, ts } = JSON.parse(raw);
                 if (Date.now() - ts < CACHE_TTL && data) {
-                    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage cache on mount (synchronizing external state)
-                    setStats(data);
+                    /* eslint-disable react-hooks/set-state-in-effect -- hydrating from localStorage cache on mount (synchronizing external state) */
+                    // Normalize: payloads cached before contributionsOk/fetchedAt existed.
+                    setStats({
+                        followers: data.followers || 0,
+                        totalStars: data.totalStars || 0,
+                        forksReceived: data.forksReceived || 0,
+                        forkedRepos: data.forkedRepos || 0,
+                        repoCount: data.repoCount || 0,
+                        currentStreak: data.currentStreak || 0,
+                        longestStreak: data.longestStreak || 0,
+                        contributionsOk: data.contributionsOk !== false,
+                        fetchedAt: typeof data.fetchedAt === 'number' ? data.fetchedAt : ts,
+                    });
                     setIsLoading(false);
+                    /* eslint-enable react-hooks/set-state-in-effect */
                     // Refresh in background
                     fetchFromApi(false);
                     return;
@@ -202,7 +226,13 @@ const GitHubStats = () => {
             </div>
             {!isLoading && (
                 <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Forks received: {stats.forksReceived} · Current streak: {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'} · Longest streak: {stats.longestStreak} day{stats.longestStreak === 1 ? '' : 's'}
+                    Forks received: {stats.forksReceived} ·{' '}
+                    {stats.contributionsOk ? (
+                        <>Current streak: {stats.currentStreak} day{stats.currentStreak === 1 ? '' : 's'} · Longest streak: {stats.longestStreak} day{stats.longestStreak === 1 ? '' : 's'}</>
+                    ) : (
+                        <>Streak unavailable — GitHub contributions failed to load</>
+                    )}
+                    {stats.fetchedAt > 0 && <> · {syncedAgo(stats.fetchedAt)}</>}
                 </p>
             )}
             {!isLoading && error && (

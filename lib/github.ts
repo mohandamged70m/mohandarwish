@@ -26,7 +26,10 @@ type CacheEntry = { data: unknown; expiresAt: number };
 // GitHub API calls: every visitor shares one cached response instead of
 // each browser hitting api.github.com (60 req/hr unauthenticated limit).
 const cache = new Map<string, CacheEntry>();
-const TTL_MS = 60 * 60 * 1000;
+// 15 minutes: short enough that a fresh commit or a recovered token shows
+// up quickly (stale zeros haunted the UI for an hour before), long enough
+// that all visitors share a handful of GitHub calls per hour.
+const TTL_MS = 15 * 60 * 1000;
 
 export function getCached<T>(key: string): T | null {
   const entry = cache.get(key);
@@ -216,6 +219,10 @@ export interface GitHubStatsPayload {
   repoCount: number;
   currentStreak: number;
   longestStreak: number;
+  // False when the contribution calendar failed to load: streak numbers are
+  // unknown, not zero. Clients must render "unavailable", never "0 days".
+  contributionsOk: boolean;
+  fetchedAt: number;
 }
 
 export function computeGitHubStats(
@@ -239,6 +246,8 @@ export function computeGitHubStats(
     repoCount: safeRepos.length,
     currentStreak: streaks.currentStreak,
     longestStreak: streaks.longestStreak,
+    contributionsOk: contributionDays !== null,
+    fetchedAt: Date.now(),
   };
 }
 

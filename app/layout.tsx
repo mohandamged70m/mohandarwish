@@ -62,7 +62,7 @@ const plexMono = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: "Mohand Darwish | Software Engineer | AI Product Builder",
+    default: "Mohand Darwish - Software Engineer",
     template: "%s | Mohand Darwish",
   },
   description: siteConfig.description,
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
     "me": [...SAME_AS],
   },
   openGraph: {
-    title: "Mohand Darwish | Software Engineer | AI Product Builder",
+    title: "Mohand Darwish - Software Engineer",
     description: siteConfig.description,
     url: siteConfig.url,
     siteName: siteConfig.name,
@@ -102,7 +102,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mohand Darwish | Software Engineer | AI Product Builder",
+    title: "Mohand Darwish - Software Engineer",
     description: siteConfig.description,
     creator: siteConfig.creator,
   },

@@ -71,6 +71,7 @@ export default function DAbout() {
   }, [showAlert]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async section load on dashboard tab switch (external store sync)
     void load(section);
   }, [section, load]);
 

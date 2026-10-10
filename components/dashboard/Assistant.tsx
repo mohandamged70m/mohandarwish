@@ -695,8 +695,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                         {messages.length === 0 ? (
                             <div className="flex-1 flex flex-col items-center justify-center text-center text-sec gap-2 py-8">
                                 <Sparkles size={28} className="text-red-400/60" />
-                                <p className="text-sm font-medium text-primary">Hey, I'm Spark</p>
-                                <p className="text-xs max-w-[260px]">Ask me to navigate, click buttons, or read/change your data. e.g. "open treasury", "how many projects do I have?", "add a tag called VIP".</p>
+                                <p className="text-sm font-medium text-primary">Hey, I&apos;m Spark</p>
+                                <p className="text-xs max-w-[260px]">Ask me to navigate, click buttons, or read/change your data. e.g. &quot;open treasury&quot;, &quot;how many projects do I have?&quot;, &quot;add a tag called VIP&quot;.</p>
                             </div>
                         ) : messages.map(bubble)}
 

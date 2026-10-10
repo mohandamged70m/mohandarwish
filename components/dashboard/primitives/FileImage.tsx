@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- takes File/Blob (object URLs) which the optimizer cannot handle; plain <img> is the only correct element here */
 
-import { useEffect, useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { useObjectURL } from "@/hooks/useObjectURL";
 
 interface Props {
   src: string | File | Blob | null | undefined;
@@ -9,20 +11,10 @@ interface Props {
   style?: CSSProperties;
 }
 
-// <img> that also accepts File/Blob (object URL, revoked on cleanup).
+// <img> that also accepts File/Blob via the shared object-URL hook
+// (revoked on change/unmount) instead of duplicating its lifecycle.
 export default function FileImage({ src, alt = "", className, style }: Props) {
-  const [url, setUrl] = useState<string>("");
-
-  useEffect(() => {
-    if (!src || typeof src === "string") {
-      setUrl(typeof src === "string" ? src : "");
-      return;
-    }
-    const u = URL.createObjectURL(src);
-    setUrl(u);
-    return () => URL.revokeObjectURL(u);
-  }, [src]);
-
+  const url = useObjectURL(src);
   if (!url) return null;
   return <img src={url} alt={alt} className={className} style={style} loading="lazy" />;
 }

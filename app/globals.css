@@ -177,6 +177,8 @@ html {
   max-width: 100%;
   width: 100%;
   overscroll-behavior-x: none;
+  /* Fixed bottom pill nav (~64px + offset): keep scrolled-to content clear of it. */
+  scroll-padding-bottom: 6rem;
   /* smooth theme transition for non-reduced-motion */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -834,8 +836,9 @@ html.light {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5em;
-  height: 2.5em;
+  /* 2.75em @ 16px = 44px platform touch target */
+  width: 2.75em;
+  height: 2.75em;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--bg-primary);
@@ -856,8 +859,9 @@ html.light {
   justify-content: center;
   align-items: center;
   gap: 0.25em;
-  width: 2.5em;
-  height: 2.5em;
+  /* 2.75em @ 16px = 44px platform touch target */
+  width: 2.75em;
+  height: 2.75em;
   padding: 0;
   border: none;
   border-radius: var(--radius-sm);

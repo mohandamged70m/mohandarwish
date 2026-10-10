@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- admin dashboard: thumbnails come from dynamic sources (Firebase, object URLs, user uploads) the optimizer cannot handle; LCP advisory does not apply here */
 
 import { useState, useEffect, useMemo } from 'react';
 import { sanitizeSvg } from '@/lib/sanitize';
@@ -503,7 +504,7 @@ const DProjects = () => {
                     return {
                         name,
                         color: (typeof t === 'object' && (t.Color)) ? t.Color : (globalTag?.color || getTechColor(name)),
-                        iconSvg: (typeof t === 'object' && (t.Icon)) ? t.Icon : (globalTag?.iconSvg || getStackIcon(name) || '')
+                        iconSvg: (typeof t === 'object' && (t.Icon)) ? t.Icon : (globalTag?.iconSvg || getStackIcon() || '')
                     };
                 }).filter(t => t.name !== 'Unix');
 
@@ -696,7 +697,7 @@ const DProjects = () => {
             const stackSnapshot = data.tags.map((tag: TagData) => ({
                 Name: tag.name,
                 Color: tag.color || getTechColor(tag.name),
-                Icon: tag.iconSvg || getStackIcon(tag.name) || '',
+                Icon: tag.iconSvg || getStackIcon() || '',
             }));
 
             // 5. Prepare Contributors Map — full snapshot (name + project role +

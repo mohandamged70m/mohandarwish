@@ -62,6 +62,7 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
   // Clear a stale query when the list shrinks below the search threshold.
   useEffect(() => {
     if (projects.length < 6) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- conditional reset, self-terminating (condition false after clear)
       setSearchQuery("");
       setDebouncedSearch("");
     }

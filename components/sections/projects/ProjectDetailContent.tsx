@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { ArrowUpRight, Code, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Project, ProjectContributor } from "@/data/projects";
@@ -69,12 +70,14 @@ function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconS
     if (/^(https?:|data:image)/.test(icon)) {
       return (
         <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95">
-          <img
+          {/* unoptimized: owner-provided URLs (incl. data-URIs) can't go through the optimizer */}
+          <Image
             src={icon}
             alt=""
             aria-hidden="true"
             width={18}
             height={18}
+            unoptimized
             loading="lazy"
             className="h-[18px] w-[18px] object-contain"
             onError={() => setFailed(true)}
@@ -98,12 +101,13 @@ function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconS
   if (slug && !failed) {
     return (
       <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/95">
-        <img
+        <Image
           src={`https://cdn.simpleicons.org/${slug}`}
           alt=""
           aria-hidden="true"
           width={18}
           height={18}
+          unoptimized
           loading="lazy"
           className="h-[18px] w-[18px] object-contain"
           onError={() => setFailed(true)}
@@ -548,7 +552,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                     style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, cursor: "pointer", borderRadius: 12 }}
                   >
                     {c.image ? (
-                      <img src={c.image} alt="" aria-hidden="true" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
+                      <Image src={c.image} alt="" aria-hidden="true" width={36} height={36} unoptimized style={{ borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
                     ) : (
                       <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(163,230,53,0.15)", color: "var(--accent-primary)", fontWeight: 800 }}>
                         {c.name.charAt(0).toUpperCase()}

@@ -36,11 +36,14 @@ export function RouteCurtain() {
   const [stage, setStage] = useState<'cover' | 'exit'>('cover');
 
   // Adjust state during render (React-endorsed prev-comparison pattern):
-  // a new pathname starts a new wipe cycle. No wipe on first mount, and no
-  // wipe for modal open/close (the morph owns that transition).
+  // a new pathname starts a new wipe cycle. No wipe on first mount, no wipe
+  // for modal open/close (the morph owns that transition), and no wipe over
+  // an open dialog (project/booking modal) — the curtain would bury it.
   if (prevPath !== pathname && !reduceMotion) {
     setPrevPath(pathname);
-    if (!isModalNav(prevPath, pathname)) {
+    const dialogOpen =
+      typeof document !== "undefined" && !!document.querySelector('[role="dialog"]');
+    if (!isModalNav(prevPath, pathname) && !dialogOpen) {
       setCycle((c) => c + 1);
       setStage('cover');
       setVisible(true);

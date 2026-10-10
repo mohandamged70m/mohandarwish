@@ -41,7 +41,7 @@ export function getTechColor(tech: string): string {
   return "#ad2831";
 }
 
-export function getStackIcon(_tech: string): string {
+export function getStackIcon(): string {
   // Mohand uses per-tag iconSvg from the dashboard; we return empty and let caller show dot fallback.
   return "";
 }

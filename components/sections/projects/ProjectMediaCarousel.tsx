@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isVideoFile } from "@/lib/project-utils";
@@ -41,15 +42,16 @@ function ProjectMediaImage({ src, index }: { src: string; index: number }) {
           />
         )}
       </div>
-      <img
+      {/* unoptimized: project media may come from any dashboard-provided host */}
+      <Image
         src={src}
-        onLoad={() => setLoaded(true)}
         alt={`Project image ${index + 1}`}
+        fill
+        unoptimized
+        onLoad={() => setLoaded(true)}
         loading={index === 0 ? "eager" : "lazy"}
         decoding="async"
         style={{
-          width: "100%",
-          height: "100%",
           objectFit: "cover",
           position: "absolute",
           inset: 0,
