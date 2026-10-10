@@ -6,8 +6,7 @@
 // Paths are preserved verbatim via the storageMap table (convex/storage.ts);
 // files live in Convex storage and are served by the recorded URL.
 
-import { ConvexReactClient } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { storageCall } from "./dash-transport";
 
 const BUCKET = "firebase"; // legacy app handle shape only
 
@@ -16,16 +15,6 @@ export interface StorageRef {
   path: string;
   name: string;
   fullPath: string;
-}
-
-let _client: ConvexReactClient | null = null;
-
-function convex(): ConvexReactClient | null {
-  if (_client) return _client;
-  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!url) return null;
-  _client = new ConvexReactClient(url);
-  return _client;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -49,16 +38,16 @@ function pathFromUrl(url: string): string {
 }
 
 export function ref(_storage: unknown, pathOrUrl: string): StorageRef {
-  const path = /^https?:\/\//.test(pathOrUrl) ? pathFromUrl(pathOrUrl) : pathOrUrl.replace(/^\/+/, "");
+  const path = /^https?:\/\//.test(pathOrUrl)
+    ? pathFromUrl(pathOrUrl)
+    : pathOrUrl.replace(/^\/+/, "");
   return { kind: "file", path, name: baseName(path), fullPath: path };
 }
 
 export async function uploadBytes(
   storageRef: StorageRef,
-  data: File | Blob | ArrayBuffer | Uint8Array
+  data: File | Blob | ArrayBuffer | Uint8Array,
 ): Promise<{ ref: StorageRef }> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
   const body =
     data instanceof ArrayBuffer
       ? new Blob([data])
@@ -71,13 +60,15 @@ export async function uploadBytes(
       : data instanceof Uint8Array
         ? data.byteLength
         : (data as Blob).size;
-  const uploadUrl = await client.mutation(api.storage.getUploadUrl, {});
+  const uploadUrl = await storageCall<string>("getUploadUrl", {});
   const res = await fetch(uploadUrl, { method: "POST", body });
   if (!res.ok) throw new Error(`Upload failed (${res.status})`);
   const { storageId } = (await res.json()) as { storageId: string };
-  const url = await client.query(api.storage.getUrl, { storageId: storageId as never });
+  const url = await storageCall<string>("getUrl", {
+    storageId: storageId as never,
+  });
   if (!url) throw new Error("Missing storage URL");
-  await client.mutation(api.storage.setMapping, {
+  await storageCall("setMapping", {
     path: storageRef.path,
     storageId: storageId as never,
     url,
@@ -87,17 +78,15 @@ export async function uploadBytes(
 }
 
 export async function getDownloadURL(storageRef: StorageRef): Promise<string> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
-  const hit = await client.query(api.storage.getByPath, { path: storageRef.path });
+  const hit = await storageCall<{ url: string; size: number }>("getByPath", {
+    path: storageRef.path,
+  });
   if (!hit?.url) throw new Error(`No file at ${storageRef.path}`);
   return hit.url;
 }
 
 export async function deleteObject(storageRef: StorageRef): Promise<void> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
-  await client.mutation(api.storage.removeByPath, { path: storageRef.path });
+  await storageCall("removeByPath", { path: storageRef.path });
 }
 
 export interface ListResult {
@@ -106,20 +95,34 @@ export interface ListResult {
 }
 
 export async function listAll(dirRef: StorageRef): Promise<ListResult> {
-  const client = convex();
-  if (!client) return { items: [], prefixes: [] };
   const prefix = dirRef.path.replace(/\/+$/, "");
-  const { items, prefixes } = await client.query(api.storage.listChildren, { prefix });
+  const { items, prefixes } = await storageCall<{
+    items: { path: string }[];
+    prefixes: { path: string }[];
+  }>("listChildren", { prefix });
   return {
-    items: items.map((it) => ({ kind: "file" as const, path: it.path, name: baseName(it.path), fullPath: it.path })),
-    prefixes: prefixes.map((p) => ({ kind: "prefix" as const, path: p.path, name: baseName(p.path), fullPath: p.path })),
+    items: items.map((it) => ({
+      kind: "file" as const,
+      path: it.path,
+      name: baseName(it.path),
+      fullPath: it.path,
+    })),
+    prefixes: prefixes.map((p) => ({
+      kind: "prefix" as const,
+      path: p.path,
+      name: baseName(p.path),
+      fullPath: p.path,
+    })),
   };
 }
 
-export async function getMetadata(storageRef: StorageRef): Promise<{ size: number; name: string }> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
-  const hit = await client.query(api.storage.getByPath, { path: storageRef.path });
-  if (!hit || typeof hit.size !== "number") throw new Error("Metadata unavailable");
+export async function getMetadata(
+  storageRef: StorageRef,
+): Promise<{ size: number; name: string }> {
+  const hit = await storageCall<{ url: string; size: number }>("getByPath", {
+    path: storageRef.path,
+  });
+  if (!hit || typeof hit.size !== "number")
+    throw new Error("Metadata unavailable");
   return { size: hit.size, name: storageRef.name };
 }

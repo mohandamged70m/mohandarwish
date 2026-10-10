@@ -4,13 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-} from "@/lib/dash-db";
-import { db } from "@/lib/dash-db";
 import { requestCvOpen } from "@/components/cv/CvModal";
 import { stashTailor } from "@/lib/analytics/tailor";
 import type { LinkDoc } from "@/lib/analytics-types";
@@ -51,16 +44,7 @@ export default function TailoredLanding({ code }: { code: string }) {
     let cancelled = false;
     (async () => {
       try {
-        const found = await getDocs(
-          query(collection(db, "Analytics", "Links", "Items"), where("Code", "==", code)),
-        );
-        if (cancelled) return;
-        const hit = found.docs[0];
-        if (!hit) {
-          setStatus("missing");
-          return;
-        }
-        const data = hit.data() as LinkDoc;
+        const response=await fetch(`/api/share/${encodeURIComponent(code)}`);const data=await response.json() as LinkDoc;if(cancelled)return;if(!response.ok){setStatus("missing");return;}
         // Attribute this visit to the link: a backup in sessionStorage (the tracker
         // picks it up when it starts) + a live handoff with retries (this page effect
         // runs before the layout tracker's mount effect, which may not have happened

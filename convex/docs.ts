@@ -1,3 +1,4 @@
+import { requireServer } from "./access";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -18,19 +19,23 @@ export function mergeValues(base: unknown, patch: unknown): unknown {
     !Array.isArray(base) &&
     !Array.isArray(patch)
   ) {
-    const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+    const out: Record<string, unknown> = {
+      ...(base as Record<string, unknown>),
+    };
     for (const [k, val] of Object.entries(patch as Record<string, unknown>)) {
       out[k] = mergeValues((base as Record<string, unknown>)[k], val);
     }
     return out;
   }
-  if (typeof base === "number" && typeof patch === "number") return base + patch;
+  if (typeof base === "number" && typeof patch === "number")
+    return base + patch;
   return patch;
 }
 
 export const getDoc = query({
-  args: { path: v.string() },
-  handler: async (ctx, { path }) => {
+  args: { serverKey: v.string(), path: v.string() },
+  handler: async (ctx, { serverKey, path }) => {
+    requireServer(serverKey);
     const row = await ctx.db
       .query("dashboardDocs")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -40,8 +45,9 @@ export const getDoc = query({
 });
 
 export const getDocsByPaths = query({
-  args: { paths: v.array(v.string()) },
-  handler: async (ctx, { paths }) => {
+  args: { serverKey: v.string(), paths: v.array(v.string()) },
+  handler: async (ctx, { serverKey, paths }) => {
+    requireServer(serverKey);
     const out: { path: string; data: unknown }[] = [];
     for (const path of paths) {
       const row = await ctx.db
@@ -56,14 +62,16 @@ export const getDocsByPaths = query({
 
 // Direct children of a collection prefix (Firestore semantics: no nested "/").
 export const listCollection = query({
-  args: { prefix: v.string() },
-  handler: async (ctx, { prefix }) => {
+  args: { serverKey: v.string(), prefix: v.string() },
+  handler: async (ctx, { serverKey, prefix }) => {
+    requireServer(serverKey);
     const rows = await ctx.db.query("dashboardDocs").collect();
     const out: { path: string; data: unknown }[] = [];
     for (const row of rows) {
       if (!row.path.startsWith(prefix + "/")) continue;
       const rest = row.path.slice(prefix.length + 1);
-      if (rest && !rest.includes("/")) out.push({ path: row.path, data: row.data });
+      if (rest && !rest.includes("/"))
+        out.push({ path: row.path, data: row.data });
     }
     return out;
   },
@@ -71,8 +79,13 @@ export const listCollection = query({
 
 // Prefix scan (for Analytics/Sessions/Items, Analytics/Links/Items trims).
 export const listByPrefix = query({
-  args: { prefix: v.string(), limit: v.optional(v.number()) },
-  handler: async (ctx, { prefix, limit }) => {
+  args: {
+    serverKey: v.string(),
+    prefix: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { serverKey, prefix, limit }) => {
+    requireServer(serverKey);
     const rows = await ctx.db.query("dashboardDocs").collect();
     const out: { path: string; data: unknown }[] = [];
     for (const row of rows) {
@@ -86,8 +99,9 @@ export const listByPrefix = query({
 });
 
 export const setDoc = mutation({
-  args: { path: v.string(), data: v.any() },
-  handler: async (ctx, { path, data }) => {
+  args: { serverKey: v.string(), path: v.string(), data: v.any() },
+  handler: async (ctx, { serverKey, path, data }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("dashboardDocs")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -95,15 +109,20 @@ export const setDoc = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, { data, updatedAt: Date.now() });
     } else {
-      await ctx.db.insert("dashboardDocs", { path, data, updatedAt: Date.now() });
+      await ctx.db.insert("dashboardDocs", {
+        path,
+        data,
+        updatedAt: Date.now(),
+      });
     }
   },
 });
 
 // Atomic merge-patch (replaces SQL dash_patch).
 export const patchDoc = mutation({
-  args: { path: v.string(), patch: v.any() },
-  handler: async (ctx, { path, patch }) => {
+  args: { serverKey: v.string(), path: v.string(), patch: v.any() },
+  handler: async (ctx, { serverKey, path, patch }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("dashboardDocs")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -113,7 +132,11 @@ export const patchDoc = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, { data: next, updatedAt: Date.now() });
     } else {
-      await ctx.db.insert("dashboardDocs", { path, data: next, updatedAt: Date.now() });
+      await ctx.db.insert("dashboardDocs", {
+        path,
+        data: next,
+        updatedAt: Date.now(),
+      });
     }
     return next;
   },
@@ -123,12 +146,14 @@ export const patchDoc = mutation({
 // Returns null when stored Seq >= seq (replay / lost race).
 export const patchSeq = mutation({
   args: {
+    serverKey: v.string(),
     path: v.string(),
     patch: v.any(),
     seq: v.number(),
     events: v.any(),
   },
-  handler: async (ctx, { path, patch, seq, events }) => {
+  handler: async (ctx, { serverKey, path, patch, seq, events }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("dashboardDocs")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -138,21 +163,29 @@ export const patchSeq = mutation({
     if (curSeq >= seq) return null;
     const withSeq = { ...(patch as Record<string, unknown>), Seq: seq };
     const merged = mergeValues(cur, withSeq) as Record<string, unknown>;
-    const prevEvents = Array.isArray(cur.Events) ? (cur.Events as unknown[]) : [];
+    merged.Seq = seq;
+    const prevEvents = Array.isArray(cur.Events)
+      ? (cur.Events as unknown[])
+      : [];
     const add = Array.isArray(events) ? (events as unknown[]) : [];
     merged.Events = [...prevEvents, ...add];
     if (existing) {
       await ctx.db.patch(existing._id, { data: merged, updatedAt: Date.now() });
     } else {
-      await ctx.db.insert("dashboardDocs", { path, data: merged, updatedAt: Date.now() });
+      await ctx.db.insert("dashboardDocs", {
+        path,
+        data: merged,
+        updatedAt: Date.now(),
+      });
     }
     return merged;
   },
 });
 
 export const deleteDoc = mutation({
-  args: { path: v.string() },
-  handler: async (ctx, { path }) => {
+  args: { serverKey: v.string(), path: v.string() },
+  handler: async (ctx, { serverKey, path }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("dashboardDocs")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -162,8 +195,9 @@ export const deleteDoc = mutation({
 });
 
 export const deleteDocs = mutation({
-  args: { paths: v.array(v.string()) },
-  handler: async (ctx, { paths }) => {
+  args: { serverKey: v.string(), paths: v.array(v.string()) },
+  handler: async (ctx, { serverKey, paths }) => {
+    requireServer(serverKey);
     for (const path of paths) {
       const existing = await ctx.db
         .query("dashboardDocs")

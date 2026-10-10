@@ -10,9 +10,7 @@ import { toBooking, toMessage, toAvailability } from "@/lib/convex-map";
 //   Settings/Availability { workingDays, hours }
 // Called by the dashboard shell on mount + interval.
 
-function checkAuth(req: Request): boolean {
-  return isAdminRequest(req);
-}
+const checkAuth = isAdminRequest;
 
 type Booking = {
   id: string;

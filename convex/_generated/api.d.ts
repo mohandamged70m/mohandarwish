@@ -8,6 +8,8 @@
  * @module
  */
 
+import type * as workspace from "../workspace.js";
+import type * as rateLimits from "../rateLimits.js";
 import type * as availability from "../availability.js";
 import type * as bookings from "../bookings.js";
 import type * as docs from "../docs.js";
@@ -22,6 +24,8 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  workspace: typeof workspace;
+  rateLimits: typeof rateLimits;
   availability: typeof availability;
   bookings: typeof bookings;
   docs: typeof docs;

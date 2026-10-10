@@ -1,3 +1,4 @@
+import { allowRequest } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
 import { sanitizeText } from "@/lib/sanitize";
 import { isValidEmail, parseJsonBody } from "@/lib/validate";
@@ -38,7 +39,8 @@ const ALLOWED_TIMES = new Set<string>([
 
 export async function POST(req: Request) {
   const body = await parseJsonBody<Body>(req);
-  if (!body) return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
+  if (!body)
+    return NextResponse.json({ error: "Invalid JSON." }, { status: 400 });
 
   const name = sanitizeText(body.name, 120);
   const email = body.email?.trim() ?? "";
@@ -47,23 +49,41 @@ export async function POST(req: Request) {
   const preferredTime = body.preferredTime?.trim() ?? "";
   const timezone = body.timezone?.trim() ?? "";
 
-  if (!name) return NextResponse.json({ error: "Name is required." }, { status: 400 });
+  if (!name)
+    return NextResponse.json({ error: "Name is required." }, { status: 400 });
   if (!isValidEmail(email))
-    return NextResponse.json({ error: "Valid email is required." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Valid email is required." },
+      { status: 400 },
+    );
   if (!message || message.length < 10)
-    return NextResponse.json({ error: "Message must be at least 10 characters." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Message must be at least 10 characters." },
+      { status: 400 },
+    );
 
   // Validate scheduling if provided (optional feature)
   let scheduledAt: string | null = null;
   if (preferredDate || preferredTime) {
     if (!preferredDate || !preferredTime) {
-      return NextResponse.json({ error: "Both date and time are required for scheduling." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Both date and time are required for scheduling." },
+        { status: 400 },
+      );
     }
     if (!DATE_RE.test(preferredDate)) {
-      return NextResponse.json({ error: "Invalid date format. Use YYYY-MM-DD." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid date format. Use YYYY-MM-DD." },
+        { status: 400 },
+      );
     }
     if (!TIME_RE.test(preferredTime) || !ALLOWED_TIMES.has(preferredTime)) {
-      return NextResponse.json({ error: "Invalid time slot. Choose 09:00–18:00 in 30-min increments." }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Invalid time slot. Choose 09:00–18:00 in 30-min increments.",
+        },
+        { status: 400 },
+      );
     }
     const parsed = new Date(`${preferredDate}T00:00:00`);
     if (Number.isNaN(parsed.getTime())) {
@@ -76,7 +96,10 @@ export async function POST(req: Request) {
     const check = new Date(parsed);
     check.setHours(0, 0, 0, 0);
     if (check < tomorrow) {
-      return NextResponse.json({ error: "Please choose a date from tomorrow onwards." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Please choose a date from tomorrow onwards." },
+        { status: 400 },
+      );
     }
     // Past check for today+time is already covered by tomorrow rule
     scheduledAt = `${preferredDate} ${preferredTime}${timezone ? ` (${timezone})` : ""}`;
@@ -86,7 +109,12 @@ export async function POST(req: Request) {
   try {
     const { convexMutation } = await import("@/lib/convex");
     const { api } = await import("@/convex/_generated/api");
-    await convexMutation(api.messages.create, {
+    if (!(await allowRequest(req, "contact")))
+      return NextResponse.json(
+        { error: "Please try again later" },
+        { status: 429 },
+      );
+    const id = await convexMutation(api.messages.create, {
       name,
       email,
       message,
@@ -94,7 +122,13 @@ export async function POST(req: Request) {
       hasWhatsapp: false,
       files: scheduledAt ? [{ scheduledAt, timezone }] : [],
     });
-  } catch {}
+    if (!id) throw new Error("Message not saved");
+  } catch {
+    return NextResponse.json(
+      { error: "Your message could not be saved. Please try again." },
+      { status: 503 },
+    );
+  }
 
   if (process.env.RESEND_API_KEY) {
     try {
@@ -106,15 +140,29 @@ export async function POST(req: Request) {
       const from = getResendFrom();
       const html = emailTemplate(
         `New message from ${name}`,
-        `<div><strong>${escHtml(name)}</strong> &lt;${escHtml(email)}&gt;</div><div style="margin-top:8px;white-space:pre-wrap">${escHtml(message)}</div>${scheduledAt ? `<div style="margin-top:8px">Requested: ${escHtml(scheduledAt)}</div>` : ""}`
+        `<div><strong>${escHtml(name)}</strong> &lt;${escHtml(email)}&gt;</div><div style="margin-top:8px;white-space:pre-wrap">${escHtml(message)}</div>${scheduledAt ? `<div style="margin-top:8px">Requested: ${escHtml(scheduledAt)}</div>` : ""}`,
       );
-      const res = await sendSafe(resend, { from, to: owner, subject: `New message: ${name}`, html, replyTo: email });
-      if (res.skipped) console.log("[contact] saved but email skipped (Resend test mode) — verify domain at resend.com/domains");
+      const res = await sendSafe(resend, {
+        from,
+        to: owner,
+        subject: `New message: ${name}`,
+        html,
+        replyTo: email,
+      });
+      if (res.skipped)
+        console.log(
+          "[contact] saved but email skipped (Resend test mode) — verify domain at resend.com/domains",
+        );
     } catch (e) {
       console.error("[contact] resend error", e);
     }
   } else {
-    console.log("[contact] message", { name, email, message: message.slice(0, 500), scheduledAt });
+    console.log("[contact] message", {
+      name,
+      email,
+      message: message.slice(0, 500),
+      scheduledAt,
+    });
   }
 
   return NextResponse.json({ ok: true });

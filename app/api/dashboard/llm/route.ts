@@ -1,3 +1,4 @@
+import { isAdminRequest } from "@/lib/admin";
 import { NextResponse } from "next/server";
 import { TOOL_SCHEMAS, type Provider } from "@/lib/llm";
 
@@ -5,10 +6,7 @@ import { TOOL_SCHEMAS, type Provider } from "@/lib/llm";
 // Env: LLM_API_KEY (required), LLM_PROVIDER=openai|gemini (auto-detected from
 // key prefix when unset), LLM_MODEL (default per provider).
 
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token") || new URL(req.url).searchParams.get("admin");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
+const checkAuth = isAdminRequest;
 
 function serverProvider(): Provider | null {
   const key = process.env.LLM_API_KEY;

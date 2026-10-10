@@ -1,10 +1,12 @@
+import { isAdminRequest } from "@/lib/admin";
 import { NextResponse } from "next/server";
 import { convexQuery, convexMutation } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 
 // GET /api/diag — connectivity self-check for the dashboard <-> Convex bridge.
 // Reports only booleans/counts (no PII, no secret values).
-export async function GET() {
+export async function GET(req: Request) {
+  if(!isAdminRequest(req))return NextResponse.json({error:"Unauthorized"},{status:401});
   const report: Record<string, unknown> = {
     convexUrlSet: !!process.env.NEXT_PUBLIC_CONVEX_URL,
     adminTokenSet: !!process.env.ADMIN_TOKEN,

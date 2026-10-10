@@ -19,7 +19,7 @@ const SECTIONS: { id: Section; label: string }[] = [
 
 function adminToken(): string {
   try {
-    return localStorage.getItem("dashboard_token") ?? "";
+    return ""; // Owner session travels in an HttpOnly cookie.
   } catch {
     return "";
   }
