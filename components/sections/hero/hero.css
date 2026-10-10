@@ -18,8 +18,9 @@
   section[aria-label="Introduction"] #mh-b { top: 24%; right: 4vw; }
   section[aria-label="Introduction"] .mh-me { height: 64%; left: 50%; }
   section[aria-label="Introduction"] .mh-hey { font-size: 4.4vw; top: 7.5%; left: 5.5vw; }
-  section[aria-label="Introduction"] .mh-tag { font-size: 3.6vw; top: auto; bottom: 22%; right: 5vw; }
-  section[aria-label="Introduction"] .mh-pills { bottom: 9%; left: 5vw; right: 5vw; }
+  /* The visible service copy replaces the decorative role on narrow screens. */
+  section[aria-label="Introduction"] .mh-tag { display: none; }
+  section[aria-label="Introduction"] .mh-pills { bottom: 14%; left: 5vw; right: 5vw; }
 }
 
 @media (prefers-reduced-motion: reduce) {

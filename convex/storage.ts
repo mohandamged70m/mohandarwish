@@ -1,3 +1,4 @@
+import { requireServer } from "./access";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -8,28 +9,32 @@ import { v } from "convex/values";
 // via the URL recorded at upload time.
 
 export const getUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { serverKey: v.string() },
+  handler: async (ctx, { serverKey }) => {
+    requireServer(serverKey);
     return await ctx.storage.generateUploadUrl();
   },
 });
 
 export const getUrl = query({
-  args: { storageId: v.id("_storage") },
-  handler: async (ctx, { storageId }) => {
+  args: { serverKey: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, { serverKey, storageId }) => {
+    requireServer(serverKey);
     return await ctx.storage.getUrl(storageId);
   },
 });
 
 export const setMapping = mutation({
   args: {
+    serverKey: v.string(),
     path: v.string(),
     storageId: v.id("_storage"),
     url: v.string(),
     size: v.number(),
     contentType: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { serverKey, ...args }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("storageMap")
       .withIndex("by_path", (q: any) => q.eq("path", args.path))
@@ -49,8 +54,9 @@ export const setMapping = mutation({
 });
 
 export const getByPath = query({
-  args: { path: v.string() },
-  handler: async (ctx, { path }) => {
+  args: { serverKey: v.string(), path: v.string() },
+  handler: async (ctx, { serverKey, path }) => {
+    requireServer(serverKey);
     return await ctx.db
       .query("storageMap")
       .withIndex("by_path", (q: any) => q.eq("path", path))
@@ -61,8 +67,9 @@ export const getByPath = query({
 // Direct children of `prefix` (Firestore listAll semantics: items = files,
 // prefixes = directories, both one level deep).
 export const listChildren = query({
-  args: { prefix: v.string() },
-  handler: async (ctx, { prefix }) => {
+  args: { serverKey: v.string(), prefix: v.string() },
+  handler: async (ctx, { serverKey, prefix }) => {
+    requireServer(serverKey);
     const rows = await ctx.db.query("storageMap").collect();
     const items: { path: string; url: string; size: number }[] = [];
     const prefixes = new Set<string>();
@@ -74,7 +81,9 @@ export const listChildren = query({
         prefixes.add(row.path.split("/")[0]);
         continue;
       }
-      const rest = cleanPrefix ? row.path.slice(cleanPrefix.length + 1) : row.path;
+      const rest = cleanPrefix
+        ? row.path.slice(cleanPrefix.length + 1)
+        : row.path;
       if (!rest) continue;
       const idx = rest.indexOf("/");
       if (idx === -1) {
@@ -93,8 +102,9 @@ export const listChildren = query({
 });
 
 export const removeByPath = mutation({
-  args: { path: v.string() },
-  handler: async (ctx, { path }) => {
+  args: { serverKey: v.string(), path: v.string() },
+  handler: async (ctx, { serverKey, path }) => {
+    requireServer(serverKey);
     const existing = await ctx.db
       .query("storageMap")
       .withIndex("by_path", (q: any) => q.eq("path", path))

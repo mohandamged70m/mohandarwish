@@ -1,3 +1,4 @@
+import { isAdminRequest } from "@/lib/admin";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFrom } from "@/lib/resend";
@@ -6,10 +7,7 @@ import { getResendFrom } from "@/lib/resend";
 // Sends via Resend. Attachments are fetched server-side (best-effort); if a
 // fetch fails the file link is appended to the body instead.
 
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
+const checkAuth = isAdminRequest;
 
 export async function POST(req: Request) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,3 +1,4 @@
+import { isAdminRequest } from "@/lib/admin";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getResendFrom } from "@/lib/resend";
@@ -8,10 +9,7 @@ import { api } from "@/convex/_generated/api";
 // Sends via Resend, then appends the sent-receipt row to Treasury/receipts
 // (the dashboard_docs doc the Treasury tab reads).
 
-function checkAuth(req: Request): boolean {
-  const token = req.headers.get("x-admin-token");
-  return !!process.env.ADMIN_TOKEN && token === process.env.ADMIN_TOKEN;
-}
+const checkAuth = isAdminRequest;
 
 export async function POST(req: Request) {
   if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

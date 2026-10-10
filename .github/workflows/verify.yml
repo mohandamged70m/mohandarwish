@@ -1,4 +1,4 @@
-# Fast signal on every push/PR without secrets or a production build.
+# Verify the portfolio without production secrets.
 # Production deploys happen on Vercel (auto-deploy from main with project
 # env vars) — NOT via GitHub Pages, which can't serve API routes, the
 # proxy, or any Convex-backed feature this app needs.
@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  typecheck:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,3 +28,19 @@ jobs:
         run: npx --no-install next typegen
       - name: Typecheck
         run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Security and route tests
+        run: npm run test
+      - name: Production build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser checks
+        run: npm run test:e2e
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-diagnostics
+          path: test-results/

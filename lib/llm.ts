@@ -249,13 +249,7 @@ export function toolResultMessage(prov: Provider, results: ToolResult[]): Native
 // Chat
 // ---------------------------------------------------------------------------
 
-function adminHeaders(): HeadersInit {
-  try {
-    return { "x-admin-token": localStorage.getItem("dashboard_token") ?? "" };
-  } catch {
-    return {};
-  }
-}
+function adminHeaders(): HeadersInit { return {}; }
 
 function openAiTools(): unknown[] {
   return TOOL_SCHEMAS.map((t) => ({

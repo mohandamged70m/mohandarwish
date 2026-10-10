@@ -28,8 +28,8 @@ type NavItem = {
 // would scroll sighted users somewhere meaningless.
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
-  { label: "Stack", href: "#stack" },
   { label: "Projects", href: "#projects" },
+  { label: "Stack", href: "#stack" },
   { label: "Contact", href: "#booking" },
 ];
 
@@ -219,6 +219,11 @@ function NavDocLink({ onOpen }: { onOpen?: () => void }): ReactNode {
 }
 
 export function Nav(): ReactNode {
+  const pathname=usePathname();
+  if(pathname.startsWith("/dashboard"))return null;
+  return <PortfolioNav />;
+}
+function PortfolioNav(): ReactNode {
   const pathname = usePathname();
   const router = useRouter();
   const navRef = useRef<HTMLElement>(null);

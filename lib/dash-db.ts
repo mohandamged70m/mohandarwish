@@ -2,8 +2,7 @@
 //
 // Same function names and snapshot shapes as the old Firestore / document shim
 // versions, so the copy-pasted dashboard/ components keep working unchanged.
-// Only the transport moved: this time to Convex (real subscriptions, no
-// 30s poll fallback).
+// Requests pass through the Next.js gateway. Snapshot listeners poll every 15s.
 //
 //   doc(db, ...segs) / collection(db, ...segs)
 //   query(col, ...constraints) with where(field,'==',v), orderBy, limit(n)
@@ -11,8 +10,7 @@
 //   getDoc / getDocs / setDoc ({merge}) / updateDoc (dotted keys) / deleteDoc
 //   deleteField() / serverTimestamp() / increment() / writeBatch(db)
 
-import { ConvexReactClient } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { dataCall } from "./dash-transport";
 
 const DF = "__dash_delete_field__";
 const ST = "__dash_server_timestamp__";
@@ -30,11 +28,21 @@ export function serverTimestamp(): unknown {
 }
 
 function isDeleteField(v: unknown): boolean {
-  return !!v && typeof v === "object" && !Array.isArray(v) && DF in (v as Record<string, unknown>);
+  return (
+    !!v &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    DF in (v as Record<string, unknown>)
+  );
 }
 
 function isServerTimestamp(v: unknown): boolean {
-  return !!v && typeof v === "object" && !Array.isArray(v) && ST in (v as Record<string, unknown>);
+  return (
+    !!v &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    ST in (v as Record<string, unknown>)
+  );
 }
 
 function resolveSentinels(v: unknown): unknown {
@@ -57,18 +65,8 @@ const app = { __dashApp: true };
 export default app;
 
 // ---------------------------------------------------------------------------
-// Convex client (lazy, tolerant of missing env so build/prerender survives)
+// Dashboard references
 // ---------------------------------------------------------------------------
-
-let _client: ConvexReactClient | null = null;
-
-function convex(): ConvexReactClient | null {
-  if (_client) return _client;
-  const url = process.env.NEXT_PUBLIC_CONVEX_URL;
-  if (!url) return null;
-  _client = new ConvexReactClient(url);
-  return _client;
-}
 
 export interface DocRef {
   kind: "doc";
@@ -118,7 +116,10 @@ export function where(field: string, op: string, value: unknown): Constraint {
   return { t: "where", field, op, value };
 }
 
-export function orderBy(field: string, dir: "asc" | "desc" = "asc"): Constraint {
+export function orderBy(
+  field: string,
+  dir: "asc" | "desc" = "asc",
+): Constraint {
   return { t: "order", field, dir };
 }
 
@@ -176,7 +177,11 @@ function getPath(obj: unknown, dotted: string): unknown {
   return cur;
 }
 
-function setPath(obj: Record<string, unknown>, dotted: string, value: unknown): void {
+function setPath(
+  obj: Record<string, unknown>,
+  dotted: string,
+  value: unknown,
+): void {
   const parts = dotted.split(".");
   let cur = obj;
   for (let i = 0; i < parts.length - 1; i++) {
@@ -195,7 +200,8 @@ function delPath(obj: Record<string, unknown>, dotted: string): void {
     if (!cur || typeof cur !== "object") return;
     cur = (cur as Record<string, unknown>)[parts[i]];
   }
-  if (cur && typeof cur === "object") delete (cur as Record<string, unknown>)[parts[parts.length - 1]];
+  if (cur && typeof cur === "object")
+    delete (cur as Record<string, unknown>)[parts[parts.length - 1]];
 }
 
 // ---------------------------------------------------------------------------
@@ -214,12 +220,17 @@ function applyConstraints(rows: Row[], constraints: Constraint[]): Row[] {
       });
     }
   }
-  const orders = constraints.filter((c) => c.t === "order") as { field: string; dir: "asc" | "desc" }[];
+  const orders = constraints.filter((c) => c.t === "order") as {
+    field: string;
+    dir: "asc" | "desc";
+  }[];
   if (orders.length) {
     out = [...out].sort((a, b) => {
       for (const o of orders) {
-        const av = getPath(a.data, o.field) as number | string | null | undefined;
-        const bv = getPath(b.data, o.field) as number | string | null | undefined;
+        const av = getPath(a.data, o.field) as
+          number | string | null | undefined;
+        const bv = getPath(b.data, o.field) as
+          number | string | null | undefined;
         if (av === bv) continue;
         if (av === undefined || av === null) return 1;
         if (bv === undefined || bv === null) return -1;
@@ -235,7 +246,10 @@ function applyConstraints(rows: Row[], constraints: Constraint[]): Row[] {
   return out;
 }
 
-function docSnap(ref: DocRef, data: Record<string, unknown> | undefined): DocSnapshot {
+function docSnap(
+  ref: DocRef,
+  data: Record<string, unknown> | undefined,
+): DocSnapshot {
   const body = (data ?? {}) as Record<string, never>;
   return {
     id: ref.id,
@@ -252,69 +266,67 @@ function querySnap(rows: Row[]): QuerySnapshot {
     const body = (r.data ?? {}) as Record<string, never>;
     return { id, ref: { kind: "doc", path: r.path, id }, data: () => body };
   });
-  return { docs, size: docs.length, empty: docs.length === 0, forEach: (cb) => docs.forEach(cb) };
+  return {
+    docs,
+    size: docs.length,
+    empty: docs.length === 0,
+    forEach: (cb) => docs.forEach(cb),
+  };
 }
 
 // ---------------------------------------------------------------------------
-// Live subscriptions — thin wrapper over Convex React client primitives.
-// Keeps the old onSnapshot(target, onNext, onError) shape. Convex pushes
-// updates; no polling, no realtime channel.
+// Snapshot listeners keep the existing interface and poll through the gateway.
+// Only changed snapshots are emitted; requests never overlap.
 // ---------------------------------------------------------------------------
 
 export function onSnapshot(
   target: DocRef,
   onNext: (snap: DocSnapshot) => void,
-  onError?: (e: { message: string; code?: string }) => void
+  onError?: (e: { message: string; code?: string }) => void,
 ): () => void;
 export function onSnapshot(
   target: ColRef | Query,
   onNext: (snap: QuerySnapshot) => void,
-  onError?: (e: { message: string; code?: string }) => void
+  onError?: (e: { message: string; code?: string }) => void,
 ): () => void;
 export function onSnapshot(
   target: DocRef | ColRef | Query,
   onNext: (snap: never) => void,
-  onError?: (e: { message: string; code?: string }) => void
+  onError?: (e: { message: string; code?: string }) => void,
 ): () => void {
-  const client = convex();
-  if (!client) {
-    const emptySnap =
-      target.kind === "doc" ? docSnap(target, undefined) : querySnap([]);
-    onNext(emptySnap as never);
-    return () => {};
-  }
-  try {
-    if (target.kind === "doc") {
-      const watch = client.watchQuery(api.docs.getDoc, { path: target.path });
-      const emit = () => {
-        const data = watch.localQueryResult();
-        onNext(docSnap(target, (data ?? undefined) as Record<string, unknown> | undefined) as never);
-      };
-      const dispose = watch.onUpdate(emit);
-      // Initial fetch so callers don't wait for the first sync round-trip.
-      client
-        .query(api.docs.getDoc, { path: target.path })
-        .then((data: unknown) => onNext(docSnap(target, (data ?? undefined) as Record<string, unknown> | undefined) as never))
-        .catch((e: Error) => onError?.({ message: e.message }));
-      return dispose;
+  let alive = true;
+  let timer: ReturnType<typeof setTimeout>;
+  let previous = "";
+  const emit = async () => {
+    try {
+      const snap =
+        target.kind === "doc" ? await getDoc(target) : await getDocs(target);
+      const signature = JSON.stringify(
+        target.kind === "doc"
+          ? {
+              exists: (snap as DocSnapshot).exists(),
+              data: (snap as DocSnapshot).data(),
+            }
+          : (snap as QuerySnapshot).docs.map((d) => ({
+              id: d.id,
+              data: d.data(),
+            })),
+      );
+      if (alive && signature !== previous) {
+        previous = signature;
+        onNext(snap as never);
+      }
+    } catch (e) {
+      if (alive)
+        onError?.({ message: e instanceof Error ? e.message : "Read failed" });
     }
-    const prefix = target.kind === "query" ? target.col.path : target.path;
-    const constraints = target.kind === "query" ? target.constraints : [];
-    const watch = client.watchQuery(api.docs.listCollection, { prefix });
-    const emit = () => {
-      const rows = (watch.localQueryResult() ?? []) as Row[];
-      onNext(querySnap(applyConstraints(rows, constraints)) as never);
-    };
-    const dispose = watch.onUpdate(emit);
-    client
-      .query(api.docs.listCollection, { prefix })
-      .then((rows: unknown) => onNext(querySnap(applyConstraints((rows ?? []) as Row[], constraints)) as never))
-      .catch((e: Error) => onError?.({ message: e.message }));
-    return dispose;
-  } catch (e) {
-    onError?.(e instanceof Error ? e : new Error(String(e)));
-    return () => {};
-  }
+    if (alive) timer = setTimeout(emit, 15_000);
+  };
+  void emit();
+  return () => {
+    alive = false;
+    clearTimeout(timer);
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -322,59 +334,40 @@ export function onSnapshot(
 // ---------------------------------------------------------------------------
 
 export async function getDoc(ref: DocRef): Promise<DocSnapshot> {
-  const client = convex();
-  if (!client) return docSnap(ref, undefined);
-  try {
-    const data = await client.query(api.docs.getDoc, { path: ref.path });
-    return docSnap(ref, (data ?? undefined) as Record<string, unknown> | undefined);
-  } catch {
-    return docSnap(ref, undefined);
-  }
+  const data = await dataCall<Record<string, unknown> | null>("getDoc", {
+    path: ref.path,
+  });
+  return docSnap(ref, data ?? undefined);
 }
-
 export async function getDocs(target: ColRef | Query): Promise<QuerySnapshot> {
-  const client = convex();
-  if (!client) return querySnap([]);
   const prefix = target.kind === "query" ? target.col.path : target.path;
-  try {
-    const rows = (await client.query(api.docs.listCollection, { prefix })) as Row[];
-    const constraints = target.kind === "query" ? target.constraints : [];
-    return querySnap(applyConstraints(rows, constraints));
-  } catch {
-    return querySnap([]);
-  }
+  const rows = await dataCall<Row[]>("listCollection", { prefix });
+  return querySnap(
+    applyConstraints(
+      rows || [],
+      target.kind === "query" ? target.constraints : [],
+    ),
+  );
+}
+async function writeDoc(
+  path: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  await dataCall("setDoc", { path, data });
 }
 
-// ---------------------------------------------------------------------------
-// Writes (+ bridges to the site's real tables — same behavior, now on Convex)
-// ---------------------------------------------------------------------------
-
-async function writeDoc(path: string, data: Record<string, unknown>): Promise<void> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
-  await client.mutation(api.docs.setDoc, { path, data });
-}
-
-function adminToken(): string {
-  if (typeof window === "undefined") return "";
-  const saved = localStorage.getItem("dashboard_token");
-  if (saved) return saved;
-  const m = document.cookie.match(/(?:^|;\s*)dashboard_token=([^;]+)/);
-  if (!m) return "";
-  try {
-    return decodeURIComponent(m[1]);
-  } catch {
-    return m[1];
-  }
-}
-
-async function mirrorAvailability(data: Record<string, unknown>): Promise<void> {
+async function mirrorAvailability(
+  data: Record<string, unknown>,
+): Promise<void> {
   if (!Array.isArray(data.workingDays) || !Array.isArray(data.hours)) return;
   try {
     await fetch("/api/availability", {
       method: "PUT",
-      headers: { "Content-Type": "application/json", "x-admin-token": adminToken() },
-      body: JSON.stringify({ workingDays: data.workingDays, hours: data.hours }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        workingDays: data.workingDays,
+        hours: data.hours,
+      }),
     });
   } catch {
     // best-effort; the doc itself is already saved
@@ -382,12 +375,11 @@ async function mirrorAvailability(data: Record<string, unknown>): Promise<void> 
 }
 
 async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
-  const token = adminToken();
   const jobs: Promise<unknown>[] = [];
   const call = (url: string, init: RequestInit) =>
     fetch(url, {
       ...init,
-      headers: { "Content-Type": "application/json", "x-admin-token": token, ...(init.headers || {}) },
+      headers: { "Content-Type": "application/json", ...(init.headers || {}) },
     }).catch(() => null);
 
   const meetings = new Map<string, Record<string, unknown>>();
@@ -412,9 +404,17 @@ async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
     if (typeof change.Time === "string") upd.time = change.Time;
     if (typeof change.Name === "string") upd.name = change.Name;
     if (typeof change["What For"] === "string") upd.reason = change["What For"];
-    if (typeof change.MeetingLink === "string") upd.meetingLink = change.MeetingLink;
-    if (typeof change.GoogleEventId === "string") upd.googleEventId = change.GoogleEventId;
-    if (Object.keys(upd).length) jobs.push(call(`/api/booking/${id}`, { method: "PATCH", body: JSON.stringify(upd) }));
+    if (typeof change.MeetingLink === "string")
+      upd.meetingLink = change.MeetingLink;
+    if (typeof change.GoogleEventId === "string")
+      upd.googleEventId = change.GoogleEventId;
+    if (Object.keys(upd).length)
+      jobs.push(
+        call(`/api/booking/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(upd),
+        }),
+      );
   }
   for (const [id, change] of emails) {
     if (isDeleteField(change.__whole)) {
@@ -427,7 +427,7 @@ async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
 export async function setDoc(
   ref: DocRef,
   data: Record<string, unknown>,
-  opts?: { merge?: boolean }
+  opts?: { merge?: boolean },
 ): Promise<void> {
   const clean = resolveSentinels(data) as Record<string, unknown>;
   let next: Record<string, unknown>;
@@ -445,7 +445,10 @@ export async function setDoc(
   if (ref.path === "Settings/Availability") void mirrorAvailability(next);
 }
 
-export async function updateDoc(ref: DocRef, patch: Record<string, unknown>): Promise<void> {
+export async function updateDoc(
+  ref: DocRef,
+  patch: Record<string, unknown>,
+): Promise<void> {
   const existingSnap = await getDoc(ref);
   const existing = (existingSnap.data() ?? {}) as Record<string, unknown>;
   const next = { ...existing };
@@ -465,13 +468,15 @@ export async function updateDoc(ref: DocRef, patch: Record<string, unknown>): Pr
 }
 
 export async function deleteDoc(ref: DocRef): Promise<void> {
-  const client = convex();
-  if (!client) throw new Error("Convex not configured");
-  await client.mutation(api.docs.deleteDoc, { path: ref.path });
+  await dataCall("deleteDoc", { path: ref.path });
 }
 
 interface Batch {
-  set: (ref: DocRef, data: Record<string, unknown>, opts?: { merge?: boolean }) => Batch;
+  set: (
+    ref: DocRef,
+    data: Record<string, unknown>,
+    opts?: { merge?: boolean },
+  ) => Batch;
   update: (ref: DocRef, patch: Record<string, unknown>) => Batch;
   delete: (ref: DocRef) => Batch;
   commit: () => Promise<void>;

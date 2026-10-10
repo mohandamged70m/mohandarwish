@@ -44,8 +44,7 @@ interface PendingLink {
 /** Owner's own coding/testing never records — only real recipients of a link. */
 function isOwner(): boolean {
   try {
-    if (localStorage.getItem("dashboard_token")) return true;
-    if (/(?:^|;\s*)dashboard_token=/.test(document.cookie)) return true;
+    if (localStorage.getItem("owner_signed_in")) return true;
     if (new URLSearchParams(window.location.search).get("admin")) return true;
     if (/^(localhost|127\.|192\.168\.|10\.)/.test(window.location.hostname)) return true;
   } catch {

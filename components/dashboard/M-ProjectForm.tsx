@@ -138,6 +138,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
         listing: 0
     });
 
+    const [metricsDraft, setMetricsDraft] = useState(() => (initialData?.metrics || []).map(m => `${m.label}: ${m.value}`).join("\n"));
     const [selectTagOpen, setSelectTagOpen] = useState(false);
     const [selectContribOpen, setSelectContribOpen] = useState(false);
     const [tagQuery, setTagQuery] = useState('');
@@ -329,7 +330,13 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        const metrics = metricsDraft.split("\n").flatMap(line => {
+            const colon = line.indexOf(":");
+            if (colon < 0) return [];
+            const label = line.slice(0, colon).trim(), value = line.slice(colon + 1).trim();
+            return label && value ? [{ label, value }] : [];
+        });
+        onSave({ ...formData, metrics });
         onClose();
     };
 
@@ -493,6 +500,10 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                     maxLength={240}
                                                 />
                                             </div>
+                                            <div><FieldLabel htmlFor="mpf-problem" hint="client need or user problem">Problem</FieldLabel><textarea id="mpf-problem" name="problem" className="mpf-input mpf-area" maxLength={3000} value={formData.problem||''} onChange={handleInputChange}/></div>
+                                            <div><FieldLabel htmlFor="mpf-role">Your role</FieldLabel><input id="mpf-role" name="role" className="mpf-input" maxLength={500} value={formData.role||''} onChange={handleInputChange}/></div>
+                                            <div><FieldLabel htmlFor="mpf-highlights" hint="one decision or result per line">Engineering highlights</FieldLabel><textarea id="mpf-highlights" className="mpf-input mpf-area" maxLength={5000} value={(formData.highlights||[]).join('\n')} onChange={e=>setFormData(prev=>({...prev,highlights:e.target.value.split('\n')}))}/></div>
+                                            <div><FieldLabel htmlFor="mpf-metrics" hint="Label: value — one measured result per line">Results / metrics</FieldLabel><textarea id="mpf-metrics" className="mpf-input mpf-area" maxLength={3000} value={metricsDraft} onChange={e=>setMetricsDraft(e.target.value)}/></div>
                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                 <div>
                                                     <FieldLabel htmlFor="mpf-repo">Repo link</FieldLabel>

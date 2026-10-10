@@ -6,6 +6,48 @@ import { v } from "convex/values";
 // that lib/dash-db.ts reads/writes. Everything else is a proper table.
 
 export default defineSchema({
+  leads: defineTable({
+    name: v.string(),
+    email: v.string(),
+    stage: v.string(),
+    note: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_updated", ["updatedAt"]),
+  workProjects: defineTable({
+    title: v.string(),
+    clientName: v.string(),
+    clientEmail: v.string(),
+    summary: v.string(),
+    status: v.string(),
+    paymentStatus: v.string(),
+    invoiceUrl: v.string(),
+    dueDate: v.string(),
+    leadId: v.optional(v.id("leads")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_updated", ["updatedAt"]),
+  milestones: defineTable({
+    projectId: v.id("workProjects"),
+    title: v.string(),
+    description: v.string(),
+    previewUrl: v.string(),
+    dueDate: v.string(),
+    status: v.string(),
+    updatedAt: v.number(),
+  }).index("by_project", ["projectId"]),
+  projectNotes: defineTable({
+    projectId: v.id("workProjects"),
+    body: v.string(),
+    createdAt: v.number(),
+  }).index("by_project", ["projectId", "createdAt"]),
+  rateLimits: defineTable({
+    key: v.string(),
+    count: v.number(),
+    expiresAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_expiry", ["expiresAt"]),
   // ── Generic document store (Settings/*, Projects/*, Tags/*, Analytics/*, Treasury/*)
   dashboardDocs: defineTable({
     path: v.string(),
@@ -36,6 +78,8 @@ export default defineSchema({
   bookings: defineTable({
     date: v.string(),
     time: v.string(),
+    status: v.optional(v.union(v.literal("pending"), v.literal("confirmed"))),
+    expiresAt: v.optional(v.number()),
     userLocalTime: v.optional(v.string()),
     userTimezone: v.optional(v.number()),
     name: v.string(),

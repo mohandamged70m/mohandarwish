@@ -22,8 +22,6 @@ import {
   tabSlideVariants,
 } from "@/components/transitions/booking";
 import { X, Send, Paperclip, User, Phone, MessageSquare, Check, Mail, Calendar, Clock, ChevronLeft, ChevronRight, Globe } from "lucide-react";
-import { convexMutation, convexQuery } from "@/lib/convex";
-import { api } from "@/convex/_generated/api";
 import useSafeAlert from "@/hooks/useSafeAlert";
 import { AvailabilityConfig, DEFAULT_AVAILABILITY, parseAvailabilityConfig, buildHostSlots, isWorkingDay } from "@/lib/availability";
 import useTheme from "@/hooks/useTheme";
@@ -240,20 +238,7 @@ export function BookingModal({ open, onClose, initialTab = "meeting", hideTabs =
       const uploaded: { name: string; url: string }[] = [];
       if (formData.attachments.length > 0) {
         for (const file of formData.attachments) {
-          try {
-            const path = `attachments/${Date.now()}_${Math.random().toString(36).slice(2, 9)}/${file.name}`;
-            const uploadUrl = await convexMutation<string>(api.storage.getUploadUrl, {});
-            if (!uploadUrl) throw new Error("Convex not configured");
-            const res = await fetch(uploadUrl, { method: "POST", body: file });
-            if (res.ok) {
-              const { storageId } = (await res.json()) as { storageId: string };
-              const url = await convexQuery<string>(api.storage.getUrl, { storageId });
-              if (url) await convexMutation(api.storage.setMapping, { path, storageId, url, size: file.size, contentType: file.type });
-              uploaded.push({ name: file.name, url: url ?? "" });
-            } else {
-              uploaded.push({ name: file.name, url: "" });
-            }
-          } catch { uploaded.push({ name: file.name, url: "" }); }
+          const body=new FormData();body.set("file",file);const response=await fetch("/api/attachments",{method:"POST",body});const result=await response.json();if(!response.ok)throw new Error(result.error||"Attachment upload failed");uploaded.push({name:file.name,url:result.url});
         }
       }
       const r = await fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: formData.name, email: formData.email.trim(), message: formData.message, number: formData.number, hasWhatsapp: formData.hasWhatsapp, files: uploaded }) });

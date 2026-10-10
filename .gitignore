@@ -43,3 +43,8 @@ next-env.d.ts
 # python
 __pycache__/
 *.py[cod]
+
+# verification output
+/test-results/
+/playwright-report/
+!.env.example
