@@ -1,22 +1,19 @@
 /**
  * The visit recorder.
  *
- * Buffers everything in memory and POSTs numbered deltas to /api/track - on start,
- * every FLUSH_MS while something has actually happened, when the tab is hidden, and
- * once more on the way out. Nothing here writes analytics: the route holds the only
- * pen, and it adds our deltas rather than replacing a snapshot with whatever the
- * tab happened to hold.
+ * Buffers everything in memory and POSTs immutable numbered batches to
+ * /api/track - on start, every FLUSH_MS while something happened, when the
+ * tab hides, and once more on the way out.
  *
- * Deltas rather than snapshots: counters ship as "what changed since flush N" and
- * the server increments them, so two flushes racing cannot overwrite each other.
- * Values that are a state rather than a tally (the section they are on now, how far
- * they have read) ship absolute and the server just sets them.
- *
- * Every flush carries `seq`, counting up from 1 for the visit. The server drops
- * anything at or below the last number it applied, so a retry, a double-tap on a
- * reload, or a flush that lands twice over a flaky connection is counted once. That
- * is the whole reason this file carries a sequence number: without it the client
- * had to guess whether its own write landed.
+ * Transport (fixes the old double-count / drop races):
+ * - Every flush is an immutable batch {seq, batchId, payload}. A failed
+ *   batch is retried with the SAME seq+batchId; new data always goes into a
+ *   NEW batch. The server dedupes by batchId and drops seq replays, so a
+ *   committed request whose response was lost can never double-count, and
+ *   concurrent requests cannot silently drop an earlier delta.
+ * - Delivery is serialized (one request in flight) with bounded backoff.
+ * - hello is acked only by the server's {ok, hello:true} — never by HTTP 200
+ *   alone. Opening entry/device/UTM metadata is captured once and immutable.
  */
 
 import type { EventKind, LinkTailor, SessionEvent } from "@/lib/analytics-types";
@@ -27,27 +24,42 @@ const ENDPOINT = "/api/track";
 const FLUSH_MS = 20_000;
 /** No input for this long and the clock stops - an open tab is not attention. */
 const IDLE_MS = 60_000;
-/** A tab reopened after this gap is a new visit, not a continuation. */
+/** Gap of inactivity after which coming back is a new visit, not a continuation. */
 const SESSION_GAP_MS = 30 * 60_000;
+/** A tab reopened after this long forgets stale link attribution. */
+const LINK_STALE_MS = 12 * 60 * 60_000;
 /** Timeline cap. ~500 events is a very busy visit and still a small document. */
 const MAX_EVENTS = 500;
 /** Per-visit flush ceiling, matching the server's. Stops a stuck tab writing forever. */
 const MAX_FLUSHES = 300;
 /** Scroll milestones worth recording, in percent. */
 const SCROLL_STEPS = [25, 50, 75, 100];
+/** keepalive bodies must stay small; trim events before crossing this. */
+const MAX_BODY_BYTES = 55_000;
+/** Persisted outbox: at most this many unsent batches survive a reload. */
+const MAX_QUEUED_BATCHES = 5;
 
 const SID_KEY = "trails_sid";
-const SID_AT_KEY = "trails_sid_at";
+const SID_START_KEY = "trails_sid_start";
+const SID_ACTIVE_KEY = "trails_sid_at";
 /** The last flush number sent for the tab's visit (see start()). */
 const SEQ_KEY = "trails_sid_seq";
+/** The visit's current share-link code (for link A -> link B switching). */
+const SID_CODE_KEY = "trails_sid_code";
 /** Set once the server has accepted the visit's opening (`hello`). */
 const HELLO_KEY = "trails_sid_hello";
+/** Set once a final `end` batch was acked: the visit must not resume. */
+const ENDED_KEY = "trails_sid_ended";
 const VID_KEY = "trails_vid";
 const VISITS_KEY = "trails_visits";
+const LINK_KEY = "trails_link";
+const LINK_AT_KEY = "trails_link_at";
+const QUEUE_KEY = "trails_queue";
 
 const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]{2,}/;
 const PHONE_RE = /(?:\+?\d[\d\s()-]{7,}\d)/;
-const BOT_RE = /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|preview|monitor|scrape|curl|wget|python-requests|axios|node-fetch/i;
+const BOT_RE =
+  /bot|crawl|spider|slurp|headless|lighthouse|pagespeed|gtmetrix|preview|monitor|scrape|curl|wget|python-requests|axios|node-fetch/i;
 
 interface ProjectDelta {
   opens: number;
@@ -76,36 +88,15 @@ interface Buffer {
   events: SessionEvent[];
 }
 
-/**
- * Fold a buffer whose flush was refused back into the live one, so the next flush
- * carries it. The server never applied it (it only applies a flush it answered OK),
- * so nothing is counted twice.
- */
-function mergeInto(into: Buffer, lost: Buffer): void {
-  into.openMs += lost.openMs;
-  into.activeMs += lost.activeMs;
-  into.idleMs += lost.idleMs;
-  for (const [k, v] of Object.entries(lost.sections)) into.sections[k] = (into.sections[k] || 0) + v;
-  for (const [k, v] of Object.entries(lost.projects)) {
-    const p = into.projects[k] || (into.projects[k] = { opens: 0, ms: 0, live: 0, github: 0, download: 0 });
-    p.opens += v.opens;
-    p.ms += v.ms;
-    p.live += v.live;
-    p.github += v.github;
-    p.download += v.download;
-  }
-  for (const [k, v] of Object.entries(lost.socials)) {
-    const s = into.socials[k] || (into.socials[k] = { clicks: 0, awayMs: 0 });
-    s.clicks += v.clicks;
-    s.awayMs += v.awayMs;
-  }
-  into.cvOpens += lost.cvOpens;
-  into.contactOpens += lost.contactOpens;
-  into.copies += lost.copies;
-  into.rage += lost.rage;
-  into.prints += lost.prints;
-  into.events = [...lost.events, ...into.events].slice(0, MAX_EVENTS);
+interface PendingBatch {
+  seq: number;
+  batchId: string;
+  body: Record<string, unknown>;
+  tries: number;
+  nextAt: number;
 }
+
+type Dict = Record<string, unknown>;
 
 const emptyBuffer = (): Buffer => ({
   openMs: 0,
@@ -171,15 +162,26 @@ const rand = (n: number): string => {
     for (let i = 0; i < n; i++) out += chars[bytes[i] % chars.length];
     return out;
   }
-  for (let i = 0; i < n; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < n; i++)
+    out += chars[Math.floor(Math.random() * chars.length)];
   return out;
+};
+const batchIdOf = (): string => {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto)
+      return crypto.randomUUID().replace(/[^a-z0-9-]/gi, "").slice(0, 36).toLowerCase();
+  } catch {
+    /* fall through */
+  }
+  return `b-${Date.now().toString(36)}-${rand(10)}`;
 };
 
 /** Read the browser well enough to tell one visitor from another at a glance. */
 function readDevice(): Record<string, unknown> {
   const ua = navigator.userAgent;
   const mobile = /Mobi|Android|iPhone|iPod/i.test(ua);
-  const tablet = /iPad|Tablet/i.test(ua) || (/Android/i.test(ua) && !/Mobi/i.test(ua));
+  const tablet =
+    /iPad|Tablet/i.test(ua) || (/Android/i.test(ua) && !/Mobi/i.test(ua));
 
   let os = "Unknown";
   if (/Windows/i.test(ua)) os = "Windows";
@@ -212,15 +214,29 @@ function readDevice(): Record<string, unknown> {
 }
 
 function readEntry(section: string): Record<string, unknown> {
-  const params = new URLSearchParams(window.location.search);
+  // Prefer the landing page's preserved query string: the share-link redirect
+  // replaces the URL with `/`, so reading location.search here alone would
+  // lose the original campaign metadata.
+  let search = window.location.search;
+  let storedReferrer = "";
+  try {
+    const raw = sessionStorage.getItem("trails_entry");
+    if (raw) {
+      const o = JSON.parse(raw) as { search?: unknown; referrer?: unknown };
+      if (typeof o.search === "string" && o.search) search = o.search;
+      if (typeof o.referrer === "string") storedReferrer = o.referrer;
+    }
+  } catch {
+    /* backup unreadable - fall back to the live URL */
+  }
+  const params = new URLSearchParams(search);
   const utm: Record<string, string> = {};
-  ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach((k) => {
-    const v = params.get(k);
-    if (v) utm[k.replace("utm_", "")] = v.slice(0, 80);
-  });
-  // Not everyone tags a link the same way. A bare ?ref= or ?source= is common, and
-  // an ad click often carries nothing BUT its click id - which still says who sent
-  // them. Collected raw; the server is what decides any of it means.
+  ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"].forEach(
+    (k) => {
+      const v = params.get(k);
+      if (v) utm[k.replace("utm_", "")] = v.slice(0, 80);
+    },
+  );
   ["ref", "source", "gclid", "fbclid"].forEach((k) => {
     const v = params.get(k);
     if (v && !utm[k]) utm[k] = v.slice(0, 80);
@@ -228,9 +244,9 @@ function readEntry(section: string): Record<string, unknown> {
 
   let ref = "";
   try {
-    if (document.referrer) {
-      const host = new URL(document.referrer).hostname;
-      // Bouncing between our own pages is not a referral.
+    const referrer = document.referrer || storedReferrer;
+    if (referrer) {
+      const host = new URL(referrer).hostname;
       if (host && host !== window.location.hostname) ref = host;
     }
   } catch {
@@ -240,7 +256,7 @@ function readEntry(section: string): Record<string, unknown> {
   return {
     Section: section,
     Path: window.location.pathname.slice(0, 200),
-    Referrer: (document.referrer || "").slice(0, 300),
+    Referrer: (document.referrer || storedReferrer || "").slice(0, 300),
     Ref: ref,
     Utm: utm,
   };
@@ -251,7 +267,6 @@ function looksAutomated(): boolean {
   try {
     if (navigator.webdriver) return true;
     if (BOT_RE.test(navigator.userAgent)) return true;
-    // A real browser reports at least one language and a non-zero screen.
     if (!navigator.languages || navigator.languages.length === 0) return true;
     if (!window.screen || window.screen.width === 0) return true;
   } catch {
@@ -265,14 +280,18 @@ export interface CollectorOptions {
   section: string;
   /** The share-link code, when the visit arrived through one. */
   code?: string;
-  /** Re-checked before every flush, so a tab that becomes the owner's is caught. */
+  /** Client hint only; the server resolves ownership authoritatively. */
   isOwner?: () => boolean;
-  onTailor?: (tailor: LinkTailor, link: { Name: string; For: string } | null) => void;
+  onTailor?: (
+    tailor: LinkTailor,
+    link: { Name: string; For: string } | null,
+  ) => void;
 }
 
 class Collector {
   private started = false;
   private stopped = false;
+  private terminal = false;
   private sessionId = "";
   private visitorId = "";
   private visit = 1;
@@ -281,8 +300,9 @@ class Collector {
   private buf: Buffer = emptyBuffer();
   private seq = 0;
   private dirty = false;
-  private sentFinal = false;
-  private inFlight: Promise<unknown> | null = null;
+  private queue: PendingBatch[] = [];
+  private sending = false;
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   private section = "home";
   private scrollMax: Record<string, number> = {};
@@ -306,13 +326,15 @@ class Collector {
 
   /** Whether the server has the visit's opening (device, entry, share-link code). */
   private helloAcked = false;
+  /** Immutable opening metadata, captured once at start. */
+  private hello: Record<string, unknown> | null = null;
   /** The link code from the URL, resolved server-side on the first flush. */
   private code = "";
   private isOwner: () => boolean = () => false;
   private onTailor?: CollectorOptions["onTailor"];
 
   isRunning(): boolean {
-    return this.started && !this.stopped;
+    return this.started && !this.stopped && !this.terminal;
   }
   id(): string {
     return this.sessionId;
@@ -325,28 +347,49 @@ class Collector {
     if (this.started || typeof window === "undefined") return;
     if (looksAutomated()) return;
 
+    const now = Date.now();
+    const code = (opts.code || "").slice(0, 120);
+
+    // Link A -> link B in the same tab ends the previous visit's attribution:
+    // a new code never inherits the old session.
+    const prevCode = safeSession.get(SID_CODE_KEY) || "";
+    const prevId = safeSession.get(SID_KEY);
+    const prevStart = Number(safeSession.get(SID_START_KEY) || 0);
+    const prevActive = Number(safeSession.get(SID_ACTIVE_KEY) || 0);
+    const prevEnded = safeSession.get(ENDED_KEY) === "1";
+    if (prevCode && code && prevCode !== code && prevId) {
+      this.endPreviousVisit(prevId);
+    }
+
+    // Resume the tab's visit only when the tab was recently active. The gap
+    // is measured against LAST ACTIVITY (not the original start), and an
+    // ended visit never resumes.
+    const resumable =
+      prevId &&
+      prevStart > 0 &&
+      prevActive > 0 &&
+      !prevEnded &&
+      now - prevActive < SESSION_GAP_MS &&
+      (!prevCode || !code || prevCode === code);
+
     this.started = true;
     this.section = opts.section;
-    this.code = opts.code || "";
+    this.code = code;
     this.isOwner = opts.isOwner || (() => false);
     this.onTailor = opts.onTailor;
 
-    const now = Date.now();
-
-    // Resume the tab's visit unless it has been sitting untouched long enough that
-    // coming back is really a new one.
-    const prevId = safeSession.get(SID_KEY);
-    const prevAt = Number(safeSession.get(SID_AT_KEY) || 0);
-    const resumable = prevId && prevAt && now - prevAt < SESSION_GAP_MS;
-
-    this.sessionId = resumable ? prevId : `${now.toString(36)}-${rand(8)}`;
-    this.startedAt = resumable ? prevAt : now;
+    if (resumable && prevId) {
+      this.sessionId = prevId;
+      this.startedAt = prevStart;
+    } else {
+      this.sessionId = `${now.toString(36)}-${rand(8)}`;
+      this.startedAt = now;
+      safeSession.remove(ENDED_KEY);
+    }
     safeSession.set(SID_KEY, this.sessionId);
-    safeSession.set(SID_AT_KEY, String(this.startedAt));
-    // A resumed visit carries on from its last flush number. The server drops any
-    // flush numbered at or below the last it applied, so a fresh page (a reload, or
-    // moving between / and a modal) that restarted at 1 lost everything it recorded
-    // until its count caught up with the page before it.
+    safeSession.set(SID_START_KEY, String(this.startedAt));
+    safeSession.set(SID_ACTIVE_KEY, String(now));
+    safeSession.set(SID_CODE_KEY, code);
     this.seq = resumable ? Number(safeSession.get(SEQ_KEY) || 0) || 0 : 0;
     safeSession.set(SEQ_KEY, String(this.seq));
     this.helloAcked = resumable ? safeSession.get(HELLO_KEY) === "1" : false;
@@ -361,31 +404,39 @@ class Collector {
       this.visit = Number(safeLocal.get(VISITS_KEY) || 1);
     }
 
+    // Immutable opening: captured once, retried verbatim until acked.
+    if (!this.helloAcked) {
+      this.hello = {
+        startedAt: this.startedAt,
+        entry: readEntry(this.section),
+        device: readDevice(),
+        ...(code ? { code } : {}),
+      };
+    }
+
     this.lastTick = now;
     this.lastInput = now;
     this.hidden = document.visibilityState === "hidden";
 
+    this.restoreQueue();
     this.attach();
     this.ticker = setInterval(() => this.tick(), 1000);
     this.timer = setInterval(() => {
-      if (this.dirty) this.flush(false);
+      if (this.dirty) this.enqueue(false);
     }, FLUSH_MS);
 
     this.push("section", this.section);
-    // Go out immediately rather than waiting for the first interval: a link visit
-    // needs its tailoring back before the hero finishes, and the open notification
-    // is worth nothing twenty seconds late.
-    this.flush(false, true);
+    this.enqueue(true);
   }
 
   stop(): void {
     if (!this.started || this.stopped) return;
     this.stopped = true;
-    this.flush(true, true, this.isOwner());
+    this.enqueue(true, true);
     this.detach();
-    // The visit is over: drop the resume keys so the next page starts a new one
-    // rather than continuing a session that already reported itself ended.
-    safeSession.remove(HELLO_KEY);
+    // The visit is over: a later start() must open a new visit rather than
+    // continuing one that already reported itself ended.
+    safeSession.set(ENDED_KEY, "1");
   }
 
   // ── what the app tells us ────────────────────────────────────────────
@@ -398,7 +449,7 @@ class Collector {
 
   projectOpen(id: string): void {
     if (!this.isRunning() || !id) return;
-    this.closeProject();
+    this.bankProjectTime();
     this.openProject = id;
     this.openProjectAt = Date.now();
     this.project(id).opens += 1;
@@ -408,7 +459,8 @@ class Collector {
   projectClose(): void {
     if (!this.isRunning()) return;
     const id = this.openProject;
-    this.closeProject();
+    this.bankProjectTime();
+    this.openProject = null;
     if (id) this.push("project_end", id);
   }
 
@@ -462,19 +514,20 @@ class Collector {
     if (!this.isRunning()) return;
     this.contactSent = kind;
     this.push("contact_sent", kind);
-    this.flush(false, true); // never risk losing this one to a hard close
+    this.enqueue(true); // never risk losing this one to a hard close
   }
 
   /** Test/diagnostic hook: force a flush and wait for it. */
   async flushNow(): Promise<void> {
-    this.flush(false, true);
-    await this.inFlight;
+    this.enqueue(true);
+    await this.drain();
   }
 
   // ── internals ────────────────────────────────────────────────────────
   private project(id: string): ProjectDelta {
     const key = id.slice(0, 80);
-    if (!this.buf.projects[key]) this.buf.projects[key] = { opens: 0, ms: 0, live: 0, github: 0, download: 0 };
+    if (!this.buf.projects[key])
+      this.buf.projects[key] = { opens: 0, ms: 0, live: 0, github: 0, download: 0 };
     this.dirty = true;
     return this.buf.projects[key];
   }
@@ -486,11 +539,19 @@ class Collector {
     return this.buf.socials[key];
   }
 
-  private closeProject(): void {
+  /**
+   * Bank the open project's elapsed time WITHOUT closing it, so a routine
+   * flush does not stop the clock. Idle/hidden stretches are never counted
+   * as engagement: only active visible time accrues.
+   */
+  private bankProjectTime(): void {
     if (!this.openProject) return;
-    const ms = Date.now() - this.openProjectAt;
-    if (ms > 0) this.project(this.openProject).ms += Math.min(ms, 60 * 60_000);
-    this.openProject = null;
+    const now = Date.now();
+    const elapsed = now - this.openProjectAt;
+    this.openProjectAt = now;
+    if (elapsed <= 0) return;
+    if (this.idle || this.hidden) return;
+    this.project(this.openProject).ms += Math.min(elapsed, 60 * 60_000);
   }
 
   private push(k: EventKind, v?: string): void {
@@ -520,13 +581,8 @@ class Collector {
 
     if (this.idle || this.hidden) {
       this.buf.idleMs += delta;
-      // Someone still in front of the page counts as present even with the input
-      // clock stopped - reading is precisely when nobody touches the mouse. Without
-      // this the flush timer (which only fires on a dirty buffer) went quiet after a
-      // minute, LastSeenAt froze, and a reader dropped out of "Reading now" while
-      // they were still reading. A HIDDEN tab is genuinely nobody, so it stays silent
-      // and correctly leaves the live list.
       if (!this.hidden) this.dirty = true;
+      safeSession.set(SID_ACTIVE_KEY, String(now));
       return;
     }
 
@@ -537,7 +593,7 @@ class Collector {
       this.openProjectAt = now; // already banked, don't double-count on close
     }
     this.dirty = true;
-    safeSession.set(SID_AT_KEY, String(this.startedAt));
+    safeSession.set(SID_ACTIVE_KEY, String(now));
   }
 
   private attach(): void {
@@ -545,7 +601,7 @@ class Collector {
       target: EventTarget,
       type: string,
       fn: EventListenerOrEventListenerObject,
-      opts?: AddEventListenerOptions
+      opts?: AddEventListenerOptions,
     ) => {
       target.addEventListener(type, fn, opts);
       this.teardown.push(() => target.removeEventListener(type, fn, opts));
@@ -554,9 +610,10 @@ class Collector {
     const markInput = () => {
       this.lastInput = Date.now();
     };
-    ["pointerdown", "keydown", "wheel", "touchstart"].forEach((t) => on(window, t, markInput, { passive: true }));
+    ["pointerdown", "keydown", "wheel", "touchstart"].forEach((t) =>
+      on(window, t, markInput, { passive: true }),
+    );
 
-    // Pointer moves are the noisiest signal on the page - sample them.
     let moveGate = 0;
     on(
       window,
@@ -567,7 +624,7 @@ class Collector {
         moveGate = now;
         this.lastInput = now;
       },
-      { passive: true }
+      { passive: true },
     );
 
     on(document, "visibilitychange", () => {
@@ -576,13 +633,18 @@ class Collector {
       this.tick();
       this.hidden = hidden;
       this.push(hidden ? "hide" : "show");
-      // Hiding is the most reliable "they're leaving" signal mobile gives us.
-      if (hidden) this.flush(false);
-      else this.lastInput = Date.now();
+      if (hidden) this.enqueue(false);
+      else {
+        this.lastInput = Date.now();
+        // Returning from a social link: measure time away, don't claim it
+        // as time spent on that site — only time away from the portfolio.
+        if (this.awaySocial) this.socialReturn(this.awaySocial);
+      }
+    });
+    on(window, "focus", () => {
+      if (this.awaySocial) this.socialReturn(this.awaySocial);
     });
 
-    // Capture phase so this also sees the app's inner scroll containers, which are
-    // what actually scroll on desktop.
     on(
       document,
       "scroll",
@@ -590,20 +652,20 @@ class Collector {
         this.lastInput = Date.now();
         this.trackScroll(e.target);
       },
-      { passive: true, capture: true } as AddEventListenerOptions
+      { passive: true, capture: true } as AddEventListenerOptions,
     );
 
     on(document, "copy", () => {
-      let text = "";
+      // Count the copy, never the contents: clipboard text is PII.
+      let hasText = false;
       try {
-        text = String(window.getSelection() || "").trim();
+        hasText = String(window.getSelection() || "").trim().length > 0;
       } catch {
-        /* nothing selected we can read */
+        hasText = true;
       }
-      if (!text) return;
+      if (!hasText) return;
       this.buf.copies += 1;
-      const what = EMAIL_RE.test(text) ? "email" : PHONE_RE.test(text) ? "phone" : "text";
-      this.push("copy", what);
+      this.push("copy", "text");
     });
 
     on(window, "beforeprint", () => {
@@ -611,8 +673,8 @@ class Collector {
       this.push("print");
     });
 
-    // Frustration: three fast clicks in the same spot, or a click on something that
-    // only looks clickable.
+    // Frustration: three fast clicks in the same spot. Plain clicks on
+    // non-interactive content are ordinary reading, not rage.
     const clicks: Array<{ t: number; x: number; y: number }> = [];
     on(
       window,
@@ -623,29 +685,31 @@ class Collector {
         clicks.push({ t: now, x: ev.clientX, y: ev.clientY });
         while (clicks.length && now - clicks[0].t > 800) clicks.shift();
         if (clicks.length >= 3) {
-          const near = clicks.every((c) => Math.abs(c.x - ev.clientX) < 40 && Math.abs(c.y - ev.clientY) < 40);
+          const near = clicks.every(
+            (c) => Math.abs(c.x - ev.clientX) < 40 && Math.abs(c.y - ev.clientY) < 40,
+          );
           if (near) {
             clicks.length = 0;
             this.buf.rage += 1;
             this.push("rage", "rapid");
-            return;
           }
         }
-        const el = ev.target as Element | null;
-        const interactive = el?.closest?.(
-          'a,button,input,select,textarea,label,summary,[role="button"],[role="link"],[role="tab"],[tabindex],[contenteditable]'
-        );
-        if (!interactive) {
-          this.buf.rage += 1;
-          this.push("rage", "dead");
-        }
       },
-      { passive: true }
+      { passive: true },
     );
 
-    const leave = () => this.flush(true, true);
+    const leave = () => this.enqueue(true, true);
     on(window, "pagehide", leave);
     on(window, "beforeunload", leave);
+    // bfcache restore: timers died while frozen; resume the clock without
+    // starting a second visit.
+    on(window, "pageshow", (e: Event) => {
+      if ((e as PageTransitionEvent).persisted) {
+        this.lastTick = Date.now();
+        this.lastInput = Date.now();
+        safeSession.set(SID_ACTIVE_KEY, String(Date.now()));
+      }
+    });
 
     this.readPerf();
   }
@@ -661,15 +725,22 @@ class Collector {
     this.teardown = [];
     if (this.timer) clearInterval(this.timer);
     if (this.ticker) clearInterval(this.ticker);
+    if (this.retryTimer) clearTimeout(this.retryTimer);
     this.timer = null;
     this.ticker = null;
+    this.retryTimer = null;
   }
 
   private trackScroll(target: EventTarget | null): void {
     let top = 0;
     let height = 0;
     let client = 0;
-    if (!target || target === document || target === document.documentElement || target === window) {
+    if (
+      !target ||
+      target === document ||
+      target === document.documentElement ||
+      target === window
+    ) {
       const el = document.scrollingElement || document.documentElement;
       top = el.scrollTop;
       height = el.scrollHeight;
@@ -680,7 +751,7 @@ class Collector {
       client = target.clientHeight;
     }
     const scrollable = height - client;
-    if (scrollable < 80) return; // not a real scroll surface
+    if (scrollable < 80) return;
 
     const pct = Math.min(100, Math.round(((top + client) / height) * 100));
     const key = this.section;
@@ -688,7 +759,6 @@ class Collector {
     this.scrollMax[key] = pct;
     this.dirty = true;
 
-    // Only the milestones make the timeline; the exact maximum still ships.
     const step = SCROLL_STEPS.filter((s) => pct >= s).pop();
     if (step && step > (this.scrollSent[key] || 0)) {
       this.scrollSent[key] = step;
@@ -698,7 +768,9 @@ class Collector {
 
   private readPerf(): void {
     try {
-      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      const nav = performance.getEntriesByType(
+        "navigation",
+      )[0] as PerformanceNavigationTiming | undefined;
       const loadMs = nav ? Math.round(nav.duration) : 0;
       this.perf = { LoadMs: loadMs, LcpMs: 0 };
       if (typeof PerformanceObserver === "undefined") return;
@@ -717,16 +789,57 @@ class Collector {
     }
   }
 
-  // ── shipping ─────────────────────────────────────────────────────────
-  private flush(final: boolean, force = false, owner = false): void {
-    if (!this.started) return;
-    if (final && this.sentFinal) return; // pagehide and beforeunload both fire
+  // ── shipping: immutable batches, serialized, acked ───────────────────
+  private endPreviousVisit(prevId: string): void {
+    try {
+      const body = JSON.stringify({
+        v: 2,
+        id: prevId,
+        seq: Number(safeSession.get(SEQ_KEY) || 0) + 1,
+        batchId: batchIdOf(),
+        end: true,
+        add: {},
+        set: {},
+        events: [],
+      });
+      navigator.sendBeacon?.(ENDPOINT, body);
+    } catch {
+      /* best effort */
+    }
+  }
+
+  private restoreQueue(): void {
+    try {
+      const raw = safeSession.get(QUEUE_KEY);
+      if (!raw) return;
+      const arr = JSON.parse(raw) as PendingBatch[];
+      if (Array.isArray(arr))
+        this.queue = arr
+          .filter((b) => b && typeof b.seq === "number" && typeof b.batchId === "string" && b.body)
+          .slice(-MAX_QUEUED_BATCHES);
+    } catch {
+      this.queue = [];
+    }
+    if (this.queue.length) void this.drain();
+  }
+
+  private persistQueue(): void {
+    try {
+      safeSession.set(QUEUE_KEY, JSON.stringify(this.queue.slice(-MAX_QUEUED_BATCHES)));
+    } catch {
+      /* storage full - in-memory queue still delivers this tab */
+    }
+  }
+
+  private enqueue(force: boolean, final = false): void {
+    if (!this.started || this.terminal) return;
+    if (final && this.queue.some((b) => (b.body as Dict).end === true)) return;
     if (!force && !this.dirty) return;
     if (this.seq >= MAX_FLUSHES) return;
-    if (final) this.sentFinal = true;
 
     this.tick();
-    this.closeProject();
+    // Bank (don't close) so the open project keeps accruing after the flush.
+    this.bankProjectTime();
 
     const buf = this.buf;
     this.buf = emptyBuffer();
@@ -734,10 +847,25 @@ class Collector {
     this.seq += 1;
     safeSession.set(SEQ_KEY, String(this.seq));
 
+    // Trim events so the keepalive body stays deliverable.
+    let events = buf.events.slice(0, 120);
+    let body: Record<string, unknown> = this.buildBody(buf, events, final);
+    while (JSON.stringify(body).length > MAX_BODY_BYTES && events.length > 10) {
+      events = events.slice(Math.ceil(events.length / 4));
+      body = this.buildBody(buf, events, final);
+    }
+
+    this.queue.push({ seq: this.seq, batchId: String(body.batchId), body, tries: 0, nextAt: 0 });
+    this.persistQueue();
+    void this.drain();
+  }
+
+  private buildBody(buf: Buffer, events: SessionEvent[], final: boolean): Record<string, unknown> {
     const body: Record<string, unknown> = {
       v: 2,
       id: this.sessionId,
       seq: this.seq,
+      batchId: batchIdOf(),
       visitor: this.visitorId,
       visit: this.visit,
       add: {
@@ -760,58 +888,116 @@ class Collector {
         contactSent: this.contactSent,
         ...(this.perf ? { perf: this.perf } : {}),
       },
-      events: buf.events,
+      events,
     };
-
-    // The opening details ride along until the server confirms it has them. They used
-    // to go on flush 1 only: when that one was refused, the visit was still recorded
-    // from flush 2 on, but with no device, no entry and no share-link code, so a link
-    // visit turned up as an anonymous one and the link never counted the open.
-    if (!this.helloAcked) {
-      body.hello = {
-        startedAt: this.startedAt,
-        entry: readEntry(this.section),
-        device: readDevice(),
-        ...(this.code ? { code: this.code } : {}),
-      };
-    }
+    if (!this.helloAcked && this.hello) body.hello = this.hello;
     if (final) body.end = true;
-    if (owner || this.isOwner()) body.owner = true;
+    return body;
+  }
 
-    const send = () => {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      return fetch(ENDPOINT, { method: "POST", headers, body: JSON.stringify(body), keepalive: true })
-        .then((r) => {
-          if (r.ok) {
-            if (body.hello) {
-              this.helloAcked = true;
-              safeSession.set(HELLO_KEY, "1");
-            }
-            return r.json();
-          }
-          // Refused (a 5xx, a dropped connection): keep what it carried for the next
-          // flush. A 409 means the visit itself is gone server-side; drop it.
-          if (r.status !== 409 && r.status !== 429 && !final) {
-            mergeInto(this.buf, buf);
-            this.dirty = true;
-          }
-          return null;
-        })
-        .then(
-          (data: { tailor?: LinkTailor; link?: { Name: string; For: string } } | null) => {
-            if (data?.tailor && this.onTailor) this.onTailor(data.tailor, data.link || null);
-          }
-        )
-        .catch(() => {
-          // Offline: the same as a refusal, the next flush carries it.
-          if (!final) {
-            mergeInto(this.buf, buf);
-            this.dirty = true;
-          }
-        });
-    };
+  private async drain(): Promise<void> {
+    if (this.sending || !this.queue.length) return;
+    this.sending = true;
+    try {
+      while (this.queue.length && !this.terminal) {
+        const head = this.queue[0];
+        if (head.nextAt > Date.now()) break;
+        const ok = await this.sendBatch(head);
+        if (ok) {
+          this.queue.shift();
+          this.persistQueue();
+        } else {
+          this.persistQueue();
+          break;
+        }
+      }
+    } finally {
+      this.sending = false;
+    }
+  }
 
-    this.inFlight = send();
+  private async sendBatch(batch: PendingBatch): Promise<boolean> {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    let res: Response | null = null;
+    try {
+      res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(batch.body),
+        keepalive: true,
+      });
+    } catch {
+      return this.backoff(batch);
+    }
+
+    let data: Dict | null = null;
+    try {
+      data = (await res.json().catch(() => null)) as Dict | null;
+    } catch {
+      data = null;
+    }
+
+    if (res.ok && data && (data as Dict).ok === true) {
+      // Share-link-only tracking: the server found no valid link for this
+      // visit (deleted/invalid code). Clear the stale attribution so the tab
+      // cannot inherit a previous link's greeting or events, then stop.
+      if ((data as Dict).status === "untracked") {
+        try {
+          sessionStorage.removeItem(LINK_KEY);
+          sessionStorage.removeItem(LINK_AT_KEY);
+          sessionStorage.removeItem("trails_tailor");
+          sessionStorage.removeItem("trails_entry");
+          window.dispatchEvent(new CustomEvent("trails:tailor", { detail: null }));
+        } catch {
+          /* ignore */
+        }
+        this.terminal = true;
+        return true;
+      }
+      if ((data as Dict).hello === true && (batch.body as Dict).hello) {
+        this.helloAcked = true;
+        safeSession.set(HELLO_KEY, "1");
+      }
+      const tailor = (data as Dict).tailor as LinkTailor | undefined;
+      const link = (data as Dict).link as { Name: string; For: string } | undefined;
+      if (tailor && this.onTailor) this.onTailor(tailor, link || null);
+      if ((batch.body as Dict).end === true) safeSession.set(ENDED_KEY, "1");
+      return true;
+    }
+
+    // Terminal: drop the batch and stop retrying (expired, unknown, bot, bad).
+    const terminal =
+      (data as Dict)?.terminal === true ||
+      res.status === 400 ||
+      res.status === 404 ||
+      res.status === 410;
+    if (terminal) {
+      if (res.status === 404 || (data as Dict)?.reason === "unknown-visit") {
+        // Lookup outage must not strand the visit: keep hello for the next session.
+        this.helloAcked = false;
+        safeSession.set(HELLO_KEY, "0");
+      }
+      if ((data as Dict)?.reason === "bot" || (data as Dict)?.reason === "expired") {
+        this.terminal = true;
+      }
+      return true; // drop the batch; it will never succeed
+    }
+    return this.backoff(batch);
+  }
+
+  private backoff(batch: PendingBatch): boolean {
+    batch.tries += 1;
+    if (batch.tries > 8) {
+      // Bounded retry: drop the oldest batch rather than growing forever.
+      // Newer batches still carry newer state; counters in the dropped batch
+      // are lost honestly instead of wedging the whole queue.
+      return true;
+    }
+    const delay = Math.min(30_000, 1000 * 2 ** Math.min(batch.tries, 5));
+    batch.nextAt = Date.now() + delay;
+    if (this.retryTimer) clearTimeout(this.retryTimer);
+    this.retryTimer = setTimeout(() => void this.drain(), delay);
+    return false;
   }
 }
 

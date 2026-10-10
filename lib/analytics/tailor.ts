@@ -22,7 +22,15 @@ export interface Tailor extends LinkTailor {
 /** Stash what a link asks for. The landing page owns this; nothing else writes it. */
 export function stashTailor(tailor: LinkTailor, link: { Name: string; For: string }): void {
   try {
-    sessionStorage.setItem(KEY, JSON.stringify({ ...EMPTY_TAILOR, ...tailor, ...link }));
+    sessionStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ...EMPTY_TAILOR,
+        ...tailor,
+        LinkName: link.Name.slice(0, 120),
+        LinkFor: link.For.slice(0, 120),
+      }),
+    );
   } catch {
     /* private mode - the link just gets the default experience */
   }

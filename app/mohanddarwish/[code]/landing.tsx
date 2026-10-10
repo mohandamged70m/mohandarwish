@@ -17,7 +17,10 @@ const HR_RE = /\bhr\b|human resources|recruit\w*|talent acquisition|talent|hirin
 
 /** A link pops the CV modal (on top of the portfolio) when toggled, or when it's for HR. */
 export function wantsAutoCv(link: LinkDoc): boolean {
+  // Explicit settings always win: AutoCv:false never auto-opens, even for HR.
+  // The HR default applies only when the setting is absent (undefined).
   if (link.Tailor?.AutoCv === true) return true;
+  if (link.Tailor?.AutoCv === false) return false;
   return HR_RE.test(link.Name || "") || HR_RE.test(link.For || "");
 }
 
@@ -56,6 +59,22 @@ export default function TailoredLanding({ code }: { code: string }) {
         });
         try {
           sessionStorage.setItem("trails_link", linkJson);
+          sessionStorage.setItem("trails_link_at", String(Date.now()));
+          // Preserve the original campaign metadata across the redirect to `/`,
+          // which otherwise replaces the URL and loses the query string.
+          // The collector's hello.entry is captured on `/`, so without this
+          // the visit's UTM/referrer attribution would be empty.
+          try {
+            sessionStorage.setItem(
+              "trails_entry",
+              JSON.stringify({
+                search: window.location.search.slice(0, 500),
+                referrer: document.referrer.slice(0, 300),
+              }),
+            );
+          } catch {
+            /* attribution backup is best-effort */
+          }
         } catch {
           // private mode — the live handoff below still covers us
         }

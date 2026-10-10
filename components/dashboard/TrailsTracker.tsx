@@ -26,6 +26,10 @@ const KNOWN_SECTIONS: Array<[string, string]> = [
   ["projects-wrap", "projects"],
 ];
 const PROJECT_RE = /^\/projects\/([^/?#]+)/;
+/** Stored link attribution older than this is stale and never starts a visit. */
+const LINK_STALE_MS = 12 * 60 * 60_000;
+/** Minimum gap between contact-open counts from section visibility (flap guard). */
+const CONTACT_OPEN_COOLDOWN_MS = 10_000;
 
 type TrackFn = (kind: string, value?: string) => void;
 
@@ -42,23 +46,14 @@ interface PendingLink {
 }
 
 /** Owner's own coding/testing never records — only real recipients of a link.
- * The owner holds an Auth.js session cookie; when one is present the session is
- * checked once (cached for the visit) and recording stays off for the owner. */
+ * Ownership resolves server-side from the HttpOnly Auth.js session; the
+ * browser never reads the session cookie (it cannot — HttpOnly), it just asks
+ * the session endpoint once per visit and stays off for the owner. */
 let ownerCheck: Promise<boolean> | null = null;
-function isOwnerSessionCookie(): boolean {
-  try {
-    return /(?:^|;\s*)(?:__Secure-)?authjs\.session-token=/.test(
-      document.cookie,
-    );
-  } catch {
-    return false;
-  }
-}
 function checkOwner(): Promise<boolean> {
   if (!ownerCheck) {
     ownerCheck = (async () => {
       try {
-        if (!isOwnerSessionCookie()) return false;
         const r = await fetch("/api/auth/session", { cache: "no-store" });
         if (!r.ok) return false;
         const b = (await r.json().catch(() => null)) as {
@@ -72,7 +67,7 @@ function checkOwner(): Promise<boolean> {
   }
   return ownerCheck;
 }
-function isOwnerSync(): boolean {
+function isLocalDev(): boolean {
   try {
     if (/^(localhost|127\.|192\.168\.|10\.)/.test(window.location.hostname))
       return true;
@@ -92,6 +87,21 @@ function hostOf(url: string): string {
 
 function readStoredLink(): PendingLink | null {
   try {
+    const at = Number(sessionStorage.getItem("trails_link_at") || 0);
+    if (at > 0 && Date.now() - at > LINK_STALE_MS) {
+      // Stale attribution must expire: a tab left open overnight must not
+      // attribute tomorrow's browsing to yesterday's link, nor inherit its
+      // greeting.
+      try {
+        sessionStorage.removeItem("trails_link");
+        sessionStorage.removeItem("trails_link_at");
+        sessionStorage.removeItem("trails_tailor");
+        sessionStorage.removeItem("trails_entry");
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
     const raw = sessionStorage.getItem("trails_link");
     if (!raw) return null;
     const o = JSON.parse(raw) as { Id?: unknown; Name?: unknown; For?: unknown };
@@ -131,26 +141,33 @@ export function TrailsTracker(): null {
 
       let curPath = window.location.pathname || "/";
       let live = false; // is the collector actually recording?
+      let lastContactOpenAt = 0;
       const slugOf = (p: string) => {
         const m = p.match(PROJECT_RE);
         return m && m[1] ? decodeURIComponent(m[1]).slice(0, 120) : "";
+      };
+      const contactOpenDebounced = () => {
+        const now = Date.now();
+        if (now - lastContactOpenAt < CONTACT_OPEN_COOLDOWN_MS) return;
+        lastContactOpenAt = now;
+        analytics.contactOpen();
       };
 
       // ── waking up ──────────────────────────────────────────────────
       // Everything below this point only exists once a link code is known, so a
       // direct visit attaches no observers and holds no timers at all.
       const begin = (link: PendingLink) => {
-        if (live || dead || !link.Id || isOwnerSync()) return;
-        // Owner check needs the Auth.js session endpoint; resolve it before
+        if (live || dead || !link.Id || isLocalDev()) return;
+        // Owner check hits the session endpoint; resolve it before
         // recording anything so the owner's own visits never start the collector.
+        // The server re-resolves ownership authoritatively per flush, so a
+        // spoofed client hint can never pollute recipient metrics.
         void checkOwner().then((owned) => {
           if (live || dead || owned) return;
           live = true;
           analytics.start({
             section: sectionNow(curPath),
             code: link.Id,
-            // Ownership was already resolved above; recording only starts for
-            // non-owners, so the collector's owner flag stays off.
             isOwner: () => false,
             onTailor: (tailor, resolved) => {
               const full: Tailor = { ...tailor, LinkName: link.Name, LinkFor: link.For };
@@ -165,6 +182,8 @@ export function TrailsTracker(): null {
 
       // ── manual API for components ──────────────────────────────────
       // window.__trails.track("link" | "contact-open" | "cv" | "social" | ...)
+      // Contact/booking successes are reported explicitly by BookingModal;
+      // no global fetch interception (it double-counted and missed /api/messages).
       w.__trails = {
         track: (kind: string, value?: string) => {
           try {
@@ -175,6 +194,7 @@ export function TrailsTracker(): null {
               if (link) {
                 try {
                   sessionStorage.setItem("trails_link", JSON.stringify(link));
+                  sessionStorage.setItem("trails_link_at", String(Date.now()));
                 } catch {
                   /* ignore */
                 }
@@ -185,7 +205,7 @@ export function TrailsTracker(): null {
             if (!live) return;
             switch (kind) {
               case "contact-open":
-                analytics.contactOpen();
+                contactOpenDebounced();
                 break;
               case "contact-sent":
                 analytics.contactSubmit((value || "message") as "message" | "meeting" | "book");
@@ -237,8 +257,11 @@ export function TrailsTracker(): null {
                   const el = e.target as HTMLElement;
                   const name = el.dataset.trailsSection || el.id;
                   if (e.isIntersecting) {
+                    const fresh = !visibleSections.has(name);
                     visibleSections.add(name);
-                    if (name === "contact") analytics.contactOpen();
+                    // Once per visibility session, cooldown-guarded: observer
+                    // flapping at a boundary must not inflate contact opens.
+                    if (name === "contact" && fresh) contactOpenDebounced();
                   } else {
                     visibleSections.delete(name);
                   }
@@ -275,6 +298,9 @@ export function TrailsTracker(): null {
       }
 
       // ── click classification ───────────────────────────────────────
+      // Deduplicated: data-track kinds win; bare anchors are classified once.
+      // A click already handled as a data-track kind never falls through to
+      // the generic anchor branch (that double-counted CV/social/project-out).
       const onClick = (e: MouseEvent) => {
         if (!live) return;
         try {
@@ -282,7 +308,7 @@ export function TrailsTracker(): null {
           if (!el) return;
           const kind = el.dataset?.track;
           if (kind === "contact-open") {
-            analytics.contactOpen();
+            contactOpenDebounced();
             return;
           }
           if (kind === "cv") {
@@ -303,11 +329,12 @@ export function TrailsTracker(): null {
             analytics.projectOpen(el.dataset.id);
             return;
           }
+          if (kind) return; // unknown data-track kind: handled, never double-count
           if (el.tagName !== "A") return;
           const href = (el as HTMLAnchorElement).getAttribute("href") || "";
           if (!href || href.startsWith("#") || href.startsWith("javascript:")) return;
           if (href.startsWith("mailto:")) {
-            analytics.contactOpen();
+            contactOpenDebounced();
             return;
           }
           if (href.includes("cv.pdf")) {
@@ -327,39 +354,6 @@ export function TrailsTracker(): null {
           /* ignore */
         }
       };
-
-      // ── submission: the end of the funnel ──────────────────────────
-      // A bookmarked or scripted fetch to the booking/contact endpoints still counts;
-      // the collector does its own click classification for everything else.
-      const origFetch = window.fetch.bind(window);
-      (window as unknown as { fetch: typeof fetch }).fetch = ((
-        input: RequestInfo | URL,
-        init?: RequestInit
-      ) => {
-        let url = "";
-        try {
-          url =
-            typeof input === "string"
-              ? input
-              : input instanceof URL
-                ? input.pathname
-                : (input as Request).url;
-        } catch {
-          /* ignore */
-        }
-        const method = (
-          init?.method ||
-          (typeof input !== "string" && !(input instanceof URL) ? (input as Request).method : "GET") ||
-          "GET"
-        ).toUpperCase();
-        const p = origFetch(input as RequestInfo, init);
-        if (method === "POST" && live && /\/api\/(contact|booking)/.test(url)) {
-          p.then((r) => {
-            if (r.ok) analytics.contactSubmit(url.includes("booking") ? "meeting" : "message");
-          }).catch(() => {});
-        }
-        return p;
-      }) as typeof fetch;
 
       document.addEventListener("click", onClick);
       const onCvEvent = () => {
@@ -398,11 +392,6 @@ export function TrailsTracker(): null {
         io?.disconnect();
         document.removeEventListener("click", onClick);
         window.removeEventListener("open-cv", onCvEvent);
-        try {
-          (window as unknown as { fetch: typeof fetch }).fetch = origFetch;
-        } catch {
-          /* ignore */
-        }
       };
     } catch {
       /* never break the page */
