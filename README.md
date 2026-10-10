@@ -9,23 +9,24 @@
 
 ## Overview
 
-This is not a static one-pager. It's a full product:
+Personal portfolio with a private workspace for managing content and client work:
 
 - **Marketing site** — hero, projects showcase, stack, contact, project detail pages, CV modal
 - **Booking system** — visitors can book a call (availability + booked-slots APIs, email receipts)
 - **Contact pipeline** — contact form → validation/sanitization → Convex + email via Resend
 - **Owner dashboard (`/dashboard`)** — CMS for projects, tags, contributors, experience, inbox/messages, bookings, site settings, hero images, analytics
+- **Private workspace** — lead pipeline, client projects, milestones, invoice status and internal notes; no client accounts
 - **Analytics & tracking** — project views, dashboard charts (Recharts), Vercel Analytics
 
 ## Pages & Sections
 
 | Route | What it is |
 |---|---|
-| `/` | Single-page flow: Hero → Stack → Projects → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
+| `/` | Single-page flow: Hero → Projects → Stack → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
 | `/projects` | Filterable project listing (Frontend / Full-Stack / Design System / Tooling) |
 | `/projects/[id]` | Project detail: gallery, videos, stack tags, contributors, metrics, live/GitHub/download links, view tracking |
 | `/mohanddarwish` | Vanity / short-link profile route |
-| `/dashboard` | Private owner CMS (token-gated): projects, tags, contributors, messages, bookings, settings, treasury, LLM assistant |
+| `/dashboard` | Private owner CMS (signed HttpOnly session): projects, tags, contributors, messages, bookings, settings, treasury, LLM assistant |
 | `/api/*` | Backend: `contact`, `booking`, `booked-slots`, `availability`, `messages`, `track`, `dashboard/*`, `diag` |
 
 ### Home sections
@@ -40,7 +41,7 @@ This is not a static one-pager. It's a full product:
 - **Project showcase CMS-driven** — projects, tags (with color + icon), contributors (with socials), images/videos all edited in the dashboard, mapped via `data/projects.ts` (`mapDashboardDocToProject`)
 - **Booking flow** — `BookButton` → `BookingModal` → custom time picker → `POST /api/booking` → availability check → Resend receipt to visitor + notification to owner → sync to dashboard
 - **Contact flow** — `POST /api/contact` with sanitization (`lib/sanitize.ts`), rate-limit friendly, stored in Convex, emailed via Resend (`lib/email.ts`, `lib/replyEmail.ts`, `lib/receipt.ts`)
-- **Dashboard CMS** — token auth (`lib/dash-auth.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
+- **Dashboard CMS** — signed owner session (`lib/session.ts`, `lib/dash-auth.ts`), Firestore-style `lib/dash-db.ts` wrapper, modules: Projects, Tags, Contributors, Developer profile, Messages/Inbox, Bookings, Settings/Account, Treasury, Trails, MCP, Canary checks, AI Assistant (`/api/dashboard/llm`)
 - **Theming** — `next-themes` dark (default, black `#0A0A0A` + wine/mahogany) / light (warm paper `#FAF6F0`), AA-checked contrast, theme-aware hero images
 - **Motion** — GSAP + Motion + Lenis smooth scroll, section pager (`components/transitions`), portrait morph, tab pill, scroll reveals; `prefers-reduced-motion` respected
 - **SEO** — dynamic metadata (`lib/metadata.ts`), OG images, `sitemap.ts` (includes Convex projects), `robots.ts`, semantic HTML
@@ -106,6 +107,9 @@ Open http://localhost:3000.
 | `npm run build` | Production build |
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript |
+| `npm run test` | Security, persistence and route tests |
+| `npm run test:e2e` | Chromium browser checks (build first) |
 
 ## Environment Variables
 
@@ -116,14 +120,22 @@ NEXT_PUBLIC_CONVEX_URL=...
 RESEND_API_KEY=...
 OWNER_EMAIL=...
 ADMIN_TOKEN=...
+SESSION_SECRET=...
+CONVEX_SERVER_KEY=...
 ```
 
 | Var | Used for |
 |---|---|
-| `NEXT_PUBLIC_CONVEX_URL` | Public project + dashboard reads/writes (`lib/convex.ts`, `lib/dash-*`) |
+| `NEXT_PUBLIC_CONVEX_URL` | Convex deployment URL; requests go through Next.js gateways |
 | `RESEND_API_KEY` | Contact/booking/reply emails (`lib/resend.ts`) |
 | `OWNER_EMAIL` | Booking/contact notification recipient |
-| `ADMIN_TOKEN` | Gates `/dashboard` and `app/api/dashboard/*` (`lib/dash-auth.ts`) |
+| `ADMIN_TOKEN` | Owner credential exchanged for a 24-hour signed session; never persisted in browser storage |
+| `SESSION_SECRET` | Server-only random secret (at least 32 characters) for owner sessions and rate-limit keys |
+| `CONVEX_SERVER_KEY` | Server-only secret, identical in Next.js and Convex deployment environments |
+| `MEETING_SYNC_URL` | Optional Apps Script calendar integration |
+| `RESEND_FROM` | Verified email sender |
+
+Copy `.env.example` and read [OWNER_WORKSPACE.md](./OWNER_WORKSPACE.md) before deploying.
 
 Database setup:
 
@@ -146,8 +158,8 @@ Single source of truth: [`DESIGN.md`](./DESIGN.md) + tokens in `app/globals.css`
 Optimized for **Vercel**:
 
 1. Push to GitHub, import into Vercel
-2. Set the env vars above in Project Settings
-3. Deploy — Next.js build handles AVIF/WebP image optimization, sitemap, and analytics automatically
+2. Follow [OWNER_WORKSPACE.md](./OWNER_WORKSPACE.md) to configure both Next.js and Convex
+3. Validate a preview before coordinating the backend and app deployment
 
 Image remote hosts are allowlisted in `next.config.ts` (picsum, simpleicons, svgl, Convex storage).
 
