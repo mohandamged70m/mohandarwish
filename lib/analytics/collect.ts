@@ -239,11 +239,14 @@ function readEntry(section: string): Record<string, unknown> {
   });
 
   let ref = "";
+  let referrer = document.referrer || storedReferrer;
   try {
-    const referrer = document.referrer || storedReferrer;
     if (referrer) {
       const host = new URL(referrer).hostname;
       if (host && host !== window.location.hostname) ref = host;
+      // Internal navigation is not an external referral: a same-host
+      // referrer must never become a "source" row for our own domain.
+      else referrer = "";
     }
   } catch {
     /* malformed referrer - leave it blank */
@@ -252,7 +255,7 @@ function readEntry(section: string): Record<string, unknown> {
   return {
     Section: section,
     Path: window.location.pathname.slice(0, 200),
-    Referrer: (document.referrer || storedReferrer || "").slice(0, 300),
+    Referrer: referrer.slice(0, 300),
     Ref: ref,
     Utm: utm,
   };

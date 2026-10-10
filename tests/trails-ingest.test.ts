@@ -23,7 +23,7 @@ const LINK = {
   Tailor: { AutoCv: false, Greeting: "", Pinned: [] },
 };
 
-async function seedLink(t: unknown) {
+async function seedLink(t: any) {
   await t.mutation(api.docs.setDoc, {
     serverKey,
     path: "Analytics/Links/Items/1",

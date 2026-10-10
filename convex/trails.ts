@@ -173,10 +173,19 @@ function readEntry(raw: unknown): Dict {
   return {
     Section: safeKey(e.Section) || "home",
     Path: str(e.Path, 200),
-    Referrer: str(e.Referrer, 300),
+    // Stored referrers never carry query strings: tokens, session ids and
+    // search queries are PII. Only marketing attribution survives, inside Utm.
+    Referrer: redactUrl(str(e.Referrer, 300)),
     Ref: str(e.Ref, 120),
     Utm: utm,
   };
+}
+
+/** Strip a URL to origin+path. Anything after `?` may identify the visitor. */
+function redactUrl(raw: string): string {
+  if (!raw) return "";
+  const cut = raw.split(/[?#]/)[0];
+  return cut.slice(0, 300);
 }
 function readTailor(raw: unknown): {
   AutoCv: boolean;
@@ -1157,6 +1166,151 @@ export const pruneSessions = mutation({
       pruned++;
     }
     return { pruned, remaining: victims.length - pruned };
+  },
+});
+
+export const outboxMarkBySession = mutation({  args: {
+    serverKey: v.string(),
+    sessionId: v.string(),
+    status: v.union(v.literal("sent"), v.literal("failed")),
+    error: v.optional(v.string()),
+  },
+  handler: async (ctx, { serverKey, sessionId, status, error }) => {
+    requireServer(serverKey);
+    const row = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_session", (q: any) => q.eq("sessionId", str(sessionId, 40)))
+      .first();
+    if (!row || row.status !== "pending") return { marked: false };
+    await ctx.db.patch(row._id, {
+      status,
+      attempts: row.attempts + 1,
+      sentAt: status === "sent" ? Date.now() : undefined,
+      error: error?.slice(0, 300),
+    });
+    return { marked: true };
+  },
+});
+
+/** Corruption audit over retained sessions (read-only; see repairSessionFields).
+ *
+ * The pre-transactional writer summed timestamps, scroll maxima and
+ * performance numbers (mergeValues added every number), so old rows can hold
+ * LastSeenAt far in the future and Scroll above 100.
+ * This reports repairable rows WITHOUT writing; repairSessionFields fixes
+ * them. Aggregate history (totals/days) is never rewritten from retained
+ * sessions — pruned history cannot be reconstructed, and fabricating exact
+ * historical counts would be dishonest.
+ */
+export const reconcileDryRun = query({
+  args: { serverKey: v.string() },
+  handler: async (ctx, { serverKey }) => {
+    requireServer(serverKey);
+    const now = Date.now();
+    const all: any[] = await ctx.db.query("dashboardDocs").collect();
+    const corrupt: Array<{ sid: string; issues: string[] }> = [];
+    const orphaned: string[] = [];
+    let retainedSessions = 0;
+    let checked = 0;
+    const linkIds = new Set<string>();
+    for (const r of all) {
+      if (r.path.startsWith(LINKS + "/")) {
+        linkIds.add(String(r.path).slice(String(r.path).lastIndexOf("/") + 1));
+      }
+    }
+    for (const r of all) {
+      if (!r.path.startsWith(SESSIONS + "/")) continue;
+      if (++checked > 2000) break;
+      const sid = String(r.path).slice(String(r.path).lastIndexOf("/") + 1);
+      const d = isObj(r.data) ? (r.data as Dict) : {};
+      retainedSessions++;
+      const issues: string[] = [];
+      const started = num(d.StartedAt, Number.MAX_SAFE_INTEGER);
+      const seen = num(d.LastSeenAt, Number.MAX_SAFE_INTEGER);
+      if (d.LastSeenAt !== undefined && (seen > now + 5 * 60_000 || (started > 0 && seen < started)))
+        issues.push("LastSeenAt");
+      if (d.EndedAt !== undefined && d.EndedAt !== null && typeof d.EndedAt === "number" && d.EndedAt > now + 5 * 60_000)
+        issues.push("EndedAt");
+      const scroll = isObj(d.Scroll) ? (d.Scroll as Dict) : null;
+      if (scroll && Object.values(scroll).some((v) => typeof v === "number" && (v > 100 || v < 0)))
+        issues.push("Scroll");
+      for (const k of ["ActiveMs", "OpenMs", "IdleMs", "Copies", "Rage", "Prints", "Flushes"]) {
+        if (d[k] !== undefined && (typeof d[k] !== "number" || (d[k] as number) < 0)) issues.push(k);
+      }
+      if (d.Events !== undefined && !Array.isArray(d.Events)) issues.push("Events");
+      if (issues.length) corrupt.push({ sid, issues });
+      const link = isObj(d.Link) ? (d.Link as Dict) : null;
+      const docId = link ? str(link.DocId, 80) : "";
+      if (docId && !linkIds.has(docId)) orphaned.push(sid);
+    }
+    const totals = await getData(ctx, TOTALS);
+    return {
+      checked,
+      retainedSessions,
+      corrupt,
+      orphaned,
+      totalsSessions: num(totals.Sessions, Number.MAX_SAFE_INTEGER),
+    };
+  },
+});
+
+/**
+ * Idempotent field repair for rows flagged by reconcileDryRun. Clamps
+ * impossible values into range (timestamps into [StartedAt, now], scroll
+ * into [0, 100], negative counters to 0, non-array Events to []). Dry-run by
+ * default; pass dryRun:false to write. Second run is always clean.
+ */
+export const repairSessionFields = mutation({
+  args: { serverKey: v.string(), dryRun: v.optional(v.boolean()) },
+  handler: async (ctx, { serverKey, dryRun }) => {
+    requireServer(serverKey);
+    const now = Date.now();
+    const write = dryRun !== true;
+    const all: any[] = await ctx.db.query("dashboardDocs").collect();
+    let fixed = 0;
+    let checked = 0;
+    for (const r of all) {
+      if (!r.path.startsWith(SESSIONS + "/")) continue;
+      if (++checked > 2000) break;
+      if (fixed >= 500) break;
+      const d = isObj(r.data) ? { ...(r.data as Dict) } : null;
+      if (!d) continue;
+      let dirty = false;
+      const started = num(d.StartedAt, Number.MAX_SAFE_INTEGER) || now;
+      if (typeof d.LastSeenAt === "number" && (d.LastSeenAt > now + 5 * 60_000 || d.LastSeenAt < started)) {
+        d.LastSeenAt = Math.min(Math.max(d.LastSeenAt, started), now);
+        dirty = true;
+      }
+      if (typeof d.EndedAt === "number" && d.EndedAt > now + 5 * 60_000) {
+        d.EndedAt = now;
+        dirty = true;
+      }
+      if (isObj(d.Scroll)) {
+        const s = { ...(d.Scroll as Dict) };
+        for (const [k, v] of Object.entries(s)) {
+          if (typeof v === "number" && (v > 100 || v < 0)) {
+            s[k] = Math.min(Math.max(Math.round(v), 0), 100);
+            dirty = true;
+          }
+        }
+        if (dirty) d.Scroll = s;
+      }
+      for (const k of ["ActiveMs", "OpenMs", "IdleMs", "Copies", "Rage", "Prints", "Flushes"]) {
+        if (typeof d[k] !== "number" || (d[k] as number) < 0) {
+          d[k] = 0;
+          dirty = true;
+        }
+      }
+      if (d.Events !== undefined && !Array.isArray(d.Events)) {
+        d.Events = [];
+        dirty = true;
+      }
+      if (dirty) {
+        fixed++;
+        if (write) await ctx.db.patch(r._id, { data: d, updatedAt: now });
+      }
+    }
+    return { checked, fixed, dryRun: !write };
   },
 });
 

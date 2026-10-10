@@ -105,10 +105,16 @@ export async function POST(req: Request) {
     // Notification last and best-effort: the visit is already committed, so a
     // mail failure only leaves the outbox row pending — it can never lose the visit.
     if ((result as Dict).notifyQueued === true) {
+      const sessionId = String(body.id || "").slice(0, 40);
       try {
         await notifyLinkOpened(result as Dict, body, edgeGeo(req));
+        await convexMutation(api.trails.outboxMarkBySession, {
+          sessionId,
+          status: "sent",
+        }).catch(() => null);
       } catch {
-        // Outbox row stays pending for a later drain; never fail the flush.
+        // Left pending: the owner drain (POST /api/dashboard/trails-outbox)
+        // retries it. Never fail the flush over mail.
       }
     }
 

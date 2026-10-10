@@ -194,6 +194,46 @@ it("tailor round-trips through the resolved server shape", () => {
   expect(readTailor()).toBeNull();
 });
 
+it("flags corrupt legacy rows and repairs them idempotently", async () => {
+  const t = convexTest(schema, modules);
+  await t.mutation(api.docs.setDoc, {
+    serverKey,
+    path: "Analytics/Sessions/Items/corrupt01-ab12cd34",
+    data: {
+      StartedAt: 1700000000000,
+      LastSeenAt: 3400000020000,
+      Scroll: { home: 125 },
+      ActiveMs: -5,
+      Events: "not-an-array",
+    },
+  });
+  const audit: any = await t.query(api.trails.reconcileDryRun, { serverKey });
+  expect(audit.corrupt).toEqual([
+    { sid: "corrupt01-ab12cd34", issues: ["LastSeenAt", "Scroll", "ActiveMs", "Events"] },
+  ]);
+  const dry: any = await t.mutation(api.trails.repairSessionFields, { serverKey, dryRun: true });
+  expect(dry.fixed).toBe(1);
+  // Dry run writes nothing.
+  const still: any = await t.query(api.docs.getDoc, {
+    serverKey,
+    path: "Analytics/Sessions/Items/corrupt01-ab12cd34",
+  });
+  expect(still.LastSeenAt).toBe(3400000020000);
+  const done: any = await t.mutation(api.trails.repairSessionFields, { serverKey, dryRun: false });
+  expect(done.fixed).toBe(1);
+  const fixedDoc: any = await t.query(api.docs.getDoc, {
+    serverKey,
+    path: "Analytics/Sessions/Items/corrupt01-ab12cd34",
+  });
+  expect(fixedDoc.Scroll).toEqual({ home: 100 });
+  expect(fixedDoc.ActiveMs).toBe(0);
+  expect(fixedDoc.Events).toEqual([]);
+  expect(fixedDoc.LastSeenAt).toBeLessThanOrEqual(Date.now());
+  // Second run is clean: idempotent.
+  const again: any = await t.mutation(api.trails.repairSessionFields, { serverKey, dryRun: false });
+  expect(again.fixed).toBe(0);
+});
+
 it("prunes old sessions without touching lifetime totals", async () => {
   const t = convexTest(schema, modules);
   await t.mutation(api.docs.setDoc, {
