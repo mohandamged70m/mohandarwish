@@ -39,10 +39,13 @@ stay out: no init, no flush, no beacon for them.
   only while active and visible; routine flushes bank time **without** closing
   the project.
 - **Contact opens.** Modal/section views, cooldown-guarded against observer
-  flap. **Confirmed submissions** are `contact_sent` events fired explicitly
-  by `BookingModal` on a successful `/api/booking` (`meeting`) or
-  `/api/messages` (`message`) response. They are **browser-reported**, not
-  server-confirmed: treat them as claimed conversions.
+  flap. **Confirmed submissions** are `contact_sent` events written
+  **server-side**: the form attaches the visit id plus a stable per-submit id
+  to its persistence request, and `/api/booking` (`meeting`) or
+  `/api/messages` (`message`) confirms via `trails.confirmConversion` only
+  after its own write succeeds. Retried deliveries of one submission confirm
+  once; a browser claim alone never counts. Rows predating server confirmation
+  may still carry browser-reported `contact_sent`.
 - **Time away.** `social_back` measures time **away from the portfolio**, never
   time spent on another site.
 - **Rage.** Only three fast clicks in the same spot (`rage:rapid`). Clicks on
@@ -133,11 +136,14 @@ batches in sessionStorage). **After a browser forcibly terminates
   identity validation, payload/event caps, bot user-agent rejection. Client
   heuristics alone are not authoritative.
 - Notifications: link-open email is queued in `trailOutbox` inside the same
-  transaction as the visit. `/api/track` sends inline and marks `sent`;
-  failures stay `pending` for the owner drain
-  (`POST /api/dashboard/trails-outbox`; `GET` reports the backlog).
-  Unconfigured mail (`OWNER_EMAIL`/`RESEND_API_KEY` unset) skips silently and
-  accurately.
+  transaction as the visit. `/api/track` sends inline (idempotency key
+  `trails-visit-{sessionId}`) and marks `sent`; failures stay `pending` for
+  the owner drain (`POST /api/dashboard/trails-outbox`; `GET` reports the
+  backlog plus recent per-link status shown on the link cards). The drain
+  sends due rows oldest-first — pending plus failed with attempts left
+  (bounded at 3) — with a stable key per row (`trails-outbox-{rowId}`) so a
+  crashed retry is a provider-side no-op. Unconfigured mail
+  (`OWNER_EMAIL`/`RESEND_API_KEY` unset) skips silently and accurately.
 
 ## Environment
 
@@ -151,8 +157,9 @@ server except the owner notification email.
 
 - Link-code resolution still scans the bounded link collection inside the
   transaction (an indexed `trailLinks` table is the planned follow-up).
-- `contact_sent` is browser-reported; booking/contact APIs do not yet confirm
-  conversions server-side.
+- `contact_sent` rows written before server confirmation may be
+  browser-reported; current writes are confirmed by the booking/contact APIs
+  with deduped submission identities.
 - Funnel/date-range/source/device scoping beyond the link filter is not built;
   metric cards are lifetime scope by design.
 - Old cached client JS without `batchId` receives terminal `bad-batch` and

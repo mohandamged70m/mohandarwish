@@ -8,7 +8,7 @@ import {
     Download, Footprints, Link2, Radio, Users, Mail, FileText, BellRing, BellOff,
     Search, Filter, ArrowRight, Compass,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, TooltipProps } from 'recharts';
 import { doc, onSnapshot, collection, query, orderBy, limit as fsLimit } from '@/lib/dash-db';
 import { dataCall } from '@/lib/dash-transport';
@@ -79,29 +79,40 @@ const SOURCE_KINDS: Record<string, { label: string; color: string }> = {
     direct: { label: 'Typed in', color: '#64748b' },
 };
 
-type StoryFilter = 'all' | 'live' | 'links' | 'direct' | 'contacted';
+type StoryFilter = 'all' | 'live' | 'links' | 'direct' | 'contacted' | 'converted';
 type TrailsView = 'stories' | 'overview' | 'links';
+type RangeFilter = 'all' | '24h' | '7d' | '30d';
+
+const RANGE_MS: Record<Exclude<RangeFilter, 'all'>, number> = {
+    '24h': 24 * 60 * 60_000,
+    '7d': 7 * 24 * 60 * 60_000,
+    '30d': 30 * 24 * 60 * 60_000,
+};
 
 
 const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string> & { isDark?: boolean; payload?: { payload: ChartDataPoint }[] }) => {
     if (active && payload && payload.length) {
         const item = payload[0].payload as ChartDataPoint;
-        const d = new Date(item.fullDate);
+        // fullDate is a UTC day (YYYY-MM-DD), a UTC Monday, or a UTC month
+        // (YYYY-MM). Parse explicitly as UTC so viewers west of Greenwich do
+        // not see the previous day.
+        const dayKey = item.fullDate.length === 7 ? `${item.fullDate}-01` : item.fullDate;
+        const d = new Date(`${dayKey}T00:00:00Z`);
 
         let headerText = '';
         let subLabel = 'Views';
 
         if (item.type === 'weekly') {
             const end = new Date(d);
-            end.setDate(end.getDate() + 6);
-            headerText = `${d.getDate()}/${d.getMonth() + 1} - ${end.getDate()}/${end.getMonth() + 1}`;
+            end.setUTCDate(end.getUTCDate() + 6);
+            headerText = `${d.getUTCDate()}/${d.getUTCMonth() + 1} - ${end.getUTCDate()}/${end.getUTCMonth() + 1} · UTC`;
             subLabel = 'Weekly Total';
         } else if (item.type === 'monthly') {
-            headerText = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            headerText = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
             subLabel = 'Monthly Total';
         } else {
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-            headerText = `${dayName}, ${d.getDate()}/${d.getMonth() + 1}`;
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+            headerText = `${dayName}, ${d.getUTCDate()}/${d.getUTCMonth() + 1} · UTC`;
         }
 
         return (
@@ -138,6 +149,16 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                                 }`}>Social Clicks</span>
                         </span>
                     </div>
+                    {(item.prevValue || 0) > 0 && (
+                        <div className="flex items-center gap-2">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-white/40' : 'bg-slate-400'}`} />
+                            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                {(item.prevValue || 0).toLocaleString()}
+                                <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                                    }`}>Same period last year</span>
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -163,12 +184,13 @@ const CustomTick = ({ x, y, payload, index, data, isDark }: CustomTickProps & { 
     );
 };
 
-const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
+const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth, reduceMotion }: {
     data: ChartDataPoint[];
     filter: 'daily' | 'weekly' | 'monthly';
     setFilter: (f: 'daily' | 'weekly' | 'monthly') => void;
     isDark: boolean;
     windowWidth: number;
+    reduceMotion: boolean;
 }) => {
     const [pageIndex, setPageIndex] = useState(0);
     const [direction, setDirection] = useState(0);
@@ -337,29 +359,30 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
 
     const getPageTitle = () => {
         if (!currentPageData.length) return '';
-        const first = new Date(currentPageData[0].fullDate);
-        const last = new Date(currentPageData[currentPageData.length - 1].fullDate);
+        const keyOf = (full: string) => (full.length === 7 ? `${full}-01` : full);
+        const first = new Date(`${keyOf(currentPageData[0].fullDate)}T00:00:00Z`);
+        const last = new Date(`${keyOf(currentPageData[currentPageData.length - 1].fullDate)}T00:00:00Z`);
         if (filter === 'daily') {
             // If all data is same month (desktop calendar view), show "Mar 2026"
-            if (first.getMonth() === last.getMonth() && first.getFullYear() === last.getFullYear()) {
-                return first.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            if (first.getUTCMonth() === last.getUTCMonth() && first.getUTCFullYear() === last.getUTCFullYear()) {
+                return first.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
             }
             // Mobile chunked view spans months: show "28/2 – 7/3"
-            return `${first.getDate()}/${first.getMonth() + 1} – ${last.getDate()}/${last.getMonth() + 1}`;
+            return `${first.getUTCDate()}/${first.getUTCMonth() + 1} – ${last.getUTCDate()}/${last.getUTCMonth() + 1}`;
         }
         if (filter === 'weekly') {
-            return `${first.toLocaleDateString('en-US', { month: 'short' })} – ${last.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+            return `${first.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' })} – ${last.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })}`;
         }
         return 'All Time';
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pageVariants: any = {
-        enter: (dir: number) => ({ x: dir > 0 ? '80%' : '-80%', opacity: 0 }),
+        enter: (dir: number) => ({ x: reduceMotion ? 0 : (dir > 0 ? '80%' : '-80%'), opacity: 0 }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as any } },
+        center: { x: 0, opacity: 1, transition: { duration: reduceMotion ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] as any } },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        exit: (dir: number) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] as any } })
+        exit: (dir: number) => ({ x: reduceMotion ? 0 : (dir > 0 ? '-30%' : '30%'), opacity: 0, transition: { duration: reduceMotion ? 0 : 0.2, ease: [0.4, 0, 1, 1] as any } })
     };
 
     return (
@@ -509,6 +532,18 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }: {
                                     dot={false}
                                     activeDot={{ r: 4, fill: '#10B981', strokeWidth: 2, stroke: isDark ? '#0C0C0C' : '#fff' }}
                                     animationDuration={500}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="prevValue"
+                                    name="Same period last year"
+                                    stroke={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.25)'}
+                                    strokeDasharray="5 5"
+                                    fill="none"
+                                    strokeWidth={1.5}
+                                    dot={false}
+                                    activeDot={false}
+                                    animationDuration={reduceMotion ? 0 : 400}
                                 />
                                 <Area
                                     type="monotone"
@@ -705,9 +740,9 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                                         {stat(<Download size={12} />, p.downloadViews, '#F59E0B', 'Downloads')}
                                         <span
                                             className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-white/[0.05] text-white/50' : 'bg-black/[0.04] text-slate-500'}`}
-                                            title="Conversion - actions per view"
+                                            title="Share of views with a demo, repo, or download action — a heuristic, not a conversion probability"
                                         >
-                                            {Math.round(p.conversion * 100)}% conv
+                                            {Math.round(p.conversion * 100)}% acted
                                         </span>
                                     </div>
                                 </div>
@@ -734,6 +769,14 @@ const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
     { id: 'links', label: 'From a link' },
     { id: 'direct', label: 'Direct' },
     { id: 'contacted', label: 'Reached contact' },
+    { id: 'converted', label: 'Converted' },
+];
+
+const RANGE_FILTERS: Array<{ id: RangeFilter; label: string }> = [
+    { id: 'all', label: 'All time' },
+    { id: '24h', label: '24h' },
+    { id: '7d', label: '7d' },
+    { id: '30d', label: '30d' },
 ];
 
 // HR / recruiter audiences come to read the CV: the tailored landing pops the
@@ -757,8 +800,17 @@ const DTrails = () => {
     const [rankProjects, setRankProjects] = useState<RankInput[]>([]);
 
     const [storyFilter, setStoryFilter] = useState<StoryFilter>('all');
+    const [range, setRange] = useState<RangeFilter>('all');
     const [search, setSearch] = useState('');
     const [linkFilter, setLinkFilter] = useState<string | null>(null);
+    const [shownCount, setShownCount] = useState(50);
+    // Read state: skeletons while the first snapshots land, an error panel
+    // with Retry on denial — never zeros or "no visits yet" for a failed read.
+    const [denied, setDenied] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [retryKey, setRetryKey] = useState(0);
+    const openerRef = useRef<HTMLElement | null>(null);
+    const reduceMotion = useReducedMotion() === true;
     const [openStoryId, setOpenStoryId] = useState<string | null>(null);
     // A "someone opened your link" email parks the visit id before login. Read it
     // once at mount; the story opens as soon as the visits arrive.
@@ -771,10 +823,11 @@ const DTrails = () => {
 
     // "Reading now" is derived from LastSeenAt with Date.now(), but unchanged
     // polling snapshots emit nothing — so presence is recomputed on a small
-    // clock even when the data is identical.
-    const [, setNow] = useState(() => Date.now());
+    // clock even when the data is identical. The same tick anchors the Stories
+    // date presets (a state read keeps the range memos render-pure).
+    const [nowMs, setNowMs] = useState(() => Date.now());
     useEffect(() => {
-        const t = setInterval(() => setNow(Date.now()), 15_000);
+        const t = setInterval(() => setNowMs(Date.now()), 15_000);
         return () => clearInterval(t);
     }, []);
     const [updatedAt, setUpdatedAt] = useState(0);
@@ -782,6 +835,13 @@ const DTrails = () => {
     const [name, setName] = useState('');
     const [forField, setForField] = useState('');
     const [copied, setCopied] = useState<string | null>(null);
+    // Notification outbox status per link (actual stored status, never assumed).
+    const [outbox, setOutbox] = useState<{
+        pending: number;
+        recent: Array<{ linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }>;
+    }>({ pending: 0, recent: [] });
+    const [draining, setDraining] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
     const [editingLink, setEditingLink] = useState<LinkRow | null>(null);
@@ -807,6 +867,19 @@ const DTrails = () => {
         return () => observer.disconnect();
     }, []);
 
+    // Reset paging whenever the result set changes shape (wrappers, not an
+    // effect: setting state synchronously inside an effect cascades renders).
+    const pickStoryFilter = (f: StoryFilter) => { setStoryFilter(f); setShownCount(50); };
+    const pickRange = (r: RangeFilter) => { setRange(r); setShownCount(50); };
+    const typeSearch = (v: string) => { setSearch(v); setShownCount(50); };
+    const clearLinkFilter = () => { setLinkFilter(null); setShownCount(50); };
+    const seeLinkVisits = (code: string) => {
+        setLinkFilter(code);
+        setStoryFilter('all');
+        setShownCount(50);
+        switchView('stories');
+    };
+
     // ── data ─────────────────────────────────────────────────────────────
     useEffect(() => {
         // Every listener below reads /Analytics, which the rules open to the admin
@@ -816,6 +889,7 @@ const DTrails = () => {
         // the console while the page sat there looking merely empty.
         let told = false;
         const onDenied = () => {
+            setDenied(true);
             if (told) return;
             told = true;
             showAlert({ type: 'error', message: 'Could not load visits.' });
@@ -826,6 +900,7 @@ const DTrails = () => {
             snap => {
                 setSessions(snap.docs.map(d => ({ ...(d.data() as SessionDoc), Id: d.id })));
                 setUpdatedAt(Date.now());
+                setReady(true);
             },
             onDenied,
         );
@@ -890,10 +965,10 @@ const DTrails = () => {
                     downloadViews: Number(v.Download || 0) || 0,
                 };
             }));
-        });
+        }, onDenied);
 
         return () => { stories(); days(); totalsUnsub(); linksUnsub(); socialsUnsub(); sourcesUnsub(); projectsUnsub(); };
-    }, [showAlert]);
+    }, [showAlert, retryKey]);
 
     // Claim the parked id so a refresh does not reopen the same story forever.
     useEffect(() => {
@@ -911,34 +986,58 @@ const DTrails = () => {
     // ── derived ──────────────────────────────────────────────────────────
     const visibleStories = useMemo(() => {
         const needle = search.trim().toLowerCase();
+        const cutoff = range === 'all' ? 0 : nowMs - RANGE_MS[range];
         return sessions.filter(s => {
             if (s.Owner) return false;                       // the owner's own browser
+            if (cutoff && (s.StartedAt || 0) < cutoff) return false;
             // linkFilter holds the link Code (sessions store Code in Link.Id).
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
             if (storyFilter === 'live' && !isLive(s)) return false;
             if (storyFilter === 'links' && !s.Link?.Id) return false;
             if (storyFilter === 'direct' && s.Link?.Id) return false;
-            if (storyFilter === 'contacted' && !(s.Contact?.Opens || s.Contact?.Sent)) return false;
+            if (storyFilter === 'contacted' && !s.Contact?.Opens) return false;
+            if (storyFilter === 'converted' && !s.Contact?.Sent) return false;
             if (!needle) return true;
             return [
                 s.Geo?.Country, s.Geo?.Code, s.Device?.Browser, s.Device?.OS,
                 s.Link?.Name, s.Link?.For, s.Entry?.Ref,
             ].some(field => (field || '').toLowerCase().includes(needle));
         });
-    }, [sessions, search, storyFilter, linkFilter]);
+    }, [sessions, search, storyFilter, linkFilter, range, nowMs]);
+
+    // Distinct browsers inside the selected range, from loaded visits. Lifetime
+    // totals cannot answer "who came this week" (per-day rollups double-count
+    // repeat browsers), so this is computed, not read — and labelled as such.
+    const rangeBrowsers = useMemo(() => {
+        if (range === 'all') return null;
+        const cutoff = nowMs - RANGE_MS[range];
+        const seen = new Set<string>();
+        for (const s of sessions) {
+            if (s.Owner || (s.StartedAt || 0) < cutoff) continue;
+            if (s.Visitor) seen.add(s.Visitor);
+        }
+        return seen.size;
+    }, [sessions, range, nowMs]);
 
     const liveCount = useMemo(() => sessions.filter(s => !s.Owner && isLive(s)).length, [sessions]);
 
+    const pagedStories = useMemo(() => visibleStories.slice(0, shownCount), [visibleStories, shownCount]);
+
     const chartData = useMemo(() => {
         if (!dailySeries.length) return [] as ChartDataPoint[];
+        // The Stories date presets scope the chart too: string-compare on UTC
+        // day keys keeps one consistent window across every section.
+        const cutoffDay = range === 'all' ? '' : new Date(nowMs - RANGE_MS[range]).toISOString().slice(0, 10);
+        const series = cutoffDay ? dailySeries.filter(d => d.date >= cutoffDay) : dailySeries;
+        if (!series.length) return [] as ChartDataPoint[];
         let aggregated: ChartDataPoint[] = [];
 
         if (chartFilter === 'daily') {
             // Fill missing days with zero so gaps read as gaps, not as a
             // line that never dipped. Day keys are UTC; the chart is UTC days.
-            const byDate = new Map(dailySeries.map(s => [s.date, s]));
-            const start = dailySeries[0].date;
-            const end = dailySeries[dailySeries.length - 1].date;
+            const byDate = new Map(series.map(s => [s.date, s]));
+            const start = series[0].date;
+            const end = series[series.length - 1].date;
             const filled: typeof dailySeries = [];
             const cur = new Date(`${start}T00:00:00Z`);
             const stop = new Date(`${end}T00:00:00Z`);
@@ -962,58 +1061,78 @@ const DTrails = () => {
             });
         } else if (chartFilter === 'weekly') {
             const weeks: Record<string, { total: number; p: number; s: number }> = {};
-            dailySeries.forEach(s => {
+            series.forEach(s => {
                 // The date keys are UTC, so bucket by the UTC Monday - using local
                 // getDay() put anyone west of UTC in the wrong week.
-                const d = new Date(s.date);
+                const d = new Date(`${s.date}T00:00:00Z`);
+                if (isNaN(d.getTime())) return;
                 const day = d.getUTCDay();
                 const monday = new Date(d);
                 monday.setUTCDate(d.getUTCDate() - day + (day === 0 ? -6 : 1));
-                if (isNaN(monday.getTime())) return;
                 const key = monday.toISOString().split('T')[0];
                 if (!weeks[key]) weeks[key] = { total: 0, p: 0, s: 0 };
                 weeks[key].total += s.value;
                 weeks[key].p += s.projectViews;
                 weeks[key].s += s.socialClicks;
             });
-            aggregated = Object.entries(weeks).map(([date, vals]) => {
-                const d = new Date(date);
-                return {
-                    label: `${d.getDate()}/${d.getMonth() + 1}`,
-                    dateNum: d.getMonth() + 1,
-                    value: vals.total, projectViews: vals.p, socialClicks: vals.s,
-                    fullDate: date, type: 'weekly' as const,
-                };
-            }).sort((a, b) => a.fullDate.localeCompare(b.fullDate));
+            // Walk the Monday continuum in UTC so empty weeks plot as zero,
+            // exactly like the daily fill above.
+            const weekKeys = Object.keys(weeks).sort();
+            if (weekKeys.length) {
+                const cur = new Date(`${weekKeys[0]}T00:00:00Z`);
+                const stop = new Date(`${weekKeys[weekKeys.length - 1]}T00:00:00Z`);
+                let guard = 0;
+                while (cur <= stop && guard++ < 260) {
+                    const key = cur.toISOString().split('T')[0];
+                    const vals = weeks[key] || { total: 0, p: 0, s: 0 };
+                    aggregated.push({
+                        label: `${cur.getUTCDate()}/${cur.getUTCMonth() + 1}`,
+                        dateNum: cur.getUTCMonth() + 1,
+                        value: vals.total, projectViews: vals.p, socialClicks: vals.s,
+                        fullDate: key, type: 'weekly' as const,
+                    });
+                    cur.setUTCDate(cur.getUTCDate() + 7);
+                }
+            }
         } else {
             const months: Record<string, { total: number; p: number; s: number }> = {};
-            dailySeries.forEach(s => {
+            series.forEach(s => {
                 const key = s.date.slice(0, 7);
                 if (!months[key]) months[key] = { total: 0, p: 0, s: 0 };
                 months[key].total += s.value;
                 months[key].p += s.projectViews;
                 months[key].s += s.socialClicks;
             });
-            aggregated = Object.entries(months).map(([key, vals]) => {
-                const [year, month] = key.split('-');
-                const date = new Date(Number(year), Number(month) - 1, 1);
-                return {
-                    label: date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase(),
-                    dateNum: Number(year),
-                    value: vals.total, projectViews: vals.p, socialClicks: vals.s,
-                    fullDate: key, type: 'monthly' as const,
-                };
-            }).sort((a, b) => a.fullDate.localeCompare(b.fullDate));
+            // Walk the month continuum in UTC so empty months plot as zero.
+            const monthKeys = Object.keys(months).sort();
+            if (monthKeys.length) {
+                let [y, m] = monthKeys[0].split('-').map(Number);
+                const [ey, em] = monthKeys[monthKeys.length - 1].split('-').map(Number);
+                let guard = 0;
+                while ((y < ey || (y === ey && m <= em)) && guard++ < 120) {
+                    const key = `${y}-${String(m).padStart(2, '0')}`;
+                    const vals = months[key] || { total: 0, p: 0, s: 0 };
+                    aggregated.push({
+                        label: new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' }).toUpperCase(),
+                        dateNum: y,
+                        value: vals.total, projectViews: vals.p, socialClicks: vals.s,
+                        fullDate: key, type: 'monthly' as const,
+                    });
+                    m++;
+                    if (m > 12) { m = 1; y++; }
+                }
+            }
         }
 
         // Previous-period comparison on the SAME aggregation: a weekly total is
         // compared with that week's total a year earlier (not one daily value),
-        // and likewise for months. Daily keeps the same-date comparison.
-        const byDate = new Map(dailySeries.map(s => [s.date, s.value]));
+        // and likewise for months. Daily keeps the same-date comparison. The
+        // ghost line renders prevValue, labelled "same period last year".
+        const byDate = new Map(series.map(s => [s.date, s.value]));
         const weekTotals = new Map<string, number>();
         const monthTotals = new Map<string, number>();
         if (chartFilter !== 'daily') {
-            for (const s of dailySeries) {
+            for (const s of series) {
                 const d = new Date(`${s.date}T00:00:00Z`);
                 if (isNaN(d.getTime())) continue;
                 const day = d.getUTCDay();
@@ -1038,7 +1157,7 @@ const DTrails = () => {
             d.setUTCFullYear(d.getUTCFullYear() - 1);
             return { ...item, prevValue: byDate.get(d.toISOString().split('T')[0]) || 0 };
         });
-    }, [dailySeries, chartFilter, windowWidth]);
+    }, [dailySeries, chartFilter, windowWidth, range, nowMs]);
 
     // All link/visit writes go through transactional server operations
     // (app/api/data -> convex/trails.ts): the server allocates collision-safe
@@ -1048,8 +1167,48 @@ const DTrails = () => {
     // deployment predates trails.*) instead of a generic message.
     const failMsg = (e: unknown, fallback: string) =>
         e instanceof Error && e.message ? `${fallback} (${e.message})` : fallback;
+
+    const refreshOutbox = useCallback(async () => {
+        try {
+            const r = await fetch('/api/dashboard/trails-outbox', { cache: 'no-store' });
+            if (!r.ok) return;
+            const b = await r.json() as { pending?: number; recent?: { linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }[] };
+            setOutbox({ pending: Number(b.pending) || 0, recent: Array.isArray(b.recent) ? b.recent : [] });
+        } catch {
+            /* status display is best-effort; the toggle still works */
+        }
+    }, []);
+
+    // Load actual notification status when the Links view opens (from the view
+    // switch, not an effect: setting state synchronously in an effect body
+    // cascades renders).
+    const switchView = (v: TrailsView) => {
+        setView(v);
+        if (v === 'links') void refreshOutbox();
+    };
+
+    const drainOutbox = async () => {
+        if (draining) return;
+        setDraining(true);
+        try {
+            const r = await fetch('/api/dashboard/trails-outbox', { method: 'POST' });
+            const b = await r.json() as { ok?: boolean; sent?: number; failed?: number; reason?: string };
+            if (!r.ok || b.ok !== true) {
+                showAlert({ type: 'error', message: failMsg(new Error(b.reason || ''), 'Could not retry those emails.') });
+            } else if ((b.sent || 0) === 0 && (b.failed || 0) === 0) {
+                showAlert({ type: 'success', message: 'Nothing pending — every open was already emailed.' });
+            } else {
+                showAlert({ type: b.failed ? 'error' : 'success', message: `Emailed ${b.sent || 0}, failed ${b.failed || 0}. Failures stay queued for the next retry.` });
+            }
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not retry those emails.') });
+        } finally {
+            setDraining(false);
+            void refreshOutbox();
+        }
+    };
     const createLink = async () => {
-        if (!name.trim() || !forField.trim()) return;
+        if (!name.trim() || !forField.trim() || isLoading) return;
         setIsLoading(true);
 
         try {
@@ -1083,18 +1242,24 @@ const DTrails = () => {
     }, [showAlert]);
 
     const saveDraft = async () => {
-        if (!editingLink || !draft) return;
+        if (!editingLink || !draft || saving) return;
         if (!draft.Name.trim() || !draft.For.trim()) return;
         // Keep the editor and its input open on failure; close only on success.
-        const ok = await patchLink(editingLink.id, {
-            Name: draft.Name.trim(),
-            For: draft.For.trim(),
-            Notify: draft.Notify,
-            Tailor: { AutoCv: draft.AutoCv, Greeting: draft.Greeting.trim().slice(0, 160), Pinned: draft.Pinned },
-        }, 'Link updated.');
-        if (ok) {
-            setEditingLink(null);
-            setDraft(null);
+        // The saving flag stops double-clicks from queuing duplicate saves.
+        setSaving(true);
+        try {
+            const ok = await patchLink(editingLink.id, {
+                Name: draft.Name.trim(),
+                For: draft.For.trim(),
+                Notify: draft.Notify,
+                Tailor: { AutoCv: draft.AutoCv, Greeting: draft.Greeting.trim().slice(0, 160), Pinned: draft.Pinned },
+            }, 'Link updated.');
+            if (ok) {
+                setEditingLink(null);
+                setDraft(null);
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -1200,7 +1365,7 @@ const DTrails = () => {
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setView(item.id)}
+                                onClick={() => switchView(item.id)}
                                 className="relative flex items-center whitespace-nowrap cursor-pointer font-semibold transition-colors"
                                 style={{
                                     gap: isExtraSmall ? '6px' : '8px',
@@ -1230,11 +1395,14 @@ const DTrails = () => {
 
                 {liveCount > 0 && (
                     <button
-                        onClick={() => { setView('stories'); setStoryFilter('live'); }}
+                        onClick={() => { switchView('stories'); pickStoryFilter('live'); }}
+                        aria-live="polite"
+                        aria-atomic="true"
+                        aria-label={`${liveCount} visiting now. Show them.`}
                         className="inline-flex items-center gap-2 px-3 h-9 rounded-full text-xs font-bold cursor-pointer transition-colors"
                         style={{ background: 'rgba(34,197,94,0.14)', color: '#22c55e' }}
                     >
-                        <Radio size={13} className="animate-pulse" />
+                        <Radio size={13} className={reduceMotion ? undefined : 'animate-pulse'} />
                         {liveCount} reading now
                     </button>
                 )}
@@ -1253,10 +1421,10 @@ const DTrails = () => {
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                         key={view}
-                        initial={{ opacity: 0, y: 8 }}
+                        initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -6 }}
-                        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        exit={{ opacity: 0, y: reduceMotion ? 0 : -6 }}
+                        transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
                         className="h-full min-h-0 flex flex-col"
                     >
                         {view === 'stories' && (
@@ -1268,17 +1436,19 @@ const DTrails = () => {
                                         <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Stories</h1>
                                         <p className="text-muted text-sm">
                                             Latest 300 visits kept, newest first — links and direct arrivals
+                                            {` — showing ${pagedStories.length} of ${visibleStories.length}`}
                                             {updatedAt ? ` · updated ${new Date(updatedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : ''}
                                         </p>
                                     </div>
 
                                     {/* filters */}
                                     <div className="flex items-center gap-3 flex-wrap">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                        <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Visit filters">
                                             {STORY_FILTERS.map(f => (
                                                 <button
                                                     key={f.id}
-                                                    onClick={() => setStoryFilter(f.id)}
+                                                    onClick={() => pickStoryFilter(f.id)}
+                                                    aria-pressed={storyFilter === f.id}
                                                     className="px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors"
                                                     style={{
                                                         background: storyFilter === f.id
@@ -1292,12 +1462,31 @@ const DTrails = () => {
                                             ))}
                                         </div>
 
+                                        <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Date range">
+                                            {RANGE_FILTERS.map(f => (
+                                                <button
+                                                    key={f.id}
+                                                    onClick={() => pickRange(f.id)}
+                                                    aria-pressed={range === f.id}
+                                                    className="px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                                                    style={{
+                                                        background: range === f.id
+                                                            ? (isDark ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.1)')
+                                                            : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                                                        color: range === f.id ? '#3b82f6' : 'var(--text-muted)',
+                                                    }}
+                                                >
+                                                    {f.label}
+                                                </button>
+                                            ))}
+                                        </div>
+
                                         <div className="relative flex-1 min-w-[180px]">
                                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
                                             <input
                                                 type="text"
                                                 value={search}
-                                                onChange={e => setSearch(e.target.value)}
+                                                onChange={e => typeSearch(e.target.value)}
                                                 placeholder="Country, browser, link…"
                                                 aria-label="Search visits"
                                                 className="w-full h-9 rounded-xl border pl-9 pr-3 text-xs outline-none transition-colors focus:border-red-500"
@@ -1311,7 +1500,7 @@ const DTrails = () => {
 
                                         {linkFilter && (
                                             <button
-                                                onClick={() => setLinkFilter(null)}
+                                                onClick={() => clearLinkFilter()}
                                                 className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold cursor-pointer"
                                                 style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
                                             >
@@ -1325,7 +1514,32 @@ const DTrails = () => {
 
                                 {/* the list - the only part that scrolls */}
                                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-12">
-                                    {visibleStories.length === 0 ? (
+                                    {denied ? (
+                                        <div className="glass-surface rounded-3xl p-12 text-center flex flex-col items-center gap-4">
+                                            <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Could not load visits.</p>
+                                            <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>The dashboard refused the read — nothing below is a real zero.</p>
+                                            <button
+                                                onClick={() => { setDenied(false); setReady(false); setRetryKey(k => k + 1); }}
+                                                className="btn btn-secondary !px-6 !py-2.5"
+                                            >
+                                                Retry
+                                            </button>
+                                        </div>
+                                    ) : !ready ? (
+                                        <div className="flex flex-col gap-2" aria-label="Loading visits">
+                                            {[0, 1, 2, 3, 4].map(i => (
+                                                <div
+                                                    key={i}
+                                                    className="rounded-2xl border px-4 py-3.5 animate-pulse"
+                                                    style={{
+                                                        height: 68,
+                                                        background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                                                        borderColor: 'var(--card-border)',
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : visibleStories.length === 0 ? (
                                         <div className="glass-surface rounded-3xl border-dashed p-12 text-center text-sec">
                                             {sessions.length === 0
                                                 ? 'No visits recorded yet. The first one shows up here the moment it happens.'
@@ -1333,7 +1547,7 @@ const DTrails = () => {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-2">
-                                            {visibleStories.map(story => {
+                                            {pagedStories.map(story => {
                                                 const live = isLive(story);
                                                 const flag = flagOf(story.Geo?.Code);
                                                 const when = story.StartedAt
@@ -1360,7 +1574,7 @@ const DTrails = () => {
                                                 return (
                                                     <button
                                                         key={story.Id}
-                                                        onClick={() => setOpenStoryId(story.Id)}
+                                                        onClick={e => { openerRef.current = e.currentTarget; setOpenStoryId(story.Id); }}
                                                         className="w-full text-left flex items-center gap-3 sm:gap-4 px-4 py-3.5 rounded-2xl border cursor-pointer transition-colors"
                                                         style={{
                                                             background: isDark ? 'rgba(255,255,255,0.02)' : '#fff',
@@ -1386,7 +1600,7 @@ const DTrails = () => {
                                                                     </span>
                                                                 ) : null}
                                                                 {live && (
-                                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{ background: '#22c55e' }} />
+                                                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${reduceMotion ? '' : 'animate-pulse'}`} style={{ background: '#22c55e' }} />
                                                                 )}
                                                             </span>
                                                             <span className="text-[11px] truncate" style={{ color: 'var(--text-muted)' }}>
@@ -1437,6 +1651,18 @@ const DTrails = () => {
                                                     </button>
                                                 );
                                             })}
+                                            {pagedStories.length < visibleStories.length && (
+                                                <button
+                                                    onClick={() => setShownCount(c => c + 50)}
+                                                    className="mt-2 mx-auto px-6 h-10 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                                                    style={{
+                                                        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+                                                        color: 'var(--text-muted)',
+                                                    }}
+                                                >
+                                                    Show more ({visibleStories.length - pagedStories.length} older)
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -1448,10 +1674,67 @@ const DTrails = () => {
                                 <div className="shrink-0 flex flex-col gap-1 pb-8">
                                     <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Overview</h1>
                                     <p className="text-muted text-sm">
-                                        {dailySeries.length ? `Since ${dailySeries[0].date} · UTC days · lifetime totals` : 'Nothing recorded yet'}
+                                        {denied
+                                            ? 'Reads are failing — nothing below is a real zero.'
+                                            : dailySeries.length
+                                                ? `Since ${dailySeries[0].date} · UTC days · all counts lifetime unless noted`
+                                                : 'Nothing recorded yet'}
+                                        {range !== 'all' && rangeBrowsers !== null && !denied && (
+                                            <> · {rangeBrowsers.toLocaleString()} browser{rangeBrowsers === 1 ? '' : 's'} in the last {range} (from loaded visits)</>
+                                        )}
                                     </p>
+                                    {linkFilter && (() => {
+                                        const l = links.find(x => x.Code === linkFilter || x.id === linkFilter);
+                                        if (!l) return null;
+                                        return (
+                                            <button
+                                                onClick={() => switchView('stories')}
+                                                className="mt-3 inline-flex items-center gap-2 self-start px-3 h-9 rounded-xl text-xs font-bold cursor-pointer"
+                                                style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
+                                            >
+                                                <Filter size={13} />
+                                                Scoped to “{l.Name}” — {(l.Sessions || 0).toLocaleString()} lifetime visits · see its stories
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
 
+                                {denied ? (
+                                    <div className="glass-surface rounded-3xl p-12 text-center flex flex-col items-center gap-4">
+                                        <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Could not load overview.</p>
+                                        <p className="text-xs m-0" style={{ color: 'var(--text-muted)' }}>The dashboard refused the read — charts and cards are hidden, not zeroed.</p>
+                                        <button
+                                            onClick={() => { setDenied(false); setReady(false); setRetryKey(k => k + 1); }}
+                                            className="btn btn-secondary !px-6 !py-2.5"
+                                        >
+                                            Retry
+                                        </button>
+                                    </div>
+                                ) : !ready ? (
+                                    <div className="flex flex-col gap-8 w-full" aria-label="Loading overview">
+                                        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${windowWidth < 520 ? 140 : 180}px, 1fr))` }}>
+                                            {[0, 1, 2, 3].map(i => (
+                                                <div
+                                                    key={i}
+                                                    className="rounded-[24px] border animate-pulse"
+                                                    style={{
+                                                        height: 132,
+                                                        background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                                                        borderColor: 'var(--card-border)',
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                        <div
+                                            className="rounded-[28px] border animate-pulse"
+                                            style={{
+                                                height: 320,
+                                                background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                                                borderColor: 'var(--card-border)',
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
                                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-12">
                                     <div className="flex flex-col gap-8 w-full">
                                         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${windowWidth < 520 ? 140 : 180}px, 1fr))` }}>
@@ -1485,6 +1768,7 @@ const DTrails = () => {
                                             setFilter={setChartFilter}
                                             isDark={isDark}
                                             windowWidth={windowWidth}
+                                            reduceMotion={reduceMotion}
                                         />
 
                                         <ProjectRankings projects={rankProjects} isDark={isDark} />
@@ -1562,6 +1846,7 @@ const DTrails = () => {
                                         )}
                                     </div>
                                 </div>
+                                )}
                             </div>
                         )}
 
@@ -1570,6 +1855,17 @@ const DTrails = () => {
                                 <div className="shrink-0 flex flex-col gap-1 pb-8">
                                     <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Links</h1>
                                     <p className="text-muted text-sm">Private doors into the portfolio, one per person</p>
+                                    <div className="mt-2 flex items-center gap-3 flex-wrap">
+                                        <button
+                                            onClick={drainOutbox}
+                                            disabled={draining || outbox.pending === 0}
+                                            className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default"
+                                            style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', color: 'var(--text-muted)' }}
+                                        >
+                                            <BellRing size={13} />
+                                            {draining ? 'Retrying…' : outbox.pending > 0 ? `Retry ${outbox.pending} pending email${outbox.pending === 1 ? '' : 's'}` : 'Emails up to date'}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-12">
@@ -1592,9 +1888,9 @@ const DTrails = () => {
                                                     <input id="trails-link-for" type="text" className="input-field" value={forField}
                                                         onChange={e => setForField(e.target.value)} placeholder="e.g. Frontend role" />
                                                 </div>
-                                                <button onClick={createLink} disabled={!name.trim() || !forField.trim()}
+                                                <button onClick={createLink} disabled={!name.trim() || !forField.trim() || isLoading}
                                                     className="btn btn-primary w-full py-3.5 mt-1">
-                                                    Create link
+                                                    {isLoading ? 'Creating…' : 'Create link'}
                                                 </button>
                                                 <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                                     New links email you the moment they are opened, with a button
@@ -1606,7 +1902,30 @@ const DTrails = () => {
                                         <div className="grid gap-4" style={{
                                             gridTemplateColumns: windowWidth >= 720 ? 'repeat(auto-fit, minmax(320px, 1fr))' : 'minmax(0, 1fr)',
                                         }}>
-                                            {links.length === 0 ? (
+                                            {denied ? (
+                                                <div className="glass-surface rounded-3xl p-12 text-center flex flex-col items-center gap-4">
+                                                    <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>Could not load links.</p>
+                                                    <button
+                                                        onClick={() => { setDenied(false); setReady(false); setRetryKey(k => k + 1); }}
+                                                        className="btn btn-secondary !px-6 !py-2.5"
+                                                    >
+                                                        Retry
+                                                    </button>
+                                                </div>
+                                            ) : !ready ? (
+                                                <div className="grid gap-4" style={{
+                                                    gridTemplateColumns: windowWidth >= 720 ? 'repeat(auto-fit, minmax(320px, 1fr))' : 'minmax(0, 1fr)',
+                                                }}>
+                                                    {[0, 1, 2].map(i => (
+                                                        <div
+                                                            key={i}
+                                                            className="glass-panel p-5 sm:p-6 animate-pulse"
+                                                            style={{ height: 190 }}
+                                                            aria-label="Loading links"
+                                                        />
+                                                    ))}
+                                                </div>
+                                            ) : links.length === 0 ? (
                                                 <div className="glass-surface rounded-3xl border-dashed p-12 text-center text-sec">
                                                     No links yet.
                                                 </div>
@@ -1641,6 +1960,28 @@ const DTrails = () => {
                                                         ) : null}
                                                     </div>
 
+                                                    {(() => {
+                                                        // Actual stored notification status for this link's latest
+                                                        // open — sent, still queued, or failed with attempts left.
+                                                        const row = outbox.recent.find(r => r.linkCode === link.Code);
+                                                        if (!row || row.status === 'skipped') return null;
+                                                        const when = row.createdAt ? new Date(row.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+                                                        const text =
+                                                            row.status === 'sent' ? `Last email sent${when ? ` · ${when}` : ''}`
+                                                                : row.status === 'pending' ? 'Email pending — retries automatically'
+                                                                    : row.attempts < 3 ? `Email failed ×${row.attempts} — will retry`
+                                                                        : `Email failed ×${row.attempts} — out of retries`;
+                                                        const tint =
+                                                            row.status === 'sent' ? '#22c55e'
+                                                                : row.status === 'pending' ? '#f59e0b' : '#ef4444';
+                                                        return (
+                                                            <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: tint }}>
+                                                                {row.status === 'sent' ? <Check size={13} /> : row.status === 'pending' ? <BellRing size={13} /> : <BellOff size={13} />}
+                                                                <span className="truncate">{text}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
+
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <button
                                                             onClick={() => patchLink(link.id, { Notify: link.Notify === false }, link.Notify === false ? 'You will be emailed on every open.' : 'Notifications off for this link.')}
@@ -1666,7 +2007,7 @@ const DTrails = () => {
                                                             </span>
                                                         )}
                                                         <button
-                                                            onClick={() => { setLinkFilter(link.Code); setStoryFilter('all'); setView('stories'); }}
+                                                            onClick={() => seeLinkVisits(link.Code)}
                                                             disabled={!link.Opens && !link.Sessions}
                                                             className="ml-auto inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default"
                                                             style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
@@ -1736,6 +2077,9 @@ const DTrails = () => {
             {/* link editor */}
             {editingLink && draft && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/45 backdrop-blur-md animate-fade-in"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={`Edit link for ${editingLink.Name}`}
                     onClick={() => { setEditingLink(null); setDraft(null); }}>
                     <motion.div
                         initial={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -1834,8 +2178,8 @@ const DTrails = () => {
 
                         <div className="px-7 py-4 border-t flex items-center justify-end gap-3" style={{ borderColor: 'var(--card-border)' }}>
                             <button onClick={() => { setEditingLink(null); setDraft(null); }} className="btn btn-secondary !px-6 !py-2.5">Cancel</button>
-                            <button onClick={saveDraft} disabled={!draft.Name.trim() || !draft.For.trim()} className="btn btn-primary !px-7 !py-2.5">
-                                Save
+                            <button onClick={saveDraft} disabled={!draft.Name.trim() || !draft.For.trim() || saving} className="btn btn-primary !px-7 !py-2.5">
+                                {saving ? 'Saving…' : 'Save'}
                             </button>
                         </div>
                     </motion.div>
@@ -1847,7 +2191,14 @@ const DTrails = () => {
                 story={openStory}
                 isDark={isDark}
                 windowWidth={windowWidth}
-                onClose={() => { setOpenStoryId(null); setPendingStory(''); }}
+                reduceMotion={reduceMotion}
+                onClose={() => {
+                    setOpenStoryId(null);
+                    setPendingStory('');
+                    // Focus returns to the card that opened the story.
+                    openerRef.current?.focus();
+                    openerRef.current = null;
+                }}
                 onDelete={id => setConfirmConfig({
                     isOpen: true,
                     title: 'Delete this visit',
@@ -1858,7 +2209,9 @@ const DTrails = () => {
             />
 
             {alert?.show && (
-                <Alert type={alert.type} message={alert.message} onClose={() => hideAlert()} duration={alert.duration ?? 4000} />
+                <div aria-live="polite" aria-atomic="true">
+                    <Alert type={alert.type} message={alert.message} onClose={() => hideAlert()} duration={alert.duration ?? 4000} />
+                </div>
             )}
 
             <MConfirmModal

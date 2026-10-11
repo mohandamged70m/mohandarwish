@@ -14,10 +14,15 @@ export function isResendTestModeError(err: unknown): boolean {
 
 export async function sendSafe(
   resend: Resend,
-  params: { from: string; to: string; subject: string; html: string; replyTo?: string }
+  params: { from: string; to: string; subject: string; html: string; replyTo?: string },
+  opts?: { idempotencyKey?: string },
 ): Promise<{ id?: string; skipped?: boolean; error?: string }> {
   try {
-    const result = await resend.emails.send(params as never);
+    // A stable key per logical email (visit or outbox row) makes retried
+    // drains a provider-side no-op instead of a second email.
+    const result = await resend.emails.send(params as never, {
+      ...(opts?.idempotencyKey ? { idempotencyKey: opts.idempotencyKey } : {}),
+    } as never);
     // SDK returns { data, error } in some versions; handle both
     const r = result as unknown as { error?: unknown; data?: { id?: string }; id?: string };
     if (r?.error) {

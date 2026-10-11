@@ -48,3 +48,6 @@ __pycache__/
 /test-results/
 /playwright-report/
 !.env.example
+
+# local reference extraction (input only, never committed)
+/D-trails/

@@ -9,6 +9,7 @@ import { emailTemplate, escHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
 import { toMessage } from "@/lib/convex-map";
+import { confirmTrailsConversion } from "@/lib/trails-convert";
 
 export async function POST(req: Request) {
   let body: {
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
     number?: string;
     hasWhatsapp?: boolean;
     files?: { name: string; url: string }[];
+    trails?: { sid?: string; sub?: string };
   } | null = null;
   try {
     const json = await req.json();
@@ -28,6 +30,7 @@ export async function POST(req: Request) {
       number?: string;
       hasWhatsapp?: boolean;
       files?: { name: string; url: string }[];
+      trails?: { sid?: string; sub?: string };
     };
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
@@ -87,6 +90,8 @@ export async function POST(req: Request) {
       { status: 503 },
     );
   }
+  // Server-confirmed conversion: the message is persisted above. Best-effort.
+  await confirmTrailsConversion(body?.trails?.sid, body?.trails?.sub, "message");
 
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {

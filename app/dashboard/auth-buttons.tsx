@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 // Google sign-in/out buttons for the owner dashboard gate. Pending states keep
 // the redirect (Google, then back to /dashboard) from looking stuck.
 
-export function SignInButton({ label = "Sign in with Google" }: { label?: string }) {
+export function SignInButton({ label = "Sign in with Google", callbackUrl = "/dashboard" }: { label?: string; callbackUrl?: string }) {
   const [pending, setPending] = useState(false);
   return (
     <Button
@@ -15,7 +15,7 @@ export function SignInButton({ label = "Sign in with Google" }: { label?: string
       disabled={pending}
       onClick={() => {
         setPending(true);
-        void signIn("google", { callbackUrl: "/dashboard" }).catch(() =>
+        void signIn("google", { callbackUrl }).catch(() =>
           setPending(false),
         );
       }}

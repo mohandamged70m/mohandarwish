@@ -795,6 +795,54 @@ export const outboxPending = query({
   },
 });
 
+/**
+ * Due notifications: pending rows plus failed rows with attempts left
+ * (bounded retries). The owner drain sends these oldest-first; rows that
+ * exhaust their attempts stay failed and visible via outboxRecent.
+ */
+export const outboxDue = query({
+  args: { serverKey: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, { serverKey, limit }) => {
+    requireServer(serverKey);
+    const cap = Math.min(Math.max(limit ?? 10, 1), 50);
+    const pending = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_status", (q: any) => q.eq("status", "pending"))
+      .take(cap);
+    if (pending.length >= cap) return pending;
+    const failed = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_status", (q: any) => q.eq("status", "failed"))
+      .take(cap);
+    const retryable = failed.filter((r: any) => r.attempts < 3);
+    return [...pending, ...retryable]
+      .sort((a: any, b: any) => a.createdAt - b.createdAt)
+      .slice(0, cap);
+  },
+});
+
+/** Recent notification rows, optionally for one share code (status display). */
+export const outboxRecent = query({
+  args: {
+    serverKey: v.string(),
+    linkCode: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { serverKey, linkCode, limit }) => {
+    requireServer(serverKey);
+    const cap = Math.min(Math.max(limit ?? 50, 1), 100);
+    const code = str(linkCode ?? "", 40);
+    const rows = await ctx.db.query("trailOutbox").order("desc").take(cap * 2);
+    const out = [];
+    for (const r of rows) {
+      if (code && (r as any).linkCode !== code) continue;
+      out.push(r);
+      if (out.length >= cap) break;
+    }
+    return out;
+  },
+});
+
 export const outboxMark = mutation({
   args: {
     serverKey: v.string(),
@@ -1195,6 +1243,62 @@ export const outboxMarkBySession = mutation({  args: {
       error: error?.slice(0, 300),
     });
     return { marked: true };
+  },
+});
+
+/**
+ * Server-confirmed conversion. Booking/message routes call this AFTER their
+ * own persistence succeeds, attaching the visit id + a stable submission id
+ * the client generated for that submit click. Retried deliveries of the same
+ * submission confirm once; the client never writes contact_sent itself, so an
+ * arbitrary browser claim cannot fabricate a conversion. No aggregates move
+ * (Contacts counts opens; Sent is state), so nothing needs reconciling.
+ */
+export const confirmConversion = mutation({
+  args: {
+    serverKey: v.string(),
+    sessionId: v.string(),
+    sub: v.string(),
+    kind: v.union(v.literal("message"), v.literal("meeting"), v.literal("book")),
+  },
+  handler: async (ctx, { serverKey, sessionId, sub, kind }) => {
+    requireServer(serverKey);
+    const id = str(sessionId, 40);
+    const s = str(sub, 64);
+    if (!ID_RE.test(id) || !/^[A-Za-z0-9-]{8,64}$/.test(s))
+      return { confirmed: false as const, reason: "bad-identity" };
+    const path = `${SESSIONS}/${id}`;
+    const existing = await getData(ctx, path);
+    if (!Object.keys(existing).length)
+      return { confirmed: false as const, reason: "unknown-visit" };
+    const tomb = await getData(ctx, `${TOMBS}/${id}`);
+    if (Object.keys(tomb).length)
+      return { confirmed: false as const, reason: "deleted" };
+    const confirmed = isObj(existing.Confirmed)
+      ? { ...((existing.Confirmed as Dict) as Record<string, number>) }
+      : {};
+    if (typeof confirmed[s] === "number")
+      return { confirmed: true as const, duplicate: true as const };
+    const now = Date.now();
+    const keys = Object.keys(confirmed);
+    if (keys.length >= 20) delete confirmed[keys[0]];
+    confirmed[s] = now;
+    const next: Dict = { ...(existing as Dict), Confirmed: confirmed };
+    const c = isObj(next.Contact) ? { ...(next.Contact as Dict) } : {};
+    c.Sent = kind;
+    next.Contact = c;
+    const prevEvents = Array.isArray(next.Events) ? (next.Events as unknown[]) : [];
+    if (prevEvents.length < MAX_EVENTS_TOTAL) {
+      const started = num(next.StartedAt, Number.MAX_SAFE_INTEGER) || now;
+      next.Events = [
+        ...prevEvents,
+        { t: Math.max(0, Math.min(now - started, 24 * HOUR_MS)), k: "contact_sent", v: kind },
+      ];
+    } else {
+      next.EventsCut = true;
+    }
+    await upsertData(ctx, path, next);
+    return { confirmed: true as const };
   },
 });
 

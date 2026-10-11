@@ -15,6 +15,7 @@ import { bookingGuestHtml, bookingOwnerHtml } from "@/lib/email";
 import { Resend } from "resend";
 import { getResendFrom, sendSafe } from "@/lib/resend";
 import { toBooking } from "@/lib/convex-map";
+import { confirmTrailsConversion } from "@/lib/trails-convert";
 
 type Body = {
   name?: string;
@@ -24,6 +25,7 @@ type Body = {
   endTime?: string;
   userTimezone?: number;
   selectedTime?: string;
+  trails?: { sid?: string; sub?: string };
 };
 
 export async function POST(req: Request) {
@@ -193,6 +195,9 @@ export async function POST(req: Request) {
     );
   }
   const inserted = { id: insertedId };
+  // Server-confirmed conversion: the booking is persisted above, so the visit
+  // story may record it. Best-effort — a failure here never undoes the booking.
+  await confirmTrailsConversion(body.trails?.sid, body.trails?.sub, "meeting");
   // Await notification attempts; a delivery failure does not undo a saved booking.
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {

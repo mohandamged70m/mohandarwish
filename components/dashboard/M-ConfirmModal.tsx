@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AlertTriangle, X, Info, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -72,6 +72,18 @@ const MConfirmModal = ({
     };
 
     const styles = getTypeStyles();
+    const confirmRef = useRef<HTMLButtonElement>(null);
+
+    // Escape closes; focus lands on Confirm when the dialog opens.
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', onKey);
+        confirmRef.current?.focus();
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
 
     return createPortal(
         <AnimatePresence>
@@ -84,6 +96,9 @@ const MConfirmModal = ({
                     className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
                 >
                     <motion.div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="trails-confirm-title"
                         initial={{ scale: 0.95, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -93,7 +108,7 @@ const MConfirmModal = ({
                     >
                         {/* Header/Banner Area */}
                         <div
-                            className="p-6 flex flex-col items-center text-center gap-4"
+                            className={`p-6 flex flex-col items-center text-center gap-4`}
                             style={{ background: `linear-gradient(to bottom, ${styles.bg}, transparent)` }}
                         >
                             <div
@@ -103,7 +118,7 @@ const MConfirmModal = ({
                                 {styles.icon}
                             </div>
                             <div>
-                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
+                                <h3 id="trails-confirm-title" className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
                                 <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                                     {message}
                                 </p>
@@ -119,6 +134,7 @@ const MConfirmModal = ({
                                 {cancelText}
                             </button>
                             <button
+                                ref={confirmRef}
                                 onClick={() => {
                                     onConfirm();
                                     onClose();
