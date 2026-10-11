@@ -130,9 +130,11 @@ export async function POST(req: Request) {
       tracked: (result as Dict).tracked === true,
       hello: (result as Dict).hello === true,
       status,
-      ...((result as Dict).linkDropped === true ? { linkDropped: true } : {}),
       ...((result as Dict).tailor ? { tailor: (result as Dict).tailor } : {}),
       ...((result as Dict).link ? { link: (result as Dict).link } : {}),
+      // The collector clears stale link attribution on this flag; dropping it
+      // here left revoked-code tabs holding a dead link's greeting.
+      ...((result as Dict).linkDropped === true ? { linkDropped: true } : {}),
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "";
