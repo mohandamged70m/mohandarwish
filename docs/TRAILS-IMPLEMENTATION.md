@@ -256,3 +256,64 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
     enforcement + idempotent repeat, bounded resume); full suite 63/63 PASS;
     `typecheck` PASS; scoped `eslint` clean.
   Status: PASS.
+- **Phase 7 (2026-10-11):** verify and deliver (continued below).
+  - 1. Phase checklist: P1 map ✓ (`97c8f54`, `5d4514d`), P2 typed backend ✓
+    (`0bd7a60`), P3 tracking+conversions ✓ (`5e4100b`), P4 stories/overview ✓
+    (`de33878`), P5 links/notify ✓ (`122384d`), P6 migration ✓ (`7a1caee`),
+    P7 this commit. All on branch `feat/d-trails-editing`.
+  - 2. Feature summary: Stories (paginated cards, search, date/link/
+    activity/contact/conversion filters, chronological modal, deep links that
+    survive login, clock-expired presence), Overview (lifetime cards with
+    honest labels, UTC zero-filled daily/weekly/monthly charts with a rendered
+    same-period-last-year ghost, project rankings, source/social breakdowns,
+    in-range browser counts, failed-read error panels + skeletons), Links
+    (server-allocated codes, `/mohanddarwish/[code]`, greeting/Auto-CV
+    (explicit false wins)/pinned, edit/revoke/forget, per-card stored email
+    status + retry). Tracking: immutable batches, transactional ingest,
+    server-confirmed conversions; notifications: transactional outbox, inline
+    send + owner drain with bounded retries and provider idempotency.
+  - 3. Convex: tables `trailLinks` (by_code, by_created), `trailVisitors`
+    (by_visitor), `trailSessions` (by_sid, by_started, by_visitor_started,
+    by_link_started), `trailEvents` (by_session_t), `trailBatches` (by_batch,
+    by_session), `trailDays` (by_day), `trailTotals` (by_key), `trailSources`/
+    `trailSocials`/`trailProjects` (by_name/by_project), `trailTombs`
+    (by_sid), shared `trailOutbox` (by_status, by_session). Functions:
+    live `trails.*` (applyFlush, confirmConversion, link/session/outbox ops);
+    typed `trailStore.*` (applyBatch, markConversion, resolveLink/listLinks,
+    listSessions/getStory/overview/distinctVisitors, delete/forget/prune,
+    outboxList/outboxSet/outboxDue/outboxRecent, diagnostics);
+    `trailMigration.*` (status, migrate dry-run/bounded). Auth: every private
+    op verifies server-side (`CONVEX_SERVER_KEY` via Next.js gateway or
+    Auth.js owner session); the key never reaches the browser; no browser
+    `ConvexProvider` (gateway polling retained deliberately — subscription
+    identity bridge deferred, documented in P2).
+  - 4. Test results: `typecheck` PASS; vitest 63/63 PASS across 11 files
+    (ingest semantics, dedupe/replay, owner reversal, link uniqueness,
+    conversions once-per-submission, conversion routes, bounded notification
+    retries + idempotency, drain routes, migration idempotency/resume,
+    security gateway); scoped `eslint` clean on all touched files (full
+    repo-wide `eslint` exceeds local time budget — noted); `next build` PASS
+    (29 routes). Playwright `tests/browser/trails.spec.ts` NOT run: it boots
+    `npm start` against the configured Convex deployment and writes a real
+    session, which would modify production data — blocked by the no-prod-data
+    rule. Unblock: point env at a dev deployment, `npx convex deploy`, run
+    `npx playwright test`, then delete the `pwtest01-*` session.
+  - 5. Environment variable names (no values): `NEXT_PUBLIC_CONVEX_URL`,
+    `CONVEX_SERVER_KEY`, `DASHBOARD_OWNER_EMAIL`, `AUTH_SECRET`,
+    `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, `OWNER_EMAIL`, `RESEND_API_KEY`,
+    `RESEND_FROM`. No new variables introduced.
+  - 6. Migration/cutover: see Phase 6 runbook above (status → dry-run →
+    batched `migrate({write:true})` → diagnostics compare → atomic gateway
+    switch → rollback by flipping back). Not executed; no prod data touched.
+  - 7. Remaining limitations: live traffic still runs on the `dashboardDocs`
+    backend (typed store + migration landed additive, awaiting the manual
+    cutover + `npx convex deploy`); browser reads poll via gateway (no live
+    Convex subscriptions); in-range browser counts derive from loaded visits
+    (labelled); legacy pre-confirmation `contact_sent` rows stay claimed;
+    failed outbox rows exhaust after 3 attempts and stay visible; two-browser
+    owner/visitor e2e still needs a dev deployment + owner login.
+  - 8. Branch and commits: `feat/d-trails-editing` — `97c8f54`, `5d4514d`,
+    `0bd7a60`, `5e4100b`, `de33878`, `122384d`, `7a1caee`, plus this commit.
+  Status: PASS with the Playwright/cutover blockers documented above — not
+  claimed on build alone (63 integration tests + typecheck + production build
+  all green).
