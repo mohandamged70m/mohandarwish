@@ -105,10 +105,10 @@ function sectionName(id?: string): string {
     }
 }
 
-const Fact = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
+const Fact = ({ label, value, isDark, title }: { label: string; value: string; isDark: boolean; title?: string }) => (
     <div className="flex items-baseline justify-between gap-3 py-2" style={{ borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}` }}>
         <span className="text-[10px] font-bold uppercase tracking-[0.12em] shrink-0" style={{ color: 'var(--text-muted)' }}>{label}</span>
-        <span className="text-xs font-semibold text-right break-words" style={{ color: isDark ? '#fff' : '#000' }}>{value || '-'}</span>
+        <span className="text-xs font-semibold text-right break-words" style={{ color: isDark ? '#fff' : '#000' }} title={title}>{value || '-'}</span>
     </div>
 );
 
@@ -130,18 +130,42 @@ interface MStoryProps {
     story: SessionDoc | null;
     isDark: boolean;
     windowWidth: number;
+    reduceMotion: boolean;
     onClose: () => void;
     onDelete: (id: string) => void;
 }
 
-const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) => {
+const MStory = ({ story, isDark, windowWidth, reduceMotion, onClose, onDelete }: MStoryProps) => {
     const wide = windowWidth >= 900;
     const closeRef = useRef<HTMLButtonElement>(null);
+    const dialogRef = useRef<HTMLDivElement>(null);
 
-    // Dialog semantics: Escape closes, focus lands on Close on open.
+    // Dialog semantics: Escape closes, focus lands on Close on open, and Tab
+    // cycles inside the dialog (focus returns to the opening card via onClose).
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key === 'Escape') {
+                onClose();
+                return;
+            }
+            if (e.key !== 'Tab') return;
+            const root = dialogRef.current;
+            if (!root) return;
+            const focusable = Array.from(
+                root.querySelectorAll<HTMLElement>(
+                    'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                ),
+            ).filter(el => el.offsetParent !== null);
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
         };
         document.addEventListener('keydown', onKey);
         closeRef.current?.focus();
@@ -178,6 +202,13 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
         return Object.values(story.Scroll || {}).reduce((top, pct) => Math.max(top, pct), 0);
     }, [story]);
 
+    // Render in chronological order, not stored order: out-of-order replays can
+    // land in any sequence, but the timeline must still read oldest-first.
+    const sortedEvents = useMemo(() => {
+        if (!story) return [];
+        return [...(story.Events || [])].sort((a, b) => a.t - b.t);
+    }, [story]);
+
     if (!story) return null;
 
     const live = isLive(story);
@@ -185,7 +216,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
     const entry = story.Entry || ({} as SessionDoc['Entry']);
     const started = story.StartedAt ? new Date(story.StartedAt) : null;
     const utm = Object.entries(entry.Utm || {});
-    const events = story.Events || [];
+    const events = sortedEvents;
     const sectionMax = sections[0]?.[1] || 1;
 
     const summary = [
@@ -203,12 +234,13 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
             onClick={onClose}
         >
             <motion.div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-label={`Visit from ${story.Geo?.Country || 'unknown origin'}${story.Link?.Name ? ` via ${story.Link.Name}` : ''}`}
-                initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 8 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.16, 1, 0.3, 1] }}
                 className="glass-panel w-full max-w-4xl flex flex-col overflow-hidden shadow-2xl"
                 style={{ maxHeight: '90vh' }}
                 onClick={e => e.stopPropagation()}
@@ -227,7 +259,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             {live && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
                                     style={{ background: 'rgba(34,197,94,0.14)', color: '#22c55e' }}>
-                                    <Radio size={10} className="animate-pulse" /> READING NOW
+                                    <Radio size={10} className={reduceMotion ? undefined : 'animate-pulse'} /> READING NOW
                                 </span>
                             )}
                             {story.Link?.Id ? (
@@ -357,7 +389,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                     <span className="text-[10px] font-black uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>Left for</span>
                                     {socials.map(([name, s]) => (
                                         <Bar key={name} label={name} value={s.AwayMs || 0} max={socials[0][1].AwayMs || 1} color="#8b5cf6"
-                                            suffix={`${s.Clicks}x · away ${formatMs(s.AwayMs || 0)}`} isDark={isDark} />
+                                            suffix={`${s.Clicks}x · away ~${formatMs(s.AwayMs || 0)} (estimated)`} isDark={isDark} />
                                     ))}
                                 </div>
                             )}
@@ -374,7 +406,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             <Fact label="Their clock" value={device.LocalTime ? `${device.LocalTime} local` : ''} isDark={isDark} />
                             <Fact label="Timezone" value={device.Timezone} isDark={isDark} />
                             <Fact label="Device" value={[device.Type, device.OS].filter(Boolean).join(' · ')} isDark={isDark} />
-                            <Fact label="Browser" value={device.Browser} isDark={isDark} />
+                            <Fact label="Browser (reported)" value={device.Browser} title="As reported by the visitor's browser" isDark={isDark} />
                             <Fact label="Screen" value={device.Screen} isDark={isDark} />
                             <Fact label="Window" value={device.Viewport} isDark={isDark} />
                             <Fact label="Language" value={device.Language} isDark={isDark} />
@@ -383,7 +415,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             <Fact label="Landed on" value={entry.Section} isDark={isDark} />
                             <Fact label="Left from" value={story.Exit?.Section || ''} isDark={isDark} />
                             <Fact label="Idle" value={formatMs(story.IdleMs || 0)} isDark={isDark} />
-                            {story.Rage > 0 && <Fact label="Frustration" value={`${story.Rage} dead clicks`} isDark={isDark} />}
+                            {story.Rage > 0 && <Fact label="Frustration" value={`${story.Rage} rapid-click bursts`} title="Three fast clicks in the same spot — ordinary reading clicks are not counted" isDark={isDark} />}
                             {story.Copies > 0 && <Fact label="Copied" value={`${story.Copies}x`} isDark={isDark} />}
                             {story.Prints > 0 && <Fact label="Printed" value={`${story.Prints}x`} isDark={isDark} />}
                             {story.Perf?.LoadMs ? (

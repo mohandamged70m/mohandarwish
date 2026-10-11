@@ -165,3 +165,29 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
     attribution); full suite 53/53 PASS; `typecheck` PASS; scoped `eslint`
     clean (0 errors, 0 warnings).
   Status: PASS.
+- **Phase 4 (2026-10-11):** Stories + Overview integrated against an
+  acceptance audit (18 gaps found; all FAILs fixed except advisory polling
+  load, left documented).
+  - Stories: display pagination (50/page + "Show more", honest "showing X of
+    Y" caption), date presets (24h/7d/30d/all) scoping stories + chart +
+    browsers, conversion filter (`Converted` on `Contact.Sent`; `Reached
+    contact` now means funnel entry), search kept. `?s=` survives owner login
+    (`page.tsx` threads it into the sign-in `callbackUrl`; `auth-buttons.tsx`
+    accepts it; `DashboardClient` park unchanged).
+  - Overview: failed reads render error panels + Retry (never zeros), first-
+    load skeletons for counters/chart/links, `updatedAt` kept; lifetime cards
+    stay lifetime-labelled with an in-range browser line computed from loaded
+    visits; link filter shows a scoped banner with lifetime link counters.
+  - Chart: weekly/monthly zero-filled across the UTC continuum, all labels +
+    tooltips + page titles UTC, YoY same-aggregation comparison now rendered
+    as a dashed ghost line + tooltip row (was dead code).
+  - Honesty: `% acted` chip (was `% conv`), away time `~X (estimated)`,
+    `Browser (reported)`, rapid-click rage label, chronological event sort.
+  - A11y: focus trap + focus return for the story modal, dialog semantics +
+    Escape/initial focus for confirm modal, dialog role for the link editor,
+    `aria-live` on live-count + alerts, `aria-pressed` on filter groups,
+    `useReducedMotion` gating chart/modal/pulse transitions.
+  - Verification: full suite 53/53 PASS; `typecheck` PASS; scoped `eslint`
+    clean (fixed 4 react-hooks purity errors via clock state + paging
+    wrappers); production `next build` PASS (29 routes).
+  Status: PASS.

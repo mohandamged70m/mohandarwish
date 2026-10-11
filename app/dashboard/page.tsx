@@ -35,12 +35,22 @@ function GateShell({
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; s?: string }>;
 }) {
   const session = await auth();
   if (isOwnerSession(session)) return <DashboardClient />;
 
-  const denied = (await searchParams)?.error === "AccessDenied";
+  const params = await searchParams;
+  // A "watch this visit" email link carries ?s=<visitId>. Thread it through
+  // the sign-in hop so the story still opens after login (DashboardClient
+  // parks it for D-Trails on arrival).
+  const story =
+    typeof params?.s === "string" && /^[a-z0-9-]{6,40}$/i.test(params.s)
+      ? params.s
+      : "";
+  const callbackUrl = story ? `/dashboard?s=${encodeURIComponent(story)}` : "/dashboard";
+
+  const denied = params?.error === "AccessDenied";
   if (denied) {
     return (
       <GateShell
@@ -48,7 +58,7 @@ export default async function DashboardPage({
         description="That Google account is not the portfolio owner. Sign out and try again with the owner account."
       >
         <SignOutButton label="Sign out" />
-        <SignInButton label="Try a different account" />
+        <SignInButton label="Try a different account" callbackUrl={callbackUrl} />
       </GateShell>
     );
   }
@@ -58,7 +68,7 @@ export default async function DashboardPage({
       title="Dashboard"
       description="Owner-only. Sign in with Google to manage your portfolio."
     >
-      <SignInButton />
+      <SignInButton callbackUrl={callbackUrl} />
     </GateShell>
   );
 }
