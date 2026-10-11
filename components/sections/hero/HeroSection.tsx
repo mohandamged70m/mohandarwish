@@ -278,8 +278,8 @@ export default function HeroSection() {
       <BookingModal open={bookingOpen} onClose={() => setBookingOpen(false)} />
       {/* scroll cue — motion-safe, hides on reduced-motion via hero.css */}
       <a
-        href="#projects-wrap"
-        aria-label="Scroll to projects"
+        href="#stack-wrap"
+        aria-label="Scroll to stack"
         className="mh-cue absolute bottom-4 left-1/2 z-[6] hidden -translate-x-1/2 flex-col items-center gap-1 text-text-muted transition-colors hover:text-accent-text focus-ring md:flex"
       >
         <span className="font-heading text-[10px] uppercase tracking-[0.2em]">Scroll</span>

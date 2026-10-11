@@ -28,8 +28,8 @@ type NavItem = {
 // would scroll sighted users somewhere meaningless.
 const NAV_ITEMS: readonly NavItem[] = [
   { label: "Home", href: "#hero" },
-  { label: "Projects", href: "#projects" },
   { label: "Stack", href: "#stack" },
+  { label: "Projects", href: "#projects" },
   { label: "Contact", href: "#booking" },
 ];
 
