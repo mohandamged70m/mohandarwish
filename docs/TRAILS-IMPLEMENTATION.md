@@ -215,3 +215,44 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
     failure marking without losing the queue); full suite 59/59 PASS;
     `typecheck` PASS; scoped `eslint` clean.
   Status: PASS.
+- **Phase 6 (2026-10-11):** migration + legacy removal.
+  - `convex/trailMigration.ts`: `status` (legacy vs migrated counts) and
+    `migrate({limit, write})` — dry-run by default, bounded (default 200
+    sessions/call), resumable, idempotent (re-runs skip by `by_sid`/code/tomb;
+    repeat execution creates no duplicates). Order: tombstones first (delayed
+    packets can never recreate deleted visits through the typed ingest), then
+    links (matched by code, never overwritten), sessions + events + batch
+    ledger + visitor upsert, then aggregates copied as-is (days, lifetime
+    totals, sources, socials, project counters; project ms summed from the
+    migrated sessions since the old model has no per-project rollup). The
+    outbox is already the shared typed `trailOutbox` table — pending jobs
+    stay pending, nothing to copy. Legacy `Confirmed` maps inherit the
+    session's `Contact.Sent` kind (documented); pruned history is not
+    reconstructed or fabricated.
+  - Revoke (retains history) vs delete (reconciles + tombstones) vs
+    forget-link (reconciles + zeroes card) vs prune (keeps totals) are
+    implemented identically on both backends; migration preserves tombstones
+    and counters so the distinctions survive the move.
+  - Legacy removal: verified zero Firebase imports repo-wide and no
+    `firebase` dependency in `package.json` — Trails has no Firebase runtime
+    dependency to remove (only stale words in unrelated dashboard comments,
+    left untouched as non-Trails churn).
+  - Cutover runbook (manual; never automatic, never touches prod data by
+    itself): 1) `npx convex deploy` the additive backend (regenerates
+    `_generated`; no traffic impact). 2) `trailMigration.status`, then
+    `migrate({write:false})` dry-run. 3) `migrate({write:true})` in batches
+    until `done` (low-traffic window). 4) Verify: compare `trails.
+    diagnostics` vs `trailStore.diagnostics` (sessions/links/totals) and
+    spot-check stories. 5) Switch ingestion + reads atomically in one deploy
+    (`/api/track` → `trailStore.applyBatch`, `/api/share` → `trailStore.
+    resolveLink`, dashboard gateway ops → `trailStore` reads/writes,
+    `confirmTrailsConversion` → `markConversion`). Duplicate ingestion is
+    prevented because batch ledgers migrate too — in-flight client retries
+    dedupe by `batchId` on the new backend. 6) Rollback = flip the same
+    targets back (migration only reads the old model; typed writes land in
+    new tables). Cutover NOT executed here.
+  - Verification: `tests/trail-migration.test.ts` 4/4 PASS (status counts,
+    dry-run writes nothing, faithful copy + relink + exact totals + tombstone
+    enforcement + idempotent repeat, bounded resume); full suite 63/63 PASS;
+    `typecheck` PASS; scoped `eslint` clean.
+  Status: PASS.

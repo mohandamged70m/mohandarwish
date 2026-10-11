@@ -16,6 +16,7 @@ import type * as messages from "../messages.js";
 import type * as profile from "../profile.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as storage from "../storage.js";
+import type * as trailMigration from "../trailMigration.js";
 import type * as trailStore from "../trailStore.js";
 import type * as trails from "../trails.js";
 
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   profile: typeof profile;
   rateLimits: typeof rateLimits;
   storage: typeof storage;
+  trailMigration: typeof trailMigration;
   trailStore: typeof trailStore;
   trails: typeof trails;
 }>;
