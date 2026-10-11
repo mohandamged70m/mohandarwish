@@ -26,3 +26,11 @@ it("folds social spellings onto one canonical name", () => {
   expect(canonicalSocial("GITHUB")).toBe("GitHub");
   expect(canonicalSocial("x")).toBe("X");
 });
+
+it('folds social hostnames and full outbound URLs into network names', () => {
+  expect(canonicalSocial('github.com')).toBe('GitHub');
+  expect(canonicalSocial('https://www.linkedin.com/in/example')).toBe('LinkedIn');
+  expect(canonicalSocial('wa.me')).toBe('WhatsApp');
+  expect(canonicalSocial('t.me')).toBe('Telegram');
+  expect(canonicalSocial('github.com.attacker.example')).not.toBe('GitHub');
+});

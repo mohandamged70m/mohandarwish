@@ -17,6 +17,7 @@
  */
 
 import type { EventKind, LinkTailor, SessionEvent } from "@/lib/analytics-types";
+import { canonicalSocial } from "@/lib/analytics/source";
 
 const ENDPOINT = "/api/track";
 
@@ -26,6 +27,7 @@ const FLUSH_MS = 20_000;
 const IDLE_MS = 60_000;
 /** Gap of inactivity after which coming back is a new visit, not a continuation. */
 const SESSION_GAP_MS = 30 * 60_000;
+const SESSION_MAX_AGE_MS = 12 * 60 * 60_000;
 /** Timeline cap. ~500 events is a very busy visit and still a small document. */
 const MAX_EVENTS = 500;
 /** Per-visit flush ceiling, matching the server's. Stops a stuck tab writing forever. */
@@ -36,6 +38,7 @@ const SCROLL_STEPS = [25, 50, 75, 100];
 const MAX_BODY_BYTES = 55_000;
 /** Persisted outbox: at most this many unsent batches survive a reload. */
 const MAX_QUEUED_BATCHES = 5;
+const MAX_MEMORY_BATCHES = 50;
 
 const SID_KEY = "trails_sid";
 const SID_START_KEY = "trails_sid_start";
@@ -287,7 +290,7 @@ export interface CollectorOptions {
   ) => void;
 }
 
-class Collector {
+export class Collector {
   private started = false;
   private stopped = false;
   private terminal = false;
@@ -301,6 +304,7 @@ class Collector {
   private dirty = false;
   private queue: PendingBatch[] = [];
   private sending = false;
+  private delivery: Promise<void> | null = null;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
   private section = "home";
@@ -343,6 +347,7 @@ class Collector {
   }
 
   start(opts: CollectorOptions): void {
+    if (this.stopped || this.terminal) this.resetVisit();
     if (this.started || typeof window === "undefined") return;
     if (looksAutomated()) return;
 
@@ -365,11 +370,16 @@ class Collector {
     // ended visit never resumes.
     const resumable =
       prevId &&
+      /^[a-z0-9]{1,14}-[a-z0-9]{4,20}$/i.test(prevId) &&
+      /^v-[a-z0-9]{8,20}$/.test(safeLocal.get(VID_KEY) || "") &&
+      prevStart <= now && prevActive <= now &&
       prevStart > 0 &&
       prevActive > 0 &&
       !prevEnded &&
+      now - prevStart < SESSION_MAX_AGE_MS &&
+      Number(safeSession.get(SEQ_KEY) || 0) < MAX_FLUSHES - 1 &&
       now - prevActive < SESSION_GAP_MS &&
-      (!prevCode || !code || prevCode === code);
+      prevCode === code;
 
     this.started = true;
     this.section = opts.section;
@@ -394,13 +404,17 @@ class Collector {
     this.helloAcked = resumable ? safeSession.get(HELLO_KEY) === "1" : false;
     safeSession.set(HELLO_KEY, this.helloAcked ? "1" : "0");
 
-    this.visitorId = safeLocal.get(VID_KEY) || `v-${rand(12)}`;
+    const storedVisitor = safeLocal.get(VID_KEY) || "";
+    this.visitorId = /^v-[a-z0-9]{8,20}$/.test(storedVisitor) ? storedVisitor : `v-${rand(12)}`;
     safeLocal.set(VID_KEY, this.visitorId);
+    const storedVisits = Number(safeLocal.get(VISITS_KEY) || 0);
+    const visits = storedVisitor === this.visitorId && Number.isSafeInteger(storedVisits) && storedVisits >= 0
+      ? Math.min(storedVisits, 99_999) : 0;
     if (!resumable) {
-      this.visit = Number(safeLocal.get(VISITS_KEY) || 0) + 1;
+      this.visit = visits + 1;
       safeLocal.set(VISITS_KEY, String(this.visit));
     } else {
-      this.visit = Number(safeLocal.get(VISITS_KEY) || 1);
+      this.visit = Math.max(1, visits);
     }
 
     // Immutable opening: captured once, retried verbatim until acked.
@@ -421,6 +435,10 @@ class Collector {
     this.attach();
     this.ticker = setInterval(() => this.tick(), 1000);
     this.timer = setInterval(() => {
+      if (this.seq >= MAX_FLUSHES - 1 || Date.now() - this.startedAt >= SESSION_MAX_AGE_MS) {
+        this.restartWithCode(this.code, this.section, true);
+        return;
+      }
       if (this.dirty) this.enqueue(false);
     }, FLUSH_MS);
 
@@ -430,9 +448,9 @@ class Collector {
 
   stop(): void {
     if (!this.started || this.stopped) return;
-    this.stopped = true;
     this.enqueue(true, true);
-    this.detach();
+    this.stopped = true;
+    this.detach(false);
     // The visit is over: a later start() must open a new visit rather than
     // continuing one that already reported itself ended.
     safeSession.set(ENDED_KEY, "1");
@@ -448,6 +466,8 @@ class Collector {
 
   projectOpen(id: string): void {
     if (!this.isRunning() || !id) return;
+    if (this.openProject === id) return;
+    this.tick();
     this.bankProjectTime();
     this.openProject = id;
     this.openProjectAt = Date.now();
@@ -457,6 +477,7 @@ class Collector {
 
   projectClose(): void {
     if (!this.isRunning()) return;
+    this.tick();
     const id = this.openProject;
     this.bankProjectTime();
     this.openProject = null;
@@ -471,6 +492,7 @@ class Collector {
 
   socialClick(name: string): void {
     if (!this.isRunning() || !name) return;
+    name = canonicalSocial(name);
     this.social(name).clicks += 1;
     this.awaySocial = name;
     this.awaySocialAt = Date.now();
@@ -479,6 +501,7 @@ class Collector {
 
   socialReturn(name: string, awayMs?: number): void {
     if (!this.isRunning() || !name) return;
+    name = canonicalSocial(name);
     const ms =
       typeof awayMs === "number" && awayMs > 0
         ? awayMs
@@ -535,38 +558,29 @@ class Collector {
   /**
    * Open a new visit under a different share-link code in the same tab
    * (direct visit -> share link, or link A -> link B). The previous visit is
-   * ended honestly via beacon, then a fresh visit starts: a new code never
+   * ended through the serialized queue, then a fresh visit starts: a new code never
    * inherits the old session, its greeting, or its events.
    */
-  restartWithCode(code: string, section: string): void {
+  restartWithCode(code: string, section: string, force = false): void {
     const clean = (code || "").slice(0, 120);
-    if (!this.started || this.terminal) {
-      if (!this.started) this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
+    if (!this.isRunning()) {
+      this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
       return;
     }
-    if (!clean || clean === this.code) return;
-    try {
-      const body = JSON.stringify({
-        v: 2,
-        id: this.sessionId,
-        seq: this.seq + 1,
-        batchId: batchIdOf(),
-        visitor: this.visitorId,
-        visit: this.visit,
-        end: true,
-        add: {},
-        set: { exitSection: this.section },
-        events: [],
-      });
-      navigator.sendBeacon?.(ENDPOINT, body);
-    } catch {
-      /* best effort */
-    }
-    this.detach();
+    if (!force && clean === this.code) return;
+    // End through the SAME serialized queue: a beacon can overtake the opening
+    // request, discard its counters, and make the next visit inherit its ack.
+    this.enqueue(true, true);
+    this.resetVisit();
+    this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
+  }
+
+  private resetVisit(): void {
+    this.detach(false);
     this.started = false;
     this.stopped = false;
+    this.terminal = false;
     this.buf = emptyBuffer();
-    this.queue = [];
     this.seq = 0;
     this.dirty = false;
     this.sessionId = "";
@@ -587,8 +601,6 @@ class Collector {
     safeSession.remove(SEQ_KEY);
     safeSession.remove(HELLO_KEY);
     safeSession.remove(ENDED_KEY);
-    safeSession.remove(QUEUE_KEY);
-    this.start({ section, code: clean, isOwner: this.isOwner, onTailor: this.onTailor });
   }
 
   // ── internals ────────────────────────────────────────────────────────
@@ -650,7 +662,6 @@ class Collector {
     if (this.idle || this.hidden) {
       this.buf.idleMs += delta;
       if (!this.hidden) this.dirty = true;
-      safeSession.set(SID_ACTIVE_KEY, String(now));
       return;
     }
 
@@ -676,6 +687,9 @@ class Collector {
     };
 
     const markInput = () => {
+      if (Date.now() - this.lastInput >= SESSION_GAP_MS) {
+        this.restartWithCode(this.code, this.section, true);
+      }
       this.lastInput = Date.now();
     };
     ["pointerdown", "keydown", "wheel", "touchstart"].forEach((t) =>
@@ -690,7 +704,7 @@ class Collector {
         const now = Date.now();
         if (now - moveGate < 2000) return;
         moveGate = now;
-        this.lastInput = now;
+        markInput();
       },
       { passive: true },
     );
@@ -703,7 +717,7 @@ class Collector {
       this.push(hidden ? "hide" : "show");
       if (hidden) this.enqueue(false);
       else {
-        this.lastInput = Date.now();
+        markInput();
         // Returning from a social link: measure time away, don't claim it
         // as time spent on that site — only time away from the portfolio.
         if (this.awaySocial) this.socialReturn(this.awaySocial);
@@ -717,7 +731,7 @@ class Collector {
       document,
       "scroll",
       (e: Event) => {
-        this.lastInput = Date.now();
+        markInput();
         this.trackScroll(e.target);
       },
       { passive: true, capture: true } as AddEventListenerOptions,
@@ -749,6 +763,7 @@ class Collector {
       "click",
       (e: Event) => {
         const ev = e as MouseEvent;
+        if (!(ev.target instanceof Element) || !ev.target.closest("a,button,input,select,textarea,[role='button']")) return;
         const now = Date.now();
         clicks.push({ t: now, x: ev.clientX, y: ev.clientY });
         while (clicks.length && now - clicks[0].t > 800) clicks.shift();
@@ -766,9 +781,13 @@ class Collector {
       { passive: true },
     );
 
-    const leave = () => this.enqueue(true, true);
-    on(window, "pagehide", leave);
-    on(window, "beforeunload", leave);
+    on(window, "pagehide", (e: Event) => {
+      const final = !(e as PageTransitionEvent).persisted;
+      this.enqueue(true, final);
+      if (final) safeSession.set(ENDED_KEY, "1");
+    });
+    // beforeunload can be cancelled. A bfcache freeze is also not an ending.
+    on(window, "beforeunload", () => this.enqueue(true));
     // bfcache restore: timers died while frozen; resume the clock without
     // starting a second visit.
     on(window, "pageshow", (e: Event) => {
@@ -782,7 +801,7 @@ class Collector {
     this.readPerf();
   }
 
-  private detach(): void {
+  private detach(cancelRetry = true): void {
     this.teardown.forEach((fn) => {
       try {
         fn();
@@ -793,10 +812,10 @@ class Collector {
     this.teardown = [];
     if (this.timer) clearInterval(this.timer);
     if (this.ticker) clearInterval(this.ticker);
-    if (this.retryTimer) clearTimeout(this.retryTimer);
+    if (cancelRetry && this.retryTimer) clearTimeout(this.retryTimer);
     this.timer = null;
     this.ticker = null;
-    this.retryTimer = null;
+    if (cancelRetry) this.retryTimer = null;
   }
 
   private trackScroll(target: EventTarget | null): void {
@@ -865,12 +884,20 @@ class Collector {
         id: prevId,
         seq: Number(safeSession.get(SEQ_KEY) || 0) + 1,
         batchId: batchIdOf(),
+        visitor: safeLocal.get(VID_KEY) || `v-${rand(12)}`,
+        visit: Number(safeLocal.get(VISITS_KEY) || 1),
         end: true,
         add: {},
         set: {},
         events: [],
       });
-      navigator.sendBeacon?.(ENDPOINT, body);
+      // Restored pending batches must precede this ending. Delivery is queued
+      // below after restoreQueue rather than racing them through a beacon.
+      const batch = JSON.parse(body) as Dict;
+      const raw = safeSession.get(QUEUE_KEY);
+      const queue = raw ? JSON.parse(raw) as PendingBatch[] : [];
+      queue.push({ seq: Number(batch.seq), batchId: String(batch.batchId), body: batch, tries: 0, nextAt: 0 });
+      safeSession.set(QUEUE_KEY, JSON.stringify(queue));
     } catch {
       /* best effort */
     }
@@ -882,9 +909,9 @@ class Collector {
       if (!raw) return;
       const arr = JSON.parse(raw) as PendingBatch[];
       if (Array.isArray(arr))
-        this.queue = arr
+        this.queue = [...this.queue, ...arr
           .filter((b) => b && typeof b.seq === "number" && typeof b.batchId === "string" && b.body)
-          .slice(-MAX_QUEUED_BATCHES);
+          .filter((b) => !this.queue.some((q) => q.batchId === b.batchId))];
     } catch {
       this.queue = [];
     }
@@ -893,7 +920,8 @@ class Collector {
 
   private persistQueue(): void {
     try {
-      safeSession.set(QUEUE_KEY, JSON.stringify(this.queue.slice(-MAX_QUEUED_BATCHES)));
+      // Preserve the opening and earliest unacked deltas, not just the tail.
+      safeSession.set(QUEUE_KEY, JSON.stringify(this.queue.slice(0, MAX_QUEUED_BATCHES)));
     } catch {
       /* storage full - in-memory queue still delivers this tab */
     }
@@ -901,9 +929,10 @@ class Collector {
 
   private enqueue(force: boolean, final = false): void {
     if (!this.started || this.terminal) return;
-    if (final && this.queue.some((b) => (b.body as Dict).end === true)) return;
+    if (final && this.queue.some((b) => b.body.id === this.sessionId && b.body.end === true)) return;
     if (!force && !this.dirty) return;
     if (this.seq >= MAX_FLUSHES) return;
+    if (this.queue.length >= MAX_MEMORY_BATCHES) return; // keep accumulating in the bounded buffer
 
     this.tick();
     // Bank (don't close) so the open project keeps accruing after the flush.
@@ -918,11 +947,14 @@ class Collector {
     // Trim events so the keepalive body stays deliverable.
     let events = buf.events.slice(0, 120);
     let body: Record<string, unknown> = this.buildBody(buf, events, final);
-    while (JSON.stringify(body).length > MAX_BODY_BYTES && events.length > 10) {
+    while (new TextEncoder().encode(JSON.stringify(body)).byteLength > MAX_BODY_BYTES && events.length > 10) {
       events = events.slice(Math.ceil(events.length / 4));
       body = this.buildBody(buf, events, final);
     }
 
+    // Scroll and performance maps keep changing in memory. Snapshot them too,
+    // otherwise a retry is no longer the immutable payload the server dedupes.
+    body = JSON.parse(JSON.stringify(body)) as Dict;
     this.queue.push({ seq: this.seq, batchId: String(body.batchId), body, tries: 0, nextAt: 0 });
     this.persistQueue();
     void this.drain();
@@ -963,7 +995,13 @@ class Collector {
     return body;
   }
 
-  private async drain(): Promise<void> {
+  private drain(): Promise<void> {
+    if (this.delivery) return this.delivery;
+    this.delivery = this.deliver().finally(() => { this.delivery = null; });
+    return this.delivery;
+  }
+
+  private async deliver(): Promise<void> {
     if (this.sending || !this.queue.length) return;
     this.sending = true;
     try {
@@ -993,6 +1031,7 @@ class Collector {
         headers,
         body: JSON.stringify(batch.body),
         keepalive: true,
+        signal: AbortSignal.timeout(10_000),
       });
     } catch {
       return this.backoff(batch);
@@ -1005,11 +1044,25 @@ class Collector {
       data = null;
     }
 
-    if (res.ok && data && (data as Dict).ok === true) {
+    // Only the batch's own visit may change the current visit's local state.
+    const current = batch.body.id === this.sessionId;
+    if (data?.terminal === true) {
+      if (current) {
+        this.terminal = true;
+        this.detach();
+        safeSession.set(ENDED_KEY, "1");
+      }
+      this.queue = this.queue.filter((q) => q === batch || q.body.id !== batch.body.id);
+      return true;
+    }
+    if (res.ok && data && data.ok === true) {
+      if (!current) return true;
       // The hello code matched no link (deleted/invalid): the visit is kept
       // as a direct one. Clear the stale attribution so the tab cannot
       // inherit a previous link's greeting or events, and keep recording.
       if ((data as Dict).linkDropped === true) {
+        this.code = "";
+        safeSession.set(SID_CODE_KEY, "");
         try {
           sessionStorage.removeItem(LINK_KEY);
           sessionStorage.removeItem(LINK_AT_KEY);
@@ -1020,7 +1073,7 @@ class Collector {
           /* ignore */
         }
       }
-      if ((data as Dict).hello === true && (batch.body as Dict).hello) {
+      if (data.hello === true) {
         this.helloAcked = true;
         safeSession.set(HELLO_KEY, "1");
       }
@@ -1032,19 +1085,12 @@ class Collector {
     }
 
     // Terminal: drop the batch and stop retrying (expired, unknown, bot, bad).
-    const terminal =
-      (data as Dict)?.terminal === true ||
-      res.status === 400 ||
-      res.status === 404 ||
-      res.status === 410;
+    const terminal = res.status === 400 || res.status === 404 || res.status === 410;
     if (terminal) {
-      if (res.status === 404 || (data as Dict)?.reason === "unknown-visit") {
-        // Lookup outage must not strand the visit: keep hello for the next session.
-        this.helloAcked = false;
-        safeSession.set(HELLO_KEY, "0");
-      }
-      if ((data as Dict)?.reason === "bot" || (data as Dict)?.reason === "expired") {
+      if (current) {
         this.terminal = true;
+        this.detach();
+        safeSession.set(ENDED_KEY, "1");
       }
       return true; // drop the batch; it will never succeed
     }

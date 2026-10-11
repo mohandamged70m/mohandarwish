@@ -1,5 +1,9 @@
 # TRAILS Implementation — Convex-native (phased)
 
+Current runtime and reliability repair: [TRAILS-RELIABILITY.md](TRAILS-RELIABILITY.md).
+The typed-store migration is not an active gateway cutover; production still
+reads and writes `Analytics/*` in `dashboardDocs`.
+
 Reference: `D-trails/` (git-ignored local extraction from
 https://github.com/TemRevil/revil @ `19b85f3f`, 2026-10-05; manifest in
 `D-trails/README.md`). Compared file-by-file against the portfolio below. No

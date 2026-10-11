@@ -2,9 +2,8 @@ import { NextResponse } from "next/server";
 import { api } from "@/convex/_generated/api";
 import { convexMutation, convexQuery } from "@/lib/convex";
 import { isAdminRequest } from "@/lib/admin";
-import { linkOpenedHtml } from "@/lib/email";
+import { trailNotification } from "@/lib/trails-notification";
 import { getResendFrom, sendSafe } from "@/lib/resend";
-import { siteConfig } from "@/lib/metadata";
 
 // Owner-triggered notification drain. POST retries every due link-open email
 // (pending plus failed with attempts left, bounded per call); GET reports the
@@ -31,7 +30,7 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const linkCode = url.searchParams.get("linkCode") || undefined;
     const [due, recent] = await Promise.all([
-      convexQuery<OutboxRow[]>(api.trails.outboxDue, { limit: 1 }),
+      convexQuery<OutboxRow[]>(api.trails.outboxDue, { limit: 50 }),
       convexQuery<OutboxRow[]>(api.trails.outboxRecent, {
         ...(linkCode ? { linkCode } : {}),
         limit: 50,
@@ -39,6 +38,8 @@ export async function GET(req: Request) {
     ]);
     return NextResponse.json({
       pending: (due || []).length,
+      pendingCapped: (due || []).length === 50,
+      configured: !!process.env.OWNER_EMAIL && !!process.env.RESEND_API_KEY,
       recent: (recent || []).map((r) => ({
         linkCode: r.linkCode,
         linkName: r.linkName,
@@ -82,23 +83,11 @@ export async function POST(req: Request) {
         {
           from: getResendFrom(),
           to,
-          subject: `${row.linkName || "Someone"} opened your link`
-            .replace(/[\r\n]+/g, " ")
-            .slice(0, 200),
-          html: linkOpenedHtml({
-            linkName: (row.linkName || "Someone").slice(0, 120),
-            linkFor: "your portfolio",
-            country: "",
-            device: "",
-            localTime: "",
-            source: "Direct",
-            visit: 1,
-            storyUrl: `${siteConfig.url}/dashboard?s=${encodeURIComponent(row.sessionId)}`,
-          }),
+          ...await trailNotification(row.sessionId),
         },
-        { idempotencyKey: `trails-outbox-${row._id}` },
+        { idempotencyKey: `trails-visit-${row.sessionId}` },
       );
-      if (result.error && !result.skipped) throw new Error(result.error);
+      if (result.error || result.skipped || !result.id) throw new Error(result.error || "Notification not delivered");
       await convexMutation(api.trails.outboxMark, { id: row._id as never, status: "sent" });
       sent++;
     } catch (e) {

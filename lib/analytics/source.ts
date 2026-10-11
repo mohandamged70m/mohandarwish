@@ -27,7 +27,22 @@ const SOCIAL_NAMES: Record<string, string> = {
  * count was split between them.
  */
 export function canonicalSocial(name: string): string {
-  const known = SOCIAL_NAMES[name.trim().toLowerCase()];
+  let token = name.trim().toLowerCase();
+  try {
+    if (/^https?:\/\//.test(token)) token = new URL(token).hostname;
+  } catch { /* keep the reported label */ }
+  token = token.replace(/^www\./, "");
+  const hosts: Record<string, string> = {
+    "github.com": "github", "gitlab.com": "gitlab", "linkedin.com": "linkedin",
+    "instagram.com": "instagram", "facebook.com": "facebook", "threads.net": "threads", "threads.com": "threads",
+    "tiktok.com": "tiktok", "youtube.com": "youtube", "youtu.be": "youtube",
+    "twitter.com": "twitter", "x.com": "x", "behance.net": "behance", "dribbble.com": "dribbble",
+    "medium.com": "medium", "wa.me": "whatsapp", "whatsapp.com": "whatsapp",
+    "t.me": "telegram", "telegram.me": "telegram", "discord.gg": "discord", "discord.com": "discord",
+    "pinterest.com": "pinterest", "reddit.com": "reddit", "twitch.tv": "twitch", "spotify.com": "spotify",
+  };
+  const host = Object.keys(hosts).find((h) => token === h || token.endsWith(`.${h}`));
+  const known = SOCIAL_NAMES[host ? hosts[host] : token];
   if (known) return known;
   // Unknown network: Title Case it so at least one casing wins consistently.
   return name

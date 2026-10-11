@@ -20,6 +20,7 @@ import { GET, POST } from "../app/api/dashboard/trails-outbox/route";
 
 beforeEach(() => {
   vi.resetAllMocks();
+  query.mockResolvedValue({ Link: { Name: "Acme", For: "Website" }, Visit: 1 });
   process.env.OWNER_EMAIL = "owner@example.com";
   process.env.RESEND_API_KEY = "key";
 });
@@ -52,7 +53,7 @@ it("reports the backlog and recent per-link status", async () => {
 });
 
 it("sends due rows with stable idempotency keys and marks them sent", async () => {
-  query.mockResolvedValue([row()]);
+  query.mockResolvedValueOnce([row()]);
   send.mockResolvedValue({ data: { id: "mail-1" } });
   mutation.mockResolvedValue(null);
   const res = await POST(req("POST"));
@@ -60,7 +61,7 @@ it("sends due rows with stable idempotency keys and marks them sent", async () =
   expect(await res.json()).toMatchObject({ ok: true, sent: 1, failed: 0 });
   expect(send).toHaveBeenCalledTimes(1);
   const [, opts] = send.mock.calls[0] as [unknown, { idempotencyKey?: string }];
-  expect(opts).toEqual({ idempotencyKey: "trails-outbox-outbox-1" });
+  expect(opts).toEqual({ idempotencyKey: "trails-visit-abc12345-ef678901" });
   expect(mutation).toHaveBeenCalledWith(expect.anything(), {
     id: "outbox-1",
     status: "sent",
@@ -68,7 +69,7 @@ it("sends due rows with stable idempotency keys and marks them sent", async () =
 });
 
 it("marks failures without losing the remaining queue", async () => {
-  query.mockResolvedValue([row(), row({ _id: "outbox-2" })]);
+  query.mockResolvedValueOnce([row(), row({ _id: "outbox-2" })]);
   send
     .mockRejectedValueOnce(new Error("provider down"))
     .mockResolvedValueOnce({ data: { id: "mail-2" } });
@@ -79,4 +80,16 @@ it("marks failures without losing the remaining queue", async () => {
   expect(failedCall?.[1]).toEqual({ id: "outbox-1", status: "failed", error: "Error: provider down" });
   const sentCall = mutation.mock.calls.find(([, a]: unknown[]) => (a as { status?: string }).status === "sent");
   expect(sentCall?.[1]).toEqual({ id: "outbox-2", status: "sent" });
+});
+
+it('counts more than one pending notification accurately', async () => {
+  query.mockResolvedValueOnce([row(), row({ _id: 'outbox-2' }), row({ _id: 'outbox-3' })]).mockResolvedValueOnce([]);
+  expect(await (await GET(req('GET'))).json()).toMatchObject({ pending: 3, configured: true, pendingCapped: false });
+});
+it('never labels a provider test-mode rejection as delivered', async () => {
+  mutation.mockResolvedValue(null);
+  query.mockResolvedValueOnce([row()]);
+  send.mockResolvedValue({ error: { message: 'You can only send testing emails' } });
+  expect(await (await POST(req('POST'))).json()).toMatchObject({ sent: 0, failed: 1 });
+  expect(mutation.mock.calls.every(([, args]) => args.status !== 'sent')).toBe(true);
 });
