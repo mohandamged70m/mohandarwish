@@ -191,3 +191,27 @@ proxy, `LegacyRec` link field, `sawBookPage`/`book` story filter (replaced by
     clean (fixed 4 react-hooks purity errors via clock state + paging
     wrappers); production `next build` PASS (29 routes).
   Status: PASS.
+- **Phase 5 (2026-10-11):** links, personalization, and notifications —
+  audited end to end (create → copy → open → personalize → track → inspect →
+  notify → revoke); the workflow already existed, fixed the gaps found.
+  - Personalization: explicit Auto-CV false already overrode defaults
+    (`wantsAutoCv`); revoked/expired codes now clear stale attribution
+    (`clearStaleAttribution` in `landing.tsx`: link, timestamp, tailor, and
+    campaign backup dropped so the visit continues direct). Fixed-delay
+    handoffs were already race-free (synchronous stash + sessionStorage backup
+    + retried live handoff; delays only time the CV modal).
+  - Submit guards: create disabled while creating; editor Save disabled while
+    saving; editor still keeps input open on failed saves.
+  - Notifications: `outboxDue` (pending + failed with attempts < 3, bounded)
+    and `outboxRecent` (per-link status) on both `trails` and `trailStore`;
+    drain sends oldest-first with stable Resend idempotency keys per visit and
+    per outbox row (`sendSafe` gained an options arg); inline `/api/track`
+    send keyed per visit; email failure still never loses the visit. `GET`
+    now returns backlog + recent rows; Links view shows stored status per card
+    (sent / pending / failed ×N with retry note) plus a drain button.
+  - Verification: `tests/trails-notify.test.ts` 3/3 PASS (bounded retries on
+    both backends, idempotency-key forwarding); `tests/trails-notify-routes.
+    test.ts` 3/3 PASS (backlog+status report, keyed sends marked sent,
+    failure marking without losing the queue); full suite 59/59 PASS;
+    `typecheck` PASS; scoped `eslint` clean.
+  Status: PASS.

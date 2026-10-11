@@ -136,11 +136,14 @@ batches in sessionStorage). **After a browser forcibly terminates
   identity validation, payload/event caps, bot user-agent rejection. Client
   heuristics alone are not authoritative.
 - Notifications: link-open email is queued in `trailOutbox` inside the same
-  transaction as the visit. `/api/track` sends inline and marks `sent`;
-  failures stay `pending` for the owner drain
-  (`POST /api/dashboard/trails-outbox`; `GET` reports the backlog).
-  Unconfigured mail (`OWNER_EMAIL`/`RESEND_API_KEY` unset) skips silently and
-  accurately.
+  transaction as the visit. `/api/track` sends inline (idempotency key
+  `trails-visit-{sessionId}`) and marks `sent`; failures stay `pending` for
+  the owner drain (`POST /api/dashboard/trails-outbox`; `GET` reports the
+  backlog plus recent per-link status shown on the link cards). The drain
+  sends due rows oldest-first — pending plus failed with attempts left
+  (bounded at 3) — with a stable key per row (`trails-outbox-{rowId}`) so a
+  crashed retry is a provider-side no-op. Unconfigured mail
+  (`OWNER_EMAIL`/`RESEND_API_KEY` unset) skips silently and accurately.
 
 ## Environment
 

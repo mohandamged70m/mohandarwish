@@ -835,6 +835,13 @@ const DTrails = () => {
     const [name, setName] = useState('');
     const [forField, setForField] = useState('');
     const [copied, setCopied] = useState<string | null>(null);
+    // Notification outbox status per link (actual stored status, never assumed).
+    const [outbox, setOutbox] = useState<{
+        pending: number;
+        recent: Array<{ linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }>;
+    }>({ pending: 0, recent: [] });
+    const [draining, setDraining] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
     const [editingLink, setEditingLink] = useState<LinkRow | null>(null);
@@ -870,7 +877,7 @@ const DTrails = () => {
         setLinkFilter(code);
         setStoryFilter('all');
         setShownCount(50);
-        setView('stories');
+        switchView('stories');
     };
 
     // ── data ─────────────────────────────────────────────────────────────
@@ -1160,8 +1167,48 @@ const DTrails = () => {
     // deployment predates trails.*) instead of a generic message.
     const failMsg = (e: unknown, fallback: string) =>
         e instanceof Error && e.message ? `${fallback} (${e.message})` : fallback;
+
+    const refreshOutbox = useCallback(async () => {
+        try {
+            const r = await fetch('/api/dashboard/trails-outbox', { cache: 'no-store' });
+            if (!r.ok) return;
+            const b = await r.json() as { pending?: number; recent?: { linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }[] };
+            setOutbox({ pending: Number(b.pending) || 0, recent: Array.isArray(b.recent) ? b.recent : [] });
+        } catch {
+            /* status display is best-effort; the toggle still works */
+        }
+    }, []);
+
+    // Load actual notification status when the Links view opens (from the view
+    // switch, not an effect: setting state synchronously in an effect body
+    // cascades renders).
+    const switchView = (v: TrailsView) => {
+        setView(v);
+        if (v === 'links') void refreshOutbox();
+    };
+
+    const drainOutbox = async () => {
+        if (draining) return;
+        setDraining(true);
+        try {
+            const r = await fetch('/api/dashboard/trails-outbox', { method: 'POST' });
+            const b = await r.json() as { ok?: boolean; sent?: number; failed?: number; reason?: string };
+            if (!r.ok || b.ok !== true) {
+                showAlert({ type: 'error', message: failMsg(new Error(b.reason || ''), 'Could not retry those emails.') });
+            } else if ((b.sent || 0) === 0 && (b.failed || 0) === 0) {
+                showAlert({ type: 'success', message: 'Nothing pending — every open was already emailed.' });
+            } else {
+                showAlert({ type: b.failed ? 'error' : 'success', message: `Emailed ${b.sent || 0}, failed ${b.failed || 0}. Failures stay queued for the next retry.` });
+            }
+        } catch (e) {
+            showAlert({ type: 'error', message: failMsg(e, 'Could not retry those emails.') });
+        } finally {
+            setDraining(false);
+            void refreshOutbox();
+        }
+    };
     const createLink = async () => {
-        if (!name.trim() || !forField.trim()) return;
+        if (!name.trim() || !forField.trim() || isLoading) return;
         setIsLoading(true);
 
         try {
@@ -1195,18 +1242,24 @@ const DTrails = () => {
     }, [showAlert]);
 
     const saveDraft = async () => {
-        if (!editingLink || !draft) return;
+        if (!editingLink || !draft || saving) return;
         if (!draft.Name.trim() || !draft.For.trim()) return;
         // Keep the editor and its input open on failure; close only on success.
-        const ok = await patchLink(editingLink.id, {
-            Name: draft.Name.trim(),
-            For: draft.For.trim(),
-            Notify: draft.Notify,
-            Tailor: { AutoCv: draft.AutoCv, Greeting: draft.Greeting.trim().slice(0, 160), Pinned: draft.Pinned },
-        }, 'Link updated.');
-        if (ok) {
-            setEditingLink(null);
-            setDraft(null);
+        // The saving flag stops double-clicks from queuing duplicate saves.
+        setSaving(true);
+        try {
+            const ok = await patchLink(editingLink.id, {
+                Name: draft.Name.trim(),
+                For: draft.For.trim(),
+                Notify: draft.Notify,
+                Tailor: { AutoCv: draft.AutoCv, Greeting: draft.Greeting.trim().slice(0, 160), Pinned: draft.Pinned },
+            }, 'Link updated.');
+            if (ok) {
+                setEditingLink(null);
+                setDraft(null);
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -1312,7 +1365,7 @@ const DTrails = () => {
                         return (
                             <button
                                 key={item.id}
-                                onClick={() => setView(item.id)}
+                                onClick={() => switchView(item.id)}
                                 className="relative flex items-center whitespace-nowrap cursor-pointer font-semibold transition-colors"
                                 style={{
                                     gap: isExtraSmall ? '6px' : '8px',
@@ -1342,7 +1395,7 @@ const DTrails = () => {
 
                 {liveCount > 0 && (
                     <button
-                        onClick={() => { setView('stories'); pickStoryFilter('live'); }}
+                        onClick={() => { switchView('stories'); pickStoryFilter('live'); }}
                         aria-live="polite"
                         aria-atomic="true"
                         aria-label={`${liveCount} visiting now. Show them.`}
@@ -1635,7 +1688,7 @@ const DTrails = () => {
                                         if (!l) return null;
                                         return (
                                             <button
-                                                onClick={() => setView('stories')}
+                                                onClick={() => switchView('stories')}
                                                 className="mt-3 inline-flex items-center gap-2 self-start px-3 h-9 rounded-xl text-xs font-bold cursor-pointer"
                                                 style={{ background: 'rgba(168,85,247,0.14)', color: '#a855f7' }}
                                             >
@@ -1802,6 +1855,17 @@ const DTrails = () => {
                                 <div className="shrink-0 flex flex-col gap-1 pb-8">
                                     <h1 className="heading-lg m-0 text-2xl sm:text-3xl">Links</h1>
                                     <p className="text-muted text-sm">Private doors into the portfolio, one per person</p>
+                                    <div className="mt-2 flex items-center gap-3 flex-wrap">
+                                        <button
+                                            onClick={drainOutbox}
+                                            disabled={draining || outbox.pending === 0}
+                                            className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default"
+                                            style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', color: 'var(--text-muted)' }}
+                                        >
+                                            <BellRing size={13} />
+                                            {draining ? 'Retrying…' : outbox.pending > 0 ? `Retry ${outbox.pending} pending email${outbox.pending === 1 ? '' : 's'}` : 'Emails up to date'}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-12">
@@ -1824,9 +1888,9 @@ const DTrails = () => {
                                                     <input id="trails-link-for" type="text" className="input-field" value={forField}
                                                         onChange={e => setForField(e.target.value)} placeholder="e.g. Frontend role" />
                                                 </div>
-                                                <button onClick={createLink} disabled={!name.trim() || !forField.trim()}
+                                                <button onClick={createLink} disabled={!name.trim() || !forField.trim() || isLoading}
                                                     className="btn btn-primary w-full py-3.5 mt-1">
-                                                    Create link
+                                                    {isLoading ? 'Creating…' : 'Create link'}
                                                 </button>
                                                 <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                                                     New links email you the moment they are opened, with a button
@@ -1895,6 +1959,28 @@ const DTrails = () => {
                                                             <span className="truncate">{new Date(link.LastOpenAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                                                         ) : null}
                                                     </div>
+
+                                                    {(() => {
+                                                        // Actual stored notification status for this link's latest
+                                                        // open — sent, still queued, or failed with attempts left.
+                                                        const row = outbox.recent.find(r => r.linkCode === link.Code);
+                                                        if (!row || row.status === 'skipped') return null;
+                                                        const when = row.createdAt ? new Date(row.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+                                                        const text =
+                                                            row.status === 'sent' ? `Last email sent${when ? ` · ${when}` : ''}`
+                                                                : row.status === 'pending' ? 'Email pending — retries automatically'
+                                                                    : row.attempts < 3 ? `Email failed ×${row.attempts} — will retry`
+                                                                        : `Email failed ×${row.attempts} — out of retries`;
+                                                        const tint =
+                                                            row.status === 'sent' ? '#22c55e'
+                                                                : row.status === 'pending' ? '#f59e0b' : '#ef4444';
+                                                        return (
+                                                            <div className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: tint }}>
+                                                                {row.status === 'sent' ? <Check size={13} /> : row.status === 'pending' ? <BellRing size={13} /> : <BellOff size={13} />}
+                                                                <span className="truncate">{text}</span>
+                                                            </div>
+                                                        );
+                                                    })()}
 
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <button
@@ -2092,8 +2178,8 @@ const DTrails = () => {
 
                         <div className="px-7 py-4 border-t flex items-center justify-end gap-3" style={{ borderColor: 'var(--card-border)' }}>
                             <button onClick={() => { setEditingLink(null); setDraft(null); }} className="btn btn-secondary !px-6 !py-2.5">Cancel</button>
-                            <button onClick={saveDraft} disabled={!draft.Name.trim() || !draft.For.trim()} className="btn btn-primary !px-7 !py-2.5">
-                                Save
+                            <button onClick={saveDraft} disabled={!draft.Name.trim() || !draft.For.trim() || saving} className="btn btn-primary !px-7 !py-2.5">
+                                {saving ? 'Saving…' : 'Save'}
                             </button>
                         </div>
                     </motion.div>

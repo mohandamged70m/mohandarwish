@@ -164,5 +164,8 @@ async function notifyLinkOpened(result: Dict, body: Dict, geo: { Country: string
       visit: 1,
       storyUrl: `${site}/dashboard?s=${encodeURIComponent(id)}`,
     }),
+  }, {
+    // One logical email per visit: a retried inline send is a no-op upstream.
+    idempotencyKey: `trails-visit-${id}`,
   });
 }

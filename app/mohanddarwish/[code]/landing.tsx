@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { requestCvOpen } from "@/components/cv/CvModal";
-import { stashTailor } from "@/lib/analytics/tailor";
+import { clearTailor, stashTailor } from "@/lib/analytics/tailor";
 import type { LinkDoc } from "@/lib/analytics-types";
 
 type Status = "loading" | "redirecting" | "missing";
@@ -37,17 +37,37 @@ export function wantsAutoCv(link: LinkDoc): boolean {
  * Counting it here instead counted prefetches, bots and the owner's own testing, and
  * left the link's own "opens" and "visits" disagreeing with each other.
  */
+/**
+ * A revoked or unknown code must not inherit a previous link's attribution:
+ * drop the stored link, its timestamp, the stashed greeting, and the campaign
+ * backup so the visit continues as a direct one.
+ */
+function clearStaleAttribution(): void {
+  try {
+    sessionStorage.removeItem("trails_link");
+    sessionStorage.removeItem("trails_link_at");
+    sessionStorage.removeItem("trails_tailor");
+    sessionStorage.removeItem("trails_entry");
+  } catch {
+    /* private mode — nothing stored */
+  }
+  try {
+    clearTailor();
+  } catch {
+    /* never break the page */
+  }
+}
+
 export default function TailoredLanding({ code }: { code: string }) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("loading");
   // Handoff must fire once per link open (StrictMode double-invokes effects).
   const fired = useRef(false);
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const response=await fetch(`/api/share/${encodeURIComponent(code)}`);const data=await response.json() as LinkDoc;if(cancelled)return;if(!response.ok){setStatus("missing");return;}
+        const response=await fetch(`/api/share/${encodeURIComponent(code)}`);const data=await response.json() as LinkDoc;if(cancelled)return;if(!response.ok){clearStaleAttribution();setStatus("missing");return;}
         // Attribute this visit to the link: a backup in sessionStorage (the tracker
         // picks it up when it starts) + a live handoff with retries (this page effect
         // runs before the layout tracker's mount effect, which may not have happened

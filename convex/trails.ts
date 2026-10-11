@@ -795,6 +795,54 @@ export const outboxPending = query({
   },
 });
 
+/**
+ * Due notifications: pending rows plus failed rows with attempts left
+ * (bounded retries). The owner drain sends these oldest-first; rows that
+ * exhaust their attempts stay failed and visible via outboxRecent.
+ */
+export const outboxDue = query({
+  args: { serverKey: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, { serverKey, limit }) => {
+    requireServer(serverKey);
+    const cap = Math.min(Math.max(limit ?? 10, 1), 50);
+    const pending = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_status", (q: any) => q.eq("status", "pending"))
+      .take(cap);
+    if (pending.length >= cap) return pending;
+    const failed = await ctx.db
+      .query("trailOutbox")
+      .withIndex("by_status", (q: any) => q.eq("status", "failed"))
+      .take(cap);
+    const retryable = failed.filter((r: any) => r.attempts < 3);
+    return [...pending, ...retryable]
+      .sort((a: any, b: any) => a.createdAt - b.createdAt)
+      .slice(0, cap);
+  },
+});
+
+/** Recent notification rows, optionally for one share code (status display). */
+export const outboxRecent = query({
+  args: {
+    serverKey: v.string(),
+    linkCode: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, { serverKey, linkCode, limit }) => {
+    requireServer(serverKey);
+    const cap = Math.min(Math.max(limit ?? 50, 1), 100);
+    const code = str(linkCode ?? "", 40);
+    const rows = await ctx.db.query("trailOutbox").order("desc").take(cap * 2);
+    const out = [];
+    for (const r of rows) {
+      if (code && (r as any).linkCode !== code) continue;
+      out.push(r);
+      if (out.length >= cap) break;
+    }
+    return out;
+  },
+});
+
 export const outboxMark = mutation({
   args: {
     serverKey: v.string(),
