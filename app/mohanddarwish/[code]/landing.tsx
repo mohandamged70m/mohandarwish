@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import { requestCvOpen } from "@/components/cv/CvModal";
+import { requestCvOnArrival } from "@/lib/analytics/cv-arrival";
 import { clearTailor, stashTailor } from "@/lib/analytics/tailor";
 import type { LinkDoc } from "@/lib/analytics-types";
 
@@ -47,6 +47,7 @@ function clearStaleAttribution(): void {
     sessionStorage.removeItem("trails_link");
     sessionStorage.removeItem("trails_link_at");
     sessionStorage.removeItem("trails_tailor");
+    sessionStorage.removeItem("trails_cv_pending");
     sessionStorage.removeItem("trails_entry");
   } catch {
     /* private mode — nothing stored */
@@ -133,13 +134,8 @@ export default function TailoredLanding({ code }: { code: string }) {
         setStatus("redirecting");
         window.setTimeout(() => {
           if (cancelled) return;
+          if (autoCv) requestCvOnArrival();
           router.replace("/");
-          if (autoCv) {
-            // Let the portfolio mount before popping the modal.
-            window.setTimeout(() => {
-              if (!cancelled) requestCvOpen();
-            }, 700);
-          }
         }, 450);
       } catch {
         if (!cancelled) setStatus("missing");

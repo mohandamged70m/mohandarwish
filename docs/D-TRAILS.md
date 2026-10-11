@@ -1,5 +1,7 @@
 # D-Trails — share-link analytics
 
+Current reliability notes and verification: [TRAILS-RELIABILITY.md](TRAILS-RELIABILITY.md).
+
 Dependable analytics for one question: **who opened my share links, and what
 did they actually do on the portfolio?** Public portfolio and private owner
 dashboard are preserved. Owner-only Google authentication, Next.js,
@@ -52,7 +54,7 @@ stay out: no init, no flush, no beacon for them.
   non-interactive content are ordinary reading, not frustration.
 - **Attribution lifetime.** Link attribution expires after 12 h
   (`trails_link_at`); stale or deleted codes clear the stored link, greeting
-  and campaign backup, and the visit stops (`untracked`).
+  and campaign backup, and the visit continues without link attribution.
 
 ## Honesty rules (shown in the UI)
 
@@ -141,7 +143,7 @@ batches in sessionStorage). **After a browser forcibly terminates
   the owner drain (`POST /api/dashboard/trails-outbox`; `GET` reports the
   backlog plus recent per-link status shown on the link cards). The drain
   sends due rows oldest-first — pending plus failed with attempts left
-  (bounded at 3) — with a stable key per row (`trails-outbox-{rowId}`) so a
+  (bounded at 3) — with a stable key per row (`trails-visit-{sessionId}`) so a
   crashed retry is a provider-side no-op. Unconfigured mail
   (`OWNER_EMAIL`/`RESEND_API_KEY` unset) skips silently and accurately.
 

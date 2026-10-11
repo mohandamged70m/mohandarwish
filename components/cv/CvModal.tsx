@@ -11,6 +11,8 @@ import {
   Printer,
   X,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useCvArrival } from "@/lib/analytics/cv-arrival";
 import { ME } from "@/data/me";
 
 export const CV_OPEN_EVENT = "open-cv";
@@ -345,6 +347,7 @@ export function CvModal({ open, onClose }: { open: boolean; onClose: () => void 
 
 export function CvModalHost(): ReactNode {
   const [open, setOpen] = useState(false);
+  useCvArrival(usePathname(), requestCvOpen);
 
   useEffect(() => {
     const onOpen = (): void => setOpen(true);

@@ -20,6 +20,7 @@ import Toggle from '@/components/dashboard/primitives/Toggle';
 import RollingNumber from '@/components/dashboard/primitives/RollingNumber';
 import useSafeAlert from '@/hooks/useSafeAlert';
 import MConfirmModal, { ConfirmType } from './M-ConfirmModal';
+import TrailsHealth from './TrailsHealth';
 import MStory, { DeviceIcon, flagOf, isLive } from './M-Story';
 import { formatMs, type SessionDoc, type LinkDoc, type TotalsDoc } from '@/lib/analytics-types';
 import { Github } from '@/components/dashboard/primitives/icons';
@@ -76,7 +77,7 @@ const SOURCE_KINDS: Record<string, { label: string; color: string }> = {
     social: { label: 'Social', color: '#ec4899' },
     mail: { label: 'Email', color: '#f59e0b' },
     referral: { label: 'Link', color: '#10b981' },
-    direct: { label: 'Typed in', color: '#64748b' },
+    direct: { label: 'Unknown origin', color: '#64748b' },
 };
 
 type StoryFilter = 'all' | 'live' | 'links' | 'direct' | 'contacted' | 'converted';
@@ -838,6 +839,8 @@ const DTrails = () => {
     // Notification outbox status per link (actual stored status, never assumed).
     const [outbox, setOutbox] = useState<{
         pending: number;
+        configured?: boolean;
+        pendingCapped?: boolean;
         recent: Array<{ linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }>;
     }>({ pending: 0, recent: [] });
     const [draining, setDraining] = useState(false);
@@ -1172,8 +1175,8 @@ const DTrails = () => {
         try {
             const r = await fetch('/api/dashboard/trails-outbox', { cache: 'no-store' });
             if (!r.ok) return;
-            const b = await r.json() as { pending?: number; recent?: { linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }[] };
-            setOutbox({ pending: Number(b.pending) || 0, recent: Array.isArray(b.recent) ? b.recent : [] });
+            const b = await r.json() as { pending?: number; configured?: boolean; pendingCapped?: boolean; recent?: { linkCode: string; linkName: string; status: string; attempts: number; createdAt: number }[] };
+            setOutbox({ pending: Number(b.pending) || 0, configured: b.configured, pendingCapped: b.pendingCapped, recent: Array.isArray(b.recent) ? b.recent : [] });
         } catch {
             /* status display is best-effort; the toggle still works */
         }
@@ -1417,6 +1420,7 @@ const DTrails = () => {
                 )}
             </div>
 
+            <TrailsHealth />
             <div className="flex-1 min-h-0">
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.div
@@ -1858,12 +1862,12 @@ const DTrails = () => {
                                     <div className="mt-2 flex items-center gap-3 flex-wrap">
                                         <button
                                             onClick={drainOutbox}
-                                            disabled={draining || outbox.pending === 0}
+                                            disabled={draining || outbox.pending === 0 || outbox.configured === false}
                                             className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-default"
                                             style={{ background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', color: 'var(--text-muted)' }}
                                         >
                                             <BellRing size={13} />
-                                            {draining ? 'Retrying…' : outbox.pending > 0 ? `Retry ${outbox.pending} pending email${outbox.pending === 1 ? '' : 's'}` : 'Emails up to date'}
+                                            {draining ? 'Retrying…' : outbox.configured === false ? 'Email not configured' : outbox.pending > 0 ? `Retry ${outbox.pending}${outbox.pendingCapped ? '+' : ''} pending email${outbox.pending === 1 ? '' : 's'}` : 'Emails up to date'}
                                         </button>
                                     </div>
                                 </div>

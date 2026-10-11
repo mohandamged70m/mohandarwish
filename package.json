@@ -37,6 +37,7 @@
   "devDependencies": {
     "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4",
+    "@types/jsdom": "^30.0.0",
     "@types/matter-js": "^0.20.2",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -44,6 +45,7 @@
     "convex-test": "^0.0.61",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "jsdom": "^30.1.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7"

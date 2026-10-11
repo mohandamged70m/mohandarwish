@@ -38,7 +38,6 @@ interface TrailsBridge {
 interface TrailsWindow extends Window {
   __trails?: TrailsBridge;
   __trails_active?: boolean;
-  __trails_nav_seen?: boolean;
 }
 
 interface PendingLink {
@@ -51,27 +50,23 @@ interface PendingLink {
  * Ownership resolves server-side from the HttpOnly Auth.js session; the
  * browser never reads the session cookie (it cannot — HttpOnly), it just asks
  * the session endpoint once per visit and stays off for the owner. */
-let ownerCheck: Promise<boolean> | null = null;
-function checkOwner(): Promise<boolean> {
-  if (!ownerCheck) {
-    ownerCheck = (async () => {
-      try {
-        const r = await fetch("/api/auth/session", { cache: "no-store" });
-        if (!r.ok) return false;
-        const b = (await r.json().catch(() => null)) as {
-          user?: { isOwner?: boolean };
-        } | null;
-        return b?.user?.isOwner === true;
-      } catch {
-        return false;
-      }
-    })();
+async function checkOwner(): Promise<boolean> {
+  try {
+    const r = await fetch("/api/auth/session", { cache: "no-store", signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return false;
+    const b = await r.json() as { user?: { isOwner?: boolean } } | null;
+    return b?.user?.isOwner === true;
+  } catch {
+    // Ownership is checked again authoritatively by the ingest gateway.
+    return false;
   }
-  return ownerCheck;
+}
+function isPrivatePath(path: string): boolean {
+  return /^\/(dashboard|api)(?:\/|$)/.test(path);
 }
 function isLocalDev(): boolean {
   try {
-    if (/^(localhost|127\.|192\.168\.|10\.)/.test(window.location.hostname))
+    if (/^(?:localhost|127\.[\d.]+|192\.168\.[\d.]+|10\.[\d.]+|\[?::1\]?)$/.test(window.location.hostname))
       return true;
   } catch {
     /* ignore */
@@ -90,7 +85,7 @@ function hostOf(url: string): string {
 function readStoredLink(): PendingLink | null {
   try {
     const at = Number(sessionStorage.getItem("trails_link_at") || 0);
-    if (at > 0 && Date.now() - at > LINK_STALE_MS) {
+    if (!at || Date.now() - at > LINK_STALE_MS || at > Date.now()) {
       // Stale attribution must expire: a tab left open overnight must not
       // attribute tomorrow's browsing to yesterday's link, nor inherit its
       // greeting.
@@ -142,11 +137,13 @@ export function TrailsTracker(): null {
       w.__trails_active = true;
 
       let curPath = window.location.pathname || "/";
+      let starting = false;
+      let pendingLink: PendingLink | null = null;
       let live = false; // is the collector actually recording?
       let lastContactOpenAt = 0;
       const slugOf = (p: string) => {
         const m = p.match(PROJECT_RE);
-        return m && m[1] ? decodeURIComponent(m[1]).slice(0, 120) : "";
+        try { return m?.[1] ? decodeURIComponent(m[1]).slice(0, 120) : ""; } catch { return ""; }
       };
       const contactOpenDebounced = () => {
         const now = Date.now();
@@ -160,21 +157,25 @@ export function TrailsTracker(): null {
       // known (URL, stashed backup, or live handoff), or as a direct visit
       // otherwise. Only the owner and local dev stay out.
       const begin = (link: PendingLink | null) => {
-        if (live || dead || isLocalDev()) return;
+        pendingLink = link;
+        if (live || dead || starting || isLocalDev() || isPrivatePath(curPath)) return;
+        starting = true;
         // Owner check hits the session endpoint; resolve it before
         // recording anything so the owner's own visits never start the collector.
         // The server re-resolves ownership authoritatively per flush, so a
         // spoofed client hint can never pollute visitor metrics.
         void checkOwner().then((owned) => {
-          if (live || dead || owned) return;
+          starting = false;
+          if (live || dead || owned || isPrivatePath(curPath)) return;
+          const link = pendingLink;
           live = true;
           analytics.start({
             section: sectionNow(curPath),
             ...(link?.Id ? { code: link.Id } : {}),
             isOwner: () => false,
             onTailor: (tailor, resolved) => {
-              const full: Tailor = { ...tailor, LinkName: link?.Name || "", LinkFor: link?.For || "" };
-              stashTailor(tailor, { Name: link?.Name || "", For: link?.For || "" });
+              const full: Tailor = { ...tailor, LinkName: resolved?.Name || "", LinkFor: resolved?.For || "" };
+              stashTailor(tailor, { Name: resolved?.Name || "", For: resolved?.For || "" });
               announceTailor(full);
               void resolved;
             },
@@ -185,6 +186,9 @@ export function TrailsTracker(): null {
             clearTailor();
             announceTailor(null);
           }
+          live = analytics.isRunning();
+          const project = slugOf(curPath);
+          if (live && project) analytics.projectOpen(project);
           observeSections();
         });
       };
@@ -218,10 +222,21 @@ export function TrailsTracker(): null {
                 } catch {
                   /* ignore */
                 }
-                if (live) analytics.restartWithCode(link.Id, sectionNow(curPath));
+                if (live) { analytics.restartWithCode(link.Id, sectionNow(curPath)); observeSections(); }
                 else begin(link);
               }
               return;
+            }
+            if (kind === "nav") {
+              const next = (value || curPath).slice(0, 200);
+              if (isPrivatePath(next)) {
+                if (live) analytics.stop();
+                live = false;
+                curPath = next;
+                observeSections();
+                return;
+              }
+              if (!live) { curPath = next; if (!starting) begin(readStoredLink()); return; }
             }
             if (!live) return;
             switch (kind) {
@@ -252,9 +267,11 @@ export function TrailsTracker(): null {
                 analytics.projectClose();
                 break;
               case "nav": {
+                const previous = slugOf(curPath);
                 curPath = (value || curPath).slice(0, 200);
                 const slug = slugOf(curPath);
-                if (slug) analytics.projectOpen(slug);
+                if (previous && previous !== slug) analytics.projectClose();
+                if (slug && slug !== previous) analytics.projectOpen(slug);
                 analytics.setSection(sectionNow(curPath));
                 observeSections();
                 break;
@@ -269,17 +286,19 @@ export function TrailsTracker(): null {
       };
 
       // ── section visibility ─────────────────────────────────────────
-      const visibleSections = new Set<string>();
+      const visibleSections = new Map<string, number>();
+      const observed = new Set<Element>();
+      const sectionName = (el: HTMLElement) => el.dataset.trailsSection || KNOWN_SECTIONS.find(([id]) => id === el.id)?.[1] || el.id;
       const io =
         "IntersectionObserver" in window
           ? new IntersectionObserver(
               (entries) => {
                 for (const e of entries) {
                   const el = e.target as HTMLElement;
-                  const name = el.dataset.trailsSection || el.id;
+                  const name = sectionName(el);
                   if (e.isIntersecting) {
                     const fresh = !visibleSections.has(name);
-                    visibleSections.add(name);
+                    visibleSections.set(name, e.intersectionRatio);
                     // Once per visibility session, cooldown-guarded: observer
                     // flapping at a boundary must not inflate contact opens.
                     if (name === "contact" && fresh) contactOpenDebounced();
@@ -289,33 +308,42 @@ export function TrailsTracker(): null {
                 }
                 // Whichever section is on screen owns the clock. A named section wins
                 // over an anonymous one so two visible at a boundary cannot flap.
-                const named = KNOWN_SECTIONS.find(([id]) => visibleSections.has(id));
-                const next = named ? named[1] : [...visibleSections][0];
+                const next = [...visibleSections].sort((a, b) => b[1] - a[1])[0]?.[0];
                 if (next) analytics.setSection(next);
               },
-              { threshold: 0.3 }
+              { threshold: [0, 0.1, 0.3, 0.5, 0.75] }
             )
           : null;
 
       function observeSections(): void {
         if (!io) return;
-        try {
+        if (!live || slugOf(curPath) || isPrivatePath(curPath)) {
           io.disconnect();
+          observed.clear();
           visibleSections.clear();
-          for (const [id] of KNOWN_SECTIONS) {
-            const el = document.getElementById(id);
-            if (el) io.observe(el);
+          return;
+        }
+        // Streamed content and route mounts can appear after the nav effect.
+        // Register only new targets; resetting the observer loses visibility.
+        for (const el of observed) {
+          if (!el.isConnected) {
+            io.unobserve(el);
+            observed.delete(el);
+            visibleSections.delete(sectionName(el as HTMLElement));
           }
-          document.querySelectorAll("[data-trails-section]").forEach((el) => io.observe(el));
-        } catch {
-          /* ignore */
+        }
+        const targets = [...KNOWN_SECTIONS.map(([id]) => document.getElementById(id)), ...document.querySelectorAll("[data-trails-section]")];
+        for (const el of targets) {
+          if (el && !observed.has(el)) { observed.add(el); io.observe(el); }
         }
       }
+      const domObserver = new MutationObserver(observeSections);
+      domObserver.observe(document.body, { childList: true, subtree: true });
 
       function sectionNow(path: string): string {
         if (slugOf(path)) return "project";
         if (path.startsWith("/projects")) return "projects";
-        return visibleSections.size ? [...visibleSections][0] : "home";
+        return [...visibleSections].sort((a, b) => b[1] - a[1])[0]?.[0] || "home";
       }
 
       // ── click classification ───────────────────────────────────────
@@ -337,8 +365,8 @@ export function TrailsTracker(): null {
             return;
           }
           if (kind === "social") {
-            const nm = el.dataset.name || (el as HTMLAnchorElement).href || "unknown";
-            analytics.socialClick(hostOf(nm) || nm);
+            const href = (el as HTMLAnchorElement).href || "";
+            analytics.socialClick(el.dataset.name || hostOf(href) || "unknown");
             return;
           }
           if (kind === "project-out" && el.dataset.id) {
@@ -376,7 +404,7 @@ export function TrailsTracker(): null {
         }
       };
 
-      document.addEventListener("click", onClick);
+      document.addEventListener("click", onClick, true);
       const onCvEvent = () => {
         if (live) analytics.cvOpen();
       };
@@ -400,7 +428,11 @@ export function TrailsTracker(): null {
       return () => {
         dead = true;
         io?.disconnect();
-        document.removeEventListener("click", onClick);
+        domObserver.disconnect();
+        document.removeEventListener("click", onClick, true);
+        if (live) analytics.stop();
+        delete w.__trails;
+        w.__trails_active = false;
         window.removeEventListener("open-cv", onCvEvent);
       };
     } catch {
@@ -414,10 +446,6 @@ export function TrailsTracker(): null {
   useEffect(() => {
     try {
       const w = window as TrailsWindow;
-      if (!w.__trails_nav_seen) {
-        w.__trails_nav_seen = true;
-        return;
-      }
       if (pathname) w.__trails?.track("nav", pathname);
     } catch {
       /* ignore */
