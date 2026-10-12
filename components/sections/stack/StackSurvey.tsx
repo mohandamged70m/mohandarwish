@@ -36,19 +36,19 @@ type Connection = {
   b: string;
 };
 
-// Desktop (md and up) geometry — TypeScript is the central hub; Python +
-// FastAPI branch sits top-center; everything else keeps its original spot.
+// Desktop (md and up) geometry — TypeScript (left-center) and Python
+// (right-center) are the two hubs; everything else keeps its original spot.
 const STATION_R = 22;
 const HIT_R = 30;
 const LABEL_DX = 34;
 const LABEL_DY = 46;
 
 const STATIONS: readonly Station[] = [
-  { id: "ts", label: "TypeScript", x: 500, y: 255, side: "below", Icon: SiTypescript },
+  { id: "ts", label: "TypeScript", x: 360, y: 260, side: "below", Icon: SiTypescript },
+  { id: "python", label: "Python", x: 690, y: 260, side: "below", Icon: SiPython },
   { id: "nextjs", label: "Next.js", x: 200, y: 255, side: "left", Icon: SiNextdotjs },
   { id: "react", label: "React", x: 340, y: 160, side: "right", Icon: SiReact },
-  { id: "python", label: "Python", x: 330, y: 55, side: "below", Icon: SiPython },
-  { id: "fastapi", label: "FastAPI", x: 500, y: 110, side: "below", Icon: SiFastapi },
+  { id: "fastapi", label: "FastAPI", x: 700, y: 105, side: "right", Icon: SiFastapi },
   { id: "tailwind", label: "Tailwind CSS", x: 330, y: 360, side: "right", Icon: SiTailwindcss },
   { id: "expo", label: "Expo", x: 170, y: 120, side: "left", Icon: SiExpo },
   // Label sits right of the station (rather than the mirrored left) so the
@@ -64,40 +64,42 @@ const STATIONS: readonly Station[] = [
   { id: "actions", label: "GitHub Actions", x: 290, y: 510, side: "left", Icon: SiGithubactions },
 ];
 
-// Mobile portrait geometry (viewBox 400x925, every label below its station).
-// Same ids, labels and icons as desktop; TypeScript sits single and centered
-// mid-flow as the hub, Python + FastAPI open the map up top.
+// Mobile portrait geometry (viewBox 400x900, every label below its station).
+// Same ids, labels and icons as desktop; TypeScript and Python stack as two
+// centered hubs mid-flow, each with its satellites close by.
 const M_STATION_R = 24;
 const M_HIT_R = 32;
 const M_ICON = 26;
 const M_LABEL_DY = 46;
 
 const MOBILE_STATIONS: readonly Station[] = [
-  { id: "python", label: "Python", x: 100, y: 65, side: "below", Icon: SiPython },
-  { id: "fastapi", label: "FastAPI", x: 300, y: 65, side: "below", Icon: SiFastapi },
-  { id: "expo", label: "Expo", x: 80, y: 175, side: "below", Icon: SiExpo },
-  { id: "wc", label: "Web Components", x: 320, y: 175, side: "below", Icon: SiWebcomponentsdotorg },
-  { id: "react", label: "React", x: 80, y: 290, side: "below", Icon: SiReact },
-  { id: "nextjs", label: "Next.js", x: 200, y: 290, side: "below", Icon: SiNextdotjs },
-  { id: "tailwind", label: "Tailwind CSS", x: 320, y: 290, side: "below", Icon: SiTailwindcss },
-  { id: "ts", label: "TypeScript", x: 200, y: 400, side: "below", Icon: SiTypescript },
-  { id: "clerk", label: "Clerk", x: 80, y: 510, side: "below", Icon: SiClerk },
-  { id: "supabase", label: "Supabase", x: 320, y: 510, side: "below", Icon: SiSupabase },
-  { id: "gemini", label: "Gemini API", x: 140, y: 625, side: "below", Icon: SiGooglegemini },
-  { id: "rag", label: "RAG", x: 310, y: 635, side: "below", Icon: LuFileSearch },
-  { id: "vercel", label: "Vercel", x: 200, y: 745, side: "below", Icon: SiVercel },
-  { id: "actions", label: "GitHub Actions", x: 80, y: 855, side: "below", Icon: SiGithubactions },
-  { id: "lemon", label: "Lemon Squeezy", x: 320, y: 855, side: "below", Icon: SiLemonsqueezy },
+  { id: "expo", label: "Expo", x: 80, y: 60, side: "below", Icon: SiExpo },
+  { id: "wc", label: "Web Components", x: 320, y: 60, side: "below", Icon: SiWebcomponentsdotorg },
+  { id: "react", label: "React", x: 80, y: 170, side: "below", Icon: SiReact },
+  { id: "nextjs", label: "Next.js", x: 200, y: 170, side: "below", Icon: SiNextdotjs },
+  { id: "tailwind", label: "Tailwind CSS", x: 320, y: 170, side: "below", Icon: SiTailwindcss },
+  { id: "ts", label: "TypeScript", x: 200, y: 280, side: "below", Icon: SiTypescript },
+  { id: "clerk", label: "Clerk", x: 80, y: 390, side: "below", Icon: SiClerk },
+  { id: "python", label: "Python", x: 200, y: 390, side: "below", Icon: SiPython },
+  { id: "supabase", label: "Supabase", x: 320, y: 390, side: "below", Icon: SiSupabase },
+  { id: "fastapi", label: "FastAPI", x: 90, y: 500, side: "below", Icon: SiFastapi },
+  { id: "gemini", label: "Gemini API", x: 90, y: 610, side: "below", Icon: SiGooglegemini },
+  { id: "rag", label: "RAG", x: 310, y: 610, side: "below", Icon: LuFileSearch },
+  { id: "vercel", label: "Vercel", x: 200, y: 720, side: "below", Icon: SiVercel },
+  { id: "actions", label: "GitHub Actions", x: 80, y: 830, side: "below", Icon: SiGithubactions },
+  { id: "lemon", label: "Lemon Squeezy", x: 320, y: 830, side: "below", Icon: SiLemonsqueezy },
 ];
 
 const CONNECTIONS: readonly Connection[] = [
+  { a: "ts", b: "python" },
   { a: "ts", b: "nextjs" },
   { a: "ts", b: "react" },
   { a: "ts", b: "tailwind" },
-  { a: "ts", b: "clerk" },
-  { a: "ts", b: "supabase" },
-  { a: "ts", b: "gemini" },
-  { a: "ts", b: "vercel" },
+  { a: "python", b: "fastapi" },
+  { a: "python", b: "supabase" },
+  { a: "python", b: "gemini" },
+  { a: "python", b: "clerk" },
+  { a: "python", b: "vercel" },
   { a: "nextjs", b: "react" },
   { a: "react", b: "expo" },
   { a: "tailwind", b: "wc" },
@@ -105,8 +107,6 @@ const CONNECTIONS: readonly Connection[] = [
   { a: "gemini", b: "rag" },
   { a: "vercel", b: "lemon" },
   { a: "vercel", b: "actions" },
-  { a: "python", b: "fastapi" },
-  { a: "fastapi", b: "ts" },
 ];
 
 type Hill = { cx: number; cy: number; rings: number };
@@ -118,9 +118,9 @@ const HILLS: readonly Hill[] = [
 ];
 
 const MOBILE_HILLS: readonly Hill[] = [
-  { cx: 200, cy: 230, rings: 6 },
-  { cx: 200, cy: 540, rings: 7 },
-  { cx: 200, cy: 820, rings: 5 },
+  { cx: 200, cy: 200, rings: 6 },
+  { cx: 200, cy: 470, rings: 7 },
+  { cx: 200, cy: 750, rings: 5 },
 ];
 
 const RING_POINTS = 96;
@@ -385,7 +385,7 @@ export function StackSurvey(): React.JSX.Element {
             below their stations. */}
         <div className="mt-8 overflow-x-auto bg-bg-primary md:hidden">
           <svg
-            viewBox="0 0 400 925"
+            viewBox="0 0 400 900"
             role="img"
             aria-label="Portrait survey control network map of the tools I use"
             className="block h-auto w-full"
@@ -394,7 +394,7 @@ export function StackSurvey(): React.JSX.Element {
           >
             <defs>
               <clipPath id={mobileClipId}>
-                <rect x={0} y={0} width={400} height={925} />
+                <rect x={0} y={0} width={400} height={900} />
               </clipPath>
             </defs>
 
