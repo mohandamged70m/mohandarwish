@@ -2,16 +2,14 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { IconType } from "react-icons";
-import { LuFileSearch, LuGlobe, LuServer, LuSmartphone } from "react-icons/lu";
+import { LuFileSearch } from "react-icons/lu";
 import {
   SiClerk,
   SiExpo,
-  SiFastapi,
   SiGithubactions,
   SiGooglegemini,
   SiLemonsqueezy,
   SiNextdotjs,
-  SiPython,
   SiReact,
   SiSupabase,
   SiTailwindcss,
@@ -19,192 +17,101 @@ import {
   SiVercel,
   SiWebcomponentsdotorg,
 } from "react-icons/si";
-import { TbBrandReactNative } from "react-icons/tb";
 
 type LabelSide = "left" | "right" | "below";
 
-/* ── Data: technology nodes (layout-agnostic) ────────────────────────── */
-
-type NodeKind = "language" | "branch" | "framework" | "platform" | "service";
-
-type StackNode = {
+type Station = {
   id: string;
   label: string;
-  Icon: IconType;
-  kind: NodeKind;
-};
-
-type EdgeKind = "hierarchy" | "support";
-
-type StackEdge = {
-  a: string;
-  b: string;
-  kind: EdgeKind;
-};
-
-/**
- * Organizational hierarchy, not package dependencies:
- *  Python → Backend → FastAPI
- *  TypeScript → Web → React → Next.js
- *  TypeScript → Mobile → React Native → Expo
- * Supporting services attach with `support` edges and are never duplicated.
- */
-const STACK_NODES: readonly StackNode[] = [
-  { id: "python", label: "Python", Icon: SiPython, kind: "language" },
-  { id: "ts", label: "TypeScript", Icon: SiTypescript, kind: "language" },
-  { id: "backend", label: "Backend", Icon: LuServer, kind: "branch" },
-  { id: "web", label: "Web", Icon: LuGlobe, kind: "branch" },
-  { id: "mobile", label: "Mobile", Icon: LuSmartphone, kind: "branch" },
-  { id: "fastapi", label: "FastAPI", Icon: SiFastapi, kind: "framework" },
-  { id: "react", label: "React", Icon: SiReact, kind: "framework" },
-  { id: "rn", label: "React Native", Icon: TbBrandReactNative, kind: "framework" },
-  { id: "nextjs", label: "Next.js", Icon: SiNextdotjs, kind: "platform" },
-  { id: "expo", label: "Expo", Icon: SiExpo, kind: "platform" },
-  { id: "tailwind", label: "Tailwind CSS", Icon: SiTailwindcss, kind: "service" },
-  { id: "wc", label: "Web Components", Icon: SiWebcomponentsdotorg, kind: "service" },
-  { id: "clerk", label: "Clerk", Icon: SiClerk, kind: "service" },
-  { id: "supabase", label: "Supabase", Icon: SiSupabase, kind: "service" },
-  { id: "gemini", label: "Gemini API", Icon: SiGooglegemini, kind: "service" },
-  { id: "rag", label: "RAG", Icon: LuFileSearch, kind: "service" },
-  { id: "vercel", label: "Vercel", Icon: SiVercel, kind: "service" },
-  { id: "lemon", label: "Lemon Squeezy", Icon: SiLemonsqueezy, kind: "service" },
-  { id: "actions", label: "GitHub Actions", Icon: SiGithubactions, kind: "service" },
-];
-
-const STACK_EDGES: readonly StackEdge[] = [
-  // Hierarchy — how products are built (solid lines).
-  { a: "python", b: "backend", kind: "hierarchy" },
-  { a: "backend", b: "fastapi", kind: "hierarchy" },
-  { a: "ts", b: "web", kind: "hierarchy" },
-  { a: "ts", b: "mobile", kind: "hierarchy" },
-  { a: "web", b: "react", kind: "hierarchy" },
-  { a: "react", b: "nextjs", kind: "hierarchy" },
-  { a: "mobile", b: "rn", kind: "hierarchy" },
-  { a: "rn", b: "expo", kind: "hierarchy" },
-  // Supporting integrations — shared services, never duplicated (dashed).
-  { a: "react", b: "tailwind", kind: "support" },
-  { a: "nextjs", b: "tailwind", kind: "support" },
-  { a: "tailwind", b: "wc", kind: "support" },
-  { a: "nextjs", b: "clerk", kind: "support" },
-  { a: "expo", b: "clerk", kind: "support" },
-  { a: "fastapi", b: "supabase", kind: "support" },
-  { a: "nextjs", b: "supabase", kind: "support" },
-  { a: "expo", b: "supabase", kind: "support" },
-  { a: "fastapi", b: "gemini", kind: "support" },
-  { a: "nextjs", b: "gemini", kind: "support" },
-  { a: "gemini", b: "rag", kind: "support" },
-  { a: "supabase", b: "rag", kind: "support" },
-  { a: "nextjs", b: "vercel", kind: "support" },
-  { a: "expo", b: "vercel", kind: "support" },
-  { a: "vercel", b: "actions", kind: "support" },
-  { a: "vercel", b: "lemon", kind: "support" },
-];
-
-/* ── Layout: positions stay separate from technology data ────────────── */
-
-type Station = StackNode & {
   x: number;
   y: number;
   side: LabelSide;
+  Icon: IconType;
 };
 
-const DESKTOP_POS: Record<string, { x: number; y: number; side: LabelSide }> = {
-  python: { x: 150, y: 140, side: "below" },
-  backend: { x: 335, y: 140, side: "below" },
-  fastapi: { x: 510, y: 140, side: "below" },
-  tailwind: { x: 690, y: 140, side: "below" },
-  clerk: { x: 870, y: 130, side: "below" },
-  ts: { x: 150, y: 320, side: "below" },
-  web: { x: 335, y: 265, side: "below" },
-  mobile: { x: 335, y: 430, side: "below" },
-  react: { x: 510, y: 265, side: "below" },
-  rn: { x: 510, y: 430, side: "below" },
-  nextjs: { x: 690, y: 265, side: "below" },
-  expo: { x: 690, y: 430, side: "below" },
-  wc: { x: 870, y: 230, side: "below" },
-  supabase: { x: 870, y: 330, side: "below" },
-  gemini: { x: 870, y: 430, side: "below" },
-  vercel: { x: 335, y: 560, side: "below" },
-  actions: { x: 150, y: 560, side: "below" },
-  lemon: { x: 510, y: 560, side: "below" },
-  rag: { x: 690, y: 560, side: "below" },
+type Connection = {
+  a: string;
+  b: string;
 };
 
-const MOBILE_POS: Record<string, { x: number; y: number }> = {
-  python: { x: 200, y: 55 },
-  backend: { x: 200, y: 135 },
-  fastapi: { x: 200, y: 215 },
-  ts: { x: 200, y: 295 },
-  web: { x: 110, y: 375 },
-  mobile: { x: 290, y: 375 },
-  react: { x: 110, y: 455 },
-  rn: { x: 290, y: 455 },
-  nextjs: { x: 110, y: 535 },
-  expo: { x: 290, y: 535 },
-  tailwind: { x: 110, y: 615 },
-  wc: { x: 290, y: 615 },
-  clerk: { x: 110, y: 695 },
-  supabase: { x: 290, y: 695 },
-  gemini: { x: 110, y: 775 },
-  rag: { x: 290, y: 775 },
-  vercel: { x: 200, y: 855 },
-  actions: { x: 105, y: 935 },
-  lemon: { x: 295, y: 935 },
-};
-
-// Progressively smaller nodes for deeper levels; languages stay the anchors.
-function radiusForKind(kind: NodeKind, mobile: boolean): number {
-  switch (kind) {
-    case "language":
-      return mobile ? 24 : 26;
-    case "framework":
-      return mobile ? 22 : 21;
-    case "platform":
-      return mobile ? 21 : 19;
-    case "service":
-      return mobile ? 19 : 17;
-    case "branch":
-      return 15;
-  }
-}
-
-function buildStations(
-  positions: Record<string, { x: number; y: number; side?: LabelSide }>
-): Station[] {
-  return STACK_NODES.map((n) => {
-    const p = positions[n.id];
-    if (!p) throw new Error(`Missing stack position for "${n.id}"`);
-    return { ...n, x: p.x, y: p.y, side: p.side ?? "below" };
-  });
-}
-
-const STATIONS: readonly Station[] = buildStations(DESKTOP_POS);
-const MOBILE_STATIONS: readonly Station[] = buildStations(MOBILE_POS);
-
-const CONNECTIONS: readonly StackEdge[] = STACK_EDGES;
-
-// Desktop (md and up) interaction geometry.
-const HIT_PAD = 8;
+// Desktop (md and up) geometry — unchanged.
+const STATION_R = 22;
+const HIT_R = 30;
+const LABEL_DX = 34;
 const LABEL_DY = 46;
 
-// Mobile portrait geometry (viewBox 400x1000, every label below its station).
-const M_HIT_PAD = 8;
-const M_LABEL_DY = 44;
+const STATIONS: readonly Station[] = [
+  { id: "nextjs", label: "Next.js", x: 500, y: 255, side: "below", Icon: SiNextdotjs },
+  { id: "react", label: "React", x: 340, y: 160, side: "right", Icon: SiReact },
+  { id: "ts", label: "TypeScript", x: 200, y: 255, side: "left", Icon: SiTypescript },
+  { id: "tailwind", label: "Tailwind CSS", x: 330, y: 360, side: "right", Icon: SiTailwindcss },
+  { id: "expo", label: "Expo", x: 170, y: 120, side: "left", Icon: SiExpo },
+  // Label sits right of the station (rather than the mirrored left) so the
+  // 14-character name stays inside the 1000-wide viewBox. Station coordinates
+  // themselves are unchanged.
+  { id: "wc", label: "Web Components", x: 140, y: 400, side: "right", Icon: SiWebcomponentsdotorg },
+  { id: "clerk", label: "Clerk", x: 660, y: 150, side: "right", Icon: SiClerk },
+  { id: "supabase", label: "Supabase", x: 790, y: 280, side: "right", Icon: SiSupabase },
+  { id: "gemini", label: "Gemini API", x: 680, y: 380, side: "right", Icon: SiGooglegemini },
+  { id: "rag", label: "RAG", x: 880, y: 410, side: "below", Icon: LuFileSearch },
+  { id: "vercel", label: "Vercel", x: 480, y: 455, side: "right", Icon: SiVercel },
+  { id: "lemon", label: "Lemon Squeezy", x: 640, y: 515, side: "right", Icon: SiLemonsqueezy },
+  { id: "actions", label: "GitHub Actions", x: 290, y: 510, side: "left", Icon: SiGithubactions },
+];
 
-const edgeKey = (a: string, b: string): string => `${a}__${b}`;
+// Mobile portrait geometry (viewBox 400x900, every label below its station).
+// Same ids, labels and icons as desktop; coordinates re-laid for a ~1:1 scale.
+// Tailwind sits at x=305 (not 290) so the Next.js–React traverse clears its label.
+const M_STATION_R = 24;
+const M_HIT_R = 32;
+const M_ICON = 26;
+const M_LABEL_DY = 46;
+
+const MOBILE_STATIONS: readonly Station[] = [
+  { id: "expo", label: "Expo", x: 90, y: 60, side: "below", Icon: SiExpo },
+  { id: "react", label: "React", x: 290, y: 100, side: "below", Icon: SiReact },
+  { id: "ts", label: "TypeScript", x: 90, y: 190, side: "below", Icon: SiTypescript },
+  { id: "tailwind", label: "Tailwind CSS", x: 305, y: 230, side: "below", Icon: SiTailwindcss },
+  { id: "wc", label: "Web Components", x: 90, y: 320, side: "below", Icon: SiWebcomponentsdotorg },
+  { id: "nextjs", label: "Next.js", x: 200, y: 420, side: "below", Icon: SiNextdotjs },
+  { id: "clerk", label: "Clerk", x: 80, y: 520, side: "below", Icon: SiClerk },
+  { id: "supabase", label: "Supabase", x: 310, y: 520, side: "below", Icon: SiSupabase },
+  { id: "gemini", label: "Gemini API", x: 140, y: 630, side: "below", Icon: SiGooglegemini },
+  { id: "rag", label: "RAG", x: 310, y: 640, side: "below", Icon: LuFileSearch },
+  { id: "vercel", label: "Vercel", x: 200, y: 740, side: "below", Icon: SiVercel },
+  { id: "actions", label: "GitHub Actions", x: 80, y: 830, side: "below", Icon: SiGithubactions },
+  { id: "lemon", label: "Lemon Squeezy", x: 320, y: 830, side: "below", Icon: SiLemonsqueezy },
+];
+
+const CONNECTIONS: readonly Connection[] = [
+  { a: "nextjs", b: "react" },
+  { a: "nextjs", b: "ts" },
+  { a: "nextjs", b: "tailwind" },
+  { a: "nextjs", b: "clerk" },
+  { a: "nextjs", b: "supabase" },
+  { a: "nextjs", b: "gemini" },
+  { a: "nextjs", b: "vercel" },
+  { a: "react", b: "expo" },
+  { a: "react", b: "ts" },
+  { a: "tailwind", b: "wc" },
+  { a: "supabase", b: "rag" },
+  { a: "gemini", b: "rag" },
+  { a: "vercel", b: "lemon" },
+  { a: "vercel", b: "actions" },
+];
 
 type Hill = { cx: number; cy: number; rings: number };
 
 const HILLS: readonly Hill[] = [
-  { cx: 320, cy: 300, rings: 9 },
-  { cx: 760, cy: 300, rings: 7 },
-  { cx: 480, cy: 560, rings: 5 },
+  { cx: 500, cy: 280, rings: 9 },
+  { cx: 800, cy: 330, rings: 6 },
+  { cx: 220, cy: 300, rings: 6 },
 ];
 
 const MOBILE_HILLS: readonly Hill[] = [
-  { cx: 200, cy: 220, rings: 7 },
-  { cx: 200, cy: 520, rings: 8 },
-  { cx: 200, cy: 830, rings: 6 },
+  { cx: 200, cy: 200, rings: 6 },
+  { cx: 230, cy: 520, rings: 8 },
+  { cx: 180, cy: 800, rings: 6 },
 ];
 
 const RING_POINTS = 96;
@@ -244,64 +151,6 @@ function buildContours(hills: readonly Hill[]): ContourRing[] {
   return rings;
 }
 
-/** Ancestry-aware highlight: active node + hierarchy ancestors/descendants + direct support neighbours. */
-function useHighlight(activeId: string | null): {
-  nodes: Set<string>;
-  edges: Set<string>;
-} {
-  return useMemo(() => {
-    const nodes = new Set<string>();
-    const edges = new Set<string>();
-    if (activeId === null) return { nodes, edges };
-    const parents = new Map<string, string[]>();
-    const children = new Map<string, string[]>();
-    for (const e of CONNECTIONS) {
-      if (e.kind !== "hierarchy") continue;
-      // Hierarchy edges are stored parent-first (language → branch → tech).
-      if (!children.has(e.a)) children.set(e.a, []);
-      children.get(e.a)?.push(e.b);
-      if (!parents.has(e.b)) parents.set(e.b, []);
-      parents.get(e.b)?.push(e.a);
-    }
-    // Ancestry chain + descendant subtree form one connected subtree that
-    // always contains the active node — the "relevant branch".
-    const onPath = new Set<string>([activeId]);
-    let cursor: string | undefined = activeId;
-    while (cursor) {
-      const parent: string | undefined = (parents.get(cursor) ?? [])[0];
-      if (!parent) break;
-      onPath.add(parent);
-      cursor = parent;
-    }
-    const stack: string[] = [activeId];
-    while (stack.length > 0) {
-      const cur = stack.pop();
-      if (!cur) continue;
-      for (const c of children.get(cur) ?? []) {
-        if (onPath.has(c)) continue;
-        onPath.add(c);
-        stack.push(c);
-      }
-    }
-    for (const id of onPath) nodes.add(id);
-    for (const e of CONNECTIONS) {
-      if (e.kind === "hierarchy" && onPath.has(e.a) && onPath.has(e.b)) {
-        edges.add(edgeKey(e.a, e.b));
-      }
-    }
-    // Direct supporting integrations of the active node.
-    for (const e of CONNECTIONS) {
-      if (e.kind !== "support") continue;
-      if (e.a === activeId || e.b === activeId) {
-        nodes.add(e.a);
-        nodes.add(e.b);
-        edges.add(edgeKey(e.a, e.b));
-      }
-    }
-    return { nodes, edges };
-  }, [activeId]);
-}
-
 export function StackSurvey(): React.JSX.Element {
   const [activeId, setActiveId] = useState<string | null>(null);
   // The traverse draw-on runs when the section scrolls into view (not on page
@@ -337,12 +186,17 @@ export function StackSurvey(): React.JSX.Element {
   const mobileContours = useMemo(() => buildContours(MOBILE_HILLS), []);
 
   const byId = useMemo(() => new Map(STATIONS.map((s) => [s.id, s])), []);
-  const mobileById = useMemo(
-    () => new Map(MOBILE_STATIONS.map((s) => [s.id, s])),
-    []
-  );
-  const { nodes: highlighted, edges: highlightedEdges } =
-    useHighlight(activeId);
+  const mobileById = useMemo(() => new Map(MOBILE_STATIONS.map((s) => [s.id, s])), []);
+
+  const neighbours = useMemo(() => {
+    const set = new Set<string>();
+    if (activeId === null) return set;
+    for (const c of CONNECTIONS) {
+      if (c.a === activeId) set.add(c.b);
+      else if (c.b === activeId) set.add(c.a);
+    }
+    return set;
+  }, [activeId]);
 
   return (
     <section
@@ -355,11 +209,8 @@ export function StackSurvey(): React.JSX.Element {
         @keyframes stacksurvey-draw { to { stroke-dashoffset: 0; } }
         .stacksurvey-line { stroke-dasharray: 1; stroke-dashoffset: 1; }
         .stacksurvey-line.go { animation: stacksurvey-draw 0.6s ease-out forwards; }
-        .stacksurvey-support { opacity: 0; transition: opacity 600ms ease; }
-        .stacksurvey-support.go { opacity: 1; }
         @media (prefers-reduced-motion: reduce) {
           .stacksurvey-line { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
-          .stacksurvey-support { opacity: 1; transition: none; }
         }
         .stacksurvey-station { cursor: pointer; transition: opacity 150ms ease; }
         .stacksurvey-station:focus { outline: none; }
@@ -378,55 +229,22 @@ export function StackSurvey(): React.JSX.Element {
           Stack
         </h2>
         <p className="mt-4 max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base">
-          A field survey of the tools I build with. Python and TypeScript are
-          the two anchors — pick a station and trace its lines. Solid lines
-          show how I build; dashed lines show supporting integrations.
+          A field survey of the tools I build with. Pick a station and trace its
+          lines.
         </p>
-        <div
-          aria-hidden="true"
-          className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 font-heading text-xs text-text-secondary"
-        >
-          <span className="inline-flex items-center gap-2">
-            <svg width="28" height="6" viewBox="0 0 28 6" aria-hidden="true">
-              <line
-                x1="1"
-                y1="3"
-                x2="27"
-                y2="3"
-                className="stroke-accent"
-                strokeWidth="1.6"
-              />
-            </svg>
-            Builds on
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <svg width="28" height="6" viewBox="0 0 28 6" aria-hidden="true">
-              <line
-                x1="1"
-                y1="3"
-                x2="27"
-                y2="3"
-                className="stroke-accent"
-                strokeWidth="1.4"
-                strokeDasharray="3 4"
-              />
-            </svg>
-            Integrates with
-          </span>
-        </div>
 
-        {/* Desktop landscape map (md and up). */}
+        {/* Desktop landscape map (md and up). Untouched geometry. */}
         <div className="mt-8 hidden overflow-x-auto bg-bg-primary md:block">
           <svg
-            viewBox="0 0 1000 630"
+            viewBox="0 0 1000 580"
             role="img"
-            aria-label="Survey control network map of the tools I use, anchored on Python and TypeScript"
+            aria-label="Survey control network map of the tools I use"
             className="block h-auto w-full min-w-0 sm:min-w-[760px]"
             onMouseLeave={() => setActiveId(null)}
           >
             <defs>
               <clipPath id={desktopClipId}>
-                <rect x={0} y={0} width={1000} height={630} />
+                <rect x={0} y={0} width={1000} height={580} />
               </clipPath>
             </defs>
 
@@ -447,26 +265,8 @@ export function StackSurvey(): React.JSX.Element {
               const a = byId.get(c.a);
               const b = byId.get(c.b);
               if (!a || !b) return null;
-              const lit =
-                activeId !== null && highlightedEdges.has(edgeKey(c.a, c.b));
-              if (c.kind === "support") {
-                return (
-                  <line
-                    key={`${c.a}-${c.b}`}
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
-                    className={`stacksurvey-support stroke-accent${drawOn ? " go" : ""}`}
-                    strokeWidth={activeId === null ? 1.1 : lit ? 1.8 : 1}
-                    opacity={activeId === null ? 0.35 : lit ? 0.9 : 0.08}
-                    strokeDasharray="3 4"
-                    style={{
-                      transitionDelay: drawOn ? `${0.4 + i * 0.03}s` : "0s",
-                    }}
-                  />
-                );
-              }
+              const connected =
+                activeId !== null && (c.a === activeId || c.b === activeId);
               return (
                 <line
                   key={`${c.a}-${c.b}`}
@@ -476,8 +276,8 @@ export function StackSurvey(): React.JSX.Element {
                   y2={b.y}
                   pathLength={1}
                   className={`stacksurvey-line stroke-accent${drawOn ? " go" : ""}`}
-                  strokeWidth={activeId === null ? 1 : lit ? 2 : 1}
-                  opacity={activeId === null ? 0.5 : lit ? 1 : 0.1}
+                  strokeWidth={activeId === null ? 1 : connected ? 2 : 1}
+                  opacity={activeId === null ? 0.5 : connected ? 1 : 0.1}
                   style={{
                     animationDelay: `${0.1 + i * 0.05}s`,
                     transition: "opacity 150ms ease",
@@ -489,11 +289,21 @@ export function StackSurvey(): React.JSX.Element {
             {STATIONS.map((s) => {
               const isActive = s.id === activeId;
               const dimmed =
-                activeId !== null && !isActive && !highlighted.has(s.id);
+                activeId !== null && !isActive && !neighbours.has(s.id);
               const Icon = s.Icon;
-              const r = radiusForKind(s.kind, false);
-              const iconSize = s.kind === "branch" ? 16 : Math.round(r * 1.1);
-              const labelY = s.y + LABEL_DY;
+              const labelX =
+                s.side === "left"
+                  ? s.x - LABEL_DX
+                  : s.side === "right"
+                    ? s.x + LABEL_DX
+                    : s.x;
+              const labelY = s.side === "below" ? s.y + LABEL_DY : s.y;
+              const anchor =
+                s.side === "left"
+                  ? "end"
+                  : s.side === "right"
+                    ? "start"
+                    : "middle";
               return (
                 <g
                   key={s.id}
@@ -516,17 +326,12 @@ export function StackSurvey(): React.JSX.Element {
                     }
                   }}
                 >
-                  <circle
-                    cx={s.x}
-                    cy={s.y}
-                    r={r + HIT_PAD}
-                    fill="transparent"
-                  />
+                  <circle cx={s.x} cy={s.y} r={HIT_R} fill="transparent" />
                   <circle
                     className="station-focus-ring stroke-accent"
                     cx={s.x}
                     cy={s.y}
-                    r={r + 5}
+                    r={27}
                     fill="none"
                     strokeWidth={1.5}
                     strokeDasharray="4 3"
@@ -535,21 +340,22 @@ export function StackSurvey(): React.JSX.Element {
                     className={`station-bg stroke-accent ${isActive ? "fill-accent" : "fill-bg-primary"}`}
                     cx={s.x}
                     cy={s.y}
-                    r={r}
-                    strokeWidth={s.kind === "language" ? 2 : 1.6}
+                    r={STATION_R}
+                    strokeWidth={1.6}
                   />
                   <g
-                    transform={`translate(${s.x - iconSize / 2} ${s.y - iconSize / 2})`}
+                    transform={`translate(${s.x - 12} ${s.y - 12})`}
                     className={isActive ? "text-bg-primary" : "text-text-primary"}
                   >
-                    <Icon size={iconSize} aria-hidden="true" />
+                    <Icon size={24} aria-hidden="true" />
                   </g>
                   <text
-                    x={s.x}
+                    x={labelX}
                     y={labelY}
-                    textAnchor="middle"
+                    textAnchor={anchor}
+                    dominantBaseline={s.side === "below" ? "auto" : "middle"}
                     className={`font-heading ${isActive ? "fill-accent" : "fill-text-primary"}`}
-                    fontSize={s.kind === "branch" ? 13 : 14}
+                    fontSize={14}
                     style={{
                       paintOrder: "stroke",
                       stroke: "var(--bg-primary)",
@@ -566,20 +372,20 @@ export function StackSurvey(): React.JSX.Element {
         </div>
 
         {/* Mobile portrait map (below md). Same data, connections and states;
-            re-laid stations in a 400x1000 viewBox at ~1:1 scale with all labels
+            re-laid stations in a 400x900 viewBox at ~1:1 scale with all labels
             below their stations. */}
         <div className="mt-8 overflow-x-auto bg-bg-primary md:hidden">
           <svg
-            viewBox="0 0 400 1000"
+            viewBox="0 0 400 900"
             role="img"
-            aria-label="Portrait survey control network map of the tools I use, anchored on Python and TypeScript"
+            aria-label="Portrait survey control network map of the tools I use"
             className="block h-auto w-full"
             onClick={() => setActiveId(null)}
             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
           >
             <defs>
               <clipPath id={mobileClipId}>
-                <rect x={0} y={0} width={400} height={1000} />
+                <rect x={0} y={0} width={400} height={900} />
               </clipPath>
             </defs>
 
@@ -600,27 +406,8 @@ export function StackSurvey(): React.JSX.Element {
               const a = mobileById.get(c.a);
               const b = mobileById.get(c.b);
               if (!a || !b) return null;
-              const lit =
-                activeId !== null && highlightedEdges.has(edgeKey(c.a, c.b));
-              if (c.kind === "support") {
-                return (
-                  <line
-                    key={`${c.a}-${c.b}`}
-                    x1={a.x}
-                    y1={a.y}
-                    x2={b.x}
-                    y2={b.y}
-                    className={`stacksurvey-support stroke-accent${drawOn ? " go" : ""}`}
-                    strokeWidth={activeId === null ? 1.1 : lit ? 1.8 : 1}
-                    opacity={activeId === null ? 0.35 : lit ? 0.9 : 0.08}
-                    strokeDasharray="3 4"
-                    style={{
-                      transitionDelay: drawOn ? `${0.4 + i * 0.03}s` : "0s",
-                      pointerEvents: "none",
-                    }}
-                  />
-                );
-              }
+              const connected =
+                activeId !== null && (c.a === activeId || c.b === activeId);
               return (
                 <line
                   key={`${c.a}-${c.b}`}
@@ -630,8 +417,8 @@ export function StackSurvey(): React.JSX.Element {
                   y2={b.y}
                   pathLength={1}
                   className={`stacksurvey-line stroke-accent${drawOn ? " go" : ""}`}
-                  strokeWidth={activeId === null ? 1 : lit ? 2 : 1}
-                  opacity={activeId === null ? 0.5 : lit ? 1 : 0.1}
+                  strokeWidth={activeId === null ? 1 : connected ? 2 : 1}
+                  opacity={activeId === null ? 0.5 : connected ? 1 : 0.1}
                   style={{
                     animationDelay: `${0.1 + i * 0.07}s`,
                     transition: "opacity 150ms ease",
@@ -644,10 +431,8 @@ export function StackSurvey(): React.JSX.Element {
             {MOBILE_STATIONS.map((s) => {
               const isActive = s.id === activeId;
               const dimmed =
-                activeId !== null && !isActive && !highlighted.has(s.id);
+                activeId !== null && !isActive && !neighbours.has(s.id);
               const Icon = s.Icon;
-              const r = radiusForKind(s.kind, true);
-              const iconSize = s.kind === "branch" ? 16 : Math.round(r * 1.1);
               return (
                 <g
                   key={s.id}
@@ -688,17 +473,12 @@ export function StackSurvey(): React.JSX.Element {
                     setActiveId((prev) => (prev === s.id ? null : s.id));
                   }}
                 >
-                  <circle
-                    cx={s.x}
-                    cy={s.y}
-                    r={r + M_HIT_PAD}
-                    fill="transparent"
-                  />
+                  <circle cx={s.x} cy={s.y} r={M_HIT_R} fill="transparent" />
                   <circle
                     className="station-focus-ring stroke-accent"
                     cx={s.x}
                     cy={s.y}
-                    r={r + 5}
+                    r={M_STATION_R + 5}
                     fill="none"
                     strokeWidth={1.5}
                     strokeDasharray="4 3"
@@ -707,21 +487,21 @@ export function StackSurvey(): React.JSX.Element {
                     className={`station-bg stroke-accent ${isActive ? "fill-accent" : "fill-bg-primary"}`}
                     cx={s.x}
                     cy={s.y}
-                    r={r}
-                    strokeWidth={s.kind === "language" ? 2 : 1.6}
+                    r={M_STATION_R}
+                    strokeWidth={1.6}
                   />
                   <g
-                    transform={`translate(${s.x - iconSize / 2} ${s.y - iconSize / 2})`}
+                    transform={`translate(${s.x - M_ICON / 2} ${s.y - M_ICON / 2})`}
                     className={isActive ? "text-bg-primary" : "text-text-primary"}
                   >
-                    <Icon size={iconSize} aria-hidden="true" />
+                    <Icon size={M_ICON} aria-hidden="true" />
                   </g>
                   <text
                     x={s.x}
                     y={s.y + M_LABEL_DY}
                     textAnchor="middle"
                     className={`font-heading ${isActive ? "fill-accent" : "fill-text-primary"}`}
-                    fontSize={14}
+                    fontSize={15}
                     style={{
                       paintOrder: "stroke",
                       stroke: "var(--bg-primary)",
