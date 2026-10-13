@@ -1,9 +1,10 @@
 "use client";
 
+import { withShowcaseProjects } from "@/data/showcase-projects";
+
 import { useEffect, useState } from "react";
 import {
   mapDashboardDocToProject,
-  sortProjects,
   type ContributorDirectory,
   type DashboardProjectRow,
   type Project,
@@ -17,7 +18,7 @@ import {
 // first paint; the subscriptions still attach ~after mount and keep the
 // page live exactly as before.
 export function useProjects(initial?: Project[]) {
-  const [projects, setProjects] = useState<Project[]>(initial ?? []);
+  const [projects, setProjects] = useState<Project[]>(withShowcaseProjects(initial ?? []));
   const [loading, setLoading] = useState(!initial);
   const [error, setError] = useState<string | null>(null);
   const [tagDir, setTagDir] = useState<TagDirectory | undefined>(undefined);
@@ -90,7 +91,7 @@ export function useProjects(initial?: Project[]) {
     try {
       const mapped = rows.map((r) => mapDashboardDocToProject(r.id, r.data, { tags: tagDir, contributors: contribDir }));
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setProjects(sortProjects(mapped));
+      setProjects(withShowcaseProjects(mapped));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load projects");
     } finally {
