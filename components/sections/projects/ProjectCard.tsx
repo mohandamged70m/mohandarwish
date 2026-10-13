@@ -1,57 +1,22 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { Project } from "@/data/projects";
 import { getTechColor, isVideoFile } from "@/lib/project-utils";
 import { canMorph, tagMorph, transitionOrUpdate, untagMorph } from "@/lib/view-transitions";
 
 type Props = {
   project: Project;
-  featured?: boolean;
-  // Grid showcase: card fills its column instead of fixed carousel widths.
-  fluid?: boolean;
+  eager?: boolean;
+  /** Shared swap state from useTechSwap() in the parent grid. Never own a timer. */
+  showTech?: boolean;
+  /** Defaults to the cutout in /public. */
+  avatarSrc?: string;
 };
 
-function CardVideo({ src, isActive, label }: { src: string; isActive: boolean; label: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (isActive) {
-      video.play().catch(() => {});
-    } else {
-      video.pause();
-    }
-  }, [isActive]);
-
-  return (
-    <video
-      ref={videoRef}
-      src={src}
-      muted
-      loop
-      playsInline
-      preload="metadata"
-      aria-label={label}
-      onLoadedMetadata={(e) => {
-        // Random starting frame so looping previews never look frozen.
-        const video = e.currentTarget;
-        if (video.duration && Number.isFinite(video.duration)) {
-          try {
-            video.currentTime = Math.random() * video.duration;
-          } catch {
-            // non-fatal: starts from 0
-          }
-        }
-      }}
-      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-    />
-  );
-}
+const DEFAULT_AVATAR = "/me/mohand-cutout.png";
 
 function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: boolean }) {
   const [loaded, setLoaded] = useState(false);
@@ -60,7 +25,7 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
       {/* Skeleton shimmer while the image decodes. */}
       <div
         aria-hidden
-        className={`absolute inset-0 z-10 overflow-hidden bg-white/5 transition-opacity duration-700 ${
+        className={`absolute inset-0 z-[1] overflow-hidden bg-white/5 transition-opacity duration-700 motion-reduce:transition-none ${
           loaded ? "pointer-events-none opacity-0" : "opacity-100"
         }`}
       >
@@ -75,8 +40,9 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         loading={eager ? "eager" : "lazy"}
         onLoad={() => setLoaded(true)}
-        className="object-cover transition-all duration-500 ease-out group-hover:scale-105"
+        className="object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         style={{
+          transformOrigin: "top center",
           filter: loaded ? "blur(0px)" : "blur(20px)",
           opacity: loaded ? 1 : 0,
         }}
@@ -85,182 +51,168 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
   );
 }
 
-export function ProjectCard({ project, eager }: Props & { eager?: boolean }) {
+/**
+ * Project card (v2) — rounded 28px surface, 16:9 screenshot with a
+ * top-left swapping badge (photo <-> tech chips), title + 3-line
+ * description. The whole card opens the project details modal.
+ */
+export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFAULT_AVATAR }: Props) {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
-  const [current, setCurrent] = useState(0);
+  const cardRef = useRef<HTMLElement>(null);
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  // Hover hold: freeze this card on its badge state while hovered, catch up on leave.
+  const [held, setHeld] = useState<boolean | null>(null);
+  const effective = held ?? showTech;
 
-  const slides = [...(project.images ?? []), ...(project.videos ?? [])];
-  const media = slides.length > 0 ? slides : [project.image];
-  const tags = (
+  const techNames =
     project.tagsDetailed?.length
-      ? project.tagsDetailed.map((t) => ({ name: t.name, color: t.color ?? getTechColor(t.name) }))
-      : (project.stack ?? []).map((name) => ({ name, color: getTechColor(name) }))
-  ).slice(0, 8);
-  const contributors = project.contributors ?? [];
+      ? project.tagsDetailed.map((t) => t.name)
+      : [...(project.stack ?? [])];
+  const visible = techNames.slice(0, 2);
+  const remaining = techNames.length - visible.length;
 
-  // Hover slideshow: step through media every 2s while hovered.
-  useEffect(() => {
-    if (!isHovered || media.length < 2) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = window.setInterval(() => {
-      setCurrent((prev) => (prev + 1) % media.length);
-    }, 2000);
-    return () => window.clearInterval(id);
-  }, [isHovered, media.length]);
-
-  // INP: the old 3s setInterval toggled tags ↔ contributors on EVERY
-  // card forever (N timers + AnimatePresence exit/enter each cycle),
-  // keeping the main thread warm between real interactions. Now the
-  // overlay swaps on hover/focus only — zero ambient React work.
-  const showContributors = isHovered && contributors.length > 0;
-
-  // Shared-element open: tag this card's media as the morph source, then
-  // navigate inside a view transition so it morphs into the modal hero.
-  // Falls back to plain Link navigation (modifier-clicks, touch without VT,
-  // reduced motion, unsupported browsers).
-  const handleOpen = (e: React.MouseEvent<HTMLAnchorElement>): void => {
-    // Record the background scroll BEFORE any navigation (morph or plain):
-    // the open navigation can clamp it (shorter detail viewport) and history
-    // restoration can drop it — modal close restores from this value.
+  const open = useCallback(() => {
     try {
       sessionStorage.setItem("project-modal-y", String(window.scrollY));
     } catch {
       // non-fatal: close falls back to mount-time capture
     }
-    if (e.defaultPrevented) return;
-    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    if (!canMorph()) return;
-    const img = e.currentTarget.querySelector<HTMLElement>("[data-morph-img]");
-    if (!img) return;
-    e.preventDefault();
+    const img = cardRef.current?.querySelector<HTMLElement>("[data-morph-img]");
+    if (!img || !canMorph()) {
+      router.push(project.href, { scroll: false });
+      return;
+    }
     tagMorph(img);
     void transitionOrUpdate(() => {
-      // scroll:false: the background page must stay exactly where it was
-      // (projects section) — a scroll-to-top here strands modal close on
-      // the hero even with history back.
+      // scroll:false keeps the background page where it was (projects section).
       router.push(project.href, { scroll: false });
     }).finally(() => {
       untagMorph(img);
     });
-  };
+  }, [project.href, router]);
+
+  const heroSrc = project.image;
 
   return (
-    <Link
-      href={project.href}
-      scroll={false}
-      onClick={handleOpen}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setCurrent(0);
+    <article
+      ref={cardRef}
+      tabIndex={0}
+      role="button"
+      aria-label={`Open ${project.title} details`}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
       }}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => {
-        setIsHovered(false);
-        setCurrent(0);
-      }}
+      onPointerEnter={() => setHeld(showTech)}
+      onPointerLeave={() => setHeld(null)}
       data-project-card={project.id}
-      aria-label={`${project.title} — ${project.category}`}
-      className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[20px] border border-border bg-bg-surface/60 shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-primary"
+      className="group relative flex h-full w-full min-w-0 cursor-pointer flex-col overflow-hidden rounded-[28px] border border-border bg-bg-surface font-body outline-none transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-[5px] hover:border-accent hover:shadow-[0_18px_40px_-18px_color-mix(in_srgb,var(--accent-primary)_45%,transparent)] focus-visible:ring-2 focus-visible:ring-accent motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      {/* media — fixed height, hover slideshow across images + videos */}
-      <div data-morph-img className="relative h-[200px] w-full overflow-hidden">
+      {/* screenshot — 16:9 */}
+      <div data-morph-img className="relative aspect-video w-full overflow-hidden">
+        {isVideoFile(heroSrc) ? (
+          <video
+            src={heroSrc}
+            muted
+            loop
+            playsInline
+            autoPlay
+            aria-label={`${project.title} preview`}
+            className="h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06] motion-reduce:transition-none"
+            style={{ transformOrigin: "top center" }}
+          />
+        ) : (
+          <CardImage src={heroSrc} alt={project.title} eager={eager} />
+        )}
+        {/* top gradient so the badge stays readable */}
         <div
-          aria-hidden={media.length < 2}
-          className="flex h-full transition-transform duration-500 ease-in-out"
-          style={{
-            width: `${media.length * 100}%`,
-            transform: `translateX(-${(current * 100) / media.length}%)`,
-          }}
-        >
-          {media.map((src, i) => (
-            <div
-              key={`${src}-${i}`}
-              style={{ width: `${100 / media.length}%` }}
-              className="relative h-full overflow-hidden"
-            >
-              {isVideoFile(src) ? (
-                <CardVideo src={src} isActive={isHovered && current === i} label={`${project.title} preview`} />
-              ) : (
-                <CardImage src={src} alt={i === 0 ? project.title : ""} eager={eager && i === 0} />
-              )}
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-            </div>
-          ))}
-        </div>
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[2] bg-[linear-gradient(180deg,rgba(0,0,0,0.35),transparent_45%)]"
+        />
 
-        {/* top-left overlay: tags, contributors on hover/focus */}
-        <div className="absolute left-4 top-4 z-10">
-          {!showContributors ? (
-            <ul
-              className="flex flex-wrap gap-1.5"
-              aria-label={`Built with ${tags.map((t) => t.name).join(", ")}`}
-            >
-                {tags.slice(0, 2).map((tag) => (
-                  <li
-                    key={tag.name}
-                    className="flex items-center gap-1.5 rounded-full border border-border bg-bg-primary/70 px-2.5 py-1 font-heading text-xs font-semibold text-text-secondary shadow-sm backdrop-blur-md"
-                  >
-                    <span
-                      aria-hidden
-                      className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ background: tag.color }}
-                    />
-                    {tag.name}
-                  </li>
-                ))}
-                {tags.length > 2 && (
-                  <li className="rounded-full border border-border bg-bg-primary/70 px-2.5 py-1 font-heading text-xs font-semibold text-text-muted shadow-sm backdrop-blur-md">
-                    +{tags.length - 2} more
-                  </li>
-                )}
-              </ul>
+        {/* swapping badge: photo <-> tech chips */}
+        <div className="absolute left-[14px] top-[14px] z-[3] h-11 min-w-11">
+          {/* photo */}
+          <div
+            aria-hidden={effective}
+            style={effective ? { transform: "scale(0.2) rotate(-120deg)", opacity: 0 } : undefined}
+            className="absolute left-0 top-0 h-11 w-11 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-[1.12] group-hover:-rotate-4 motion-reduce:transition-none"
+          >
+            {avatarFailed ? (
+              <span className="absolute inset-0 z-[1] flex items-center justify-center rounded-full bg-accent text-sm font-bold text-text-on-accent shadow-[0_4px_14px_rgba(0,0,0,0.45)]">
+                MD
+              </span>
             ) : (
-              <div
-                className="flex items-center"
-              >
-                <ul className="flex pl-2" aria-label={`${contributors.length} contributors`}>
-                  {contributors.slice(0, 3).map((c) => (
-                    <li
-                      key={c.name}
-                      title={c.name}
-                      className="-ml-2 h-8 w-8 overflow-hidden rounded-full border-2 border-white bg-bg-surface shadow-sm"
-                    >
-                      {c.image ? (
-                        <Image src={c.image} alt={c.name} width={32} height={32} loading="lazy" unoptimized className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center bg-bg-surface text-[10px] font-bold text-text-muted">
-                          {c.name ? c.name.charAt(0) : "?"}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                  {contributors.length > 3 && (
-                    <li
-                      aria-label={`${contributors.length - 3} more contributors`}
-                      className="-ml-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-accent text-[0.7rem] font-bold text-text-on-accent shadow-sm"
-                    >
-                      +{contributors.length - 3}
-                    </li>
-                  )}
-                </ul>
-              </div>
+              <Image
+                src={avatarSrc}
+                alt="Mohand Darwish"
+                width={44}
+                height={44}
+                loading="lazy"
+                onError={() => setAvatarFailed(true)}
+                className="absolute inset-0 z-[1] h-full w-full rounded-full bg-bg-surface-hover object-cover shadow-[0_4px_14px_rgba(0,0,0,0.45)]"
+              />
             )}
+            <span
+              aria-hidden
+              className="absolute -bottom-[1px] -right-[1px] z-[2] h-3 w-3 rounded-full border-2 border-bg-surface bg-green-400"
+            />
+          </div>
+
+          {/* tech chips */}
+          <div
+            aria-hidden={!effective}
+            aria-label={techNames.length ? `Built with ${techNames.join(", ")}` : undefined}
+            className="pointer-events-none absolute left-0 top-0 flex h-11 items-center gap-1.5 whitespace-nowrap"
+          >
+            {visible.map((name, i) => (
+              <span
+                key={name}
+                style={{
+                  opacity: effective ? 1 : 0,
+                  transform: effective ? "none" : "translateX(-14px) scale(0.85)",
+                  transitionDelay: effective ? `${150 + i * 70}ms` : "0ms",
+                }}
+                className="rounded-full border border-white/10 bg-bg-primary/70 px-3 py-2 text-[12.5px] font-semibold leading-none text-text-primary shadow-sm backdrop-blur-[10px] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none"
+              >
+                <span
+                  aria-hidden
+                  className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full align-middle"
+                  style={{ background: getTechColor(name) }}
+                />
+                {name}
+              </span>
+            ))}
+            {remaining > 0 && (
+              <span
+                style={{
+                  opacity: effective ? 1 : 0,
+                  transform: effective ? "none" : "translateX(-14px) scale(0.85)",
+                  transitionDelay: effective ? `${150 + visible.length * 70}ms` : "0ms",
+                }}
+                className="rounded-full border border-transparent bg-accent px-3 py-2 text-[12.5px] font-semibold leading-none text-text-on-accent shadow-sm backdrop-blur-[10px] transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none"
+              >
+                +{remaining} more
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* body — title + 3-line description */}
-      <div className="flex flex-1 flex-col gap-2.5 p-6">
-        <h3 className="line-clamp-1 font-heading text-base font-semibold leading-tight text-text-primary">
+      {/* body — title + 3-line description, no chips */}
+      <div className="flex flex-1 flex-col gap-2 px-6 pb-[26px] pt-[22px]">
+        <h3 className="font-body text-2xl font-bold leading-[1.2] tracking-tight text-text-primary">
           {project.title}
         </h3>
         {project.description && (
-          <p className="line-clamp-3 font-body text-sm leading-relaxed text-text-secondary">
+          <p className="line-clamp-3 font-body text-base leading-relaxed text-text-secondary">
             {project.description}
           </p>
         )}
       </div>
-    </Link>
+    </article>
   );
 }

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import type { Project } from "@/data/projects";
 import { ProjectCard } from "./ProjectCard";
+import { useTechSwap } from "@/hooks/useTechSwap";
 import { GlassChip } from "@/components/ui/glassy-button";
 import { useProjects } from "@/hooks/useProjects";
 import { useTailor } from "@/lib/analytics/tailor";
@@ -49,6 +50,10 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Single shared badge timer for every card — each card freezes while
+  // hovered and catches up on pointer leave.
+  const showTech = useTechSwap();
 
   // Search only earns its place once there's enough to search through.
   const showSearch = projects.length >= 6;
@@ -250,7 +255,7 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
         <div
           role="list"
           aria-label="Projects"
-          className="grid w-full grid-cols-[repeat(auto-fill,minmax(min(260px,100%),1fr))] gap-6"
+          className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
         >
           {filtered.map((project, i) => (
             <motion.div
@@ -267,7 +272,7 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
               }}
               {...noMotion}
             >
-              <ProjectCard project={project} eager={i < 2} />
+              <ProjectCard project={project} eager={i < 2} showTech={showTech} />
             </motion.div>
           ))}
         </div>
