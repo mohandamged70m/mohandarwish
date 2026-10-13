@@ -1,8 +1,8 @@
+import { getShowcaseProject, withShowcaseProjects } from "@/data/showcase-projects";
 import { convexQuery } from "@/lib/convex";
 import { api } from "@/convex/_generated/api";
 import {
   mapDashboardDocToProject,
-  sortProjects,
   type ContributorDirectory,
   type DashboardProjectRow,
   type Project,
@@ -27,20 +27,20 @@ export async function getProjectsServer(): Promise<Project[]> {
   const rows =
     (await convexQuery<{ path: string; data: DashboardProjectRow }[]>(api.docs.listCollection, {
       prefix: "Projects",
-    })) ?? [];
-  const dirs = await getDirectories();
+    }).catch(() => [])) ?? [];
+  const dirs = await getDirectories().catch(() => ({}));
   const mapped = rows.map((r) => {
     const id = r.path.slice("Projects/".length);
     return mapDashboardDocToProject(id, r.data ?? {}, dirs);
   });
-  return sortProjects(mapped);
+  return withShowcaseProjects(mapped);
 }
 
 export async function getProjectServer(id: string): Promise<Project | null> {
   const data = await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, {
     path: `Projects/${id}`,
-  });
-  if (!data) return null;
-  const dirs = await getDirectories();
+  }).catch(() => null);
+  if (!data) return getShowcaseProject(id);
+  const dirs = await getDirectories().catch(() => ({}));
   return mapDashboardDocToProject(id, data as DashboardProjectRow, dirs);
 }
