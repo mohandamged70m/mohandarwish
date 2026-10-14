@@ -4,7 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { FILTER_CATEGORIES } from "@/data/projects";
-import type { FilterCategory, Project } from "@/data/projects";
+import type { FilterCategory, Project, TagDirectory } from "@/data/projects";
 import { ProjectsTabs } from "./ProjectsTabs";
 import { ProjectsGrid } from "./ProjectsGrid";
 import { ProjectsHeader } from "./ProjectsHeader";
@@ -26,7 +26,7 @@ const SECTION_TABS = FILTER_CATEGORIES.map((c) => ({ id: c, label: c }));
  * Projects | Developer tab switch. Live Convex data with server-rendered
  * `initialProjects` for instant first paint.
  */
-export default function ProjectsSection({ initialProjects }: { initialProjects?: Project[] }) {
+export default function ProjectsSection({ initialProjects, initialTagDir }: { initialProjects?: Project[]; initialTagDir?: TagDirectory }) {
   const [active, setActive] = useState<FilterCategory>("Projects");
   const reduce = useReducedMotion();
   const noMotion = reduce ? { initial: false } : {};
@@ -81,7 +81,7 @@ export default function ProjectsSection({ initialProjects }: { initialProjects?:
                   <DeveloperTab />
                 </div>
               ) : (
-                <ProjectsGrid initialProjects={initialProjects} />
+                <ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} />
               )}
             </motion.div>
           </AnimatePresence>

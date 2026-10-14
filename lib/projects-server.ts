@@ -36,6 +36,15 @@ export async function getProjectsServer(): Promise<Project[]> {
   return withShowcaseProjects(mapped);
 }
 
+export async function getTagDirectoryServer(): Promise<TagDirectory | undefined> {
+  const rows =
+    (await convexQuery<{ path: string; data: Record<string, unknown> }[]>(api.docs.getDocsByPaths, {
+      paths: ["Tags/Tags"],
+    }).catch(() => [])) ?? [];
+  const found = rows.find((r) => r.path === "Tags/Tags");
+  return (found?.data ?? undefined) as TagDirectory | undefined;
+}
+
 export async function getProjectServer(id: string): Promise<Project | null> {
   const data = await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, {
     path: `Projects/${id}`,
