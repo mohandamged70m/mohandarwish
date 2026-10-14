@@ -398,10 +398,6 @@ html[data-theme-anim="1"]::view-transition-new(root) {
   50% { transform: translateY(10px); opacity: 0.5; }
   100% { transform: translateY(0); opacity: 1; }
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 .cinema-scroll {
   scrollbar-width: none;
   -ms-overflow-style: none;
