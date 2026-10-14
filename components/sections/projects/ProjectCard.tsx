@@ -38,6 +38,7 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
         alt={alt}
         fill
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+        priority={eager}
         loading={eager ? "eager" : "lazy"}
         onLoad={() => setLoaded(true)}
         className="object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -58,7 +59,7 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
  */
 export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFAULT_AVATAR }: Props) {
   const router = useRouter();
-  const cardRef = useRef<HTMLElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const [avatarFailed, setAvatarFailed] = useState(false);
   // Hover hold: freeze this card on its badge state while hovered, catch up on leave.
   const [held, setHeld] = useState<boolean | null>(null);
@@ -71,7 +72,12 @@ export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFA
   const visible = techNames.slice(0, 2);
   const remaining = techNames.length - visible.length;
 
-  const open = useCallback(() => {
+  const open = useCallback((e?: React.MouseEvent) => {
+    // Intercept plain left-clicks so the details modal opens in place.
+    // Modified clicks (cmd/ctrl/shift/middle-button) fall through to native
+    // link navigation so open-in-new-tab keeps working.
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1)) return;
+    e?.preventDefault();
     try {
       sessionStorage.setItem("project-modal-y", String(window.scrollY));
     } catch {
@@ -94,18 +100,11 @@ export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFA
   const heroSrc = project.image;
 
   return (
-    <article
+    <a
       ref={cardRef}
-      tabIndex={0}
-      role="button"
+      href={project.href}
       aria-label={`Open ${project.title} details`}
       onClick={open}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          open();
-        }
-      }}
       onPointerEnter={() => setHeld(showTech)}
       onPointerLeave={() => setHeld(null)}
       data-project-card={project.id}
@@ -120,6 +119,7 @@ export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFA
             loop
             playsInline
             autoPlay
+            preload="metadata"
             aria-label={`${project.title} preview`}
             className="h-full w-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06] motion-reduce:transition-none"
             style={{ transformOrigin: "top center" }}
@@ -213,6 +213,6 @@ export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFA
           </p>
         )}
       </div>
-    </article>
+    </a>
   );
 }

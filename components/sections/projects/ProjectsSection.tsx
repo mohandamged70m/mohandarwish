@@ -1,25 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { FILTER_CATEGORIES } from "@/data/projects";
+import { motion, useReducedMotion } from "motion/react";
 import type { FilterCategory, Project, TagDirectory } from "@/data/projects";
-import { ProjectsTabs } from "./ProjectsTabs";
 import { ProjectsGrid } from "./ProjectsGrid";
 import { ProjectsHeader } from "./ProjectsHeader";
-
-// Developer tab (graph + lottie) is hidden until the user clicks the
-// Developer filter — split it out so it never lands in the initial
-// Projects bundle. Loaded on demand via next/dynamic.
-const DeveloperTab = dynamic(
-  () => import("./DeveloperTab").then((m) => m.DeveloperTab),
-  { ssr: false, loading: () => null }
-);
-
-const CONTENT_FADE_DURATION = 0.15;
-
-const SECTION_TABS = FILTER_CATEGORIES.map((c) => ({ id: c, label: c }));
+import { ProjectsTabShell } from "./ProjectsTabShell";
 
 /**
  * Homepage projects section — for-your-project grid with a
@@ -30,7 +16,6 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
   const [active, setActive] = useState<FilterCategory>("Projects");
   const reduce = useReducedMotion();
   const noMotion = reduce ? { initial: false } : {};
-  const isDeveloper = active === "Developer";
 
   return (
     <section
@@ -51,40 +36,11 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
             <ProjectsHeader active={active} />
           </motion.div>
 
-          <div className="flex w-full min-w-0 justify-center">
-            <ProjectsTabs
-              tabs={SECTION_TABS}
-              value={active}
-              onChange={(id) => setActive(id as FilterCategory)}
-              ariaLabel="Projects or developer profile"
-            />
-          </div>
-
-          <p className="sr-only" aria-live="polite">
-            Showing {isDeveloper ? "developer profile" : "projects"} for {active}
-          </p>
-
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={active}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: reduce ? 0.01 : CONTENT_FADE_DURATION,
-                ease: "easeOut",
-              }}
-              className="w-full max-w-full min-w-0 overflow-hidden"
-            >
-              {isDeveloper ? (
-                <div className="w-full max-w-full min-w-0 overflow-hidden">
-                  <DeveloperTab />
-                </div>
-              ) : (
-                <ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          <ProjectsTabShell
+            value={active}
+            onChange={setActive}
+            projectsNode={<ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} />}
+          />
         </div>
       </div>
     </section>

@@ -80,11 +80,46 @@ export function ProjectModal({ children, backHref, marker, initialMedia, project
   const [isMobile, setIsMobile] = useState(false);
   const [activeMedia, setActiveMedia] = useState<string | null>(initialMedia ?? null);
 
+  // Ambient bleed only trusts same-origin or dashboard https/data URLs —
+  // anything else renders no bleed rather than a broken CSS url().
+  const safeAmbientMedia =
+    activeMedia && /^(https?:\/\/|data:image\/|\/)/.test(activeMedia) ? activeMedia : null;
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 1024);
     onResize();
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Focus trap: keep Tab cycling inside the dialog, and return focus to
+  // whatever opened it when it unmounts.
+  useEffect(() => {
+    const outer = outerRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const onTrapKey = (e: KeyboardEvent): void => {
+      if (e.key !== "Tab" || !outer) return;
+      const items = Array.from(
+        outer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.getClientRects().length > 0);
+      if (items.length === 0) return;
+      const first = items[0] as HTMLElement;
+      const last = items[items.length - 1] as HTMLElement;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onTrapKey);
+    return () => {
+      document.removeEventListener("keydown", onTrapKey);
+      previouslyFocused?.focus?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -246,13 +281,13 @@ export function ProjectModal({ children, backHref, marker, initialMedia, project
           style={{ backdropFilter: "blur(2px)" }}
         />
         {/* ambient bleed - Mohand style */}
-        {activeMedia && !isVideo(activeMedia) && (
+        {safeAmbientMedia && !isVideo(safeAmbientMedia) && (
           <div
             aria-hidden
             style={{
               position: "absolute",
               inset: -50,
-              backgroundImage: `url(${activeMedia})`,
+              backgroundImage: `url(${safeAmbientMedia})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
               filter: "blur(80px) brightness(0.35)",

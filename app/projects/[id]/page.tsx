@@ -18,7 +18,9 @@ export const revalidate = 60;
 export async function generateStaticParams() {
   try {
     const projects = await getProjectsServer();
-    return projects.map((project) => ({ id: encodeURIComponent(project.id) }));
+    // Raw doc ids — Next encodes route params itself; pre-encoding here
+    // would double-encode ids with spaces/special chars (%25xx).
+    return projects.map((project) => ({ id: project.id }));
   } catch {
     return [];
   }
@@ -77,7 +79,12 @@ export default async function ProjectPage({
 
       <section className="mx-auto w-full max-w-3xl px-4 pt-32 pb-16 sm:px-6 sm:pt-40 sm:pb-20">
         <BackToProjects />
-        <div className="overflow-hidden rounded-[20px] border border-border bg-bg-surface shadow-[0_18px_56px_rgba(0,0,0,0.45)]">
+        {/* Cinema detail is dark in both themes — pin the island background
+            so light mode keeps white-on-dark readable. */}
+        <div
+          className="overflow-hidden rounded-[20px] border border-border shadow-[0_18px_56px_rgba(0,0,0,0.45)]"
+          style={{ background: "#0a0a0a", colorScheme: "dark" }}
+        >
           <ProjectDetailContent project={project} />
         </div>
       </section>

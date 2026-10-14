@@ -19,7 +19,10 @@ import {
 // page live exactly as before.
 export function useProjects(initial?: Project[]) {
   const [projects, setProjects] = useState<Project[]>(withShowcaseProjects(initial ?? []));
-  const [loading, setLoading] = useState(!initial);
+  // Empty initial (homepage passes [] while offline, archive passes server
+  // data) must render the loading state — otherwise the grid flashes
+  // "No projects yet" before the first live snapshot arrives.
+  const [loading, setLoading] = useState(!initial || initial.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [tagDir, setTagDir] = useState<TagDirectory | undefined>(undefined);
   const [contribDir, setContribDir] = useState<ContributorDirectory | undefined>(undefined);

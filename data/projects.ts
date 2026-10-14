@@ -70,12 +70,91 @@ function toArrayStrings(v: unknown): string[] {
 }
 
 function inferCategory(stack: string[]): ProjectCategory {
+  // Explicit owner tag wins ("Frontend", "Full-Stack", ...).
   for (const name of stack) {
     const hit = CATEGORIES.find((c) => c.toLowerCase() === name.trim().toLowerCase());
     if (hit) return hit;
   }
+  // Otherwise infer from stack signals: tooling / design-system markers
+  // first (they're the most specific), then backend markers, then frontend
+  // markers. Unknown stacks keep the old Full-Stack default.
+  const hay = stack.map((s) => s.toLowerCase());
+  const has = (hints: readonly string[]) => hay.some((s) => hints.some((h) => s.includes(h)));
+  if (has(TOOLING_HINTS)) return "Tooling";
+  if (has(DESIGN_SYSTEM_HINTS)) return "Design System";
+  if (has(BACKEND_HINTS)) return "Full-Stack";
+  if (has(FRONTEND_HINTS)) return "Frontend";
   return "Full-Stack";
 }
+
+const TOOLING_HINTS = [
+  "cli",
+  "tooling",
+  "eslint",
+  "bundler",
+  "webpack",
+  "rollup",
+  "babel",
+  "codemod",
+  "scaffold",
+  "yeoman",
+  "developer tool",
+] as const;
+
+const DESIGN_SYSTEM_HINTS = [
+  "storybook",
+  "design system",
+  "shadcn",
+  "radix",
+  "chakra",
+  "mui",
+  "component library",
+] as const;
+
+const BACKEND_HINTS = [
+  "node",
+  "express",
+  "nestjs",
+  "fastify",
+  "prisma",
+  "postgres",
+  "mysql",
+  "mongo",
+  "supabase",
+  "firebase",
+  "convex",
+  "trpc",
+  "graphql",
+  "apollo",
+  "redis",
+  "docker",
+  "kubernetes",
+  "socket",
+  "websocket",
+  "auth",
+  "server",
+  "stripe",
+  "drizzle",
+] as const;
+
+const FRONTEND_HINTS = [
+  "react",
+  "next",
+  "vue",
+  "nuxt",
+  "svelte",
+  "angular",
+  "tailwind",
+  "framer",
+  "motion",
+  "gsap",
+  "three",
+  "canvas",
+  "typescript",
+  "javascript",
+  "mdx",
+  "figma",
+] as const;
 
 /** Raw dashboard_docs row data for path `Projects/<name>` (see D-Projects handleSaveProject). */
 export type DashboardProjectRow = {
@@ -88,6 +167,8 @@ export type DashboardProjectRow = {
   "Download Link"?: unknown;
   "Project Icon"?: unknown;
   "Repository Link"?: unknown;
+  /** Optional 4-digit year (forward-compat: older dashboard rows omit it). */
+  Year?: unknown;
   Tags?: unknown;
   Stack?: unknown;
   Contributors?: unknown;
@@ -229,12 +310,21 @@ export function mapDashboardDocToProject(
   const category = inferCategory(merged);
   const image = icon || images[0] || FALLBACK_IMAGE;
 
+  const yearRaw = data.Year;
+  const year =
+    typeof yearRaw === "number" && Number.isFinite(yearRaw)
+      ? String(Math.trunc(yearRaw))
+      : typeof yearRaw === "string" && yearRaw.trim()
+        ? yearRaw.trim().slice(0, 12)
+        : undefined;
+
   return {
     id: docId,
     title,
     category,
     image,
     href: `/projects/${encodeURIComponent(docId)}`,
+    year,
     stack: merged,
     tagsDetailed,
     contributors: contributors.length ? contributors : undefined,
@@ -243,7 +333,10 @@ export function mapDashboardDocToProject(
     role:typeof data.Role==="string"?data.Role:undefined,
     highlights:Array.isArray(data.Highlights)?data.Highlights.filter((h):h is string=>typeof h==="string"):undefined,
     metrics:Array.isArray(data.Metrics)?data.Metrics.filter((m):m is {label:string;value:string}=>!!m&&typeof m==="object"&&typeof m.label==="string"&&typeof m.value==="string"):undefined,
-    featured: listing > 0 ? listing <= 6 : true,
+  // Featured ≈ "worth surfacing": explicitly ranked 1–6, or unranked
+  // (listing 0 = owner hasn't ordered it yet — still surfaced). Consumers
+  // slice the first 6 in sort order, so this stays in sync with the grid.
+  featured: listing > 0 ? listing <= 6 : true,
     liveUrl,
     githubUrl,
     downloadUrl,

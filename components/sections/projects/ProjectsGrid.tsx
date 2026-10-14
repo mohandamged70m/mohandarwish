@@ -42,7 +42,7 @@ type TagInfo = {
  * Projects-only — no Developer tab.
  */
 export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjects?: Project[]; initialTagDir?: TagDirectory }) {
-  const { projects, loading, tagDir: liveTagDir } = useProjects(initialProjects);
+  const { projects, loading, error, tagDir: liveTagDir } = useProjects(initialProjects);
   const tailor = useTailor();
   const reduce = useReducedMotion();
   const noMotion = reduce ? { initial: false as const } : {};
@@ -166,8 +166,11 @@ export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjec
   }, [projects, selectedTags, debouncedSearch, tailor]);
 
   const toggleTag = (tag: string) => {
+    const key = tag.toLowerCase();
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+      prev.some((t) => t.toLowerCase() === key)
+        ? prev.filter((t) => t.toLowerCase() !== key)
+        : [...prev, tag],
     );
   };
 
@@ -204,14 +207,19 @@ export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjec
         </div>
       )}
 
-      {/* Tag filter — for-your-project "Filter View" row */}
+      {/* Tag filter — for-your-project "Filter View" row. Capped in height
+          so a large tag directory scrolls instead of pushing the grid away. */}
       {availableTags.length > 0 && (
-        <div className="flex w-full flex-wrap items-center gap-2">
+        <div
+          role="group"
+          aria-label="Filter projects by tag"
+          className="flex max-h-36 w-full flex-wrap items-center gap-2 overflow-y-auto"
+        >
           <span className="mr-2 text-xs font-bold uppercase tracking-widest text-text-muted opacity-60">
             Filter view:
           </span>
           {availableTags.map((tag) => {
-            const isActive = selectedTags.includes(tag.name);
+            const isActive = selectedTags.some((t) => t.toLowerCase() === tag.name.toLowerCase());
             const icon = (tag.iconSvg ?? "").trim();
             const isUrl = /^(https?:|data:image)/.test(icon);
             return (
@@ -262,15 +270,28 @@ export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjec
       ) : filtered.length === 0 ? (
         <div className="w-full rounded-[16px] border border-dashed border-border bg-bg-surface px-6 py-10 text-center">
           <p className="font-heading text-sm font-medium text-text-primary">
-            {projects.length === 0
-              ? "No projects yet — add one from the dashboard"
-              : "No projects match — try a different search or reset the filters"}
+            {error
+              ? "Couldn't load projects — check your connection and retry"
+              : projects.length === 0
+                ? "No projects yet — add one from the dashboard"
+                : "No projects match — try a different search or reset the filters"}
           </p>
           <p className="mt-1 font-body text-sm text-text-muted">
-            {projects.length === 0
-              ? "Dashboard → Projects → Add Project, it appears here live."
-              : "Clear the search or reset the filters to see projects."}
+            {error
+              ? error
+              : projects.length === 0
+                ? "Dashboard → Projects → Add Project, it appears here live."
+                : "Clear the search or reset the filters to see projects."}
           </p>
+          {error && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-4 cursor-pointer rounded-xl border border-border bg-bg-surface-hover px-5 py-3 font-heading text-xs font-bold uppercase tracking-widest text-text-primary transition-opacity hover:opacity-70"
+            >
+              Retry
+            </button>
+          )}
         </div>
       ) : (
         <div

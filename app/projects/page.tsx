@@ -2,7 +2,7 @@ import { Projects } from "@/components/sections/projects/Projects";
 import { FadeIn } from "@/components/ui/motion-primitives";
 import { ScrollReveal } from "@/components/transitions";
 import { createMetadata } from "@/lib/metadata";
-import { getProjectsServer } from "@/lib/projects-server";
+import { getProjectsServer, getTagDirectoryServer } from "@/lib/projects-server";
 import { projectListJsonLd, projectsCollectionJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { ME } from "@/data/me";
@@ -19,10 +19,10 @@ export const metadata: Metadata = createMetadata({
 });
 
 export default async function ProjectsPage(): Promise<ReactNode> {
-  // Server-fetched purely for the structured data. The visible list is the
-  // same data hydrated client-side by useProjects, so the JSON-LD always
-  // describes exactly the projects the page lists.
+  // Server data feeds both the structured data and the visible grid's first
+  // paint (same as the homepage) — the client subscription then keeps it live.
   const projects = await getProjectsServer().catch(() => []);
+  const tagDir = await getTagDirectoryServer().catch(() => undefined);
 
   return (
     <main id="main-content" className="flex flex-1 flex-col">
@@ -58,7 +58,7 @@ export default async function ProjectsPage(): Promise<ReactNode> {
         </FadeIn>
       </section>
       <ScrollReveal>
-        <Projects />
+        <Projects initialProjects={projects} initialTagDir={tagDir} />
       </ScrollReveal>
       <div className="h-12 sm:h-16" />
     </main>

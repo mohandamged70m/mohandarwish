@@ -113,7 +113,9 @@ export const VideoPlayer = React.memo(function VideoPlayer({ src, isActive, isMo
   useEffect(() => {
     if (!isDragging) return;
     const onMove = (e: MouseEvent) => {
-      const c = document.querySelector('[data-testid="progress-container"]') as HTMLElement | null;
+      // Scoped to this player — a global querySelector could grab another
+      // mounted player's progress bar.
+      const c = containerRef.current?.querySelector('[data-testid="progress-container"]') as HTMLElement | null;
       if (!c || !videoRef.current) return;
       const r = c.getBoundingClientRect();
       const x = Math.max(0, Math.min(e.clientX - r.left, r.width));

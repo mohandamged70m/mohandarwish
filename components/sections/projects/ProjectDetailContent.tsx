@@ -109,6 +109,7 @@ function TechIcon({ tech, color, iconSvg }: { tech: string; color: string; iconS
           height={18}
           unoptimized
           loading="lazy"
+          referrerPolicy="no-referrer"
           className="h-[18px] w-[18px] object-contain"
           onError={() => setFailed(true)}
           draggable={false}
@@ -184,18 +185,21 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
   const MatrixReveal = inModal ? Fragment : ScrollReveal;
 
   return (
-    <div className="flex w-full flex-col">
-      {/* HERO SHOWCASE 100svh (dvh fallback via style) */}
+    // Cinema styling is intentionally dark in both themes (it also renders
+    // inside the transparent modal), so pin a dark color-scheme here.
+    <div className="flex w-full flex-col" style={{ colorScheme: "dark" }}>
+      {/* HERO SHOWCASE (modal: fits the 90vh cinema; page: near-viewport) */}
       <div
         style={{
           position: "relative",
           width: "100%",
-          height: "100svh",
-          minHeight: "100svh",
+          height: inModal ? "80vh" : "92svh",
+          minHeight: inModal ? "80vh" : "92svh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           padding: isMobile ? 16 : 20,
+          overflow: "hidden",
         }}
       >
         {/* Watermark */}
@@ -211,6 +215,8 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
             color: "white",
             opacity: isMobile ? 0.025 : 0.035,
             whiteSpace: "nowrap",
+            overflow: "hidden",
+            maxWidth: "100%",
             pointerEvents: "none",
             zIndex: 0,
             userSelect: "none",
