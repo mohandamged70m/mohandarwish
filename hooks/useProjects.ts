@@ -99,5 +99,5 @@ export function useProjects(initial?: Project[]) {
     }
   }, [rows, tagDir, contribDir, hasLive]);
 
-  return { projects, loading, error };
+  return { projects, loading, error, tagDir };
 }

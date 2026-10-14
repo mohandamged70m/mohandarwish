@@ -3,32 +3,24 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Trash2, Edit2, X, Save, Upload, User, Sliders, Code, Clock, HardDrive, ZoomIn, Link, Sun, Moon, Plug } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, Save, Upload, User, Sliders, Clock, HardDrive, ZoomIn, Link, Sun, Moon, Plug } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 const DEFAULT_HERO_URL = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
 import Cropper from 'react-easy-crop';
 import MFirebaseStorage from './M-FirebaseStorage';
-import { doc, onSnapshot, setDoc, updateDoc, deleteField, getDoc } from '@/lib/dash-db';
+import { doc, onSnapshot, setDoc, deleteField, getDoc } from '@/lib/dash-db';
 import { ref, uploadBytes, getDownloadURL, getMetadata, getStorage } from '@/lib/dash-storage';
 import app, { db } from '@/lib/dash-db';
 // Local Storage handle (lazy Dashboard chunk) - keeps firebase/storage out of eager.
 const storage = getStorage(app);
 import Alert, { AlertType } from '@/components/ui/alert';
 import { timezoneOptions } from '@/lib/timezones';
-import MStackItem, { StackItemData } from './M-StackItem';
 import DMcpPanel from './D-MCP';
 import Select from '@/components/ui/mohand-select';
 import SaveBar from './SaveBar';
 import Loader from '@/components/dashboard/primitives/reactbits/Loader';
 import MConfirmModal from './M-ConfirmModal';
 // Replaced failing ui-avatars.com with a local icon-based placeholder logic
-
-
-interface StackItem {
-    id: string;
-    name: string;
-    icon: string;
-}
 
 
 // Helper to create the cropped image
@@ -104,15 +96,11 @@ const getCroppedImg = (imageSrc: string, pixelCrop: unknown): Promise<File> => {
 export default function DSettings() {
     const [isLoading, setIsLoading] = useState(false);
 
-    const [activeTab, setActiveTab] = useState<'availability' | 'stack' | 'account' | 'mcp'>('availability');
+    const [activeTab, setActiveTab] = useState<'availability' | 'account' | 'mcp'>('availability');
     const [availability, setAvailability] = useState(75);
     const [selectedTimezone, setSelectedTimezone] = useState(2);
     const [currentTime, setCurrentTime] = useState('');
 
-    // Stack state
-    const [stackItems, setStackItems] = useState<StackItem[]>([]);
-    const [stackModalOpen, setStackModalOpen] = useState(false);
-    const [editingStack, setEditingStack] = useState<StackItem | null>(null);
     const [firebaseBrowserOpen, setFirebaseBrowserOpen] = useState(false);
     const [firebaseSelectTarget, setFirebaseSelectTarget] = useState<'hero' | 'heroDark' | 'profile' | null>(null);
 
@@ -184,7 +172,7 @@ export default function DSettings() {
     const [heroImageSizeDark, setHeroImageSizeDark] = useState<string>('');
     const [heroImageSizeLoadingDark, setHeroImageSizeLoadingDark] = useState(false);
 
-    const handleTabChange = (newTab: 'availability' | 'stack' | 'account' | 'mcp') => {
+    const handleTabChange = (newTab: 'availability' | 'account' | 'mcp') => {
         setActiveTab(newTab);
     };
 
@@ -762,98 +750,10 @@ export default function DSettings() {
         return () => unsubscribe();
     }, []);
 
-    // Fetch Stack Data
-    useEffect(() => {
-        const unsubscribe = onSnapshot(doc(db, 'Settings', 'Tech Stack'), (docSnapshot) => {
-            if (docSnapshot.exists()) {
-                const data = docSnapshot.data();
-                const items: StackItem[] = [];
-                Object.entries(data).forEach(([key, value]: [string, unknown]) => {
-                    const v = value as Record<string, unknown>;
-                    items.push({
-                        id: key,
-                        name: typeof v.Name === 'string' ? v.Name : (v.name as string) || 'Untitled',
-                        icon: typeof v.Icon === 'string' ? v.Icon : (v.icon as string) || ''
-                    });
-                });
-                // Sort by ID (assuming numeric IDs)
-                items.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-                setStackItems(items);
-            }
-        }, (err) => {
-            const status = navigator.onLine ? "Service Blocked (ISP/Firewall)" : "Offline";
-            console.warn(`[Connection] Tech Stack sync: ${status}. Check diagnostic in lib/firebase.ts`, err);
-        });
-        return () => unsubscribe();
-    }, []);
-
     const getAvailabilityColor = (value: number) => {
         const red = Math.round(255 * (1 - value / 100));
         const green = Math.round(255 * (value / 100));
         return `rgb(${red}, ${green}, 50)`;
-    };
-
-    const handleSaveStack = async (data: StackItemData) => {
-        if (!data.name.trim() || !data.icon) return;
-        setIsLoading(true);
-
-        try {
-            let id = data.id || '';
-            if (!id) {
-                const ids = stackItems.map(i => parseInt(i.id)).filter(n => !isNaN(n));
-                const nextId = ids.length > 0 ? Math.max(...ids) + 1 : 1;
-                id = nextId.toString();
-            }
-
-            let iconUrl = data.icon;
-            if (data.iconFile) {
-                const storageRef = ref(storage, `src/svgs/${data.iconFile.name}`);
-                await uploadBytes(storageRef, data.iconFile);
-                iconUrl = await getDownloadURL(storageRef);
-            }
-
-            const payload = {
-                Name: data.name,
-                Icon: iconUrl
-            };
-
-            await setDoc(doc(db, 'Settings', 'Tech Stack'), { [id]: payload }, { merge: true });
-
-            setStackModalOpen(false);
-            setEditingStack(null);
-            safeSetAlert({ show: true, type: 'success', message: 'Stack item saved!', duration: 3000 });
-        } catch (error) {
-            console.error("Error saving stack:", error);
-            safeSetAlert({ show: true, type: 'error', message: 'Failed to save stack item' });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleDeleteStack = (id: string) => {
-        const item = stackItems.find(i => i.id === id);
-        setConfirmConfig({
-            isOpen: true,
-            title: 'Delete Stack Item',
-            message: `Are you sure you want to delete "${item?.name || id}" from your tech stack?`,
-            type: 'danger',
-            onConfirm: async () => {
-                setIsLoading(true);
-                try {
-                    await updateDoc(doc(db, 'Settings', 'Tech Stack'), { [id]: deleteField() });
-                    safeSetAlert({ show: true, type: 'success', message: 'Stack item deleted', duration: 3000 });
-                } catch (error) {
-                    console.error("Error deleting stack:", error);
-                } finally {
-                    setIsLoading(false);
-                }
-            }
-        });
-    };
-
-    const closeStackModal = () => {
-        setStackModalOpen(false);
-        setEditingStack(null);
     };
 
     // Account handlers
@@ -1057,7 +957,6 @@ export default function DSettings() {
     // Tabs definition
     const tabs = [
         { id: 'availability', label: 'Availability', icon: Sliders },
-        { id: 'stack', label: 'Tech Stack', icon: Code },
         { id: 'account', label: 'Account', icon: User },
         { id: 'mcp', label: 'MCP', icon: Plug },
     ] as const;
@@ -1268,41 +1167,6 @@ export default function DSettings() {
                             </div>
                         </div>
 
-                    </motion.div>
-                )}
-
-                    {activeTab === 'stack' && (
-                        <motion.div
-                            key="stack"
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.15, ease: 'easeInOut' }}
-                            className="settings-section flex flex-col gap-6"
-                        >
-                            <div className="settings-panel glass-panel p-3 sm:p-4 md:p-6 flex-1 flex flex-col gap-3 sm:gap-4 md:gap-6">
-                            <div className="flex-row-between">
-                                <h3 className="heading-md text-base sm:text-lg md:text-xl">Tech Stack</h3>
-                                <button onClick={() => setStackModalOpen(true)} className="btn btn-primary" aria-label="Add stack">
-                                    <Plus size={18} /> <span className="hidden sm:inline">Add Stack</span>
-                                </button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6 content-start">
-                                {stackItems.length === 0 ? (
-                                    <div className="col-span-full text-center p-12 text-sec">No stack items. Add your tech stack!</div>
-                                ) : stackItems.map(item => (
-                                    <div key={item.id} className="p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl bg-gray-500/5 border border-gray-500/5 flex flex-col gap-2 sm:gap-3 md:gap-3.5 relative min-w-0">
-                                        <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 flex gap-0.5 sm:gap-1">
-                                            <button onClick={() => { setEditingStack(item); setStackModalOpen(true); }} className="btn-icon p-1 sm:p-1.5"><Edit2 size={14} className="sm:w-4 sm:h-4" /></button>
-                                            <button onClick={() => handleDeleteStack(item.id)} className="btn-icon p-1 sm:p-1.5 text-red-500 hover:bg-red-500/10"><Trash2 size={14} className="sm:w-4 sm:h-4" /></button>
-                                        </div>
-                                        {item.icon ? <img src={item.icon} alt={item.name} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 opacity-90 object-contain" /> : <Code size={40} className="text-gray-500/50 sm:w-12 sm:h-12 md:w-[60px] md:h-[60px]" />}
-                                        <h4 className="heading-sm text-xs sm:text-sm md:text-base truncate">{item.name}</h4>
-
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
                     </motion.div>
                 )}
 
@@ -1636,14 +1500,6 @@ export default function DSettings() {
                     )}
                 </AnimatePresence>
             </div>
-
-            {/* Stack Modal */}
-            <MStackItem
-                isOpen={stackModalOpen}
-                onClose={closeStackModal}
-                onSave={handleSaveStack}
-                initialData={editingStack}
-            />
 
             {/* Sticky Action Bar (shared component) */}
             <SaveBar show={hasUnsavedChanges} onApply={handleApplyAll} onCancel={handleCancelAll} isDark={isDark} />

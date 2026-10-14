@@ -8,7 +8,7 @@ import { SectionSlide, SectionTransition } from "@/components/transitions";
 import { PagerDots } from "@/components/transitions/PagerDots";
 import { ScrollTop } from "@/components/layout/ScrollTop";
 
-import { getProjectsServer } from "@/lib/projects-server";
+import { getProjectsServer, getTagDirectoryServer } from "@/lib/projects-server";
 import { createMetadata } from "@/lib/metadata";
 
 export const revalidate = 3600;
@@ -82,6 +82,9 @@ export default function Home() {
 async function ProjectsData() {
   // Server-rendered project cards for instant first paint; the section's
   // live subscriptions still attach client-side afterwards (see useProjects).
-  const projects = await getProjectsServer().catch(() => []);
-  return <ProjectsSection initialProjects={projects} />;
+  const [projects, tagDir] = await Promise.all([
+    getProjectsServer().catch(() => []),
+    getTagDirectoryServer().catch(() => undefined),
+  ]);
+  return <ProjectsSection initialProjects={projects} initialTagDir={tagDir} />;
 }

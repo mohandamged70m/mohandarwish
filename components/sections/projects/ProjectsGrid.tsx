@@ -4,7 +4,7 @@ import { Search, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import type { Project } from "@/data/projects";
+import type { Project, TagDirectory } from "@/data/projects";
 import { ProjectCard } from "./ProjectCard";
 import { useTechSwap } from "@/hooks/useTechSwap";
 import { GlassChip } from "@/components/ui/glassy-button";
@@ -41,8 +41,8 @@ type TagInfo = {
  * projects (useProjects), share-link pins first, then listing order.
  * Projects-only — no Developer tab.
  */
-export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] }) {
-  const { projects, loading } = useProjects(initialProjects);
+export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjects?: Project[]; initialTagDir?: TagDirectory }) {
+  const { projects, loading, tagDir: liveTagDir } = useProjects(initialProjects);
   const tailor = useTailor();
   const reduce = useReducedMotion();
   const noMotion = reduce ? { initial: false as const } : {};
@@ -73,7 +73,9 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
     }
   }, [projects.length]);
 
-  // Every tag used across projects, with dashboard color/icon when known.
+  // Every tag used across projects, with dashboard color/icon when known,
+  // plus every tag defined in the dashboard directory — even ones not
+  // assigned to any project yet.
   const availableTags = useMemo<TagInfo[]>(() => {
     const seen = new Map<string, TagInfo>();
     for (const p of projects) {
@@ -89,8 +91,27 @@ export function ProjectsGrid({ initialProjects }: { initialProjects?: Project[] 
         if (!seen.has(key)) seen.set(key, { name, color: getTechColor(name) });
       }
     }
+    const dir = liveTagDir ?? initialTagDir;
+    if (dir) {
+      for (const entry of Object.values(dir)) {
+        const name = entry?.Name?.trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        const prev = seen.get(key);
+        const iconSvg = entry.Icon || undefined;
+        if (!prev) {
+          seen.set(key, {
+            name,
+            color: entry.Color || getTechColor(name),
+            ...(iconSvg ? { iconSvg } : {}),
+          });
+        } else if (!prev.iconSvg && iconSvg) {
+          seen.set(key, { ...prev, iconSvg });
+        }
+      }
+    }
     return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [projects]);
+  }, [projects, liveTagDir, initialTagDir]);
 
   const filtered = useMemo(() => {
     let results = [...projects];
