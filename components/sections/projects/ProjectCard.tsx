@@ -153,7 +153,7 @@ export function ProjectCard({ project, eager, showTech = false, avatarSrc = DEFA
                 height={44}
                 loading="lazy"
                 onError={() => setAvatarFailed(true)}
-                className="absolute inset-0 z-[1] h-full w-full rounded-full bg-bg-surface-hover object-cover shadow-[0_4px_14px_rgba(0,0,0,0.45)]"
+                className="absolute inset-0 z-[1] h-full w-full rounded-full bg-bg-surface-hover object-cover object-[50%_15%] shadow-[0_4px_14px_rgba(0,0,0,0.45)]"
               />
             )}
             <span
