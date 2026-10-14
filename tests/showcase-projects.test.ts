@@ -1,16 +1,24 @@
 import { expect, it } from "vitest";
 import { getShowcaseProject, withShowcaseProjects } from "@/data/showcase-projects";
-it("keeps Tarteeb in the archive and direct route without database rows", () => {
-  const rows = withShowcaseProjects([]);
-  expect(rows).toHaveLength(1);
-  expect(rows[0]).toMatchObject({ id: "Tarteeb", href: "/projects/Tarteeb", githubUrl: "https://github.com/mohandamged70m/Tarteeb", liveUrl: "https://tarteeb-indol.vercel.app" });
-  expect(getShowcaseProject("tarteeb")).toEqual(rows[0]);
+import type { Project } from "@/data/projects";
+
+const make = (over: Partial<Project> & { id: string }): Project => ({
+  title: over.id,
+  category: "Full-Stack",
+  image: "/me/mohand-darwish.jpeg",
+  href: `/projects/${over.id}`,
+  ...over,
+});
+
+it("returns only dashboard projects (no hardcoded showcase)", () => {
+  expect(withShowcaseProjects([])).toHaveLength(0);
+  expect(getShowcaseProject("tarteeb")).toBeNull();
   expect(getShowcaseProject("unknown")).toBeNull();
 });
-it("preserves dashboard edits without duplicating live projects", () => {
-  const seed = getShowcaseProject("Tarteeb")!;
-  const edited = { ...seed, id: "tarteeb", description: "Edited from the dashboard", listing: 4 };
-  const other = { ...seed, id: "Other", title: "Other", listing: 2 };
+
+it("preserves dashboard projects and sorts by listing", () => {
+  const edited = make({ id: "tarteeb", description: "Edited from the dashboard", listing: 4 });
+  const other = make({ id: "Other", title: "Other", listing: 2 });
   const rows = withShowcaseProjects([edited, other]);
   expect(rows).toHaveLength(2);
   expect(rows.find((p) => p.id === "tarteeb")).toBe(edited);
