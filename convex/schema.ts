@@ -68,57 +68,6 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_created", ["createdAt"]),
 
-  // ── Profile content (/about)
-  profileExperience: defineTable({
-    company: v.string(),
-    role: v.string(),
-    period: v.string(),
-    startDate: v.optional(v.union(v.string(), v.null())),
-    endDate: v.optional(v.union(v.string(), v.null())),
-    slug: v.optional(v.union(v.string(), v.null())),
-    brand: v.optional(v.union(v.string(), v.null())),
-    location: v.optional(v.union(v.string(), v.null())),
-    description: v.optional(v.union(v.string(), v.null())),
-    link: v.optional(v.union(v.string(), v.null())),
-    sortOrder: v.number(),
-    isVisible: v.boolean(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  }).index("by_order", ["sortOrder", "createdAt"]),
-
-  profileEducation: defineTable({
-    school: v.string(),
-    degree: v.string(),
-    period: v.string(),
-    startDate: v.optional(v.union(v.string(), v.null())),
-    endDate: v.optional(v.union(v.string(), v.null())),
-    slug: v.optional(v.union(v.string(), v.null())),
-    link: v.optional(v.union(v.string(), v.null())),
-    sortOrder: v.number(),
-    isVisible: v.boolean(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  }).index("by_order", ["sortOrder", "createdAt"]),
-
-  profileSkills: defineTable({
-    label: v.string(),
-    sortOrder: v.number(),
-    isVisible: v.boolean(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  }).index("by_order", ["sortOrder", "createdAt"]),
-
-  profileStack: defineTable({
-    label: v.string(),
-    slug: v.string(),
-    bg: v.string(),
-    fg: v.string(),
-    iconUrl: v.optional(v.union(v.string(), v.null())),
-    sortOrder: v.number(),
-    isVisible: v.boolean(),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  }).index("by_order", ["sortOrder", "createdAt"]),
   // ── Trails notification outbox (ingest writes, sender drains)
   trailOutbox: defineTable({
     sessionId: v.string(),

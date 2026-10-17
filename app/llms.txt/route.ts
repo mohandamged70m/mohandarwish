@@ -2,7 +2,6 @@ import { siteConfig } from "@/lib/metadata";
 import { KNOWS_ABOUT, ME, PROFILES, SAME_AS } from "@/data/me";
 import { FAQS } from "@/data/faq";
 import { getProjectsServer } from "@/lib/projects-server";
-import { getStackServer } from "@/lib/profile-server";
 
 export const revalidate = 3600;
 
@@ -17,10 +16,10 @@ const MARKDOWN_HEADERS = {
  * /llms.txt — the short, quotable brief for AI answer engines.
  *
  * Served from a Route Handler rather than `public/llms.txt` on purpose: the
- * project list and skill list come straight from the same Convex tables that
- * render the site, so this file can never go stale or contradict the page it
- * describes. (A static `public/` file at the same path would also collide with
- * this route.)
+ * project list comes straight from the same Convex tables that render the
+ * site, so this file can never go stale or contradict the page it describes.
+ * (A static `public/` file at the same path would also collide with this
+ * route.)
  */
 export async function GET(): Promise<Response> {
   let projectLines = `- [All projects (full archive)](${BASE}/projects)`;
@@ -51,13 +50,9 @@ export async function GET(): Promise<Response> {
     // DB unreachable: the static archive link above keeps the file valid.
   }
 
-  let stackLine = KNOWS_ABOUT.join(", ");
-  try {
-    const stack = await getStackServer();
-    if (stack.length > 0) stackLine = stack.map((c) => c.label).join(", ");
-  } catch {
-    // fall back to the curated KNOWS_ABOUT list
-  }
+  // Curated in `data/me.ts`; the same list feeds the Person node's
+  // `knowsAbout` in lib/seo.ts, so the file and the JSON-LD cannot drift.
+  const stackLine = KNOWS_ABOUT.join(", ");
 
   const body = `# ${ME.name}
 

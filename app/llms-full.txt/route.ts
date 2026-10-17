@@ -2,7 +2,6 @@ import { siteConfig } from "@/lib/metadata";
 import { KNOWS_ABOUT, ME, PORTRAIT, PROFILES, SAME_AS } from "@/data/me";
 import { FAQS } from "@/data/faq";
 import { getProjectsServer } from "@/lib/projects-server";
-import { getStackServer } from "@/lib/profile-server";
 import type { Project } from "@/data/projects";
 
 export const revalidate = 3600;
@@ -72,13 +71,9 @@ export async function GET(): Promise<Response> {
     // keep the valid fallback above
   }
 
-  let stackLine = KNOWS_ABOUT.join(", ");
-  try {
-    const stack = await getStackServer();
-    if (stack.length > 0) stackLine = stack.map((c) => c.label).join(", ");
-  } catch {
-    // curated fallback
-  }
+  // Curated in `data/me.ts`; the same list feeds the Person node's
+  // `knowsAbout` in lib/seo.ts, so the file and the JSON-LD cannot drift.
+  const stackLine = KNOWS_ABOUT.join(", ");
 
   const body = `# ${ME.name} — full machine-readable brief
 

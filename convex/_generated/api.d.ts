@@ -13,7 +13,6 @@ import type * as availability from "../availability.js";
 import type * as bookings from "../bookings.js";
 import type * as docs from "../docs.js";
 import type * as messages from "../messages.js";
-import type * as profile from "../profile.js";
 import type * as rateLimits from "../rateLimits.js";
 import type * as storage from "../storage.js";
 import type * as trailMigration from "../trailMigration.js";
@@ -32,7 +31,6 @@ declare const fullApi: ApiFromModules<{
   bookings: typeof bookings;
   docs: typeof docs;
   messages: typeof messages;
-  profile: typeof profile;
   rateLimits: typeof rateLimits;
   storage: typeof storage;
   trailMigration: typeof trailMigration;

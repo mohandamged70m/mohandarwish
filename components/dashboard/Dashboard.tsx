@@ -4,10 +4,9 @@
 import dynamic from 'next/dynamic';
 import { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';
-import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark, IdCard } from 'lucide-react';
+import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 const DProjects = dynamic(() => import("./D-Projects"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
-const DAbout = dynamic(() => import("./D-About"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 const DTags = dynamic(() => import("./D-Tags"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 const DTrails = dynamic(() => import("./D-Trails"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
 const DSettings = dynamic(() => import("./D-Settings"), { loading: () => <p className="p-6" role="status">Loading workspace…</p> });
@@ -103,7 +102,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
     const menuItems = [
         { id: 'projects', label: 'Projects', icon: Layout },
-        { id: 'about', label: 'About', icon: IdCard },
         { id: 'tags', label: 'Tags', icon: Tag },
         { id: 'trails', label: 'Trails', icon: Footprints },
         { id: 'developer', label: 'Developer', icon: GitBranch },
@@ -304,8 +302,6 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                             >
                                 {activeTab === 'projects' ? (
                                     <DProjects />
-                                ) : activeTab === 'about' ? (
-                                    <DAbout />
                                 ) : activeTab === 'tags' ? (
                                     <DTags />
                                 ) : activeTab === 'trails' ? (
