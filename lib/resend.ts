@@ -6,7 +6,7 @@ export function getResendFrom(): string {
   return process.env.RESEND_FROM || "Mohand Darwish <onboarding@resend.dev>";
 }
 
-export function isResendTestModeError(err: unknown): boolean {
+function isResendTestModeError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err ?? "");
   // Resend SDK throws with message containing the API JSON
   return msg.includes("You can only send testing emails") || msg.includes("validation_error");

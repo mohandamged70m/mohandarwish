@@ -26,7 +26,7 @@ import useSafeAlert from "@/hooks/useSafeAlert";
 import { AvailabilityConfig, DEFAULT_AVAILABILITY, parseAvailabilityConfig, buildHostSlots, isWorkingDay } from "@/lib/availability";
 import useTheme from "@/hooks/useTheme";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+import { EMAIL_RE } from "@/lib/validate";
 const isValidEmail = (s: string) => EMAIL_RE.test(s.trim());
 
 interface Meeting {

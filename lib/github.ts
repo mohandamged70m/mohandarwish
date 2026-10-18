@@ -11,14 +11,6 @@ function authHeaders(): Record<string, string> {
   return headers;
 }
 
-export function githubHeaders() {
-  return authHeaders();
-}
-
-export function hasGithubToken(): boolean {
-  return !!process.env.GITHUB_TOKEN;
-}
-
 type CacheEntry = { data: unknown; expiresAt: number };
 
 // Module-level in-memory cache. Survives across requests in the same

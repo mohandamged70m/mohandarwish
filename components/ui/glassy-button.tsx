@@ -33,7 +33,3 @@ export function GlassChip({ children, active, className, ...rest }: Base & { act
   return <button {...rest} className={cls("glass-chip", active && "active", className)}>{children}</button>;
 }
 
-/** Frosted subnav tab bar. Pass buttons with `active` class for the current tab. */
-export function GlassSubnav({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cls("glass-subnav", className)}>{children}</div>;
-}

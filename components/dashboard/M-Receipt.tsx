@@ -26,7 +26,7 @@ interface Props {
     onToast?: (msg: string, kind: 'good' | 'warn' | 'info') => void;
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+import { EMAIL_RE } from "@/lib/validate";
 const today = () => new Date().toISOString().slice(0, 10);
 
 /** '2026-08-08' -> '8 August 2026'. Falls through unchanged if it isn't a date. */
