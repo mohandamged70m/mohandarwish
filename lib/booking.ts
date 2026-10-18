@@ -1,4 +1,6 @@
-export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Single source of truth lives in lib/validate.ts; re-exported here because the
+// booking/messages routes already import it from this module.
+export { EMAIL_RE } from "@/lib/validate";
 
 export function getOffsetFromUTCString(tzStr: string): number {
   const match = tzStr.match(/UTC([+-]\d{2}):(\d{2})/);
