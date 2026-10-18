@@ -660,42 +660,6 @@ section[id="contact"] {
   transform: scale(1.05);
   box-shadow: 0 8px 16px -4px var(--accent-ring);
 }
-.glass-subnav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px;
-  border-radius: 24px;
-  background: var(--subnav-bg);
-  border: 1px solid var(--card-border);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-.glass-subnav button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 16px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.glass-subnav button.active { color: var(--accent-text); }
-.glass-subnav button.active::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-primary);
-}
 @media (prefers-reduced-motion: reduce) {
   .glass-btn, .glass-btn-circle, .glass-btn-play, .glass-chip { transition: none; }
   .glass-btn-circle:hover, .glass-btn-play:hover, .glass-chip:hover, .glass-chip.active { transform: none; }
