@@ -12,17 +12,21 @@ import {
 // ISR window for this response.
 export const revalidate = 3600;
 
-const CACHE_KEY = "gh:contributions:v4";
+const CACHE_KEY = "gh:contributions:v5";
 
-// Long s-maxage + a full day of stale-while-revalidate means Vercel's edge
-// keeps answering from cache if GitHub ever errors or rate-limits, so visitors
-// never see a broken or empty graph.
+// s-maxage is for the shared cache (Vercel's edge holds the payload for an
+// hour). max-age=0 + must-revalidate is for the visitor's own cache: it forces
+// a cheap 304 revalidation instead of letting a stale copy linger after a
+// deploy changes what the calendar means. stale-while-revalidate keeps the edge
+// answering from cache if GitHub ever errors, so the graph is never empty.
 const CACHE_HEADERS = {
-  "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+  "Cache-Control":
+    "public, max-age=0, must-revalidate, s-maxage=3600, stale-while-revalidate=86400",
 };
 
 /** GET /api/github/contributions — GitHub's own contribution calendar for the
- *  rolling last year, via the GraphQL API (the same source github.com uses).
+ *  current calendar year (Jan 1 - Dec 31), via the GraphQL API. GitHub returns
+ *  the whole span, so days after today come back as 0 rather than being cut off.
  *
  *  Server-side only: GITHUB_TOKEN is read here and never reaches the browser.
  *  Needs a PAT with `read:user`; set it in Vercel → Settings → Environment

@@ -134,14 +134,19 @@ export function weekdayOf(dateKey: string): number {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
 }
 
-/** The exact window github.com's profile calendar covers: one year back from
- *  now (the GraphQL API rejects ranges longer than a year). GitHub snaps the
- *  start forward to a Sunday itself, so we send plain instants and let it
- *  decide the grid — that keeps us in lockstep with the profile page. */
-export function contributionWindow(now: Date = new Date()): { from: string; to: string } {
-  const from = new Date(now);
-  from.setUTCFullYear(from.getUTCFullYear() - 1);
-  return { from: from.toISOString(), to: now.toISOString() };
+/** The calendar year the graph shows: Jan 1 through Dec 31 of `now`'s year.
+ *
+ *  A full year is the most the GraphQL API accepts, so this is the widest
+ *  window that still shows all 12 months (Jan-Dec) in one grid. GitHub returns
+ *  the whole span — days after today come back with a count of 0, so the tail
+ *  of the year is an honest "nothing yet" rather than a gap. */
+export function contributionWindow(now: Date = new Date()): ContributionRange {
+  const year = now.getUTCFullYear();
+  return {
+    year,
+    from: new Date(Date.UTC(year, 0, 1)).toISOString(),
+    to: new Date(Date.UTC(year, 11, 31, 23, 59, 59)).toISOString(),
+  };
 }
 
 /** Local YYYY-MM-DD for `d`. GitHub buckets a contribution under the commit's
@@ -267,13 +272,20 @@ export async function fetchContributionCalendarRange(
   }
 }
 
-/** Flat, date-ordered day list for the rolling year. Used by the stats route,
+/** Flat, date-ordered day list for the calendar year. Used by the stats route,
  *  which only needs the streak. */
 export async function fetchContributionCalendar(): Promise<ContributionDay[] | null> {
   const { from, to } = contributionWindow();
   const calendar = await fetchContributionCalendarRange(from, to);
   if (!calendar) return null;
   return calendar.weeks.flat();
+}
+
+/** The calendar year that was queried. */
+export interface ContributionRange {
+  year: number;
+  from: string;
+  to: string;
 }
 
 /** A layout-ready calendar cell. `date` and `count` are GitHub's values. */
@@ -285,8 +297,8 @@ export interface ContributionCell {
 
 export interface ContributionCalendarPayload {
   login: string;
-  /** The instants actually queried (UTC). */
-  range: { from: string; to: string };
+  /** The calendar year actually queried. */
+  range: ContributionRange;
   /** GitHub's own total for the window — never re-added from the cells. */
   totalContributions: number;
   /** Sunday-first columns, each padded to 7 slots with `null`. */
@@ -323,7 +335,7 @@ export function buildContributionWeeks(
 
 export function buildContributionPayload(
   calendar: ContributionCalendar,
-  range: { from: string; to: string },
+  range: ContributionRange,
 ): Omit<ContributionCalendarPayload, "currentStreak" | "longestStreak" | "fetchedAt"> {
   return {
     login: GITHUB_USERNAME,

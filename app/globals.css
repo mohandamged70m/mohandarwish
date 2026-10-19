@@ -716,10 +716,6 @@ section[id="contact"] {
 .commits-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 .commits-scroll::-webkit-scrollbar-track { background: transparent; }
 
-/* Phone widths crowd the three header items together. The month labels above
-   the grid and the graph's aria-label already state the range, so drop it. */
-@media (max-width: 479px) { .commits-range { display: none; } }
-
 /* Contribution graph levels — wine scale on black */
 :root, html.dark {
   --commits-l0: rgba(128, 128, 128, 0.14);

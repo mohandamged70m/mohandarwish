@@ -29,13 +29,25 @@ describe("weekdayOf", () => {
 });
 
 describe("contributionWindow", () => {
-  it("asks for exactly one year, which is the API's maximum", () => {
-    const now = new Date("2026-10-18T16:04:00.000Z");
-    const { from, to } = contributionWindow(now);
-    expect(to).toBe("2026-10-18T16:04:00.000Z");
-    expect(from).toBe("2025-10-18T16:04:00.000Z");
+  it("covers Jan 1 to Dec 31 of the current year, all 12 months", () => {
+    const { year, from, to } = contributionWindow(new Date("2026-10-19T09:00:00.000Z"));
+    expect(year).toBe(2026);
+    expect(from).toBe("2026-01-01T00:00:00.000Z");
+    expect(to).toBe("2026-12-31T23:59:59.000Z");
+  });
+
+  it("stays within the API's one-year maximum", () => {
+    const { from, to } = contributionWindow(new Date("2026-10-19T09:00:00.000Z"));
     const spanDays = (Date.parse(to) - Date.parse(from)) / 86_400_000;
-    expect(spanDays).toBeLessThanOrEqual(366);
+    // 364 whole days + 23:59:59 — never 366, which GitHub would reject.
+    expect(spanDays).toBeGreaterThan(364);
+    expect(spanDays).toBeLessThanOrEqual(365);
+  });
+
+  it("rolls over to the next calendar year in January", () => {
+    const { year, from } = contributionWindow(new Date("2027-01-02T00:00:00.000Z"));
+    expect(year).toBe(2027);
+    expect(from).toBe("2027-01-01T00:00:00.000Z");
   });
 });
 
@@ -83,16 +95,35 @@ describe("buildContributionWeeks", () => {
 });
 
 describe("buildContributionPayload", () => {
+  const range = { year: 2026, from: "2026-01-01T00:00:00.000Z", to: "2026-12-31T23:59:59.000Z" };
+
   it("reports GitHub's own total instead of re-adding the cells", () => {
     // Deliberately inconsistent: the cells sum to 3 but GitHub says 281
     // (its total also covers contributions the day list does not itemise).
     const payload = buildContributionPayload(
       { totalContributions: 281, weeks: [[day("2026-10-18", 3, "FIRST_QUARTILE")]] },
-      { from: "2025-10-18T00:00:00.000Z", to: "2026-10-18T00:00:00.000Z" },
+      range,
     );
     expect(payload.totalContributions).toBe(281);
     expect(payload.weeks.flat().filter(Boolean)).toHaveLength(1);
     expect(payload.login).toBe("mohandamged70m");
+    expect(payload.range.year).toBe(2026);
+  });
+
+  it("keeps days GitHub has not reached yet as real, empty cells", () => {
+    // GitHub returns future days with a count of 0. They must survive as
+    // level-0 cells so the grid really does span all 12 months, rather than
+    // being dropped and leaving a hole at the end of the year.
+    const payload = buildContributionPayload(
+      {
+        totalContributions: 282,
+        weeks: [[day("2026-12-30", 0, "NONE"), day("2026-12-31", 0, "NONE")]],
+      },
+      range,
+    );
+    const cells = payload.weeks.flat().filter((cell) => cell !== null);
+    expect(cells.map((c) => c.date)).toEqual(["2026-12-30", "2026-12-31"]);
+    expect(cells.every((c) => c.count === 0 && c.level === 0)).toBe(true);
   });
 });
 

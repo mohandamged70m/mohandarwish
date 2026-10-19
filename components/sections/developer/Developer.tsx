@@ -117,7 +117,7 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
                     <SectionLabel
                         icon={<Activity size={14} strokeWidth={2.5} />}
                         label="Contribution Activity"
-                        hint="Last 12 months"
+                        hint="Year by year"
                     />
                     <GitHubCommitsGraph onStreakCalculated={handleStreakCalculated} />
                 </section>
