@@ -707,6 +707,19 @@ section[id="contact"] {
 .commits-cell-skeleton { background: var(--input-bg); border: 1px solid var(--input-border); animation: commits-pulse 1.6s ease-in-out infinite; }
 @keyframes commits-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
+/* Contribution graph scroll area. Phones are narrower than 53 week columns
+   at the 10px minimum cell size, so the graph scrolls instead of clipping the
+   end of the year. */
+.commits-scroll { scrollbar-width: thin; -webkit-overflow-scrolling: touch; scrollbar-color: var(--border-strong) transparent; }
+.commits-scroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.commits-scroll::-webkit-scrollbar { height: 6px; }
+.commits-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+.commits-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Phone widths crowd the three header items together. The month labels above
+   the grid and the graph's aria-label already state the range, so drop it. */
+@media (max-width: 479px) { .commits-range { display: none; } }
+
 /* Contribution graph levels — wine scale on black */
 :root, html.dark {
   --commits-l0: rgba(128, 128, 128, 0.14);

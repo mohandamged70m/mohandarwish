@@ -1,12 +1,24 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback, startTransition } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
 
-interface ContributionDay {
+/** A calendar cell exactly as the API returned it: GitHub's date and count,
+ *  plus a 0-4 shade level. Nothing is recomputed client-side. */
+interface ContributionCell {
     date: string;
     count: number;
     level: number; // 0-4
+}
+
+interface ContributionPayload {
+    login: string;
+    range: { from: string; to: string };
+    totalContributions: number;
+    weeks: (ContributionCell | null)[][];
+    currentStreak: number;
+    longestStreak: number;
+    fetchedAt: number;
 }
 
 interface GitHubCommitsGraphProps {
@@ -16,60 +28,80 @@ interface GitHubCommitsGraphProps {
     onStreakCalculated?: (streak: number | null) => void;
 }
 
-/** Count consecutive contribution days ending today (or yesterday if today is empty).
- *  Uses the viewer's LOCAL calendar days: GitHub buckets a contribution under
- *  the commit's local date (a 00:20 +0300 commit lands on that date even though
- *  it is still "yesterday" in UTC), and github.com renders per-viewer — so UTC
- *  math undercounts every evening/morning for UTC+N visitors. */
-function calculateStreak(yearlyData: Record<number, ContributionDay[]>): number {
+const GITHUB_USERNAME = 'mohandamged70m';
+
+/** How long a browser-local snapshot may be reused when the API is
+ *  unreachable. Matches the route's stale-while-revalidate window. */
+const LOCAL_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Build a UTC Date from a `YYYY-MM-DD` key.
+ *
+ *  `new Date("2026-01-01")` parses as UTC *midnight*, so any reader west of
+ *  UTC got Dec 31 for a "Jan 1" cell — the row alignment, the month labels and
+ *  every tooltip were off by a day. Constructing from UTC parts and formatting
+ *  with `timeZone: 'UTC'` makes the label always equal the date GitHub sent. */
+function utcDate(dateKey: string): Date {
+    const [y, m, d] = dateKey.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
+}
+
+/** "2026-10-03" → "Oct 3, 2026" (same day everywhere on Earth). */
+function formatCalendarDate(dateKey: string): string {
+    return utcDate(dateKey).toLocaleDateString('en-US', {
+        timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric',
+    });
+}
+
+/** "2026-10-03" → "Oct 2026". */
+function formatMonthYear(dateKey: string): string {
+    const [y, m] = dateKey.split('-').map(Number);
+    return `${MONTHS[(m - 1 + 12) % 12]} ${y}`;
+}
+
+/** Calendar day before `dateKey`, computed in UTC (DST-proof). */
+function previousDate(dateKey: string): string {
+    const [y, m, d] = dateKey.split('-').map(Number);
+    const prev = new Date(Date.UTC(y, m - 1, d) - 24 * 60 * 60 * 1000);
+    return `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, '0')}-${String(prev.getUTCDate()).padStart(2, '0')}`;
+}
+
+/** Consecutive contribution days ending on the newest day GitHub returned.
+ *
+ *  Anchored on the data, not on the visitor's clock: GitHub buckets days in
+ *  UTC, so a visitor at UTC+3 on the morning after the last cell would
+ *  otherwise count a day that no cell covers. Counting from "today" when it is
+ *  empty is the same rule github.com applies to the current day. */
+function calculateStreak(weeks: (ContributionCell | null)[][]): number {
     const countByDate = new Map<string, number>();
-    Object.values(yearlyData).forEach(days =>
-        days.forEach(d => { if (d.count >= 0) countByDate.set(d.date, d.count); }),
-    );
-
-    // Local YYYY-MM-DD - matches the dates GitHub buckets commits under.
-    const fmt = (d: Date) =>
-        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
-    // Noon-anchored so DST transitions can never skip a step.
-    const today = new Date();
-    today.setHours(12, 0, 0, 0);
-    const check = new Date(today);
-
-    // If today has no contributions yet, start counting from yesterday
-    if ((countByDate.get(fmt(today)) || 0) === 0) {
-        check.setDate(check.getDate() - 1);
+    let newest = '';
+    for (const week of weeks) {
+        for (const cell of week) {
+            if (!cell) continue;
+            countByDate.set(cell.date, cell.count);
+            if (cell.date > newest) newest = cell.date; // ISO keys sort lexicographically
+        }
     }
+    if (!newest) return 0;
+
+    let cursor = newest;
+    if ((countByDate.get(cursor) ?? 0) === 0) cursor = previousDate(cursor);
 
     let streak = 0;
-    while ((countByDate.get(fmt(check)) || 0) > 0) {
+    while ((countByDate.get(cursor) ?? 0) > 0) {
         streak++;
-        check.setDate(check.getDate() - 1);
+        cursor = previousDate(cursor);
     }
     return streak;
 }
 
-const GITHUB_USERNAME = 'mohandamged70m';
-
 const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: GitHubCommitsGraphProps) => {
-    const thisYear = new Date().getFullYear();
-
-    const [yearlyData, setYearlyData] = useState<Record<number, ContributionDay[]>>({});
-    const [yearlyTotals, setYearlyTotals] = useState<Record<number, number>>({});
-    const [availableYears, setAvailableYears] = useState<number[]>([thisYear]);
-    const [currentYear, setCurrentYear] = useState<number>(thisYear);
-
-    // Computed once per render - used inside the cell map below.
-    // Viewer-local date: "today" must be the same day GitHub buckets the
-    // commits under (see calculateStreak).
-    const todayStr = useMemo(() => {
-        const today = new Date();
-        return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    }, []);
-    const [slideDir, setSlideDir] = useState<number>(0); // -1 = left (older), 1 = right (newer)
+    const [weeks, setWeeks] = useState<(ContributionCell | null)[][]>([]);
+    const [totalContributions, setTotalContributions] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [hoveredDay, setHoveredDay] = useState<ContributionDay | null>(null);
+    const [hoveredDay, setHoveredDay] = useState<ContributionCell | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
     const graphRef = useRef<HTMLDivElement>(null);
@@ -89,66 +121,29 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         return () => mql.removeEventListener("change", onChange);
     }, []);
 
-    // Wheel / touch navigation refs
-    const lastNavTime = useRef(0);
-    const touchStartX = useRef(0);
-
-    // ── Fetch all years at once (with timeout + localStorage cache + unmount guard) ──
+    // ── Fetch the rolling year (with timeout + localStorage cache + unmount guard) ──
     useEffect(() => {
         const CACHE_KEY = `gh_contrib_${username}`;
         let ignore = false;
         const controller = new AbortController();
 
-        /** Shared logic: turn raw API JSON into component state. */
-        const applyData = (data: { contributions?: unknown[]; total?: Record<string, unknown>; currentStreak?: unknown; longestStreak?: unknown }) => {
+        /** Shared logic: turn the API payload into component state. */
+        const applyData = (data: ContributionPayload): boolean => {
             if (ignore) return false;
-            if (!data.contributions || !Array.isArray(data.contributions)) return false;
+            if (!Array.isArray(data?.weeks) || data.weeks.length === 0) return false;
 
-            const byYear: Record<number, ContributionDay[]> = {};
-            data.contributions.forEach((day: unknown) => {
-                if (!day || typeof day !== 'object') return;
-                const d = day as { date?: unknown; count?: unknown; level?: unknown };
-                if (typeof d.date !== 'string') return;
-                const count = typeof d.count === 'number' ? d.count : 0;
-                const level = typeof d.level === 'number' ? d.level : 0;
-                const y = parseInt(d.date.split('-')[0], 10);
-                if (isNaN(y)) return;
-                if (!byYear[y]) byYear[y] = [];
-                byYear[y].push({ date: d.date, count, level });
-            });
-
-            const tots: Record<number, number> = {};
-            if (data.total) {
-                Object.entries(data.total).forEach(([k, v]) => {
-                    const y = parseInt(k, 10);
-                    if (!isNaN(y) && typeof v === 'number') tots[y] = v;
-                });
-            }
-            Object.entries(byYear).forEach(([ys, days]) => {
-                const y = parseInt(ys, 10);
-                if (!(y in tots)) tots[y] = (days as ContributionDay[]).reduce((s, d) => s + d.count, 0);
-            });
-
-            const years = Object.keys(byYear).map(Number).sort((a, b) => a - b);
-            if (ignore || years.length === 0) return false;
-            setYearlyData(byYear);
-            setYearlyTotals(tots);
-            setAvailableYears(years);
-            setCurrentYear(years[years.length - 1]);
+            setWeeks(data.weeks);
+            setTotalContributions(typeof data.totalContributions === 'number' ? data.totalContributions : 0);
             setIsLoading(false);
+            setError(null);
 
-            // Report streak (guarded - parent may have unmounted).
-            // Always the viewer's local calculation: the server may run in a
-            // different timezone, and only the viewer's "today" matches the
-            // dates GitHub buckets commits under.
-            if (!ignore) {
-                onStreakCalculated?.(calculateStreak(byYear));
-            }
+            // Report streak (guarded — parent may have unmounted).
+            onStreakCalculated?.(calculateStreak(data.weeks));
             return true;
         };
 
-        const fetchAll = async () => {
-            // 1) Try the API with a 10-second timeout (uses master controller - aborts on unmount)
+        const fetchContributions = async () => {
+            // 1) The API — server-side GraphQL with shared caching (10s timeout).
             const tid = setTimeout(() => controller.abort(), 10_000);
             try {
                 const res = await fetch('/api/github/contributions', { signal: controller.signal });
@@ -159,36 +154,40 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                     const json = await res.json();
                     if (ignore) return;
                     if (applyData(json)) {
-                        try { localStorage.setItem(CACHE_KEY, JSON.stringify(json)); } catch { /* quota */ }
+                        try {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: json, savedAt: Date.now() }));
+                        } catch { /* quota */ }
                         return;
                     }
                 }
-                if (!ignore) setError(`GitHub contributions unavailable (${res.status}).`);
-            } catch { clearTimeout(tid); /* timeout or network error - fall through */ }
+                if (!ignore) setError('Couldn’t load activity from GitHub.');
+            } catch { clearTimeout(tid); /* timeout or network error — fall through */ }
 
             if (ignore) return;
 
-            // 2) Try localStorage cache (discarded past 15 min — ancient
-            // snapshots are how stale zeros haunted the UI after recovery)
+            // 2) Last-known-good snapshot. Stamped on save (not with the
+            // server's fetchedAt, which can already be an hour old because the
+            // upstream call is cached) so a valid payload is never discarded
+            // as "stale".
             try {
-                const cached = localStorage.getItem(CACHE_KEY);
-                if (cached) {
-                    const json = JSON.parse(cached);
-                    const ts = typeof json?.fetchedAt === 'number' ? json.fetchedAt : 0;
-                    if (Date.now() - ts < 15 * 60 * 1000 && applyData(json)) return;
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (raw) {
+                    const { data, savedAt } = JSON.parse(raw);
+                    if (typeof savedAt === 'number' && Date.now() - savedAt < LOCAL_CACHE_TTL && data && applyData(data)) return;
                 }
             } catch { /* corrupt cache */ }
 
             if (ignore) return;
 
-            // 3) Final fallback: small error state, no mock numbers.
-            // Report unknown (null), not 0 — a failed load is not a broken streak.
+            // 3) Final fallback: small "couldn't load activity" state. No mock
+            // numbers, and report unknown (null) — a failed load is not a
+            // broken streak.
             setIsLoading(false);
-            setError((prev) => prev ?? 'Could not load GitHub contributions.');
+            setError((prev) => prev ?? 'Couldn’t load activity from GitHub.');
             onStreakCalculated?.(null);
         };
 
-        fetchAll();
+        fetchContributions();
 
         return () => {
             ignore = true;
@@ -234,138 +233,58 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
         };
     }, []);
 
-    // ── Year navigation ──
-    const yearIdx = availableYears.indexOf(currentYear);
-    const canGoOlder = yearIdx > 0;
-    const canGoNewer = yearIdx < availableYears.length - 1;
-
-    const navigateYear = useCallback((dir: number) => {
-        const now = Date.now();
-        if (now - lastNavTime.current < 600) return; // cooldown
-        lastNavTime.current = now;
-        cancelAnimationFrame(tooltipRafRef.current);
-        setHoveredDay(null);
-
-        setSlideDir(dir);
-        // INP: year swap re-renders ~365 cells. Defer it so the chevron
-        // click paints first; the grid follows in a transition.
-        startTransition(() => {
-            setCurrentYear(prev => {
-                const idx = availableYears.indexOf(prev);
-                const next = idx + dir;
-                if (next >= 0 && next < availableYears.length) return availableYears[next];
-                return prev;
-            });
-        });
-    }, [availableYears]);
-
-    // ── Wheel handler (horizontal scroll → year nav) ──
-    useEffect(() => {
-        const el = graphRef.current;
-        if (!el) return;
-        const handler = (e: WheelEvent) => {
-            // Use horizontal scroll for year nav; let vertical scroll pass through
-            const absX = Math.abs(e.deltaX);
-            const absY = Math.abs(e.deltaY);
-            if (absX > absY && absX > 30) {
-                e.preventDefault();
-                navigateYear(e.deltaX > 0 ? 1 : -1);
-            }
-        };
-        el.addEventListener('wheel', handler, { passive: false });
-        return () => el.removeEventListener('wheel', handler);
-    }, [navigateYear]);
-
-    // ── Touch swipe handlers (distinguish from page-level swipe) ──
-    const touchStartY = useRef(0);
-    const touchClaimed = useRef(false); // true once we decide this gesture is ours
-
-    useEffect(() => {
-        const el = graphRef.current;
-        if (!el) return;
-
-        const onStart = (e: TouchEvent) => {
-            touchStartX.current = e.touches[0].clientX;
-            touchStartY.current = e.touches[0].clientY;
-            touchClaimed.current = false;
-        };
-
-        const onMove = (e: TouchEvent) => {
-            const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
-            const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-
-            // If the swipe is clearly horizontal (2× more X than Y) and past threshold,
-            // claim this gesture so the page-level swipe doesn't fire
-            if (dx > 20 && dx > dy * 2 && !touchClaimed.current) {
-                touchClaimed.current = true;
-            }
-
-            if (touchClaimed.current) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-
-        const onEnd = (e: TouchEvent) => {
-            if (!touchClaimed.current) return; // not our gesture - let page handle it
-
-            e.stopPropagation();
-            const dx = e.changedTouches[0].clientX - touchStartX.current;
-            if (Math.abs(dx) > 60) navigateYear(dx < 0 ? 1 : -1);
-        };
-
-        el.addEventListener('touchstart', onStart, { passive: true });
-        el.addEventListener('touchmove', onMove, { passive: false });
-        el.addEventListener('touchend', onEnd, { passive: true });
-        return () => {
-            el.removeEventListener('touchstart', onStart);
-            el.removeEventListener('touchmove', onMove);
-            el.removeEventListener('touchend', onEnd);
-        };
-    }, [navigateYear]);
-
-    // ── Current year's contribution data ──
-    const contributions = useMemo(() => yearlyData[currentYear] || [], [yearlyData, currentYear]);
-    const totalContributions = yearlyTotals[currentYear] || 0;
-
-    const weeks = useMemo(() => {
-        if (contributions.length === 0) return [];
-        const result: ContributionDay[][] = [];
-        let week: ContributionDay[] = [];
-
-        // Local weekday - matches how github.com renders the grid for the viewer.
-        const startDay = new Date(contributions[0].date).getDay();
-        for (let i = 0; i < startDay; i++) week.push({ date: '', count: -1, level: -1 });
-
-        contributions.forEach(day => {
-            week.push(day);
-            if (week.length === 7) { result.push(week); week = []; }
-        });
-        if (week.length > 0) result.push(week);
-        return result;
-    }, [contributions]);
-
-    const monthLabels = useMemo(() => {
-        if (weeks.length === 0) return [];
-        const labels: { label: string; weekIndex: number }[] = [];
-        const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        let last = -1;
-        weeks.forEach((w, wi) => {
-            const valid = w.find(d => d.date && d.count >= 0);
-            if (valid) {
-                const m = new Date(valid.date).getMonth();
-                if (m !== last) { labels.push({ label: names[m], weekIndex: wi }); last = m; }
-            }
-        });
-        return labels;
+    // ── Derived calendar ──
+    const firstDate = useMemo(() => {
+        for (const week of weeks) for (const cell of week) if (cell) return cell.date;
+        return '';
     }, [weeks]);
 
+    const lastDate = useMemo(() => {
+        for (let i = weeks.length - 1; i >= 0; i--) {
+            const week = weeks[i];
+            for (let j = week.length - 1; j >= 0; j--) if (week[j]) return week[j]!.date;
+        }
+        return '';
+    }, [weeks]);
+
+    // The cell GitHub considers "today" (UTC-bucketed, so for visitors ahead of
+    // UTC it can differ from the local date — prefer the local one when it is
+    // actually present).
+    const todayStr = useMemo(() => {
+        if (!lastDate) return '';
+        const now = new Date();
+        const local = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (local === lastDate) return local;
+        for (const week of weeks) for (const cell of week) if (cell?.date === local) return local;
+        return lastDate;
+    }, [weeks, lastDate]);
+
+    const monthLabels = useMemo(() => {
+        const labels: { label: string; weekIndex: number }[] = [];
+        let last = '';
+        weeks.forEach((week, wi) => {
+            const first = week.find(Boolean);
+            if (!first) return;
+            const month = first.date.slice(5, 7);
+            if (month !== last) {
+                labels.push({ label: MONTHS[Number(month) - 1], weekIndex: wi });
+                last = month;
+            }
+        });
+        // A label on the very last column would clip past the right edge.
+        return labels.filter((l) => l.weekIndex < weeks.length - 1);
+    }, [weeks]);
+
+    const peak = useMemo(() => {
+        let best: ContributionCell | null = null;
+        for (const week of weeks) for (const cell of week) if (cell && (!best || cell.count > best.count)) best = cell;
+        return best;
+    }, [weeks]);
+
+    const streak = useMemo(() => calculateStreak(weeks), [weeks]);
+
     // ── Tooltip positioning (rAF-throttled, 1 layout per hover) ──
-    // Previously 2 getBoundingClientRect calls + 2 setStates per cell
-    // enter. Now: container rect is cached, work is batched in rAF, and
-    // a repeat hover on the same day skips setState entirely.
-    const handleCellHover = useCallback((day: ContributionDay, e: React.MouseEvent<HTMLDivElement>) => {
-        if (day.count < 0) return;
+    const handleCellHover = useCallback((day: ContributionCell, e: React.MouseEvent<HTMLDivElement>) => {
         const cell = e.currentTarget;
         cancelAnimationFrame(tooltipRafRef.current);
         tooltipRafRef.current = requestAnimationFrame(() => {
@@ -391,31 +310,25 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
     useEffect(() => () => cancelAnimationFrame(tooltipRafRef.current), []);
 
     // ── Dynamic cell sizing ──
-    const NUM_WEEKS = weeks.length || 52;
-    const GAP = 3; // Increased gap for better clarity
+    // Cells shrink to fit the column, then stop at a 10px floor and let the
+    // graph scroll horizontally — which is what phones need (it used to be
+    // clipped by overflow:hidden, hiding most of the year with no scrollbar).
+    const NUM_WEEKS = weeks.length || 53;
+    const GAP = 3;
     const CELL = containerWidth > 0
         ? Math.max(10, Math.floor((containerWidth - (NUM_WEEKS - 1) * GAP) / NUM_WEEKS))
         : 12;
 
-    const formatDate = (dateStr: string) => {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-    };
+    const graphHeight = 7 * CELL + 6 * GAP;
 
-    // ── Chevron button style ── 44×44 min target on mobile for thumb tap (WCAG 2.5.5)
-    const chevronBtn = (enabled: boolean): React.CSSProperties => ({
-        background: 'none', border: 'none', padding: '10px 12px',
-        minWidth: 44, minHeight: 44,
-        cursor: enabled ? 'pointer' : 'default',
-        color: enabled ? 'var(--accent)' : 'var(--text-muted)', opacity: enabled ? 1 : 0.3,
-        transition: 'opacity 0.2s, color 0.2s', fontSize: '0.75rem', fontWeight: 700,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
-        borderRadius: 8,
-    });
+    // ── Chevron-free header copy + screen-reader summary ──
+    const rangeLabel = firstDate && lastDate
+        ? `${formatMonthYear(firstDate)} – ${formatMonthYear(lastDate)}`
+        : 'Last year';
 
-    // ── Year-slide direction only drives the single container's
-    // transform (one compositor animation, not 365 staggered cells).
-    const yearEnterX = slideDir > 0 ? 24 : slideDir < 0 ? -24 : 0;
+    const graphLabel = isLoading
+        ? 'Loading contribution activity'
+        : `Contribution calendar for @${username}: ${totalContributions.toLocaleString()} contributions between ${firstDate ? formatCalendarDate(firstDate) : ''} and ${lastDate ? formatCalendarDate(lastDate) : ''}.${peak && peak.count > 0 ? ` Busiest day: ${peak.count} contributions on ${formatCalendarDate(peak.date)}.` : ''}`;
 
     return (
         <div ref={containerRef} style={{ position: 'relative' }}>
@@ -424,71 +337,64 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}
             >
                 {/* Left: icon + count */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                     <div style={{
                         width: 24, height: 24, borderRadius: 6, background: 'var(--accent)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="white">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="white" aria-hidden="true">
                             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                         </svg>
                     </div>
-                    <div>
+                    <div style={{ minWidth: 0 }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-                            {isLoading ? '-' : totalContributions.toLocaleString()}
+                            {isLoading ? '–' : totalContributions.toLocaleString()}
                         </span>
                         <span style={{ fontSize: '0.7rem', fontWeight: 500, color: 'var(--text-muted)', marginLeft: 5 }}>
-                            contributions
+                            in the last year
                         </span>
                     </div>
                 </div>
 
-                {/* Center: year navigator */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 2, userSelect: 'none' }}>
-                    <button onClick={() => canGoOlder && navigateYear(-1)} style={chevronBtn(canGoOlder)} aria-label="Previous year">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-                    </button>
-                    <span
-                        key={currentYear}
-                        style={{
-                            fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)',
-                            minWidth: 38, textAlign: 'center', display: 'inline-block',
-                            letterSpacing: '-0.01em',
-                        }}
-                    >
-                        {currentYear}
-                    </span>
-                    <button onClick={() => canGoNewer && navigateYear(1)} style={chevronBtn(canGoNewer)} aria-label="Next year">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-                    </button>
-                </div>
+                {/* Center: the window GitHub returned (was a year stepper — the
+                    profile is a single rolling year, so there is nothing to step) */}
+                <span className="commits-range" style={{
+                    fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)',
+                    whiteSpace: 'nowrap', letterSpacing: '0.01em',
+                }}>
+                    {rangeLabel}
+                </span>
 
                 {/* Right: profile link */}
                 <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer"
                     style={{
                         fontSize: '0.65rem', fontWeight: 700, color: 'var(--accent)', textDecoration: 'none',
                         opacity: 0.8, transition: 'opacity 0.2s', letterSpacing: '0.04em', textTransform: 'uppercase',
+                        whiteSpace: 'nowrap',
                     }}
                     onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
                     onMouseLeave={e => (e.currentTarget.style.opacity = '0.8')}
                 >@{username}</a>
             </motion.div>
 
-            {/* ── Graph: single container animation, plain-div cells ── */}
-            {/* INP: was AnimatePresence mode=wait (double render) + 365
-                motion.divs with staggered delays + an infinite boxShadow
-                loop. Now one transform/opacity slide on the container and
-                static cells — year clicks commit ~1 animation, not 365. */}
-            <div ref={graphRef} style={{ overflow: 'hidden', paddingBottom: 2 }}>
+            {/* ── Graph: horizontally scrollable when cells hit their floor ── */}
+            <div
+                ref={graphRef}
+                role="img"
+                aria-label={graphLabel}
+                aria-busy={isLoading}
+                tabIndex={0}
+                className="commits-scroll"
+                style={{ overflowX: 'auto', overflowY: 'hidden', paddingBottom: 2 }}
+            >
                 <motion.div
-                    key={currentYear}
-                    initial={prefersReduced ? false : { x: yearEnterX, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ duration: prefersReduced ? 0.01 : 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ position: 'relative', paddingTop: 16, willChange: 'transform, opacity' }}
+                    initial={prefersReduced ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: prefersReduced ? 0.01 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ position: 'relative', paddingTop: 16, width: 'max-content', minWidth: '100%' }}
                 >
                         {/* Month Labels */}
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 14 }}>
@@ -504,7 +410,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                         {/* Grid */}
                         <div style={{ display: 'flex', gap: GAP }}>
                             {isLoading ? (
-                                Array.from({ length: 52 }).map((_, wi) => (
+                                Array.from({ length: 53 }).map((_, wi) => (
                                     <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
                                         {Array.from({ length: 7 }).map((_, di) => (
                                             <div key={di} className="commits-cell-skeleton" style={{
@@ -518,20 +424,23 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                 weeks.map((week, wi) => (
                                     <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
                                         {week.map((day, di) => {
-                                            const isEmpty = day.count < 0;
-                                            const isHovered = hoveredDay?.date === day.date && !isEmpty;
+                                            // Pad slot: a day before the window began, or the
+                                            // tail of the in-progress week.
+                                            if (!day) {
+                                                return <div key={di} style={{ width: CELL, height: CELL }} aria-hidden="true" />;
+                                            }
+                                            const isHovered = hoveredDay?.date === day.date;
                                             const isToday = day.date === todayStr;
 
                                             return (
                                                 <div
                                                     key={di}
-                                                    // eslint-disable-next-line react-hooks/refs
                                                     onMouseEnter={(e) => handleCellHover(day, e)}
                                                     onMouseLeave={handleCellLeave}
                                                     style={{
                                                         width: CELL, height: CELL, borderRadius: 3,
-                                                        background: isEmpty ? 'transparent' : (isToday ? 'var(--accent)' : `var(--commits-l${day.level})`),
-                                                        cursor: isEmpty ? 'default' : 'pointer',
+                                                        background: isToday ? 'var(--accent)' : `var(--commits-l${day.level})`,
+                                                        cursor: 'pointer',
                                                         // Transform-only hover: no re-render-driven
                                                         // style recalc beyond the two toggled cells.
                                                         transition: 'transform 0.15s ease-out, box-shadow 0.15s ease',
@@ -556,11 +465,26 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                             )}
                         </div>
                     </motion.div>
+
+                {/* Error state fills the graph's footprint so nothing below
+                    jumps, and is announced once via role="status". */}
+                {!isLoading && error && (
+                    <div role="status" style={{
+                        height: graphHeight, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        textAlign: 'center', padding: '0 12px',
+                        fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)',
+                    }}>
+                        {error}
+                    </div>
+                )}
             </div>
 
-            {!isLoading && error && (
-                <p style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }} role="status">
-                    {error}
+            {/* Screen-reader summary of the graph as text. */}
+            {!isLoading && (
+                <p className="sr-only">
+                    {totalContributions.toLocaleString()} contributions in the last year
+                    {firstDate && lastDate ? `, from ${formatCalendarDate(firstDate)} to ${formatCalendarDate(lastDate)}` : ''}.
+                    Current streak: {streak} day{streak === 1 ? '' : 's'}.
                 </p>
             )}
 
@@ -583,7 +507,7 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
 
             {/* ── Tooltip (instant — was AnimatePresence + motion + backdrop-blur
                 on the hover path; blur(20px) repainted every mousemove) ── */}
-            {hoveredDay && hoveredDay.count >= 0 && (
+            {hoveredDay && (
                     <div style={{
                         position: 'absolute', left: tooltipPos.x, top: tooltipPos.y,
                         pointerEvents: 'none', zIndex: 200, transform: 'translate(-50%, -100%)',
@@ -597,11 +521,11 @@ const GitHubCommitsGraph = ({ username = GITHUB_USERNAME, onStreakCalculated }: 
                                 border: '1px solid var(--section-border)', lineHeight: 1.45, textAlign: 'center',
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                                    <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 2, background: hoveredDay.level > 0 ? `var(--commits-l${hoveredDay.level})` : 'var(--commits-l0)', flexShrink: 0 }} />
+                                    <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: 2, background: `var(--commits-l${hoveredDay.level})`, flexShrink: 0 }} />
                                     <span><strong style={{ fontWeight: 800 }}>{hoveredDay.count}</strong> contribution{hoveredDay.count !== 1 ? 's' : ''}</span>
                                 </div>
                                 <div style={{ fontSize: '0.58rem', fontWeight: 500, color: 'var(--text-muted)', marginTop: 2 }}>
-                                    {formatDate(hoveredDay.date)}
+                                    on {formatCalendarDate(hoveredDay.date)}
                                 </div>
                             </div>
                             <div style={{

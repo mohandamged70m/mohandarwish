@@ -91,15 +91,57 @@ export async function fetchAllGitHubRepos(): Promise<GitHubRepo[]> {
   return repos;
 }
 
+/** One day of GitHub's contribution calendar, passed through verbatim from
+ *  the GraphQL response. Nothing here is recomputed or re-bucketed, so the
+ *  counts, dates and level (shade) match github.com exactly. */
 export interface ContributionDay {
   date: string;
   contributionCount: number;
   contributionLevel?: string;
 }
 
+/** GitHub's own week grouping (`contributionCalendar.weeks`). Columns are
+ *  Sunday-first; the last column is usually short because the rolling window
+ *  ends on "today". */
+export interface ContributionCalendar {
+  totalContributions: number;
+  weeks: ContributionDay[][];
+}
+
 export interface StreakStats {
   currentStreak: number;
   longestStreak: number;
+}
+
+/** GitHub returns each day's level as a quartile *of the queried window*, so
+ *  the value already answers "which of the 5 shades" for exactly the range we
+ *  asked for. It maps onto the site's own `--commits-l0..l4` wine tokens
+ *  (app/globals.css) — GitHub's green is deliberately not used. */
+export const CONTRIBUTION_LEVELS: Record<string, 0 | 1 | 2 | 3 | 4> = {
+  NONE: 0,
+  FIRST_QUARTILE: 1,
+  SECOND_QUARTILE: 2,
+  THIRD_QUARTILE: 3,
+  FOURTH_QUARTILE: 4,
+};
+
+/** Day of week (0 = Sunday) for a `YYYY-MM-DD` key, computed in UTC so the
+ *  answer never depends on the server's or the visitor's timezone.
+ *  `new Date("2026-01-01").getDay()` is the classic bug here: it parses as UTC
+ *  midnight, so readers west of UTC get Wednesday for a Thursday. */
+export function weekdayOf(dateKey: string): number {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** The exact window github.com's profile calendar covers: one year back from
+ *  now (the GraphQL API rejects ranges longer than a year). GitHub snaps the
+ *  start forward to a Sunday itself, so we send plain instants and let it
+ *  decide the grid — that keeps us in lockstep with the profile page. */
+export function contributionWindow(now: Date = new Date()): { from: string; to: string } {
+  const from = new Date(now);
+  from.setUTCFullYear(from.getUTCFullYear() - 1);
+  return { from: from.toISOString(), to: now.toISOString() };
 }
 
 /** Local YYYY-MM-DD for `d`. GitHub buckets a contribution under the commit's
@@ -153,54 +195,142 @@ export function computeStreakStats(days: ContributionDay[], todayKey: string = t
   return { currentStreak, longestStreak };
 }
 
-export async function fetchContributionCalendar(): Promise<ContributionDay[] | null> {
-  const token = process.env.GITHUB_TOKEN ?? "";
-  if (!token) return null;
-  const query = `
-    query($login: String!) {
-      user(login: $login) {
-        contributionsCollection {
-          contributionCalendar {
-            totalContributions
-            weeks {
-              contributionDays {
-                date
-                contributionCount
-                contributionLevel
-              }
+const CONTRIBUTION_CALENDAR_QUERY = `
+  query($login: String!, $from: DateTime!, $to: DateTime!) {
+    user(login: $login) {
+      contributionsCollection(from: $from, to: $to) {
+        contributionCalendar {
+          totalContributions
+          weeks {
+            contributionDays {
+              date
+              contributionCount
+              contributionLevel
+              weekday
             }
           }
         }
       }
     }
-  `;
+  }
+`;
+
+/** Fetch GitHub's contribution calendar for an explicit window. Server-only:
+ *  the request carries GITHUB_TOKEN and the response is a plain passthrough of
+ *  GitHub's own day list (no re-bucketing, no local-timezone math).
+ *
+ *  `revalidate: 3600` puts every visitor behind one shared upstream call per
+ *  hour, which keeps the free-tier quota and GitHub's rate limit comfortable. */
+export async function fetchContributionCalendarRange(
+  from: string,
+  to: string,
+): Promise<ContributionCalendar | null> {
+  const token = process.env.GITHUB_TOKEN ?? "";
+  if (!token) return null;
   try {
     const res = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ query, variables: { login: GITHUB_USERNAME } }),
+      body: JSON.stringify({
+        query: CONTRIBUTION_CALENDAR_QUERY,
+        variables: { login: GITHUB_USERNAME, from, to },
+      }),
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
     const json = await res.json();
-    const weeks = json?.data?.user?.contributionsCollection?.contributionCalendar?.weeks;
-    if (!Array.isArray(weeks)) return null;
-    const days: ContributionDay[] = [];
-    for (const week of weeks) {
+    const calendar = json?.data?.user?.contributionsCollection?.contributionCalendar;
+    if (!calendar || !Array.isArray(calendar.weeks)) return null;
+
+    const weeks: ContributionDay[][] = [];
+    for (const week of calendar.weeks) {
+      const days: ContributionDay[] = [];
       for (const day of week?.contributionDays ?? []) {
-        if (typeof day?.date === "string") {
-          days.push({
-            date: day.date,
-            contributionCount: typeof day.contributionCount === "number" ? day.contributionCount : 0,
-            contributionLevel: typeof day.contributionLevel === "string" ? day.contributionLevel : undefined,
-          });
-        }
+        if (typeof day?.date !== "string") continue;
+        days.push({
+          date: day.date,
+          contributionCount: typeof day.contributionCount === "number" ? day.contributionCount : 0,
+          contributionLevel: typeof day.contributionLevel === "string" ? day.contributionLevel : undefined,
+        });
       }
+      if (days.length > 0) weeks.push(days);
     }
-    return days.sort((a, b) => a.date.localeCompare(b.date));
+    if (weeks.length === 0) return null;
+
+    return {
+      totalContributions:
+        typeof calendar.totalContributions === "number" ? calendar.totalContributions : 0,
+      weeks,
+    };
   } catch {
     return null;
   }
+}
+
+/** Flat, date-ordered day list for the rolling year. Used by the stats route,
+ *  which only needs the streak. */
+export async function fetchContributionCalendar(): Promise<ContributionDay[] | null> {
+  const { from, to } = contributionWindow();
+  const calendar = await fetchContributionCalendarRange(from, to);
+  if (!calendar) return null;
+  return calendar.weeks.flat();
+}
+
+/** A layout-ready calendar cell. `date` and `count` are GitHub's values. */
+export interface ContributionCell {
+  date: string;
+  count: number;
+  level: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface ContributionCalendarPayload {
+  login: string;
+  /** The instants actually queried (UTC). */
+  range: { from: string; to: string };
+  /** GitHub's own total for the window — never re-added from the cells. */
+  totalContributions: number;
+  /** Sunday-first columns, each padded to 7 slots with `null`. */
+  weeks: (ContributionCell | null)[][];
+  currentStreak: number;
+  longestStreak: number;
+  fetchedAt: number;
+}
+
+/** Turn GitHub's weeks into fixed-height columns so the client never has to do
+ *  date arithmetic to lay the grid out. */
+export function buildContributionWeeks(
+  weeks: ContributionDay[][],
+): (ContributionCell | null)[][] {
+  let first = true;
+  return weeks
+    .filter((week) => week.length > 0)
+    .map((week) => {
+      const cells: (ContributionCell | null)[] = week.map((day) => ({
+        date: day.date,
+        count: day.contributionCount,
+        level: CONTRIBUTION_LEVELS[day.contributionLevel ?? "NONE"] ?? 0,
+      }));
+      // A short opening week means the window began mid-week: pad the top of
+      // the column instead of letting every later row shift by a day.
+      if (first) {
+        first = false;
+        for (let i = 0; i < weekdayOf(week[0].date); i++) cells.unshift(null);
+      }
+      while (cells.length < 7) cells.push(null);
+      return cells.slice(0, 7);
+    });
+}
+
+export function buildContributionPayload(
+  calendar: ContributionCalendar,
+  range: { from: string; to: string },
+): Omit<ContributionCalendarPayload, "currentStreak" | "longestStreak" | "fetchedAt"> {
+  return {
+    login: GITHUB_USERNAME,
+    range,
+    totalContributions: calendar.totalContributions,
+    weeks: buildContributionWeeks(calendar.weeks),
+  };
 }
 
 export interface GitHubStatsPayload {
