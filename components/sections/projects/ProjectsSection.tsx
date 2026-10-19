@@ -17,6 +17,13 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
   const reduce = useReducedMotion();
   const noMotion = reduce ? { initial: false } : {};
 
+  // The contribution calendar is 53 week columns wide; inside a 7xl column it
+  // lands at ~20px cells on a large monitor and reads as a thin strip. Widen
+  // only while the Developer tab is showing — the projects grid is not rendered
+  // then, so this never changes the grid's layout.
+  const isDeveloper = active === "Developer";
+  const widthClass = isDeveloper ? "lg:max-w-[1680px]" : "max-w-7xl";
+
   return (
     <section
       id="projects"
@@ -24,7 +31,7 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
       className="w-full max-w-full min-w-0 bg-bg-primary scroll-mt-20"
     >
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto flex w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8 ${widthClass}`}>
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}

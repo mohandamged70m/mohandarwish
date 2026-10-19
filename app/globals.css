@@ -686,6 +686,11 @@ section[id="contact"] {
 @media (min-width: 640px) { .page-padding { padding-inline: 1.5rem; } }
 @media (min-width: 1024px) { .page-padding { padding-inline: 2rem; } }
 
+/* The developer profile wants more width than a standard 80rem column: the
+   contribution calendar is 53 week columns and lands at ~20px cells inside
+   80rem. Compound selector so it reliably beats `.page-padding` above. */
+@media (min-width: 1024px) { .page-padding.dev-wide { max-width: 105rem; } }
+
 .dev-stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 @media (min-width: 768px) { .dev-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 

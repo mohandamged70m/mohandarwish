@@ -85,7 +85,7 @@ const Developer = ({ embedded = false }: { embedded?: boolean }) => {
             className={embedded ? undefined : "min-h-screen bg-primary transition-colors duration-300 pt-32 pb-48"}
             style={embedded ? { width: '100%' } : undefined}
         >
-            <div className={embedded ? undefined : "page-padding"} style={embedded ? { width: '100%' } : undefined}>
+            <div className={embedded ? undefined : "page-padding dev-wide"} style={embedded ? { width: '100%' } : undefined}>
 
                 {/* Headline lives in ProjectsHeader when embedded — avoid a
                     second H1/H2 competing with the section title. Standalone
