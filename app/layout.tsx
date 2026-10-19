@@ -61,10 +61,8 @@ const plexMono = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: {
-    default: "Mohand Darwish - Software Engineer",
-    template: "%s | Mohand Darwish",
-  },
+  // No title.template / title.default here: every route owns its own title,
+  // so nothing is auto-appended to page titles (no "- Vercel"-style suffix).
   description: siteConfig.description,
   applicationName: siteConfig.name,
   keywords: [...siteConfig.keywords],
@@ -75,7 +73,9 @@ export const metadata: Metadata = {
   // Site is English-only: no hreflang graph is emitted (a self-referencing
   // `alternates.languages` block with no translations is noise, not signal).
   alternates: {
-    canonical: "/",
+    // Absolute canonical URL so search engines see the definitive origin
+    // (not a vercel.app-inferred brand) for the site.
+    canonical: siteConfig.url,
     types: {
       // Points LLM crawlers at the machine-readable brief for the site root.
       "text/markdown": "/llms.txt",

@@ -14,11 +14,20 @@ import { createMetadata } from "@/lib/metadata";
 export const revalidate = 3600;
 
 export const metadata = createMetadata({
-  title: "Software Engineer & AI Product Builder in Egypt",
+  title: "Mohand Darwish | Software Engineer & AI Product Builder",
   description:
     "Mohand Darwish is a software engineer and AI product builder in Alexandria, Egypt. He builds fast, accessible full-stack web apps with Next.js, TypeScript and Node.js. Projects, stack and booking are on this page.",
   path: "/",
 });
+
+// WebSite structured data for Google site-name selection. Rendered once,
+// homepage only, from this Server Component (in the initial HTML payload).
+const websiteJsonLd = {
+  "@type": "WebSite",
+  name: "Mohand Darwish",
+  alternateName: ["Mohand Darwish Portfolio", "Mohanad Darwish"],
+  url: "https://mohanddarwish.vercel.app/",
+};
 
 // Module-level (referentially stable) pager sections — ids must match the
 // wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
@@ -68,6 +77,11 @@ export default function Home() {
           <BookingHashHandler />
           <PagerDots />
           <ScrollTop />
+          {/* WebSite JSON-LD for Google site-name selection (rendered once, homepage only). */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+          />
         </div>
       </main>
     </SectionTransition>

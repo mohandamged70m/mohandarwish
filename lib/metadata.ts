@@ -63,7 +63,9 @@ export function createMetadata({
     publisher: siteConfig.name,
     category: "technology",
     alternates: {
-      canonical: path,
+      // Absolute canonical URL (metadataBase-relative paths work, but an
+      // explicit absolute canonical removes any doubt about the origin).
+      canonical: url,
     },
     openGraph: {
       title: resolvedTitle,
