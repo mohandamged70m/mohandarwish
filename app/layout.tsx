@@ -170,7 +170,7 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
                 <Link href="/llms.txt" className="text-text-secondary transition-colors hover:text-accent-text">
                   llms.txt
                 </Link>
-                <a href="#booking" className="text-text-secondary transition-colors hover:text-accent-text">
+                <a href="/book" className="text-text-secondary transition-colors hover:text-accent-text">
                   Book a call
                 </a>
               </nav>

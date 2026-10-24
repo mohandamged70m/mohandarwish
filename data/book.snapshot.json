@@ -1,0 +1,20 @@
+{
+  "page": {
+    "slogan": "AI Products Expert",
+    "intro": "I'm **Mohand Darwish**. I build web apps with AI inside them, from the idea to launch. Let's talk about your project, a role, a collab or just casually.",
+    "tags": [
+      "Web Apps",
+      "AI Products",
+      "Next.js",
+      "TypeScript"
+    ]
+  },
+  "account": {
+    "Email": "hello@mohanddarwish.com",
+    "Social Links": {
+      "LinkedIn": "https://www.linkedin.com/in/mohand-darwish",
+      "Instagram": "https://instagram.com/mohanddarwish",
+      "GitHub": "https://github.com/mohandamged70m"
+    }
+  }
+}
