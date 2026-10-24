@@ -60,6 +60,11 @@
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
 
+  /* /book (booking-system) paint & status colours */
+  --success: #10b981;
+  --blue: rgb(59, 130, 246);
+  --paint-ink: #fff;
+
   color-scheme: dark;
 }
 
@@ -83,6 +88,7 @@ html.light {
   --text-secondary: #6b4a3e;
   --text-muted: #a08a7d;
   --text-on-accent: #ffffff;
+  --paint-ink: #000;
 
   --navbar-bg: rgba(250, 246, 240, 0.8);
   --navbar-border: #e8d5cc;
@@ -98,6 +104,7 @@ html.light {
 html.dark {
   color-scheme: dark;
   --accent: #ad2831;
+  --paint-ink: #fff;
   --accent-rgb: 173,40,49;
   --navbar-bg: rgba(10, 10, 10, 0.72);
   --navbar-border: rgba(255, 255, 255, 0.08);
