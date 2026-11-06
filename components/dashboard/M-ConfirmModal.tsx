@@ -148,9 +148,10 @@ const MConfirmModal = ({
                         {/* Close Button Top Right */}
                         <button
                             onClick={onClose}
+                            aria-label="Close"
                             className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-white/10 text-gray-500 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
                         >
-                            <X size={18} />
+                            <X size={18} aria-hidden="true" />
                         </button>
                     </motion.div>
                 </motion.div>

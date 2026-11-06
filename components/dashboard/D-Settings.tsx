@@ -988,7 +988,7 @@ export default function DSettings() {
                         </div>
 
                         {/* Cropper Area */}
-                        <div className="relative h-[400px] w-full bg-black/20">
+                        <div className="relative h-[400px] w-full max-w-full bg-black/20">
                             <Cropper
                                 image={originalImageSrc}
                                 crop={crop}

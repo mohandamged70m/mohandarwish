@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   alternates: {
     // Absolute canonical URL so search engines see the definitive origin
     // (not a vercel.app-inferred brand) for the site.
-    canonical: siteConfig.url,
+    canonical: `${siteConfig.url}/`,
     types: {
       // Points LLM crawlers at the machine-readable brief for the site root.
       "text/markdown": "/llms.txt",
@@ -151,6 +151,9 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           <ScrollRestorationFix />
           <TrailsTracker />
           <PathMemory />
+          <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-bg-surface focus:px-4 focus:py-2 focus:text-sm focus:text-text-primary focus:shadow-lg">
+            Skip to content
+          </a>
           {/* Banner landmark wraps the (fixed-position) primary nav. */}
           <header>
             <Nav />
@@ -170,9 +173,9 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
                 <Link href="/llms.txt" className="text-text-secondary transition-colors hover:text-accent-text">
                   llms.txt
                 </Link>
-                <a href="/book" className="text-text-secondary transition-colors hover:text-accent-text">
+                <Link href="/book" className="text-text-secondary transition-colors hover:text-accent-text">
                   Book a call
-                </a>
+                </Link>
               </nav>
             </div>
           </footer>

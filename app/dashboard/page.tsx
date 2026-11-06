@@ -9,6 +9,12 @@ import { SignInButton, SignOutButton } from "./auth-buttons";
 // gets the sign-in gate or the access-denied state — no private data included.
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Dashboard",
+  robots: { index: false, follow: false, nocache: true },
+  alternates: { canonical: null as unknown as string },
+};
+
 function GateShell({
   title,
   description,

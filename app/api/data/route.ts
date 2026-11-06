@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { convexQuery, convexMutation } from "@/lib/convex";
 import { isAdminRequest } from "@/lib/admin";
 import { sameOrigin } from "@/lib/request";
+import { allowRequest } from "@/lib/rate-limit";
 import { isPublicPath, publicDocument } from "@/lib/public-docs";
 export async function POST(req: Request) {
   if (!sameOrigin(req))
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
     !(op === "listCollection" && a.prefix === "Projects")
   )
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!owner && !(await allowRequest(req, "data-public", 60, 60_000)))
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {
     let data: unknown;
     if (op === "getDoc") {

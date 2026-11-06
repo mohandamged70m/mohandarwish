@@ -101,7 +101,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                     <Flame size={64} strokeWidth={1.6} fill="currentColor" fillOpacity={0.25} />
                 </span>
                 {showAnimation && (
-                    <StreakErrorBoundary fallback={null}>
+                    <StreakErrorBoundary fallback={<Flame size={64} strokeWidth={1.6} fill="currentColor" fillOpacity={0.25} />}>
                         <Suspense fallback={null}>
                             <Lottie
                                 lottieRef={lottieRef}

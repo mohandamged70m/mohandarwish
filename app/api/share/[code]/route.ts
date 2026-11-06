@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { api } from "@/convex/_generated/api";
 import { convexQuery } from "@/lib/convex";
+import { allowRequest } from "@/lib/rate-limit";
+
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ code: string }> },
 ) {
   const { code } = await ctx.params;
   if (!/^[a-zA-Z0-9_-]{4,80}$/.test(code))
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!(await allowRequest(req, "share-code", 30, 60_000)))
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {
     const rows = await convexQuery<{ data: Record<string, unknown> }[]>(
       api.docs.listCollection,

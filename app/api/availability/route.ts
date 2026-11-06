@@ -39,10 +39,16 @@ export async function PUT(req: Request) {
   }
   const body = await req.json().catch(() => null) as { workingDays?: number[]; hours?: number[]; timezone?: string } | null;
   if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  await convexMutation(api.availability.upsert, {
-    workingDays: body.workingDays ?? DEFAULT_AVAILABILITY.workingDays,
-    hours: body.hours ?? DEFAULT_AVAILABILITY.hours,
-    timezone: body.timezone ?? "UTC+02:00 (EET)",
-  });
+  const workingDays = Array.isArray(body.workingDays)
+    ? [...new Set(body.workingDays.filter((n) => Number.isInteger(n) && n >= 0 && n <= 6))]
+    : DEFAULT_AVAILABILITY.workingDays;
+  const hours = Array.isArray(body.hours)
+    ? [...new Set(body.hours.filter((n) => Number.isInteger(n) && n >= 0 && n <= 23))]
+    : DEFAULT_AVAILABILITY.hours;
+  const timezone =
+    typeof body.timezone === "string" && /^[A-Za-z0-9_+()\- :]{1,64}$/.test(body.timezone)
+      ? body.timezone
+      : "UTC+02:00 (EET)";
+  await convexMutation(api.availability.upsert, { workingDays, hours, timezone });
   return NextResponse.json({ ok: true });
 }

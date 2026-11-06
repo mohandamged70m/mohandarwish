@@ -82,6 +82,7 @@ Next.js (App Router), React, TypeScript, Node.js, Tailwind CSS, Convex, Vercel.
 ## Pages
 - [Home / About](${BASE}/)
 - [All projects](${BASE}/projects)
+- [Book a call](${BASE}/book)
 - [CV (PDF)](${BASE}${ME.cvUrl})
 - [Detailed machine-readable brief](${BASE}/llms-full.txt)
 

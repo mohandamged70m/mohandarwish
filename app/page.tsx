@@ -20,15 +20,6 @@ export const metadata = createMetadata({
   path: "/",
 });
 
-// WebSite structured data for Google site-name selection. Rendered once,
-// homepage only, from this Server Component (in the initial HTML payload).
-const websiteJsonLd = {
-  "@type": "WebSite",
-  name: "Mohand Darwish",
-  alternateName: ["Mohand Darwish Portfolio", "Mohanad Darwish"],
-  url: "https://mohanddarwish.vercel.app/",
-};
-
 // Module-level (referentially stable) pager sections — ids must match the
 // wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
 // the curtain + slide between these; everywhere else they free-scroll.
@@ -77,11 +68,7 @@ export default function Home() {
           <BookingHashHandler />
           <PagerDots />
           <ScrollTop />
-          {/* WebSite JSON-LD for Google site-name selection (rendered once, homepage only). */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-          />
+
         </div>
       </main>
     </SectionTransition>

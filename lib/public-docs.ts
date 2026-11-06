@@ -36,5 +36,38 @@ export function publicDocument(
         ? data.featuredRepos
         : [],
     };
+  if (path === "Tags/Tags") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (v && typeof v === "object") {
+        const e = v as Record<string, unknown>;
+        out[k] = {
+          Name: e.Name,
+          Color: e.Color,
+          Icon: e.Icon,
+        };
+      } else {
+        out[k] = v;
+      }
+    }
+    return out;
+  }
+  if (path === "Tags/Contributors") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (v && typeof v === "object") {
+        const e = v as Record<string, unknown>;
+        out[k] = {
+          Name: e.Name,
+          Role: e.Role,
+          Image: e.Image,
+          "Social Accounts": e["Social Accounts"],
+        };
+      } else {
+        out[k] = v;
+      }
+    }
+    return out;
+  }
   return data;
 }

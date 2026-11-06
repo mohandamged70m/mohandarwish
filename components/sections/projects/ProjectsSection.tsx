@@ -46,7 +46,7 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
           <ProjectsTabShell
             value={active}
             onChange={setActive}
-            projectsNode={<ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} />}
+            projectsNode={<ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} eagerCount={0} />}
           />
         </div>
       </div>

@@ -39,7 +39,6 @@ function CardImage({ src, alt, eager }: { src: string; alt: string; eager?: bool
         fill
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         priority={eager}
-        loading={eager ? "eager" : "lazy"}
         onLoad={() => setLoaded(true)}
         className="object-cover transition-transform duration-[600ms] ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         style={{

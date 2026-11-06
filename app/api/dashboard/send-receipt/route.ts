@@ -29,6 +29,9 @@ export async function POST(req: Request) {
   if (!body?.to || !body?.subject || !body?.html) {
     return NextResponse.json({ error: "to, subject, html required" }, { status: 400 });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.to)) {
+    return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
+  }
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });

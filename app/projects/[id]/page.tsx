@@ -35,7 +35,7 @@ export async function generateMetadata({
   const docId = decodeProjectId(id);
   try {
     const project = await getProjectServer(docId);
-    if (!project) return {};
+    if (!project) return { title: "Project not found" };
     const stack = project.stack?.slice(0, 3).join(", ");
     return createMetadata({
       title: project.title,
@@ -45,7 +45,7 @@ export async function generateMetadata({
       path: `/projects/${encodeURIComponent(project.id)}`,
     });
   } catch {
-    return {};
+    return { title: "Projects" };
   }
 }
 

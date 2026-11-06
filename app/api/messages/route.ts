@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const name = sanitizeText(body?.name, 120);
   const email = body?.email?.trim() ?? "";
   const message = sanitizeText(body?.message, 5000);
-  const number = body?.number?.trim() ?? "";
+  const number = sanitizeText(body?.number, 40);
   const hasWhatsapp = !!body?.hasWhatsapp;
   const files = Array.isArray(body?.files)
     ? body!.files!.slice(0, 5).filter((f) => {
@@ -52,12 +52,14 @@ export async function POST(req: Request) {
                 process.env.NEXT_PUBLIC_CONVEX_URL ||
                   "https://unconfigured.invalid",
               ).origin &&
-            u.pathname.startsWith("/api/storage/")
+            u.pathname.startsWith("/api/storage/") &&
+            f.name.length <= 200
           );
         } catch {
           return false;
         }
       })
+      .map((f) => ({ ...f, name: String(f.name).slice(0, 200) }))
     : [];
   if (!name)
     return NextResponse.json({ error: "Name required" }, { status: 400 });
@@ -123,7 +125,7 @@ export async function POST(req: Request) {
         subject: "Message received",
         html: ack,
       });
-      if (a.skipped || b.skipped)
+      if ((a.skipped || b.skipped) && process.env.NODE_ENV !== "production")
         console.log(
           "[messages] saved but email skipped (Resend test mode) — verify domain at resend.com/domains",
         );

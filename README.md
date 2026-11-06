@@ -25,7 +25,7 @@ Personal portfolio with a private dashboard for managing content:
 | `/` | Single-page flow: Hero → Projects → Stack → Contact (full-viewport pager with curtain/slide transitions, scroll reveal) |
 | `/projects` | Filterable project listing (Frontend / Full-Stack / Design System / Tooling) |
 | `/projects/[id]` | Project detail: gallery, videos, stack tags, contributors, metrics, live/GitHub/download links, view tracking |
-| `/mohanddarwish` | Vanity / short-link profile route |
+| `/mohanddarwish/[code]` | Personalized share-link resolver (attribution + tailored greeting) |
 | `/dashboard` | Private owner CMS (signed HttpOnly session): projects, tags, contributors, messages, bookings, settings, treasury, LLM assistant |
 | `/api/*` | Backend: `contact`, `booking`, `booked-slots`, `availability`, `messages`, `track`, `dashboard/*`, `diag` |
 
@@ -33,7 +33,7 @@ Personal portfolio with a private dashboard for managing content:
 
 1. **Hero** — animated split-text intro, morphing portrait (light/dark aware, dashboard-overridable), `Book a call` + `View projects` CTAs, location badge
 2. **Projects** — featured carousel/grid driven by Convex (`listing` order), live data with static fallback
-3. **Stack** — sticky intro + interactive Stack playground (Matter.js, dashboard-driven)
+3. **Stack** — sticky intro + tech-swap survey (dashboard-driven)
 4. **Contact** — contact card + booking entry point, validated form with spam protection
 
 ## Key Features
@@ -72,7 +72,7 @@ components/
   sections/           # landing sections (each with index.ts barrel):
     hero/             # HeroSection, TextAnimated, PortraitMorph
     projects/         # ProjectsSection, cards, detail views, DeveloperTab
-    stack/            # StackSection + interactive Stack playground (Matter.js)
+    stack/            # StackSection + StackSurvey (tech-swap)
     developer/        # Developer profile, GitHub stats/graphs, repos
   booking/            # BookButton, BookingModal, CustomTimePicker
   dashboard/          # CMS modules (D-*, M-*) + Assistant + primitives/
@@ -85,7 +85,7 @@ lib/                  # convex client helpers, booking, availability, categories
                       # timezones, email/resend, receipt, metadata, dash-*
 hooks/ types/         # shared client logic (hooks/ has index.ts barrel)
 convex/                # schema + functions (docs, bookings, messages, profile, storage)
-public/               # cv.pdf, me/* portraits, svgs/, site.webmanifest
+public/               # cv.pdf, me/* portraits, svgs/ (file-based metadata routes provide icons/manifest)
 apps-script/          # companion Google Apps Script (if used for sheets/mail sync)
 DESIGN.md             # design system source of truth
 ```

@@ -167,11 +167,11 @@ export async function POST(req: Request) {
       meetLink = j.link || "";
       googleEventId = j.id || "";
     } catch (e) {
-      await convexMutation(api.bookings.remove, { id: insertedId }).catch(
-        () => {},
-      );
-      const msg = e instanceof Error ? e.message : "Calendar sync failed";
-      return NextResponse.json({ error: msg }, { status: 502 });
+      await convexMutation(api.bookings.remove, { id: insertedId }).catch((e) => {
+        console.error("booking rollback failed", e);
+      });
+      console.error("[booking] calendar sync failed", e);
+      return NextResponse.json({ error: "Calendar sync failed" }, { status: 502 });
     }
   } else {
     // no sync url: create without calendar (dev mode) — still save
@@ -234,26 +234,16 @@ export async function POST(req: Request) {
         html: guestHtml,
       });
       if (ownerRes.skipped || guestRes.skipped) {
-        console.log(
-          "[booking] saved but email skipped (Resend test mode) — verify domain at resend.com/domains",
-          {
-            id: inserted?.id,
-            date: dateStr,
-            time: timeStr,
-            toOwner: owner,
-            toGuest: email,
-          },
-        );
+        if (process.env.NODE_ENV !== "production")
+          console.log(
+            "[booking] saved but email skipped (Resend test mode) — verify domain at resend.com/domains",
+            { id: inserted?.id, date: dateStr, time: timeStr },
+          );
       }
     })().catch((e) => console.error("[booking] notification failed", e));
   } else {
-    console.log("[booking] created", {
-      id: inserted?.id,
-      date: dateStr,
-      time: timeStr,
-      name,
-      email,
-    });
+    if (process.env.NODE_ENV !== "production")
+      console.log("[booking] created", { id: inserted?.id, date: dateStr, time: timeStr });
   }
 
   return NextResponse.json({

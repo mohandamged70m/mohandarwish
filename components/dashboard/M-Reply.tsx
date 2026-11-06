@@ -72,6 +72,14 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
         if (boxRef.current) ro.observe(boxRef.current);
         return () => ro.disconnect();
     }, []);
+
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [onClose]);
     const measureHeight = () => {
         const doc = iframeRef.current?.contentDocument;
         if (doc?.body) setNatH(Math.max(240, doc.documentElement.scrollHeight));
@@ -141,6 +149,9 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
             onClick={onClose}
         >
             <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="reply-modal-title"
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
@@ -151,11 +162,11 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                     <div className="flex items-center gap-3 min-w-0">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 shrink-0"><Reply size={18} /></div>
                         <div className="min-w-0">
-                            <h3 className="text-lg font-bold text-primary font-inter m-0 leading-tight">Reply</h3>
+                            <h3 id="reply-modal-title" className="text-lg font-bold text-primary font-inter m-0 leading-tight">Reply</h3>
                             <p className="text-xs text-sec m-0 truncate">to {email.name} &middot; {email.email}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all shrink-0"><X size={18} /></button>
+                    <button onClick={onClose} aria-label="Close" className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all shrink-0"><X size={18} aria-hidden="true" /></button>
                 </div>
 
                 {/* Body: compose | preview */}
@@ -163,13 +174,14 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                     {/* Compose */}
                     <div className="md:w-[380px] shrink-0 p-5 flex flex-col gap-4 overflow-y-auto custom-scrollbar border-b md:border-b-0 md:border-r border-[var(--section-border)]">
                         <div>
-                            <label className={labelCls}>Subject</label>
-                            <input value={subject} onChange={e => setSubject(e.target.value)} className={inputCls} placeholder="Subject" />
+                            <label htmlFor="reply-subject" className={labelCls}>Subject</label>
+                            <input id="reply-subject" value={subject} onChange={e => setSubject(e.target.value)} className={inputCls} placeholder="Subject" />
                         </div>
 
                         <div className="flex-1 flex flex-col min-h-[160px]">
-                            <label className={labelCls}>Message</label>
+                            <label htmlFor="reply-body" className={labelCls}>Message</label>
                             <textarea
+                                id="reply-body"
                                 value={body}
                                 onChange={e => setBody(e.target.value)}
                                 placeholder={`Write your reply to ${email.name}...`}

@@ -155,6 +155,7 @@ ${FAQS.map((f) => `### ${f.question}\n\n${f.answer}`).join("\n\n")}
 - ${BASE}/ — home, about, stack, FAQ
 - ${BASE}/projects — full project archive
 - ${BASE}/projects/<id> — one case study per project
+- ${BASE}/book — book a free 30 minute call
 - ${BASE}/sitemap.xml — XML sitemap
 - ${BASE}/llms.txt — short brief
 - ${BASE}/llms-full.txt — this file

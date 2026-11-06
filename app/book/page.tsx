@@ -1,6 +1,5 @@
-'use client'
-
 import dynamic from 'next/dynamic'
+import { siteConfig } from "@/lib/metadata"
 
 // Client-only like the booking system: the calendar, the time zones and the paint
 // all depend on the visitor's clock and the DOM, so a build-time render would only
@@ -11,6 +10,9 @@ const BookPage = dynamic(() => import('@/components/booking-system/BookPage'), {
 export default function Page() {
   return (
     <>
+      {/* Server-rendered h1 so crawlers/AI bots (htmlLimitedBots) and no-JS
+          clients get real content even though BookPage is client-only. */}
+      <h1 className="sr-only">Book a call with Mohand Darwish</h1>
       {/* GEO fallback: crawlers and AI agents that don't run JavaScript only see this
           and the JSON-LD from layout.tsx. Keep it in step with that JSON-LD. */}
       <noscript>
@@ -36,8 +38,8 @@ export default function Page() {
           </ol>
           <p>
             The booking calendar needs JavaScript. Without it, email{' '}
-            <a href="mailto:hello@mohanddarwish.com">hello@mohanddarwish.com</a> to set up a
-            call, or see the portfolio at <a href="https://mohanddarwish.vercel.app">mohanddarwish.vercel.app</a>.
+            <a href="mailto:mohandamged70m@gmail.com">mohandamged70m@gmail.com</a> to set up a
+            call, or see the portfolio at <a href={siteConfig.url}>{siteConfig.url.replace(/^https?:\/\//, "")}</a>.
           </p>
         </article>
       </noscript>

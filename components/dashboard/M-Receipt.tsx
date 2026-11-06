@@ -395,7 +395,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500"><Receipt size={18} /></div>
                         <h3 className="text-lg font-bold text-primary font-inter m-0">New receipt</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} aria-label="Close" className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} aria-hidden="true" /></button>
                 </div>
 
                 {/* Body: controls | preview */}

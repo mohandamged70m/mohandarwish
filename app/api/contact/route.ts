@@ -145,11 +145,11 @@ export async function POST(req: Request) {
       const res = await sendSafe(resend, {
         from,
         to: owner,
-        subject: `New message: ${name}`,
+        subject: `New message: ${name}`.replace(/[\r\n]+/g, " ").slice(0, 120),
         html,
         replyTo: email,
       });
-      if (res.skipped)
+      if (res.skipped && process.env.NODE_ENV !== "production")
         console.log(
           "[contact] saved but email skipped (Resend test mode) — verify domain at resend.com/domains",
         );
@@ -157,12 +157,8 @@ export async function POST(req: Request) {
       console.error("[contact] resend error", e);
     }
   } else {
-    console.log("[contact] message", {
-      name,
-      email,
-      message: message.slice(0, 500),
-      scheduledAt,
-    });
+    if (process.env.NODE_ENV !== "production")
+      console.log("[contact] message", { name, email, scheduledAt });
   }
 
   return NextResponse.json({ ok: true });

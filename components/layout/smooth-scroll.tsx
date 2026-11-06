@@ -161,7 +161,7 @@ export function SmoothScroll({
         if (raf) cancelAnimationFrame(raf);
         try {
           delete (window as unknown as { __lenis?: unknown }).__lenis;
-        } catch {}
+        } catch (e) { if (process.env.NODE_ENV !== "production") console.warn("smooth-scroll cleanup failed", e); }
         lenis.destroy();
       };
     })();

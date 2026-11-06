@@ -337,7 +337,15 @@ export function TrailsTracker(): null {
           if (el && !observed.has(el)) { observed.add(el); io.observe(el); }
         }
       }
-      const domObserver = new MutationObserver(observeSections);
+      let obsScheduled = false;
+      const domObserver = new MutationObserver(() => {
+        if (obsScheduled) return;
+        obsScheduled = true;
+        queueMicrotask(() => {
+          obsScheduled = false;
+          observeSections();
+        });
+      });
       domObserver.observe(document.body, { childList: true, subtree: true });
 
       function sectionNow(path: string): string {

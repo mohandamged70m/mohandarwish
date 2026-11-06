@@ -41,7 +41,7 @@ type TagInfo = {
  * projects (useProjects), share-link pins first, then listing order.
  * Projects-only — no Developer tab.
  */
-export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjects?: Project[]; initialTagDir?: TagDirectory }) {
+export function ProjectsGrid({ initialProjects, initialTagDir, eagerCount = 2 }: { initialProjects?: Project[]; initialTagDir?: TagDirectory; eagerCount?: number }) {
   const { projects, loading, error, tagDir: liveTagDir } = useProjects(initialProjects);
   const tailor = useTailor();
   const reduce = useReducedMotion();
@@ -314,7 +314,7 @@ export function ProjectsGrid({ initialProjects, initialTagDir }: { initialProjec
               }}
               {...noMotion}
             >
-              <ProjectCard project={project} eager={i < 2} showTech={showTech} />
+              <ProjectCard project={project} eager={i < eagerCount} showTech={showTech} />
             </motion.div>
           ))}
         </div>

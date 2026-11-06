@@ -32,6 +32,7 @@ export async function POST(req: Request) {
     if (j.status === "error") return NextResponse.json({ error: j.message || "Calendar error" }, { status: 502 });
     return NextResponse.json({ status: "success", id: j.id ?? "", link: j.link ?? "" });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Calendar sync failed" }, { status: 502 });
+    console.error("[sync-meeting] failed", e);
+    return NextResponse.json({ error: "Calendar sync failed" }, { status: 502 });
   }
 }

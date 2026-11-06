@@ -161,11 +161,11 @@ export async function GET(req: Request) {
         "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
       },
     });
-  } catch (e) {
+  } catch {
     const cached = getCached<GhRepo[]>(cacheKey);
     if (cached) return NextResponse.json(cached, { headers: { "X-Cache": "STALE" } });
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Failed to load GitHub repos." },
+      { error: "Failed to load GitHub repos." },
       { status: 502 },
     );
   }

@@ -81,14 +81,14 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipProps<number, str
     ];
     return (
         <div className={`p-4 rounded-3xl border shadow-2xl backdrop-blur-3xl ${isDark ? 'bg-black/80 border-white/10' : 'bg-white/70 border-black/5 shadow-[0_20px_40px_rgba(0,0,0,0.1)]'}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{header}</div>
+            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/60' : 'text-slate-500'}`}>{header}</div>
             <div className="flex flex-col gap-2">
                 {rows.map(r => (
                     <div key={r.label} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: r.c, boxShadow: `0 0 10px ${r.c}` }} />
                         <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {formatMoney(r.v, cur)}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'}`}>{r.label}</span>
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/60' : 'text-slate-400'}`}>{r.label}</span>
                         </span>
                     </div>
                 ))}
@@ -213,12 +213,12 @@ const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             {/* Row 2: period label (always shown) + pager (only when multiple pages) */}
             <div className="flex items-center gap-2 mb-4">
                 {totalPages > 1 && (
-                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
+                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/60 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
                 )}
                 <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{pageTitle || '-'}</span>
                 {totalPages > 1 && (
                     <>
-                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
+                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/60 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
                         <div className="flex items-center gap-1 ml-1">
                             {pages.map((_, i) => (
                                 <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-red-500' : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
@@ -1095,7 +1095,7 @@ const DTreasury = () => {
                                                     {completedProjects.map(p => {
                                                         const received = projectReceived(p, data.income, data.config.rates);
                                                         return (
-                                                            <div key={p.id} onClick={() => setFocusedProjectId(p.id)} 
+                                                            <div key={p.id} role="button" tabIndex={0} onClick={() => setFocusedProjectId(p.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocusedProjectId(p.id); } }} 
                                                                 className={`p-4 rounded-2xl border flex flex-col gap-2 relative shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 cursor-pointer backdrop-blur-sm
                                                                     ${focusedProject?.id === p.id 
                                                                         ? 'bg-white border-red-500/30 ring-1 ring-red-500/30 dark:bg-[#1c1c24]' 
@@ -1135,7 +1135,7 @@ const DTreasury = () => {
                                     <Wallet size={16} className="text-red-400" />,
                                     'Money',
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <div className="w-[152px]">
+                                        <div className="w-[152px] max-w-full">
                                             <Select
                                                 value={moneyType === 'income' ? 'Income only' : moneyType === 'expense' ? 'Expenses only' : 'Income & expenses'}
                                                 options={['Income & expenses', 'Income only', 'Expenses only']}
@@ -1144,7 +1144,7 @@ const DTreasury = () => {
                                                 searchable={false}
                                             />
                                         </div>
-                                        <div className="w-[136px]">
+                                        <div className="w-[136px] max-w-full">
                                             <Select
                                                 value={moneyView === 'day' ? 'Grouped by day' : 'Flat list'}
                                                 options={['Flat list', 'Grouped by day']}
@@ -1154,7 +1154,7 @@ const DTreasury = () => {
                                             />
                                         </div>
                                         {data.accounts.length > 0 && (
-                                            <div className="w-[152px]">
+                                            <div className="w-[152px] max-w-full">
                                                 <Select
                                                     value={moneyAccount === 'all' ? 'All accounts' : (data.accounts.find(a => a.id === moneyAccount)?.name ?? 'All accounts')}
                                                     options={['All accounts', ...data.accounts.map(a => a.name)]}
@@ -1323,7 +1323,7 @@ const DTreasury = () => {
                                                     searchable={receiptCustomers.length > 6}
                                                 />
                                             </div>
-                                            <div className="w-[136px]">
+                                            <div className="w-[136px] max-w-full">
                                                 <Select
                                                     value={receiptView === 'day' ? 'Grouped by day' : 'Flat list'}
                                                     options={['Flat list', 'Grouped by day']}

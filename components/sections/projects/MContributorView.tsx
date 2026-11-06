@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, type ComponentType } from "react";
 import { createPortal } from "react-dom";
 import { Globe, X } from "lucide-react";
@@ -67,10 +68,11 @@ export function MContributorView({
               style={{ borderColor: "var(--border-strong)", backgroundColor: "var(--accent-soft)" }}
             >
               {contributor.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={contributor.image}
                   alt={contributor.name}
+                  width={120}
+                  height={120}
                   className="h-full w-full object-cover"
                 />
               ) : (

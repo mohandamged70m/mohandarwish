@@ -259,6 +259,7 @@ export function ProjectModal({ children, backHref, marker, initialMedia, project
       ref={outerRef}
       role="dialog"
       aria-modal="true"
+      aria-label="Project details"
       data-marker={marker}
       initial={prefersReducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}

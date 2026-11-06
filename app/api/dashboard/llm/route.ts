@@ -151,6 +151,7 @@ export async function POST(req: Request) {
       }),
     });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "LLM call failed" }, { status: 502 });
+    console.error("[llm] upstream error", e);
+    return NextResponse.json({ error: "LLM call failed" }, { status: 502 });
   }
 }

@@ -20,22 +20,41 @@ export async function POST(req: Request) {
   if (!body?.to || !body?.subject || !body?.html) {
     return NextResponse.json({ error: "to, subject, html required" }, { status: 400 });
   }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.to)) {
+    return NextResponse.json({ error: "Invalid recipient" }, { status: 400 });
+  }
 
   const key = process.env.RESEND_API_KEY;
   if (!key) return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });
 
   let html = body.html;
   const files: { filename: string; content: Buffer }[] = [];
-  for (const a of body.attachments ?? []) {
+  const convexOrigin = process.env.NEXT_PUBLIC_CONVEX_URL
+    ? new URL(process.env.NEXT_PUBLIC_CONVEX_URL).origin
+    : null;
+  for (const a of (body.attachments ?? []).slice(0, 5)) {
     if (!a?.url || !a?.name) continue;
+    let allowed = false;
+    try {
+      const u = new URL(a.url);
+      allowed =
+        u.protocol === "https:" &&
+        (convexOrigin === null || u.origin === convexOrigin) &&
+        u.pathname.startsWith("/api/storage/");
+    } catch {
+      allowed = false;
+    }
+    if (!allowed) continue;
     try {
       const r = await fetch(a.url);
       if (!r.ok) throw new Error(`fetch ${r.status}`);
       const buf = Buffer.from(await r.arrayBuffer());
       if (buf.length > 18 * 1024 * 1024) throw new Error("too large");
-      files.push({ filename: a.name, content: buf });
+      files.push({ filename: String(a.name).slice(0, 200), content: buf });
     } catch {
-      html += `<p style="font-size:13px;color:#64748b">Attachment: <a href="${a.url}">${a.name}</a></p>`;
+      const esc = (s: string) =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      html += `<p style="font-size:13px;color:#64748b">Attachment: <a href="${esc(a.url)}">${esc(a.name)}</a></p>`;
     }
   }
 

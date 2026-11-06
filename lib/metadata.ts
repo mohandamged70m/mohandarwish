@@ -97,7 +97,7 @@ export function createMetadata({
       title: resolvedTitle,
       description: resolvedDescription,
       creator: siteConfig.creator,
-      images: [image ?? `${siteConfig.url}/opengraph-image`],
+      images: [image ?? (path ? `${siteConfig.url}${path}/opengraph-image` : `${siteConfig.url}/opengraph-image`)],
     },
     robots: noIndex
       ? { index: false, follow: false }

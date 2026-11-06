@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 
 import { siteConfig } from "@/lib/metadata"
+import { JsonLd } from "@/components/seo/JsonLd"
 
 // /book — public booking page mined from ./booking-system, adapted to Convex.
 // The page body is client-only (BookPage is loaded with ssr: false) because the
@@ -11,7 +12,7 @@ const pageUrl = `${siteConfig.url}/book`
 const title = "Book a call | Mohand Darwish"
 const description =
   "Book a free 30 minute Google Meet call with Mohand Darwish, software engineer and AI product builder. Pick a time in your own time zone."
-const image = { url: "/book/mohand-cutout.webp", width: 920, height: 1286, alt: "Mohand Darwish" }
+const image = { url: "/me/mohand-cutout.png", width: 817, height: 1379, alt: "Mohand Darwish" }
 
 export const metadata: Metadata = {
   title,
@@ -107,40 +108,13 @@ const structuredData = {
         { "@type": "ListItem", position: 2, name: "Book a call", item: pageUrl },
       ],
     },
-    {
-      "@type": "FAQPage",
-      "@id": `${pageUrl}#faq`,
-      isPartOf: { "@id": `${pageUrl}#webpage` },
-      inLanguage: "en",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do I book a call?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Open the /book page, pick an open date on the calendar, choose a time slot (shown in your own time zone), then enter your name, email and what the call is about and press Book. A calendar invite with the Google Meet link is emailed to you.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How long is the call and what does it cost?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "The call is 30 minutes on Google Meet and it is free.",
-          },
-        },
-      ],
-    },
   ],
 }
 
 export default function BookLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      <JsonLd data={structuredData} />
       {children}
     </>
   )

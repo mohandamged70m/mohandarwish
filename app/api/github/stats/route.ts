@@ -51,7 +51,7 @@ export async function GET(req: Request) {
         "X-Cache": "MISS",
       },
     });
-  } catch (e) {
+  } catch {
     // Network/timeout — let the client fall back to its localStorage cache.
     const cached = getCached(CACHE_KEY);
     if (cached) {
@@ -60,7 +60,7 @@ export async function GET(req: Request) {
       });
     }
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Failed to load GitHub stats." },
+      { error: "Failed to load GitHub stats." },
       { status: 502 },
     );
   }

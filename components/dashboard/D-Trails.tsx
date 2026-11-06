@@ -121,7 +121,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                 ? 'bg-black/80 border-white/10'
                 : 'bg-white/60 border-black/5 shadow-[0_20px_40px_rgba(0,0,0,0.1)]'
                 }`}>
-                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-slate-500'
+                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/60' : 'text-slate-500'
                     }`}>
                     {headerText}
                 </div>
@@ -130,7 +130,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                         <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {(item.value || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/60' : 'text-slate-400'
                                 }`}>{subLabel}</span>
                         </span>
                     </div>
@@ -138,7 +138,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10B981]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {(item.projectViews || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/60' : 'text-slate-400'
                                 }`}>Project Views</span>
                         </span>
                     </div>
@@ -146,7 +146,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                         <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_10px_#8B5CF6]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {(item.socialClicks || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/60' : 'text-slate-400'
                                 }`}>Social Clicks</span>
                         </span>
                     </div>
@@ -155,7 +155,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipProps<number, string>
                             <div className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-white/40' : 'bg-slate-400'}`} />
                             <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                 {(item.prevValue || 0).toLocaleString()}
-                                <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                                <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/60' : 'text-slate-400'
                                     }`}>Same period last year</span>
                             </span>
                         </div>
@@ -432,7 +432,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth, reduceMo
                     <button
                         onClick={() => changePage(safePageIndex - 1)}
                         disabled={safePageIndex === 0}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/60 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronLeft size={16} />
                     </button>
@@ -442,7 +442,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth, reduceMo
                     <button
                         onClick={() => changePage(safePageIndex + 1)}
                         disabled={safePageIndex === totalPages - 1}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/60 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronRight size={16} />
                     </button>
@@ -578,7 +578,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth, reduceMo
                         <h4 className={`${isDark ? 'text-white' : 'text-slate-900'} text-3xl font-black tracking-tight tabular-nums`}>
                             {pageSocials.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-white/30' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
+                        <p className={`${isDark ? 'text-white/60' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
                     </div>
                 </div>
 
@@ -593,7 +593,7 @@ const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth, reduceMo
                         <h4 className={`${isDark ? 'text-white' : 'text-slate-900'} text-3xl font-black tracking-tight tabular-nums`}>
                             {pageProjects.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-white/30' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
+                        <p className={`${isDark ? 'text-white/60' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
                     </div>
                 </div>
             </div>
@@ -674,7 +674,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                     </div>
                 </div>
                 {/* Weight legend */}
-                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-xl border text-[10px] font-bold ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/40' : 'bg-slate-50 border-black/5 text-slate-400'}`}>
+                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-xl border text-[10px] font-bold ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/60' : 'bg-slate-50 border-black/5 text-slate-400'}`}>
                     <span className="flex items-center gap-1"><Eye size={12} className="text-red-500" />×{RANK_WEIGHTS.view}</span>
                     <span className="flex items-center gap-1"><ExternalLink size={12} className="text-emerald-500" />×{RANK_WEIGHTS.live}</span>
                     <span className="flex items-center gap-1"><Github size={12} className="text-purple-500" />×{RANK_WEIGHTS.github}</span>
@@ -684,7 +684,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
 
             {/* List */}
             {ranked.length === 0 ? (
-                <div className={`text-center py-12 text-sm italic ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+                <div className={`text-center py-12 text-sm italic ${isDark ? 'text-white/60' : 'text-slate-400'}`}>
                     No engagement recorded yet.
                 </div>
             ) : (
@@ -723,7 +723,7 @@ const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; isDark: 
                                         <span className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`} title={p.name}>{p.name}</span>
                                         <span className={`shrink-0 text-sm font-black tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
                                             {p.score.toLocaleString()}
-                                            <span className={`font-bold text-[9px] uppercase tracking-wider ml-1 ${isDark ? 'text-white/30' : 'text-slate-400'}`}>pts</span>
+                                            <span className={`font-bold text-[9px] uppercase tracking-wider ml-1 ${isDark ? 'text-white/60' : 'text-slate-400'}`}>pts</span>
                                         </span>
                                     </div>
                                     {/* Relative score bar */}

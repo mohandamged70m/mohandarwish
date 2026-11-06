@@ -145,7 +145,7 @@ export default function BookPage() {
 					</h1>
 					<div className="stage stage-back" aria-hidden="true"><svg className="ring-back" /></div>
 					<div className="stage">
-						<img alt="Mohand Darwish" src="/book/mohand-cutout.webp" width={920} height={1286} fetchPriority="high" decoding="async" />
+						<img alt="Mohand Darwish" src="/me/mohand-cutout.png" width={817} height={1379} fetchPriority="high" decoding="async" />
 						<svg className="shirt" aria-hidden="true" />
 						<svg className="ring-front" aria-hidden="true" />
 					</div>

@@ -106,7 +106,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                         </div>
                         <h3 className="text-lg font-bold text-primary font-inter m-0">{isEdit ? 'Edit' : 'New'} account</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} aria-label="Close" className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} aria-hidden="true" /></button>
                 </div>
 
                 {/* Body */}

@@ -672,7 +672,6 @@ export class Collector {
       this.openProjectAt = now; // already banked, don't double-count on close
     }
     this.dirty = true;
-    safeSession.set(SID_ACTIVE_KEY, String(now));
   }
 
   private attach(): void {
@@ -715,7 +714,10 @@ export class Collector {
       this.tick();
       this.hidden = hidden;
       this.push(hidden ? "hide" : "show");
-      if (hidden) this.enqueue(false);
+      if (hidden) {
+        safeSession.set(SID_ACTIVE_KEY, String(Date.now()));
+        this.enqueue(false);
+      }
       else {
         markInput();
         // Returning from a social link: measure time away, don't claim it
@@ -734,7 +736,7 @@ export class Collector {
         markInput();
         this.trackScroll(e.target);
       },
-      { passive: true, capture: true } as AddEventListenerOptions,
+      { passive: true } as AddEventListenerOptions,
     );
 
     on(document, "copy", () => {
