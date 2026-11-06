@@ -159,7 +159,8 @@ const DCanary = () => {
     const [isBookingOpen, setIsBookingOpen] = useState(false);
     const [modalDirection, setModalDirection] = useState(0);
     const [modalViewDate, setModalViewDate] = useState(new Date());
-    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    // Stable default for SSR; the real viewport is synced in the effect below
+    const [windowWidth, setWindowWidth] = useState(1200);
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [hostTimezoneString, setHostTimezoneString] = useState('');
     const { alert, showAlert, hideAlert } = useSafeAlert(4000);
@@ -253,6 +254,7 @@ const DCanary = () => {
 
     useEffect(() => {
         const handleResize = () => setWindowWidth(window.innerWidth);
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);

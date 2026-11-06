@@ -39,7 +39,8 @@ interface RawFirestoreContributor {
 const DTags = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isDark, setIsDark] = useState(false);
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    // Start at a stable default so server and client HTML match; the real viewport is synced in the effect below
+    const [windowWidth, setWindowWidth] = useState(1024);
     const [activeSection, setActiveSection] = useState<'tags' | 'contributors'>('tags');
     const [tags, setTags] = useState<TagData[]>([]);
     const [contributors, setContributors] = useState<ContributorData[]>([]);
@@ -101,6 +102,7 @@ const DTags = () => {
         const handleResize = () => setWindowWidth(window.innerWidth);
 
         checkTheme();
+        handleResize();
         window.addEventListener('resize', handleResize);
         const observer = new MutationObserver(checkTheme);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

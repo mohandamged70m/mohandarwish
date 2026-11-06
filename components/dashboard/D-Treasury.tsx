@@ -278,7 +278,8 @@ const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
 };
 
 const DTreasury = () => {
-    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+    // Stable default for SSR; the real viewport is synced in the effect below
+    const [windowWidth, setWindowWidth] = useState(1024);
     const [isDark, setIsDark] = useState(false);
     const [loading, setLoading] = useState(true);
     const [settingsLoaded, setSettingsLoaded] = useState(false);
@@ -315,6 +316,7 @@ const DTreasury = () => {
         const onResize = () => setWindowWidth(window.innerWidth);
         const checkTheme = () => setIsDark(document.documentElement.classList.contains('dark'));
         checkTheme();
+        onResize();
         window.addEventListener('resize', onResize);
         const obs = new MutationObserver(checkTheme);
         obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

@@ -255,7 +255,8 @@ const DProjects = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<ProjectFormData | null>(null);
     const [isDark, setIsDark] = useState(false);
-    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    // Start at a stable default so server and client HTML match; the real viewport is synced in the effect below
+    const [windowWidth, setWindowWidth] = useState(1024);
     const [activeMenu, setActiveMenu] = useState<string | number | null>(null);
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 });
     const [searchQuery, setSearchQuery] = useState('');
@@ -375,6 +376,7 @@ const DProjects = () => {
         const handleResize = () => setWindowWidth(window.innerWidth);
 
         checkTheme();
+        handleResize();
         window.addEventListener('resize', handleResize);
         const observer = new MutationObserver(checkTheme);
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

@@ -786,7 +786,8 @@ const RANGE_FILTERS: Array<{ id: RangeFilter; label: string }> = [
 const HR_LINK_RE = /\bhr\b|human resources|recruit\w*|talent acquisition|talent|hiring manager|hiring/i;
 
 const DTrails = () => {
-    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    // Stable default for SSR; the real viewport is synced in the effect below
+    const [windowWidth, setWindowWidth] = useState(1200);
     const [isDark, setIsDark] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { alert, showAlert, hideAlert } = useSafeAlert(4000);
@@ -858,6 +859,7 @@ const DTrails = () => {
 
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);
+        onResize();
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, []);

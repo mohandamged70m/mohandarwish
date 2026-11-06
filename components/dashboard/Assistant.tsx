@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import anime from 'animejs';
 import { Sparkles, X, Send, Settings2, Loader2, MousePointer2, Check, Database, ArrowRight, Zap, HelpCircle, Mic, Volume2, VolumeX, Brain } from 'lucide-react';
@@ -68,9 +68,16 @@ const PAGE_LABEL: Record<string, string> = {
     developer: 'Developer', settings: 'Settings', canary: 'Canary (visitor inbox)',
 };
 
+// SSR-safe "are we on the client?" snapshot for portals
+const noopSubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => void; currentPage: string }) => {
     const [isDark, setIsDark] = useState(false);
     const [open, setOpen] = useState(false);
+    // Portals need document.body - render them only on the client (useSyncExternalStore is SSR-safe)
+    const mounted = useSyncExternalStore(noopSubscribe, getClientSnapshot, getServerSnapshot);
     const pageRef = useRef(currentPage);
     useEffect(() => { pageRef.current = currentPage; }, [currentPage]);
     const [showSettings, setShowSettings] = useState(false);
@@ -84,7 +91,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     const [quizCustom, setQuizCustom] = useState('');
     const lastSend = useRef(0);
     const callWindow = useRef<number[]>([]);
-    const [autoMode, setAutoMode] = useState(() => typeof window !== 'undefined' && localStorage.getItem('llm_auto') === '1');
+    // localStorage prefs are synced after mount (server has no window) via a single pass in the effect below
+    const [autoMode, setAutoMode] = useState(false);
     const autoRef = useRef(autoMode);
     useEffect(() => { autoRef.current = autoMode; }, [autoMode]);
     const toggleAuto = () => setAutoMode(v => { const next = !v; try { localStorage.setItem('llm_auto', next ? '1' : '0'); } catch { /* ignore */ } return next; });
@@ -97,7 +105,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     const speakingRef = useRef(false);
     const busyRef = useRef(false);
     const spokeTurnRef = useRef(false); // this turn was started by voice → speak the reply
-    const [voiceOut, setVoiceOut] = useState(() => typeof window !== 'undefined' && localStorage.getItem('llm_voice') === '1');
+    const [voiceOut, setVoiceOut] = useState(false);
     const voiceOutRef = useRef(voiceOut);
     useEffect(() => { voiceOutRef.current = voiceOut; }, [voiceOut]);
     const toggleVoiceOut = () => setVoiceOut(v => {
@@ -109,7 +117,17 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
     // Available system voices + the chosen one (persisted). Voices load async.
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [voiceName, setVoiceName] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('llm_voice_name')) || '');
+    const [voiceName, setVoiceName] = useState('');
+    useEffect(() => {
+        // One pass to sync browser-only prefs (server has no window) after mount
+        const syncPrefs = () => {
+            setAutoMode(localStorage.getItem('llm_auto') === '1');
+            setVoiceOut(localStorage.getItem('llm_voice') === '1');
+            const savedVoice = localStorage.getItem('llm_voice_name');
+            if (savedVoice) setVoiceName(savedVoice);
+        };
+        syncPrefs();
+    }, []);
     useEffect(() => {
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
         const load = () => { const vs = window.speechSynthesis.getVoices(); if (vs.length) setVoices(vs); };
@@ -602,7 +620,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             </button>
 
             {/* Human-like cursor */}
-            {createPortal(
+            {mounted && createPortal(
                 <div ref={cursorRef} className="fixed z-[2000] pointer-events-none" style={{ left: 0, top: 0, opacity: 0, transform: 'translate(-2px,-2px)' }}>
                     <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-red-400/40" style={{ opacity: 0 }} />
                     <MousePointer2 size={24} className="text-red-500 fill-red-500/30" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }} />
@@ -611,7 +629,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             )}
 
             {/* Chat modal */}
-            {open && createPortal(
+            {mounted && open && createPortal(
                 <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-[max(1.25rem,calc(1.25rem+env(safe-area-inset-right)))] z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-3xl border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100dvh - 8rem))', background: isDark ? 'rgba(15,15,20,0.96)' : 'rgba(255,255,255,0.97)', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', backdropFilter: 'blur(20px)' }}>
                     {/* Header */}
                     <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--section-border)]">
