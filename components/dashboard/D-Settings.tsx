@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const DEFAULT_HERO_URL = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80";
 import Cropper from 'react-easy-crop';
 import MFirebaseStorage from './M-FirebaseStorage';
+import { isSafeLinkUrl } from '@/lib/bookPage';
 import { doc, onSnapshot, setDoc, deleteField, getDoc } from '@/lib/dash-db';
 import { ref, uploadBytes, getDownloadURL, getMetadata, getStorage } from '@/lib/dash-storage';
 import app, { db } from '@/lib/dash-db';
@@ -19,7 +20,6 @@ import DMcpPanel from './D-MCP';
 import Select from '@/components/ui/mohand-select';
 import SaveBar from './SaveBar';
 import Loader from '@/components/dashboard/primitives/reactbits/Loader';
-import MConfirmModal from './M-ConfirmModal';
 // Replaced failing ui-avatars.com with a local icon-based placeholder logic
 
 
@@ -104,20 +104,6 @@ export default function DSettings() {
     const [firebaseBrowserOpen, setFirebaseBrowserOpen] = useState(false);
     const [firebaseSelectTarget, setFirebaseSelectTarget] = useState<'hero' | 'heroDark' | 'profile' | null>(null);
 
-    // Confirmation Modal State
-    const [confirmConfig, setConfirmConfig] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        onConfirm: () => void;
-        type?: 'danger' | 'warning' | 'info';
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        onConfirm: () => { }
-    });
-
     const [heroImagePreview, setHeroImagePreview] = useState<string>(DEFAULT_HERO_URL);
     const [heroImageFile, setHeroImageFile] = useState<File | null>(null);
     const [heroImageDirty, setHeroImageDirty] = useState(false);
@@ -134,6 +120,15 @@ export default function DSettings() {
 
     // Max upload size for hero images (matches "Max 2MB" helper text)
     const HERO_MAX_BYTES = 2 * 1024 * 1024;
+    // Profile photos can be larger sources - they are re-encoded to WebP on save anyway
+    const PROFILE_MAX_BYTES = 5 * 1024 * 1024;
+
+    // Safe file extension with a sensible fallback (a name without a dot, or a trailing dot, would otherwise leak into the storage path)
+    const extOf = (name: string, fallback = 'webp') => {
+        if (!name || !name.includes('.')) return fallback;
+        const ext = name.split('.').pop()?.trim().toLowerCase();
+        return ext && /^[a-z0-9]{1,5}$/.test(ext) ? ext : fallback;
+    };
 
     const [profileImagePreview, setProfileImagePreview] = useState<string>('');
     const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
@@ -160,7 +155,6 @@ export default function DSettings() {
     const [profileImageBackupFile, setProfileImageBackupFile] = useState<File | null>(null);
     const [profileImageDirty, setProfileImageDirty] = useState(false);
     const [profileInfoDirty, setProfileInfoDirty] = useState(false);
-    const [profileImageUploading, setProfileImageUploading] = useState(false);
 
     // Hero image resolution & size display
     const [heroImageResolution, setHeroImageResolution] = useState<string>('');
@@ -516,8 +510,7 @@ export default function DSettings() {
             setIsLoading(true);
 
             if (heroImageFile) {
-                const fileExtension = heroImageFile.name.split('.').pop();
-                const fileName = `Hero.image.${fileExtension}`;
+                const fileName = `Hero.image.${extOf(heroImageFile.name, 'jpg')}`;
                 const storageRef = ref(storage, `src/imgs/Settings/${fileName}`);
                 await uploadBytes(storageRef, heroImageFile);
                 const downloadURL = await getDownloadURL(storageRef);
@@ -568,8 +561,7 @@ export default function DSettings() {
             setIsLoading(true);
 
             if (heroImageFileDark) {
-                const fileExtension = heroImageFileDark.name.split('.').pop();
-                const fileName = `Hero.image.dark.${fileExtension}`;
+                const fileName = `Hero.image.dark.${extOf(heroImageFileDark.name, 'jpg')}`;
                 const storageRef = ref(storage, `src/imgs/Settings/${fileName}`);
                 await uploadBytes(storageRef, heroImageFileDark);
                 const downloadURL = await getDownloadURL(storageRef);
@@ -595,11 +587,6 @@ export default function DSettings() {
     const handleApplyAll = async () => {
         setIsLoading(true);
         try {
-            // If user is still cropping, finalize the crop first
-            if (isCropping) {
-                await handleCropSave();
-            }
-
             await Promise.all([
                 handleSaveAvailability(),
                 handleSaveHeroImage(true),
@@ -628,9 +615,9 @@ export default function DSettings() {
 
         setIsLoading(true);
         try {
-            const profileSnap = await getDoc(doc(db, 'Settings', 'Account'));
-            if (profileSnap.exists()) {
-                const data = profileSnap.data();
+            const accountSnap = await getDoc(doc(db, 'Settings', 'Account'));
+            if (accountSnap.exists()) {
+                const data = accountSnap.data();
                 setProfileName(data.name ?? 'Your Name');
                 setProfileTitle(data.title ?? 'Job Title');
                 setProfileImagePreview(data.imageUrl ?? '');
@@ -639,11 +626,18 @@ export default function DSettings() {
                 setProfileImageBackupFile(null);
                 setProfileImageDirty(false);
                 setProfileInfoDirty(false);
+                setIsEditingProfile(false);
+                setProfileBackup(null);
+                // Restore staged social-link edits too
+                if (data['Social Links'] && typeof data['Social Links'] === 'object') {
+                    setSocialLinks(Object.entries(data['Social Links'] as Record<string, unknown>).map(([name, url]) => ({ name, url: String(url) })));
+                } else {
+                    setSocialLinks([]);
+                }
             }
 
-            const heroSnap = await getDoc(doc(db, 'Settings', 'Account'));
-            if (heroSnap.exists()) {
-                const heroData = heroSnap.data();
+            if (accountSnap.exists()) {
+                const heroData = accountSnap.data();
                 setHeroImagePreview(heroData.heroImageUrl ?? DEFAULT_HERO_URL);
                 setHeroImageFile(null);
                 setHeroImageDirty(false);
@@ -810,19 +804,26 @@ export default function DSettings() {
     };
 
     const handleProfileImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            // keep a backup so Cancel can restore instantly
-            if (!profileImageBackupPreview) {
-                setProfileImageBackupPreview(profileImagePreview);
-                setProfileImageBackupFile(profileImageFile);
-            }
-
-            const file = e.target.files[0];
-            const imageDataUrl = await readFile(file);
-            setOriginalImageSrc(imageDataUrl as string);
-            setIsCropping(true);
-            e.target.value = '';
+        const file = e.target.files?.[0];
+        // Always reset so the user can re-pick the same file later
+        e.target.value = '';
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            safeSetAlert({ show: true, type: 'error', message: 'Please pick an image file.' });
+            return;
         }
+        if (file.size > PROFILE_MAX_BYTES) {
+            safeSetAlert({ show: true, type: 'error', message: `Image too large (${formatBytes(file.size)}). Max ${formatBytes(PROFILE_MAX_BYTES)}.` });
+            return;
+        }
+        // keep a backup so Cancel can restore instantly
+        if (!profileImageBackupPreview) {
+            setProfileImageBackupPreview(profileImagePreview);
+            setProfileImageBackupFile(profileImageFile);
+        }
+        const imageDataUrl = await readFile(file);
+        setOriginalImageSrc(imageDataUrl as string);
+        setIsCropping(true);
     };
 
     const readFile = (file: File) => {
@@ -838,33 +839,33 @@ export default function DSettings() {
     }, []);
 
     const handleCropSave = async () => {
-        if (originalImageSrc && croppedAreaPixels) {
-            try {
-                setIsLoading(true);
-                const croppedFile = await getCroppedImg(originalImageSrc, croppedAreaPixels);
-                if (croppedFile) {
-                    // Perform immediate upload to Firebase
-                    const storageRef = ref(storage, `src/imgs/Settings/Profile_${Date.now()}_cropped.webp`);
-                    await uploadBytes(storageRef, croppedFile);
-                    const downloadURL = await getDownloadURL(storageRef);
-
-                    // Update Firestore immediately
-                    await setDoc(doc(db, 'Settings', 'Account'), { imageUrl: downloadURL }, { merge: true });
-
-                    setProfileImagePreview(downloadURL);
-                    setProfileImageFile(null);
-                    setProfileImageDirty(false);
-                    
-                    safeSetAlert({ show: true, type: 'success', message: 'Profile image cropped and saved!', duration: 3000 });
-                }
-            } catch (e) {
-                console.error("Crop/Save failed", e);
-                safeSetAlert({ show: true, type: 'error', message: 'Failed to save cropped image.' });
-            } finally {
-                setIsLoading(false);
-                setIsCropping(false);
-                setOriginalImageSrc(null);
-            }
+        if (!originalImageSrc || !croppedAreaPixels) {
+            safeSetAlert({ show: true, type: 'error', message: 'Adjust the crop first.' });
+            return;
+        }
+        try {
+            setIsLoading(true);
+            const croppedFile = await getCroppedImg(originalImageSrc, croppedAreaPixels);
+            // Stage the crop instead of uploading immediately - like every other
+            // change here, it only reaches Firebase/Storage when Apply is clicked.
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = () => reject(new Error('Failed to read cropped image'));
+                reader.readAsDataURL(croppedFile);
+            });
+            setProfileImageFile(croppedFile);
+            setProfileImagePreview(dataUrl);
+            setProfileImageDirty(true);
+            setHasUnsavedChanges(true);
+            setIsCropping(false);
+            setOriginalImageSrc(null);
+            safeSetAlert({ show: true, type: 'success', message: 'Profile image staged. Click Apply Changes at the bottom of the page to save to Firebase.', duration: 3000 });
+        } catch (e) {
+            console.error("Crop/Save failed", e);
+            safeSetAlert({ show: true, type: 'error', message: 'Failed to crop the image.' });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -892,14 +893,17 @@ export default function DSettings() {
         setProfileImageBackupPreview(null);
         setProfileImageBackupFile(null);
         setProfileImageDirty(false);
-        setHasUnsavedChanges(false);
+        // Do NOT touch hasUnsavedChanges - hero/social/profile-info edits may still be staged
     };
 
     // Persist profile name/title/links to Firestore (used by Apply All)
     const handleSaveProfileInfo = async (silent = false) => {
         try {
+            // Drop anything that would not survive the render-time safety filter anyway - never persist it
             const linksMap = socialLinks.reduce((acc, link) => {
-                acc[link.name] = link.url;
+                const name = link.name.trim();
+                const url = link.url.trim();
+                if (name && isSafeLinkUrl(url)) acc[name] = url;
                 return acc;
             }, {} as Record<string, string>);
 
@@ -920,11 +924,10 @@ export default function DSettings() {
         if (!profileImageFile && !profileImagePreview) return;
 
         try {
-            setProfileImageUploading(true);
             setIsLoading(true);
 
             if (profileImageFile) {
-                const storageRef = ref(storage, `src/imgs/Settings/Profile_${Date.now()}_cropped.webp`);
+                const storageRef = ref(storage, `src/imgs/Settings/Profile_${Date.now()}.${extOf(profileImageFile.name, 'webp')}`);
                 await uploadBytes(storageRef, profileImageFile);
                 const downloadURL = await getDownloadURL(storageRef);
 
@@ -933,8 +936,8 @@ export default function DSettings() {
                 // Selected from Firebase / remote URL - just persist the URL
                 await setDoc(doc(db, 'Settings', 'Account'), { imageUrl: profileImagePreview }, { merge: true });
             } else {
-                // Local data URL without a file - nothing to upload to storage
-                return;
+                // preview that is neither an uploaded file nor a remote URL - should never happen; surface it instead of failing silently
+                throw new Error('Profile image state is inconsistent - re-pick the image and try again.');
             }
 
             if (!silent) safeSetAlert({ show: true, type: 'success', message: 'Profile image updated!', duration: 3000 });
@@ -949,7 +952,6 @@ export default function DSettings() {
             console.error("Error updating profile image:", error);
             safeSetAlert({ show: true, type: 'error', message: 'Failed to update profile image.' });
         } finally {
-            setProfileImageUploading(false);
             setIsLoading(false);
         }
     };
@@ -1388,12 +1390,8 @@ export default function DSettings() {
                                             <div className="flex gap-2 items-center">
                                                 {profileImageDirty ? (
                                                     <>
-                                                        <button onClick={() => {
-                                                            // Stage upload - actual upload will happen when Apply Changes is clicked
-                                                            setHasUnsavedChanges(true);
-                                                            safeSetAlert({ show: true, type: 'success', message: 'Profile image staged. Click Apply Changes to save to Firebase.', duration: 3000 });
-                                                        }} className="btn btn-primary px-3 py-2" disabled={profileImageUploading}>{profileImageUploading ? 'Saving...' : (<><Save size={16} /><span className="hidden sm:inline ml-2">Save Image</span></>)}</button>
-                                                        <button onClick={handleCancelProfileImageChange} className="btn btn-secondary px-3 py-2"><X size={16} /><span className="hidden sm:inline ml-2">Cancel</span></button>
+                                                        <span className="text-xs font-semibold text-red-500 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1">Staged — click Apply Changes to save</span>
+                                                        <button onClick={handleCancelProfileImageChange} className="btn btn-secondary px-3 py-2"><X size={16} /><span className="hidden sm:inline ml-2">Revert</span></button>
                                                     </>
                                                 ) : null}
                                             </div>
@@ -1418,6 +1416,7 @@ export default function DSettings() {
                                                 className="input-field w-full"
                                                 placeholder="e.g. GitHub"
                                                 value={newLinkName}
+                                                maxLength={40}
                                                 onChange={(e) => setNewLinkName(e.target.value)}
                                             />
                                         </div>
@@ -1427,20 +1426,34 @@ export default function DSettings() {
                                                 className="input-field w-full"
                                                 placeholder="https://..."
                                                 value={newLinkUrl}
+                                                maxLength={200}
+                                                type="url"
+                                                inputMode="url"
                                                 onChange={(e) => setNewLinkUrl(e.target.value)}
                                             />
                                         </div>
                                         <div className="sm:col-span-2">
                                             <button
                                                 className="btn btn-primary w-full justify-center"
-                                                disabled={socialLinks.length >= 5 || !newLinkName || !newLinkUrl}
+                                                disabled={socialLinks.length >= 5 || !newLinkName.trim() || !newLinkUrl.trim()}
                                                 onClick={() => {
-                                                    if (socialLinks.length < 5 && newLinkName && newLinkUrl) {
-                                                        setSocialLinks([...socialLinks, { name: newLinkName, url: newLinkUrl }]);
-                                                        setNewLinkName('');
-                                                        setNewLinkUrl('');
-                                                        setHasUnsavedChanges(true);
+                                                    const name = newLinkName.trim();
+                                                    const url = newLinkUrl.trim();
+                                                    if (socialLinks.length >= 5) return;
+                                                    if (!name || !url) return;
+                                                    if (!isSafeLinkUrl(url)) {
+                                                        safeSetAlert({ show: true, type: 'error', message: 'Enter a valid URL starting with https:// (or mailto: for email).' });
+                                                        return;
                                                     }
+                                                    if (socialLinks.some(l => l.name.toLowerCase() === name.toLowerCase())) {
+                                                        safeSetAlert({ show: true, type: 'error', message: `"${name}" is already in your links.` });
+                                                        return;
+                                                    }
+                                                    setSocialLinks([...socialLinks, { name, url }]);
+                                                    setNewLinkName('');
+                                                    setNewLinkUrl('');
+                                                    setHasUnsavedChanges(true);
+                                                    setProfileInfoDirty(true);
                                                 }}
                                             >
                                                 <Plus size={18} /> <span className="hidden sm:inline">Add</span>
@@ -1464,10 +1477,10 @@ export default function DSettings() {
                                                     <button
                                                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                                         onClick={() => {
-                                                            const newLinks = [...socialLinks];
-                                                            newLinks.splice(index, 1);
+                                                            const newLinks = socialLinks.filter((_, i) => i !== index);
                                                             setSocialLinks(newLinks);
                                                             setHasUnsavedChanges(true);
+                                                            setProfileInfoDirty(true);
                                                         }}
                                                     >
                                                         <Trash2 size={16} />
@@ -1538,16 +1551,6 @@ export default function DSettings() {
                     firebaseSelectTarget === 'profile' ? 'Select Profile Image' :
                     'Select File'
                 }
-            />
-
-            <MConfirmModal
-                isOpen={confirmConfig.isOpen}
-                title={confirmConfig.title}
-                message={confirmConfig.message}
-                type={confirmConfig.type}
-                onConfirm={confirmConfig.onConfirm}
-                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
-                confirmText="Confirm"
             />
 
         </div >
