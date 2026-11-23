@@ -1,0 +1,311 @@
+/* Stack section — every paint value comes from these tokens.
+   Scoped to the section via CSS Modules: no other section is affected. */
+.section {
+  --stack-bg: #0a0a0a;
+  --stack-surface: #131010;
+  --stack-text: #f4ece1;
+  --stack-muted: #b3a496;
+  --stack-accent: #b3263e;
+  --stack-accent-bright: #e0455f;
+  --stack-border: rgba(244, 236, 225, 0.16);
+
+  background-color: var(--stack-bg);
+  color: var(--stack-text);
+}
+
+/* Light theme — remap the same stack roles onto the site's light palette
+   (html.light is set by next-themes). No light section stays black. */
+:global(html.light) .section {
+  --stack-bg: var(--bg-primary);
+  --stack-surface: var(--bg-surface);
+  --stack-text: var(--text-primary);
+  --stack-muted: var(--text-secondary);
+  --stack-accent: var(--accent-primary);
+  --stack-accent-bright: var(--danger);
+  --stack-border: var(--border);
+}
+
+.section :focus-visible {
+  outline: 2px solid var(--stack-accent-bright);
+  outline-offset: 3px;
+}
+
+.heading {
+  color: var(--stack-text);
+}
+
+.subtitle {
+  color: var(--stack-muted);
+}
+
+/* ── Shared icon ring ─────────────────────────────────────────────────── */
+.iconRing {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  box-sizing: border-box;
+  border: 2px solid var(--stack-accent);
+  border-radius: 50%;
+  background-color: var(--stack-surface);
+  color: var(--stack-text);
+}
+
+.iconRing svg {
+  display: block;
+  width: 62%;
+  height: 62%;
+}
+
+/* ── Big sentence ─────────────────────────────────────────────────────── */
+.statement {
+  margin-top: clamp(1.75rem, 4vw, 3rem);
+  max-width: 30ch;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 6vw, 72px);
+  font-weight: 600;
+  line-height: 1.16;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  color: var(--stack-text);
+}
+
+.word {
+  display: inline;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.09em 0.38em 0.09em 0.1em;
+  border: 1px solid var(--stack-border);
+  border-radius: 999px;
+  background-color: var(--stack-surface);
+  font-family: var(--font-heading);
+  font-size: 0.52em;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.pill .iconRing {
+  width: 1.7em;
+  height: 1.7em;
+}
+
+.pillName {
+  color: var(--stack-text);
+}
+
+/* ── Marquee rows ─────────────────────────────────────────────────────── */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.row {
+  --stack-speed: 54s;
+  width: 100%;
+  /* clip (where supported) stops focus scroll-into-view from shifting the track */
+  overflow: hidden;
+  overflow: clip;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: marqueeLeft var(--stack-speed) linear infinite;
+  will-change: transform;
+}
+
+.row[data-direction="right"] .track {
+  animation-name: marqueeRight;
+}
+
+.row:hover .track,
+.row:focus-within .track {
+  animation-play-state: paused;
+}
+
+.list {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  margin: 0;
+  padding: 0 12px 0 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 7px 16px 7px 7px;
+  border: 1px solid var(--stack-border);
+  border-radius: 999px;
+  background-color: var(--stack-surface);
+  color: var(--stack-text);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition: border-color 180ms ease;
+}
+
+.chip .iconRing {
+  width: 30px;
+  height: 30px;
+  transition: border-color 180ms ease;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--stack-accent-bright);
+}
+
+.chip:hover .iconRing,
+.chip:focus-visible .iconRing {
+  border-color: var(--stack-accent-bright);
+}
+
+@keyframes marqueeLeft {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes marqueeRight {
+  from { transform: translate3d(-50%, 0, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+/* ── Category key ─────────────────────────────────────────────────────── */
+.key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  margin: clamp(1.25rem, 3vw, 2rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keyItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--stack-muted);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.keyMark {
+  width: 10px;
+  height: 10px;
+}
+
+/* ── One-shot entrance ────────────────────────────────────────────────── */
+.motion .word,
+.motion .pill {
+  opacity: 0;
+}
+
+.motion .word {
+  transform: translate3d(0, 0.5em, 0);
+}
+
+.motion .pill {
+  transform: translate3d(0, 0.5em, 0) scale(0.82);
+}
+
+.motion.enter .word,
+.motion.enter .pill {
+  animation-duration: 620ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+  animation-delay: calc(var(--stack-i, 0) * 55ms);
+}
+
+.motion.enter .word {
+  animation-name: wordUp;
+}
+
+.motion.enter .pill {
+  animation-name: pillPop;
+}
+
+@keyframes wordUp {
+  from { opacity: 0; transform: translate3d(0, 0.5em, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes pillPop {
+  0% { opacity: 0; transform: translate3d(0, 0.5em, 0) scale(0.82); }
+  65% { opacity: 1; transform: translate3d(0, -0.06em, 0) scale(1.04); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* No JS (SSR only) — never ship hidden copy. */
+@media (scripting: none) {
+  .motion .word,
+  .motion .pill {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Reduced motion: static chips, no entrance ────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .row {
+    -webkit-mask-image: none;
+    mask-image: none;
+    overflow: visible;
+  }
+
+  .track {
+    display: block;
+    width: 100%;
+    animation: none;
+    will-change: auto;
+  }
+
+  .list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    padding: 0;
+  }
+
+  /* Must follow .list: a duplicate also carries the .list class. */
+  .list--duplicate,
+  .chip--repeat {
+    display: none;
+  }
+
+  .chip {
+    justify-self: start;
+    transition: none;
+  }
+
+  .chip .iconRing {
+    transition: none;
+  }
+
+  .motion .word,
+  .motion .pill {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
