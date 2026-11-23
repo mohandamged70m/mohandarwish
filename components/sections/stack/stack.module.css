@@ -188,6 +188,45 @@
 }
 
 /* ── One-shot entrance ────────────────────────────────────────────────── */
+/* Header: a rise + fade with a small settle, staggered behind the title. */
+.motion .headerTitle {
+  opacity: 0;
+  transform: translate3d(0, 0.65em, 0) scale(0.96);
+}
+
+.motion .headerSubtitle {
+  opacity: 0;
+  transform: translate3d(0, 0.65em, 0);
+}
+
+.motion.enter .headerTitle,
+.motion.enter .headerSubtitle {
+  animation-duration: 720ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.motion.enter .headerTitle {
+  animation-name: headerRise;
+  animation-delay: 80ms;
+}
+
+.motion.enter .headerSubtitle {
+  animation-name: headerRiseSoft;
+  animation-delay: 220ms;
+}
+
+@keyframes headerRise {
+  0% { opacity: 0; transform: translate3d(0, 0.65em, 0) scale(0.96); }
+  70% { opacity: 1; transform: translate3d(0, -0.04em, 0) scale(1.01); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes headerRiseSoft {
+  from { opacity: 0; transform: translate3d(0, 0.65em, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 .motion .word,
 .motion .pill {
   opacity: 0;
@@ -230,6 +269,8 @@
 
 /* No JS (SSR only) — never ship hidden copy. */
 @media (scripting: none) {
+  .motion .headerTitle,
+  .motion .headerSubtitle,
   .motion .word,
   .motion .pill {
     opacity: 1;
@@ -274,6 +315,8 @@
     transition: none;
   }
 
+  .motion .headerTitle,
+  .motion .headerSubtitle,
   .motion .word,
   .motion .pill {
     opacity: 1 !important;

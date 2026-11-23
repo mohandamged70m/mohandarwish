@@ -95,13 +95,15 @@ export type StackItem = {
  * TO ADD A TOOL — add exactly one line here:
  *   { id: "bun", name: "Bun", icon: "SiBun" },
  *
- * Mark it `featured: true` to have it appear in the big sentence too.
- * It is picked up by both marquee rows automatically.
+ * Every tool appears in both marquee rows automatically. The big sentence is
+ * controlled separately by `SENTENCE_TEMPLATE` below: include a tool there with
+ * an `{id}` placeholder to show it as an inline pill. `featured` is descriptive
+ * metadata only — it does not control placement.
  */
 export const STACK: readonly StackItem[] = [
   { id: "typescript", name: "TypeScript", icon: "SiTypescript", featured: true },
   { id: "python", name: "Python", icon: "SiPython" },
-  { id: "reactjs", name: "ReactJS", icon: "SiReact" },
+  { id: "reactjs", name: "React", icon: "SiReact" },
   { id: "nextjs", name: "Next.js", icon: "SiNextdotjs", featured: true },
   { id: "nestjs", name: "NestJS", icon: "SiNestjs", featured: true },
   { id: "sql", name: "SQL", icon: "LuDatabase" },
@@ -115,4 +117,4 @@ export const STACK: readonly StackItem[] = [
  * tool with that id. Edit this one string to change the sentence.
  */
 export const SENTENCE_TEMPLATE =
-  "I build full-stack apps in {typescript} with {nextjs} and {nestjs}, add AI with {aistudio}, and ship on {vercel}.";
+  "I build full-stack apps with {typescript}, {nextjs} and {nestjs}, add AI features with {aistudio}, and ship on {vercel}.";

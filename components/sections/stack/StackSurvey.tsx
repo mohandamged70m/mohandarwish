@@ -53,12 +53,12 @@ function ToolChip({
   repeated: boolean;
   duplicate?: boolean;
 }) {
-  // Only the first copy is announced and tabbable; repeats/dupes are decor.
+  // Only the first copy is announced; repeats/dupes are decor. Chips are
+  // static labels, not controls, so they stay out of the tab order.
   const decorative = repeated || duplicate;
   return (
     <li
       className={`${styles.chip}${repeated ? ` ${styles["chip--repeat"]}` : ""}`}
-      tabIndex={decorative ? -1 : 0}
       aria-hidden={decorative || undefined}
     >
       <span className={styles.iconRing} aria-hidden="true">
@@ -162,22 +162,22 @@ export function StackSurvey(): React.JSX.Element {
     <section
       ref={sectionRef}
       id="stack"
-      aria-label="Stack"
+      aria-label="Technology stack"
       className={`${styles.section} w-full scroll-mt-24 ${styles.motion}`}
     >
       <div className="mx-auto w-full max-w-7xl px-4 py-16 text-left sm:px-6 sm:py-16 lg:px-8 lg:py-12">
-        <h2
-          data-pager-focus
-          tabIndex={-1}
-          className={`${styles.heading} max-w-[16ch] font-display text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance`}
-        >
-          Stack
-        </h2>
-        <p
-          className={`${styles.subtitle} mt-4 max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty sm:text-base`}
-        >
-          The tools I use to take an idea from first commit to production.
-        </p>
+        <div className="flex w-full min-w-0 flex-col items-center gap-4 text-center sm:gap-5">
+          <h2
+            data-pager-focus
+            tabIndex={-1}
+            className={`${styles.headerTitle} max-w-[16ch] font-display text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary`}
+          >
+            The stack<span aria-hidden className="text-accent-text">.</span>
+          </h2>
+          <p className={`${styles.headerSubtitle} max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base`}>
+            The tools behind my full-stack work — UI, API, data, AI, and deployment.
+          </p>
+        </div>
 
         <p className={styles.statement}>
           {tokens.map((token, index) =>
