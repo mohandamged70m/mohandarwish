@@ -1,11 +1,11 @@
-import dynamic from 'next/dynamic'
 import { siteConfig } from "@/lib/metadata"
+import BookPage from "@/components/booking-system/BookPageClient"
 
 // Client-only like the booking system: the calendar, the time zones and the paint
 // all depend on the visitor's clock and the DOM, so a build-time render would only
-// mismatch. BookPage lives in components/booking-system (mined from ./booking-system,
-// adapted to Convex — no Firebase).
-const BookPage = dynamic(() => import('@/components/booking-system/BookPage'), { ssr: false })
+// mismatch. The `ssr: false` dynamic import lives in BookPageClient (a Client
+// Component) so this page can stay a Server Component. BookPage lives in
+// components/booking-system (mined from ./booking-system, adapted to Convex — no Firebase).
 
 export default function Page() {
   return (
