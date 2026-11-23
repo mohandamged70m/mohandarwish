@@ -31,45 +31,10 @@ function tokenize(template: string, byId: Map<string, StackItem>): Token[] {
   return tokens;
 }
 
-/** Categories are discovered from the data, in first-seen order. */
-function groupByCategory(items: readonly StackItem[]) {
-  const categories: string[] = [];
-  for (const item of items) {
-    if (!categories.includes(item.category)) categories.push(item.category);
-  }
-  return {
-    categories,
-    ordered: categories.flatMap((category) =>
-      items.filter((item) => item.category === category)
-    ),
-  };
-}
-
-/** Two rows, split on category boundaries so a category's chips stay together. */
-function splitRows(ordered: readonly StackItem[]): [StackItem[], StackItem[]] {
-  const rows: [StackItem[], StackItem[]] = [[], []];
-  const target = ordered.length / 2;
-  let row = 0;
-  let i = 0;
-
-  while (i < ordered.length) {
-    const category = ordered[i].category;
-    const block: StackItem[] = [];
-    while (i < ordered.length && ordered[i].category === category) {
-      block.push(ordered[i]);
-      i += 1;
-    }
-    if (row === 0 && rows[0].length > 0 && rows[0].length + block.length > target) {
-      row = 1;
-    }
-    rows[row].push(...block);
-  }
-
-  // A single new category must not produce an empty second row.
-  if (rows[1].length === 0 && rows[0].length > 1) {
-    rows[1] = rows[0].splice(Math.ceil(rows[0].length / 2));
-  }
-  return rows;
+/** Two rows, split in half so every tool appears exactly once. */
+function splitRows(items: readonly StackItem[]): [StackItem[], StackItem[]] {
+  const half = Math.ceil(items.length / 2);
+  return [[...items.slice(0, half)], [...items.slice(half)]];
 }
 
 const stagger = (index: number) => ({ "--stack-i": index }) as CSSProperties;
@@ -160,8 +125,7 @@ function MarqueeRow({
 export function StackSurvey(): React.JSX.Element {
   const sectionRef = useRef<HTMLElement | null>(null);
 
-  const { categories, ordered } = useMemo(() => groupByCategory(STACK), []);
-  const [firstRow, secondRow] = useMemo(() => splitRows(ordered), [ordered]);
+  const [firstRow, secondRow] = useMemo(() => splitRows(STACK), []);
   const tokens = useMemo(
     () =>
       tokenize(
@@ -252,15 +216,6 @@ export function StackSurvey(): React.JSX.Element {
             />
           )}
         </div>
-
-        <ul className={styles.key} aria-label="Tool categories">
-          {categories.map((category) => (
-            <li key={category} className={styles.keyItem}>
-              <span className={`${styles.iconRing} ${styles.keyMark}`} aria-hidden="true" />
-              {category}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

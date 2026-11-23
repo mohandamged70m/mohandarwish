@@ -85,7 +85,6 @@ export type StackIconKey = keyof typeof stackIcons;
 export type StackItem = {
   id: string;
   name: string;
-  category: string;
   icon: StackIconKey;
   featured?: true;
 };
@@ -94,22 +93,21 @@ export type StackItem = {
  * The one and only place to edit the stack.
  *
  * TO ADD A TOOL — add exactly one line here:
- *   { id: "bun", name: "Bun", category: "Other", icon: "SiBun" },
+ *   { id: "bun", name: "Bun", icon: "SiBun" },
  *
  * Mark it `featured: true` to have it appear in the big sentence too.
- * A brand-new category needs no other change: it is discovered automatically
- * and appended to the category key under the marquee rows.
+ * It is picked up by both marquee rows automatically.
  */
 export const STACK: readonly StackItem[] = [
-  { id: "typescript", name: "TypeScript", category: "Languages", icon: "SiTypescript", featured: true },
-  { id: "python", name: "Python", category: "Languages", icon: "SiPython" },
-  { id: "reactjs", name: "ReactJS", category: "Frontend", icon: "SiReact" },
-  { id: "nextjs", name: "Next.js", category: "Frontend", icon: "SiNextdotjs", featured: true },
-  { id: "nestjs", name: "NestJS", category: "Backend", icon: "SiNestjs", featured: true },
-  { id: "sql", name: "SQL", category: "Backend", icon: "LuDatabase" },
-  { id: "nosql", name: "NoSQL", category: "Backend", icon: "LuDatabaseZap" },
-  { id: "vercel", name: "Vercel", category: "Other", icon: "SiVercel", featured: true },
-  { id: "aistudio", name: "AI Studio", category: "Other", icon: "SiGooglegemini", featured: true },
+  { id: "typescript", name: "TypeScript", icon: "SiTypescript", featured: true },
+  { id: "python", name: "Python", icon: "SiPython" },
+  { id: "reactjs", name: "ReactJS", icon: "SiReact" },
+  { id: "nextjs", name: "Next.js", icon: "SiNextdotjs", featured: true },
+  { id: "nestjs", name: "NestJS", icon: "SiNestjs", featured: true },
+  { id: "sql", name: "SQL", icon: "LuDatabase" },
+  { id: "nosql", name: "NoSQL", icon: "LuDatabaseZap" },
+  { id: "vercel", name: "Vercel", icon: "SiVercel", featured: true },
+  { id: "aistudio", name: "AI Studio", icon: "SiGooglegemini", featured: true },
 ];
 
 /**
