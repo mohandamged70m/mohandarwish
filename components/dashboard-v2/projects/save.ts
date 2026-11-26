@@ -34,8 +34,8 @@ export class ProjectGone extends Error {
 /** The slice of a Firestore transaction this needs (a fake one in tests). */
 export interface DocTx<R> {
     get(ref: R): Promise<{ exists(): boolean; data(): Record<string, unknown> | undefined }>;
-    set(ref: R, data: Record<string, unknown>, options?: { mergeFields: string[] }): unknown;
-    delete(ref: R): unknown;
+    set(ref: R, data: Record<string, unknown>, options?: { mergeFields?: string[]; onlyIfMissing?: boolean; onlyIfExists?: boolean }): unknown;
+    delete(ref: R, options?: { onlyIfExists?: boolean }): unknown;
 }
 
 /**
@@ -56,22 +56,22 @@ export async function writeProject<R>(tx: DocTx<R>, opts: {
 
     if (mode === 'edit') {
         if (!current.exists()) throw new ProjectGone(name);
-        tx.set(target, { ...fields }, { mergeFields: [...FORM_FIELDS] });
+        tx.set(target, { ...fields }, { mergeFields: [...FORM_FIELDS], onlyIfExists: true });
         return;
     }
 
     if (current.exists()) throw new ProjectNameTaken(name);
 
     if (mode === 'create') {
-        tx.set(target, { ...fields, Views: { ...ZERO_VIEWS }, Listing: opts.listing || 0 });
+        tx.set(target, { ...fields, Views: { ...ZERO_VIEWS }, Listing: opts.listing || 0 }, { onlyIfMissing: true });
         return;
     }
 
     if (!source) throw new Error('A rename needs the old document.');
     const old = await tx.get(source);
     if (!old.exists()) throw new ProjectGone(oldName ?? name);
-    tx.set(target, { ...(old.data() || {}), ...fields });
-    tx.delete(source);
+    tx.set(target, { ...(old.data() || {}), ...fields }, { onlyIfMissing: true });
+    tx.delete(source, { onlyIfExists: true });
 }
 
 interface Listed { id?: string | number; listing?: number }

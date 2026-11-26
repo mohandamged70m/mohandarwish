@@ -80,7 +80,12 @@ export async function POST(req: Request) {
         if (!o.data || typeof o.data !== "object" || Array.isArray(o.data))
           throw new Error();
         let options:
-          | { merge?: boolean; mergeFields?: string[] }
+          | {
+              merge?: boolean;
+              mergeFields?: string[];
+              onlyIfMissing?: boolean;
+              onlyIfExists?: boolean;
+            }
           | undefined;
         if (o.options !== undefined) {
           if (!o.options || typeof o.options !== "object" || Array.isArray(o.options))
@@ -88,7 +93,11 @@ export async function POST(req: Request) {
           const opt = o.options as Record<string, unknown>;
           if (
             Object.keys(opt).some(
-              (k) => k !== "merge" && k !== "mergeFields",
+              (k) =>
+                k !== "merge" &&
+                k !== "mergeFields" &&
+                k !== "onlyIfMissing" &&
+                k !== "onlyIfExists",
             )
           )
             throw new Error();
@@ -105,6 +114,12 @@ export async function POST(req: Request) {
           }
           if (opt.merge !== undefined)
             options = { ...(options ?? {}), merge: opt.merge as boolean };
+          for (const key of ["onlyIfMissing", "onlyIfExists"] as const) {
+            if (opt[key] !== undefined) {
+              if (typeof opt[key] !== "boolean") throw new Error();
+              options = { ...(options ?? {}), [key]: opt[key] as boolean };
+            }
+          }
         }
         return {
           type: o.type,

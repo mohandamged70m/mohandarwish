@@ -50,10 +50,6 @@ export async function POST(req: Request) {
     const data = await convexQuery<Record<string, unknown> | null>(api.docs.getDoc, { path });
     return (data ?? {}) as Record<string, unknown>;
   };
-  const writeDoc = async (path: string, data: Record<string, unknown>) => {
-    await convexMutation(api.docs.setDoc, { path, data });
-  };
-
   // --- Canary ---
   const canary = await readDoc("Settings/Canary");
   const prevMeetings = ((canary.Meetings as Record<string, Record<string, unknown>>) ?? {}) as Record<
@@ -96,15 +92,30 @@ export async function POST(req: Request) {
       RepliedAt: typeof prev.RepliedAt === "number" ? prev.RepliedAt : undefined,
     };
   }
-  await writeDoc("Settings/Canary", { ...canary, Meetings: meetings, Emails: emails });
+  // Replace only the owned maps in one server-side transaction. A whole-doc
+  // write here used to revert owner edits (Categories, manual meeting notes)
+  // made between the read and the write.
+  await convexMutation(api.docs.applyBatch, {
+    ops: [{
+      type: "set",
+      path: "Settings/Canary",
+      data: { Meetings: meetings, Emails: emails },
+      options: { mergeFields: ["Meetings", "Emails"] },
+    }],
+  });
 
   // --- Availability (table wins for workingDays/hours; keep 'Current Time' etc.) ---
   if (avail) {
-    const doc = await readDoc("Settings/Availability");
-    await writeDoc("Settings/Availability", {
-      ...doc,
-      workingDays: (avail as { working_days: number[] }).working_days,
-      hours: (avail as { hours: number[] }).hours,
+    await convexMutation(api.docs.applyBatch, {
+      ops: [{
+        type: "set",
+        path: "Settings/Availability",
+        data: {
+          workingDays: (avail as { working_days: number[] }).working_days,
+          hours: (avail as { hours: number[] }).hours,
+        },
+        options: { mergeFields: ["workingDays", "hours"] },
+      }],
     });
   }
 

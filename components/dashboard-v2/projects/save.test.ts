@@ -14,9 +14,9 @@ async function run(store: Store, body: (tx: DocTx<string>) => Promise<void>) {
         get: async id => ({ exists: () => store.has(id), data: () => store.get(id) }),
         set: (id, data, options) => {
             writes.push(() => {
-                if (!options) { store.set(id, { ...data }); return; }
+                if (!options?.mergeFields?.length) { store.set(id, { ...data }); return; }
                 const next = { ...(store.get(id) || {}) };
-                for (const f of options.mergeFields) next[f] = data[f];
+                for (const f of options.mergeFields ?? []) next[f] = data[f];
                 store.set(id, next);
             });
         },

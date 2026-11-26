@@ -225,8 +225,8 @@ const DTreasury = () => {
             const snap = await tx.get(projectRef);
             const stored = snap.exists() ? snap.data() as Partial<TreasuryProject> : undefined;
             const plan = planIncomeSave(i, true, stored);
-            tx.set(doc(INCOME, plan.income.id), plan.income.data);
-            if (plan.project) tx.update(projectRef, plan.project.data);
+            tx.set(doc(INCOME, plan.income.id), plan.income.data, { onlyIfMissing: true });
+            if (plan.project) tx.update(projectRef, plan.project.data, { onlyIfExists: true });
             return { nextDate: plan.nextDate, name: stored?.name };
         }).then(({ nextDate, name }) => {
             if (!nextDate) { showToast('Payment logged', 'good'); return; }
@@ -354,7 +354,7 @@ const DTreasury = () => {
             const snaps = await Promise.all(ids.map(id => tx.get(doc(PROJECTS, id))));
             const stored: Record<string, { order?: unknown }> = {};
             snaps.forEach(s => { if (s.exists()) stored[s.id] = s.data(); });
-            for (const u of orderUpdates(stored, ids)) tx.update(doc(PROJECTS, u.id), { order: u.order });
+            for (const u of orderUpdates(stored, ids)) tx.update(doc(PROJECTS, u.id), { order: u.order }, { onlyIfExists: true });
         }).catch(err => { console.warn('[Treasury] order save failed', err); showToast('Save failed - check connection', 'warn'); });
     };
 

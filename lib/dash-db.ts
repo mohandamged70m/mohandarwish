@@ -466,50 +466,44 @@ export async function setDoc(
   opts?: { merge?: boolean; mergeFields?: string[] },
 ): Promise<void> {
   const clean = resolveSentinels(data) as Record<string, unknown>;
-  let next: Record<string, unknown>;
-  if (opts?.mergeFields?.length) {
-    // mergeFields replaces each named field whole (no deep merge of maps).
-    const existingSnap = await getDoc(ref);
-    next = { ...(existingSnap.data() ?? {}) };
-    for (const field of opts.mergeFields) {
-      const val = getPath(clean, field);
-      if (val === undefined) continue;
-      if (isDeleteField(val)) delPath(next, field);
-      else setPath(next, field, val);
+  if (opts?.mergeFields?.length || opts?.merge) {
+    // Server-side merge: no client read-modify-write, so concurrent edits to
+    // other fields cannot be overwritten by a stale snapshot.
+    await commitOps([{
+      type: "set",
+      path: ref.path,
+      data: clean,
+      options: {
+        ...(opts.mergeFields?.length ? { mergeFields: opts.mergeFields } : {}),
+        ...(opts.merge ? { merge: true } : {}),
+      },
+    }]);
+    if (ref.path === "Settings/Availability") {
+      const after = await getDoc(ref);
+      void mirrorAvailability(after.data() ?? {});
     }
-  } else if (opts?.merge) {
-    const existingSnap = await getDoc(ref);
-    next = { ...(existingSnap.data() ?? {}) };
-    for (const [k, v] of Object.entries(clean)) {
-      if (isDeleteField(v)) delete next[k];
-      else next[k] = v;
-    }
-  } else {
-    next = clean;
+    return;
   }
-  await writeDoc(ref.path, next);
-  if (ref.path === "Settings/Availability") void mirrorAvailability(next);
+  await writeDoc(ref.path, clean);
+  if (ref.path === "Settings/Availability") void mirrorAvailability(clean);
 }
 
 export async function updateDoc(
   ref: DocRef,
   patch: Record<string, unknown>,
 ): Promise<void> {
-  const existingSnap = await getDoc(ref);
-  const existing = (existingSnap.data() ?? {}) as Record<string, unknown>;
-  const next = { ...existing };
-  for (const [key, val] of Object.entries(patch)) {
-    if (isDeleteField(val)) {
-      if (key.includes(".")) delPath(next, key);
-      else delete next[key];
-    } else if (key.includes(".")) {
-      setPath(next, key, resolveSentinels(val));
-    } else {
-      next[key] = resolveSentinels(val);
-    }
+  // Field-level patch in one Convex mutation; sentinels are resolved there
+  // against the stored value, and dotted keys are applied server-side.
+  await commitOps([{
+    type: "update",
+    path: ref.path,
+    data: patch,
+    options: { onlyIfExists: true },
+  }]);
+  if (ref.path === "Settings/Availability") {
+    const after = await getDoc(ref);
+    void mirrorAvailability(after.data() ?? {});
   }
-  await writeDoc(ref.path, next);
-  if (ref.path === "Settings/Availability") void mirrorAvailability(next);
   if (ref.path === "Settings/Canary") void mirrorCanary(patch);
 }
 
@@ -524,6 +518,10 @@ export async function deleteDoc(ref: DocRef): Promise<void> {
 export interface BatchWriteOptions {
   merge?: boolean;
   mergeFields?: string[];
+  /** Server-side guard: fail unless the document is absent (create/rename). */
+  onlyIfMissing?: boolean;
+  /** Server-side guard: fail unless the document exists (edit/delete). */
+  onlyIfExists?: boolean;
 }
 
 export interface BatchOp {
@@ -546,8 +544,12 @@ export interface Transaction {
     data: Record<string, unknown>,
     opts?: BatchWriteOptions,
   ) => void;
-  update: (ref: DocRef, patch: Record<string, unknown>) => void;
-  delete: (ref: DocRef) => void;
+  update: (
+    ref: DocRef,
+    patch: Record<string, unknown>,
+    opts?: BatchWriteOptions,
+  ) => void;
+  delete: (ref: DocRef, opts?: BatchWriteOptions) => void;
 }
 
 /**
@@ -574,11 +576,20 @@ export async function runTransaction<T>(
         ...(opts ? { options: { ...opts } } : {}),
       });
     },
-    update(ref, patch) {
-      ops.push({ type: "update", path: ref.path, data: patch });
+    update(ref, patch, opts) {
+      ops.push({
+        type: "update",
+        path: ref.path,
+        data: patch,
+        ...(opts ? { options: { ...opts } } : {}),
+      });
     },
-    delete(ref) {
-      ops.push({ type: "delete", path: ref.path });
+    delete(ref, opts) {
+      ops.push({
+        type: "delete",
+        path: ref.path,
+        ...(opts ? { options: { ...opts } } : {}),
+      });
     },
   };
   const result = await fn(tx);

@@ -224,6 +224,8 @@ const batchOpValidator = v.object({
     v.object({
       merge: v.optional(v.boolean()),
       mergeFields: v.optional(v.array(v.string())),
+      onlyIfMissing: v.optional(v.boolean()),
+      onlyIfExists: v.optional(v.boolean()),
     }),
   ),
 });
@@ -232,7 +234,12 @@ type BatchOp = {
   type: "set" | "delete" | "update";
   path: string;
   data?: unknown;
-  options?: { merge?: boolean; mergeFields?: string[] };
+  options?: {
+    merge?: boolean;
+    mergeFields?: string[];
+    onlyIfMissing?: boolean;
+    onlyIfExists?: boolean;
+  };
 };
 
 /** Compute the stored document for one set/update op. */
@@ -287,9 +294,15 @@ export const applyBatch = mutation({
         .withIndex("by_path", (q: any) => q.eq("path", op.path))
         .unique();
       if (op.type === "delete") {
+        if (op.options?.onlyIfExists && !existing)
+          throw new Error("Conditional delete failed: document does not exist");
         if (existing) await ctx.db.delete(existing._id);
         continue;
       }
+      if (op.options?.onlyIfMissing && existing)
+        throw new Error("Conditional create failed: document already exists");
+      if (op.options?.onlyIfExists && !existing)
+        throw new Error("Conditional update failed: document does not exist");
       const next = applyOp(
         (existing?.data ?? {}) as Record<string, unknown>,
         op,
