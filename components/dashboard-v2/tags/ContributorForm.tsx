@@ -14,7 +14,7 @@ import { getCroppedImg, readFileAsDataUrl, type CropArea } from '@/lib/cropImage
 interface MContributorFormProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: ContributorData) => void;
+    onSave: (data: ContributorData) => void | Promise<void>;
     initialData?: ContributorData | null;
 }
 
@@ -106,10 +106,14 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({ id: initialData?.id, name, role, image: image || undefined, socials });
-        onClose();
+        try {
+            await onSave({ id: initialData?.id, name, role, image: image || undefined, socials });
+            onClose();
+        } catch {
+            // Parent reports the failure; keep the draft open.
+        }
     };
 
     return createPortal(

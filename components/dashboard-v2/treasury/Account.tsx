@@ -38,6 +38,7 @@ export const ACCOUNT_COLOR: Record<AccountType, string> = {
 
 const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Props) => {
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [formError, setFormError] = useState('');
     const isDark = useTheme();
     const [name, setName] = useState(account?.name ?? '');
     const [type, setType] = useState<AccountType>(account?.type ?? 'bank');
@@ -56,7 +57,8 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
     }, [onClose]);
 
     const save = () => {
-        if (!name.trim()) return;
+        setFormError('');
+        if (!name.trim()) { setFormError('Give the account a name.'); return; }
         const a: TreasuryAccount = {
             id: account?.id || uid('acct'),
             name: name.trim(),
@@ -180,6 +182,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 </div>
 
                 {/* Footer */}
+                {formError && <p role="alert" className="px-4 py-2 text-xs text-dash-danger border-t border-dash-border">{formError}</p>}
                 <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
                         <button onClick={() => setConfirmDelete(true)} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">

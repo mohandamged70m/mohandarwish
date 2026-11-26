@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface MTagFormProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (data: TagFormData) => void;
+    onSave: (data: TagFormData) => void | Promise<void>;
     initialData?: TagFormData | null;
 }
 
@@ -52,16 +52,20 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({
-            id: initialData?.id,
-            name,
-            color,
-            iconSvg,
-            iconFile: iconFile || undefined
-        });
-        onClose();
+        try {
+            await onSave({
+                id: initialData?.id,
+                name,
+                color,
+                iconSvg,
+                iconFile: iconFile || undefined
+            });
+            onClose();
+        } catch {
+            // The parent reports the failure; keep the draft open.
+        }
     };
 
     return createPortal(

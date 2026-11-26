@@ -1543,11 +1543,16 @@ export default function DSettings() {
                                             autoComplete="email"
                                             className="input-field w-full !h-11 !py-0 !pl-10 !text-sm"
                                             style={contactEmail.trim() && !isValidContactEmail(contactEmail) ? { borderColor: 'var(--dash-danger)' } : undefined}
+                                            aria-invalid={!!contactEmail.trim() && !isValidContactEmail(contactEmail)}
+                                            aria-describedby="settings-contact-email-error"
                                             placeholder="hello@example.com"
                                             value={contactEmail}
                                             onChange={(e) => { setContactEmail(e.target.value); setProfileInfoDirty(true); setHasUnsavedChanges(true); }}
                                         />
                                     </div>
+                                    {contactEmail.trim() && !isValidContactEmail(contactEmail) && (
+                                        <p id="settings-contact-email-error" role="alert" className="m-0 text-xs text-dash-danger">Enter a valid email address, or leave it empty.</p>
+                                    )}
                                     <span className="text-xs text-dash-text-3">Shown first on the book page and on the CV. Leave empty to hide it.</span>
                                 </div>
 

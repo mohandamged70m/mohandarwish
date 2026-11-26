@@ -18,6 +18,8 @@ import { createPortal } from 'react-dom';
 import LoadingCurtain from '@/components/dashboard-v2/ui/LoadingCurtain';
 import MConfirmModal from '../ConfirmModal';
 import useTheme from '@/hooks/useTheme';
+import useSafeAlert from '@/hooks/useSafeAlert';
+import Alert from '@/components/dashboard-v2/ui/Alert';
 
 interface RawFirestoreTag {
     Name?: string;
@@ -51,6 +53,7 @@ const CARD_VARIANTS: Variants = {
 };
 
 const DTags = () => {
+    const { alert, showAlert, hideAlert } = useSafeAlert();
     const [isLoading, setIsLoading] = useState(false);
     const isDark = useTheme();
     const [activeSection, setActiveSection] = useState<'tags' | 'contributors'>('tags');
@@ -213,6 +216,8 @@ const DTags = () => {
             setEditingTag(null);
         } catch (error) {
             console.error('Error saving tag:', error);
+            showAlert({ type: 'error', message: 'Could not save the tag. Your changes are still here.' });
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -232,6 +237,7 @@ const DTags = () => {
                     });
                 } catch (error) {
                     console.error('Error deleting tag:', error);
+            showAlert({ type: 'error', message: 'Could not delete the tag.' });
                 }
             }
         });
@@ -294,6 +300,8 @@ const DTags = () => {
             setEditingContributor(null);
         } catch (error) {
             console.error('Error saving contributor:', error);
+            showAlert({ type: 'error', message: 'Could not save the contributor. Your changes are still here.' });
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -313,6 +321,7 @@ const DTags = () => {
                     });
                 } catch (error) {
                     console.error('Error deleting contributor:', error);
+                    showAlert({ type: 'error', message: 'Could not delete the contributor.' });
                 }
             }
         });
@@ -641,6 +650,7 @@ const DTags = () => {
                 onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
                 confirmText="Delete"
             />
+            {alert?.show && <Alert type={alert.type} message={alert.message} onClose={() => hideAlert()} duration={alert.duration ?? 4000} />}
         </div>
     );
 };

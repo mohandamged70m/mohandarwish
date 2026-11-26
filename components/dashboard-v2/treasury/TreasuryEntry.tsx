@@ -53,6 +53,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
     const isMoney = mode !== 'project';
     const [kind, setKind] = useState<'income' | 'expense'>(mode === 'expense' ? 'expense' : 'income');
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [formError, setFormError] = useState('');
 
     // Project fields
     const [name, setName] = useState(project?.name ?? '');
@@ -225,8 +226,9 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
     }, [onClose]);
 
     const save = () => {
+        setFormError('');
         if (mode === 'project') {
-            if (!name.trim()) return;
+            if (!name.trim()) { setFormError('Give the project a name.'); return; }
             const price = parseFloat(priceAmount) || 0;
             // Received is no longer entered here - it's the sum of logged income.
             // Preserve any legacy paidAmount that pre-dates the income log.
@@ -259,7 +261,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
             };
             onSaveProject?.(p);
         } else if (kind === 'expense') {
-            if (!label.trim()) return;
+            if (!label.trim()) { setFormError('Give the expense a label.'); return; }
             const e: TreasuryExpense = {
                 id: moneyId,
                 label: label.trim(),
@@ -279,7 +281,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
             onSaveExpense?.(e);
         } else {
             const amount = parseFloat(incAmount) || 0;
-            if (!amount) return;
+            if (!amount) { setFormError('Enter an amount greater than zero.'); return; }
             const linked = incProjectName === NO_PROJECT ? null : projects?.find(p => p.name === incProjectName) ?? null;
             const i: TreasuryIncome = {
                 id: moneyId,
@@ -749,6 +751,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 </div>
 
                 {/* Footer */}
+                {formError && <p role="alert" className="px-4 py-2 text-xs text-dash-danger border-t border-dash-border">{formError}</p>}
                 <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
                         <button onClick={() => setConfirmDelete(true)} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
