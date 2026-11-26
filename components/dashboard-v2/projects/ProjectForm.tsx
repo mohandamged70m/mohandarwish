@@ -275,7 +275,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 lg:gap-4 flex-1">
                                 <div className="relative shrink-0">
-                                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center shadow-lg`}
+                                    <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-sm flex items-center justify-center shadow-lg`}
                                         style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                         <Edit className="text-dash-text" size={belowLg ? 20 : 24} />
                                     </div>
@@ -293,7 +293,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                 <div className="project-mobile-toggle flex">
                                     <button
                                         onClick={() => setActiveView('preview')}
-                                        className={`px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-dash-surface-2 text-dash-text-3 hover:bg-dash-surface-3' : 'bg-dash-surface-2 text-dash-text-2 hover:bg-dash-surface-3'}`}
+                                        className={`px-3 py-2 text-xs font-bold uppercase rounded-sm transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-dash-surface-2 text-dash-text-3 hover:bg-dash-surface-3' : 'bg-dash-surface-2 text-dash-text-2 hover:bg-dash-surface-3'}`}
                                     >
                                         <Eye size={14} />
                                         Preview
@@ -302,7 +302,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             </div>
                             <button
                                 onClick={onClose}
-                                className={`shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text'}`}
+                                className={`shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-sm flex items-center justify-center transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text'}`}
                             >
                                 <X size={20} />
                             </button>
@@ -433,7 +433,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         <div className="flex items-center gap-4">
                                             <div
                                                 onClick={() => iconInputRef.current?.click()}
-                                                className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer group relative border-2 border-dashed transition-all`}
+                                                className={`w-16 h-16 rounded-sm overflow-hidden cursor-pointer group relative border-2 border-dashed transition-all`}
                                                 style={{ borderColor: 'var(--dash-border)', backgroundColor: 'var(--dash-surface-2)' }}
                                             >
                                                 {formData.icon ? (
@@ -465,7 +465,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         {formData.images.length > 0 ? (
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                                 {formData.images.map((file, idx) => (
-                                                    <div key={idx} className={`aspect-video rounded-lg overflow-hidden relative group ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
+                                                    <div key={idx} className={`aspect-video rounded-sm overflow-hidden relative group ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                                                         {isVideo(file) ? (
                                                             <GalleryVideoPreview file={file} />
                                                         ) : (
@@ -479,7 +479,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeFile(idx)}
-                                                                className="w-8 h-8 rounded-lg bg-dash-danger hover:bg-dash-danger flex items-center justify-center transition-colors"
+                                                                className="w-8 h-8 rounded-sm bg-dash-danger hover:bg-dash-danger flex items-center justify-center transition-colors"
                                                             >
                                                                 <Trash2 size={16} className="text-dash-text" />
                                                             </button>
@@ -489,7 +489,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                 <button
                                                     type="button"
                                                     onClick={() => imagesInputRef.current?.click()}
-                                                    className={`aspect-video rounded-lg border-2 border-dashed flex items-center justify-center transition-all hover:border-[var(--dash-accent)]`}
+                                                    className={`aspect-video rounded-sm border-2 border-dashed flex items-center justify-center transition-all hover:border-[var(--dash-accent)]`}
                                                     style={{ borderColor: 'var(--dash-border)' }}
                                                 >
                                                     <Plus size={24} className={isDark ? 'text-dash-text-3' : 'text-dash-text-3'} />
@@ -499,7 +499,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                             <button
                                                 type="button"
                                                 onClick={() => imagesInputRef.current?.click()}
-                                                className={`w-full py-8 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
+                                                className={`w-full py-8 rounded-sm border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
                                                 style={{ borderColor: 'var(--dash-border)' }}
                                             >
                                                 <ImageIcon size={28} className={isDark ? 'text-dash-text-2' : 'text-dash-text-3'} />
@@ -525,7 +525,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     {formData.tags.map((tag, idx) => (
                                         <div
                                             key={idx}
-                                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-dash-surface-2 border border-dash-border/20' : 'bg-dash-surface-2 border border-dash-border'} group hover:scale-105 transition-all`}
+                                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-sm ${isDark ? 'bg-dash-surface-2 border border-dash-border/20' : 'bg-dash-surface-2 border border-dash-border'} group hover:scale-105 transition-all`}
                                         >
                                             {tag.iconSvg && (
                                                 tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
@@ -547,7 +547,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     <button
                                         type="button"
                                         onClick={() => setSelectTagOpen(true)}
-                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-all hover:border-[var(--dash-accent)]`}
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-sm border-2 border-dashed transition-all hover:border-[var(--dash-accent)]`}
                                         style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <Plus size={16} />
@@ -569,16 +569,16 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     {formData.contributors.map((contrib, idx) => (
                                         <div
                                             key={idx}
-                                            className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-dash-surface/5 border border-dash-border' : 'bg-dash-surface-2 border border-dash-border'} group`}
+                                            className={`flex items-center gap-3 p-3 rounded-sm ${isDark ? 'bg-dash-surface/5 border border-dash-border' : 'bg-dash-surface-2 border border-dash-border'} group`}
                                         >
                                             {contrib.image ? (
                                                 <FileImage
                                                     src={contrib.image}
-                                                    className="w-10 h-10 rounded-lg object-cover"
+                                                    className="w-10 h-10 rounded-sm object-cover"
                                                     alt={contrib.name}
                                                 />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-dash-text font-bold"
+                                                <div className="w-10 h-10 rounded-sm flex items-center justify-center text-dash-text font-bold"
                                                     style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                                     {contrib.name.charAt(0)}
                                                 </div>
@@ -605,7 +605,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     <button
                                         type="button"
                                         onClick={() => setSelectContribOpen(true)}
-                                        className={`py-3 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
+                                        className={`py-3 rounded-sm border-2 border-dashed flex items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
                                         style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <Plus size={18} />
@@ -644,7 +644,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 <div className={`project-form-right ${activeView === 'edit' ? 'hidden-mobile' : ''} flex-col border-l min-w-0 ${isDark ? 'border-dash-border bg-dash-surface-2' : 'border-dash-border bg-dash-surface-2'}`}>
                     <div className={`px-4 lg:px-6 py-4 border-b ${isDark ? 'border-dash-border' : 'border-dash-border'} flex items-center justify-between`}>
                         <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center`}
+                            <div className={`w-8 h-8 rounded-sm flex items-center justify-center`}
                                 style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                 <Eye className="text-dash-text" size={16} />
                             </div>
@@ -656,7 +656,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             <div className="project-preview-edit-btn flex">
                                 <button
                                     onClick={() => setActiveView('edit')}
-                                    className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 bg-dash-accent text-dash-text hover:scale-105"
+                                    className="px-3 py-2 text-xs font-bold uppercase rounded-sm transition-all duration-300 flex items-center gap-2 bg-dash-accent text-dash-text hover:scale-105"
                                 >
                                     <Edit size={14} />
                                     Edit
@@ -689,12 +689,12 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 15 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
+                            className={`w-full max-w-2xl rounded-sm p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className={`text-xl font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>Select Tech Stack</h3>
-                                <button type="button" onClick={() => setSelectTagOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-dash-surface-3' : 'hover:bg-dash-surface-3'}`}>
+                                <button type="button" onClick={() => setSelectTagOpen(false)} className={`p-2 rounded-sm ${isDark ? 'hover:bg-dash-surface-3' : 'hover:bg-dash-surface-3'}`}>
                                     <X size={20} />
                                 </button>
                             </div>
@@ -704,7 +704,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         key={tag.id}
                                         type="button"
                                         onClick={() => selectTag(tag)}
-                                        className={`p-4 rounded-lg border text-left transition-all hover:border-[var(--dash-accent)]`}
+                                        className={`p-4 rounded-sm border text-left transition-all hover:border-[var(--dash-accent)]`}
                                         style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <div className="flex items-center gap-3">
@@ -740,12 +740,12 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 15 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
+                            className={`w-full max-w-2xl rounded-sm p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className={`text-xl font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>Select Contributors</h3>
-                                <button type="button" onClick={() => setSelectContribOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-dash-surface-3' : 'hover:bg-dash-surface-3'}`}>
+                                <button type="button" onClick={() => setSelectContribOpen(false)} className={`p-2 rounded-sm ${isDark ? 'hover:bg-dash-surface-3' : 'hover:bg-dash-surface-3'}`}>
                                     <X size={20} />
                                 </button>
                             </div>
@@ -755,10 +755,10 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         key={contrib.id}
                                         type="button"
                                         onClick={() => selectContributor(contrib)}
-                                        className={`flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:border-[var(--dash-accent)]`}
+                                        className={`flex items-center gap-4 p-4 rounded-sm border text-left transition-all hover:border-[var(--dash-accent)]`}
                                         style={{ borderColor: 'var(--dash-border)' }}
                                     >
-                                        <img src={contrib.image as string} className="w-12 h-12 rounded-lg object-cover" alt="" />
+                                        <img src={contrib.image as string} className="w-12 h-12 rounded-sm object-cover" alt="" />
                                         <div>
                                             <p className={`font-semibold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>{contrib.name}</p>
                                             <p className={`text-sm ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>{contrib.role}</p>

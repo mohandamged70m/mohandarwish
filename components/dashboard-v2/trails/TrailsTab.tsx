@@ -531,7 +531,7 @@ const DTrails = () => {
                                 style={{
                                     gap: isExtraSmall ? '6px' : '8px',
                                     padding: isExtraSmall ? '8px 12px' : '9px 16px',
-                                    borderRadius: '10px',
+                                    borderRadius: '4px',
                                     color: active ? `${item.tint}` : 'var(--dash-text-2)',
                                     fontSize: isExtraSmall ? '13px' : '14px',
                                     flex: isExtraSmall ? 1 : 'none',
@@ -708,7 +708,7 @@ const DTrails = () => {
                                     <div className="flex flex-col gap-8 w-full">
                                         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(${windowWidth < 520 ? 140 : 180}px, 1fr))` }}>
                                             {counters.map(c => (
-                                                <div key={c.label} className="rounded-[24px] border p-5 flex flex-col gap-3"
+                                                <div key={c.label} className="rounded-sm border p-5 flex flex-col gap-3"
                                                     style={{
                                                         background: 'var(--dash-surface-2)',
                                                         borderColor: 'var(--dash-border)',
@@ -890,7 +890,7 @@ const DTrails = () => {
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <button
                                                             onClick={() => patchLink(link.id, { Notify: link.Notify === false }, link.Notify === false ? 'You will be emailed on every open.' : 'Notifications off for this link.')}
-                                                            className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                                                            className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-sm text-xs font-bold cursor-pointer transition-colors"
                                                             style={{
                                                                 background: 'var(--dash-surface-3)',
                                                                 color: link.Notify !== false ? 'var(--dash-accent-text)' : 'var(--dash-text-3)',
@@ -900,13 +900,13 @@ const DTrails = () => {
                                                             {link.Notify !== false ? 'Emails on' : 'Emails off'}
                                                         </button>
                                                         {link.Tailor?.AutoCv && (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-bold"
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-sm text-xs font-bold"
                                                                 style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
                                                                 <FileText size={13} /> CV opens itself
                                                             </span>
                                                         )}
                                                         {(link.Tailor?.Pinned?.length || 0) > 0 && (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-bold"
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-sm text-xs font-bold"
                                                                 style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
                                                                 <Briefcase size={13} /> {link.Tailor.Pinned.length} pinned
                                                             </span>
@@ -914,7 +914,7 @@ const DTrails = () => {
                                                         <button
                                                             onClick={() => { setLinkFilter(link.id); setStoryFilter('all'); setView('stories'); }}
                                                             disabled={!link.Sessions}
-                                                            className="ml-auto inline-flex items-center gap-1.5 px-3 h-8 rounded-lg text-xs font-bold cursor-pointer transition-colors disabled:opacity-80 disabled:cursor-default"
+                                                            className="ml-auto inline-flex items-center gap-1.5 px-3 h-8 rounded-sm text-xs font-bold cursor-pointer transition-colors disabled:opacity-80 disabled:cursor-default"
                                                             style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}
                                                         >
                                                             See visits <ArrowRight size={12} />
@@ -936,10 +936,10 @@ const DTrails = () => {
                 <>
                     <div className="fixed inset-0 z-[999]" onClick={() => setActiveMenu(null)} />
                     <div className="fixed z-[1000] glass-panel min-w-[200px] p-2 animate-pop flex flex-col gap-1 shadow-2xl"
-                        style={{ top: `${menuPos.top}px`, right: `${menuPos.right}px`, borderRadius: '16px' }}>
+                        style={{ top: `${menuPos.top}px`, right: `${menuPos.right}px`, borderRadius: '4px' }}>
                         <button
                             onClick={() => { const l = links.find(x => x.id === activeMenu); if (l) startEdit(l); }}
-                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3"
+                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3"
                             style={{ color: 'var(--dash-text)' }}>
                             <Edit2 size={15} /> Edit &amp; tailor
                         </button>
@@ -955,7 +955,7 @@ const DTrails = () => {
                                     onConfirm: () => forgetLinkVisits(id),
                                 });
                             }}
-                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-dash-warning/15"
+                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors hover:bg-dash-warning/15"
                             style={{ color: 'var(--dash-warning)' }}>
                             <Trash2 size={15} /> Forget its visits
                         </button>
@@ -970,7 +970,7 @@ const DTrails = () => {
                                     onConfirm: () => deleteLink(id),
                                 });
                             }}
-                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-dash-accent-soft"
+                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors hover:bg-dash-accent-soft"
                             style={{ color: 'var(--dash-danger)' }}>
                             <Trash2 size={15} /> Remove link
                         </button>
@@ -1064,7 +1064,7 @@ const DTrails = () => {
                                                     ...draft,
                                                     Pinned: on ? draft.Pinned.filter(x => x !== p.id) : [...draft.Pinned, p.id].slice(0, 12),
                                                 })}
-                                                className="px-3 h-8 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                                                className="px-3 h-8 rounded-sm text-xs font-bold cursor-pointer transition-colors"
                                                 style={{
                                                     background: 'var(--dash-surface-3)',
                                                     color: on ? 'var(--dash-success)' : 'var(--dash-text-3)',

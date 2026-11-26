@@ -363,7 +363,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text"><Receipt size={18} /></div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">New receipt</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body: controls | preview */}
@@ -384,7 +384,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         type="button"
                                         onClick={() => setKind(k)}
                                         title={hint}
-                                        className={`px-2 py-2 rounded-lg text-xs font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-dash-text shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
+                                        className={`px-2 py-2 rounded-sm text-xs font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-dash-text shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
                                     >
                                         {title}
                                     </button>
@@ -407,7 +407,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                 onClick={() => toggle(p.id)}
                                                 className="w-full flex items-center gap-3 p-2.5 text-left bg-transparent border-none cursor-pointer"
                                             >
-                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-dash-accent text-dash-text' : 'border border-black/20 dark:border-dash-border/20'}`}>
+                                                <span className={`w-5 h-5 rounded-sm flex items-center justify-center shrink-0 ${on ? 'bg-dash-accent text-dash-text' : 'border border-black/20 dark:border-dash-border/20'}`}>
                                                     {on && <Check size={13} strokeWidth={3} />}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
@@ -428,7 +428,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                                 key={mode}
                                                                 type="button"
                                                                 onClick={() => setPerPayment(prev => ({ ...prev, [p.id]: mode === 'payment' }))}
-                                                                className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-dash-text' : 'text-dash-text-2 hover:text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2'}`}
+                                                                className={`px-2 py-1 rounded-sm text-xs font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-dash-text' : 'text-dash-text-2 hover:text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2'}`}
                                                             >
                                                                 {text}
                                                             </button>

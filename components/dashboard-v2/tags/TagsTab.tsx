@@ -510,13 +510,13 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingTag(tag); setTagModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-sm sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteTag(tag.id?.toString() ?? ''); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-sm sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
                                                         >
                                                             <Trash2 size={isSmall ? 14 : 18} />
                                                         </button>
@@ -571,13 +571,13 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingContributor(contributor); setContribModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-sm sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteContributor(contributor.id!.toString()); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-sm sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
                                                         >
                                                             <Trash2 size={isSmall ? 14 : 18} />
                                                         </button>
@@ -614,7 +614,7 @@ const DTags = () => {
                         style={{
                             top: optionsPos.y,
                             left: optionsPos.x,
-                            borderRadius: '20px',
+                            borderRadius: '4px',
                             transformOrigin: 'top center',
                             backgroundColor: 'var(--dash-surface)',
                         }}

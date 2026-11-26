@@ -253,7 +253,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                             <div key={a.id} className="rounded-sm px-3 py-2.5" style={cardStyle}>
                                 <div className="flex items-start gap-3 min-w-0 w-full">
                                     <span
-                                        className="grid place-items-center shrink-0 rounded-lg mt-0.5"
+                                        className="grid place-items-center shrink-0 rounded-sm mt-0.5"
                                         style={{
                                             width: 30, height: 30,
                                             background: a.write ? 'var(--warning-soft)' : 'var(--dash-surface-3)',

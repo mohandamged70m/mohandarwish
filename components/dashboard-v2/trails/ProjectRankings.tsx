@@ -113,7 +113,7 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                                 </div>
 
                                 {/* Icon */}
-                                <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
+                                <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-sm overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                     {p.icon ? (
                                         <FileImage src={p.icon} alt={p.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -144,7 +144,7 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                                         {stat(<Github size={12} />, p.githubViews, 'var(--dash-accent)', 'Repo opens')}
                                         {stat(<Download size={12} />, p.downloadViews, 'var(--dash-warning)', 'Downloads')}
                                         <span
-                                            className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-dash-surface-2 text-dash-text-2' : 'bg-dash-surface-2 text-dash-text-3'}`}
+                                            className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-sm ${isDark ? 'bg-dash-surface-2 text-dash-text-2' : 'bg-dash-surface-2 text-dash-text-3'}`}
                                             title="Conversion - actions per view"
                                         >
                                             {Math.round(p.conversion * 100)}% conv

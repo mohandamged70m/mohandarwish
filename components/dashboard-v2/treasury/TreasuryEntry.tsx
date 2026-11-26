@@ -311,7 +311,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
             {CURRENCIES.map(c => (
                 <button key={c} type="button" onClick={() => onChange(c)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                    className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition-all ${value === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                     {CURRENCY_SYMBOL[c]} {c}
                 </button>
             ))}
@@ -344,7 +344,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                         </div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} {titleLabel}</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -451,7 +451,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                 const total = installmentTotal({ priceAmount: price, installmentPercent });
                                                 const per = total / (installmentMonths || 1);
                                                 return (
-                                                    <div className="rounded-lg px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--primary-soft)' }}>
+                                                    <div className="rounded-sm px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--primary-soft)' }}>
                                                         <span className="text-dash-text-2">{formatMoney(price, priceCurrency)}</span>
                                                         {installmentPercent > 0 && (
                                                             <span className="text-dash-text-2"> + {installmentPercent}% = <span className="font-bold text-dash-text">{formatMoney(total, priceCurrency)}</span></span>
@@ -507,7 +507,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {(['income', 'expense'] as const).map(k => (
                                     <button key={k} type="button" disabled={isEdit} onClick={() => setKind(k)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-dash-success text-dash-text shadow' : 'bg-dash-danger text-dash-text shadow') : 'text-dash-text-2 hover:text-dash-text'} ${isEdit ? 'opacity-80 cursor-not-allowed' : ''}`}>
+                                        className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-dash-success text-dash-text shadow' : 'bg-dash-danger text-dash-text shadow') : 'text-dash-text-2 hover:text-dash-text'} ${isEdit ? 'opacity-80 cursor-not-allowed' : ''}`}>
                                         {k === 'income' ? 'Income (money in)' : 'Expense (money out)'}
                                     </button>
                                 ))}
@@ -629,7 +629,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'client') === expClientPaid;
                                             return (
                                                 <button key={val} type="button" onClick={() => setExpClientPaid(val === 'client')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                                    className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition-all ${on ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );
@@ -697,7 +697,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'yes') === incIsMonthly;
                                             return (
                                                 <button key={val} type="button" onClick={() => setIncIsMonthly(val === 'yes')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                                    className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition-all ${on ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );

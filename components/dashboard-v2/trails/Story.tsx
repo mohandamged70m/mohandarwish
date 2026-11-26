@@ -377,7 +377,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             {utm.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 pt-3">
                                     {utm.map(([k, v]) => (
-                                        <span key={k} title={`${k}: ${v}`} className="px-2 py-0.5 rounded-md text-xs font-bold max-w-full [overflow-wrap:anywhere]"
+                                        <span key={k} title={`${k}: ${v}`} className="px-2 py-0.5 rounded-sm text-xs font-bold max-w-full [overflow-wrap:anywhere]"
                                             style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                                             {k}: {shortTag(v)}
                                         </span>

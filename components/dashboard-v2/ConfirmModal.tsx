@@ -131,7 +131,7 @@ const MConfirmModal = ({
                         <button
                             onClick={onClose}
                             aria-label="Close" data-dialog-close
-                            className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-2'}`}
+                            className={`absolute top-4 right-4 p-2 rounded-sm transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-2'}`}
                         >
                             <X size={18} />
                         </button>

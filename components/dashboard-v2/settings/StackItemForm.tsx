@@ -84,7 +84,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                         {icon ? (
                                             <>
                                                 <img src={icon} alt="Icon" className="w-full h-full object-contain" />
-                                                <div className="absolute inset-0 bg-[var(--scrim)] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => { setIcon(''); setIconFile(null); }}>
+                                                <div className="absolute inset-0 bg-[var(--scrim)] rounded-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => { setIcon(''); setIconFile(null); }}>
                                                     <X size={20} className="text-dash-text" />
                                                 </div>
                                             </>
@@ -99,9 +99,9 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     {/* Local Upload */}
                                     <div
                                         onClick={() => iconInputRef.current?.click()}
-                                        className="p-3 rounded-lg border border-dash-border hover:bg-dash-surface-30/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
+                                        className="p-3 rounded-sm border border-dash-border hover:bg-dash-surface-30/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
                                     >
-                                        <div className="p-1.5 rounded-md bg-dash-surface-3">
+                                        <div className="p-1.5 rounded-sm bg-dash-surface-3">
                                             <HardDrive size={16} className="text-dash-text-2" />
                                         </div>
                                         <span className="text-xs text-dash-text-2 font-medium">Upload Local File</span>
@@ -111,9 +111,9 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     {/* Firebase Selection */}
                                     <div
                                         onClick={() => setFirebaseBrowserOpen(true)}
-                                        className="p-3 rounded-lg border border-dash-warning/30 bg-dash-warning-soft hover:bg-dash-warning/15 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
+                                        className="p-3 rounded-sm border border-dash-warning/30 bg-dash-warning-soft hover:bg-dash-warning/15 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
                                     >
-                                        <div className="p-1.5 rounded-md bg-dash-warning/15">
+                                        <div className="p-1.5 rounded-sm bg-dash-warning/15">
                                             <img src={firebaseIcon} alt="Firebase" className="w-4 h-4" />
                                         </div>
                                         <span className="text-xs text-dash-warning font-medium">Select from Firebase</span>

@@ -20,7 +20,7 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
     if (!show) return null;
     return (
         <div
-            className="fixed bottom-10 z-[5000] flex animate-slide-up pointer-events-none"
+            className="fixed bottom-10 z-[5000] flex animate-scale-in pointer-events-none"
             style={{ left: '50%', transform: 'translateX(calc(-50% + (var(--sidebar-width, 0px) / 2)))' }}
         >
             <div
@@ -33,7 +33,7 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
                 <button
                     onClick={onApply}
                     disabled={saving}
-                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-[0_8px_24px_var(--shadow-color)] text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:scale-105 transition-all whitespace-nowrap disabled:opacity-80"
+                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-[0_8px_24px_var(--shadow-color)] text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:brightness-105 transition-all whitespace-nowrap disabled:opacity-80"
                 >
                     <Save size={18} className="sm:w-5 sm:h-5" /> {saving ? 'Saving…' : applyLabel}
                 </button>

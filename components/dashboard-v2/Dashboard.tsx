@@ -115,7 +115,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     const activeItem = MENU_ITEMS.find(i => i.id === activeTab);
     const ActiveIcon = activeItem?.icon;
     const ActiveTab = TABS[activeTab].Component;
-    const headerIconBoxSize = isExtraSmall ? 'w-8 h-8 rounded-lg' : isSmall ? 'w-9 h-9 rounded-sm' : 'w-11 h-11 rounded-sm';
+    const headerIconBoxSize = isExtraSmall ? 'w-8 h-8 rounded-sm' : isSmall ? 'w-9 h-9 rounded-sm' : 'w-11 h-11 rounded-sm';
     const headerIconSize = isExtraSmall ? 16 : isSmall ? 18 : 22;
 
     // Staggered sidebar entrance: each item slides in from the left in turn.
@@ -159,7 +159,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     `}
                 >
                     <div
-                        className="rounded-lg overflow-hidden flex items-center justify-center bg-dash-surface-3"
+                        className="rounded-sm overflow-hidden flex items-center justify-center bg-dash-surface-3"
                         style={{
                             width: avatarSize,
                             height: avatarSize,

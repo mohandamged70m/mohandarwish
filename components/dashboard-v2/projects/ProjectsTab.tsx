@@ -136,7 +136,7 @@ const ProjectRow = ({
 
             {/* Project Info */}
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
+                <div className="w-10 h-10 rounded-sm overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                     {project.icon ? (
                         <FileImage src={project.icon} alt={project.name} className="w-full h-full object-cover" />
                     ) : project.images.length > 0 ? (
@@ -252,7 +252,7 @@ const ProjectRow = ({
                         });
                         setActiveMenu(activeMenu === project.id ? null : project.id!);
                     }}
-                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5'}`}
+                    className={`p-2 rounded-sm border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5'}`}
                 >
                     <MoreVertical size={20} />
                 </button>
@@ -836,7 +836,7 @@ const DProjects = () => {
                     <div className="fixed z-[1000] glass-panel min-w-[160px] p-2 animate-pop flex flex-col gap-2 shadow-2xl border border-dash-border" style={{
                         top: `${menuPos.top}px`,
                         right: `${menuPos.right}px`,
-                        borderRadius: '16px'
+                        borderRadius: '4px'
                     }}>
                         <button
                             onClick={(e) => {
@@ -845,7 +845,7 @@ const DProjects = () => {
                                 if (project) setViewingProject(project);
                                 setActiveMenu(null);
                             }}
-                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
+                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors"
                             style={{
                                 color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
@@ -861,7 +861,7 @@ const DProjects = () => {
                                 const project = projects.find(p => p.id === activeMenu);
                                 if (project) handleEditProject(project);
                             }}
-                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
+                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors"
                             style={{
                                 color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
@@ -881,7 +881,7 @@ const DProjects = () => {
                                 href={projects.find(p => p.id === activeMenu)?.repoLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 no-underline transition-colors"
+                                className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 no-underline transition-colors"
                                 style={{
                                     color: isDark ? 'var(--dash-accent-text)' : 'var(--dash-accent)',
                                     fontFamily: "var(--font-body)"
@@ -898,7 +898,7 @@ const DProjects = () => {
                                 href={projects.find(p => p.id === activeMenu)?.liveLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 no-underline transition-colors"
+                                className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 no-underline transition-colors"
                                 style={{
                                     color: isDark ? 'var(--dash-success)' : 'var(--dash-success)',
                                     fontFamily: "var(--font-body)"
@@ -917,7 +917,7 @@ const DProjects = () => {
                                 e.stopPropagation();
                                 if (activeMenu !== null) handleDeleteProject(activeMenu);
                             }}
-                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
+                            className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-sm text-sm p-2.5 transition-colors"
                             style={{
                                 color: 'var(--dash-danger)',
                                 fontFamily: "var(--font-body)"

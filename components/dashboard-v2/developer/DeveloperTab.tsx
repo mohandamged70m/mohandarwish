@@ -203,7 +203,7 @@ const DDeveloper = () => {
                                         onClick={() => moveRepo(name, -1)}
                                         disabled={i === 0}
                                         aria-label={`Move ${name} up`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
+                                        className="grid place-items-center shrink-0 rounded-sm text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowUp size={15} />
@@ -212,7 +212,7 @@ const DDeveloper = () => {
                                         onClick={() => moveRepo(name, 1)}
                                         disabled={i === repos.length - 1}
                                         aria-label={`Move ${name} down`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
+                                        className="grid place-items-center shrink-0 rounded-sm text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowDown size={15} />
@@ -220,7 +220,7 @@ const DDeveloper = () => {
                                     <button
                                         onClick={() => removeRepo(name)}
                                         aria-label={`Remove ${name}`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors"
+                                        className="grid place-items-center shrink-0 rounded-sm text-dash-text-3 transition-colors"
                                         style={{ width: 44, height: 44 }}
                                         onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--dash-danger)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--danger) 10%, transparent)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--dash-text-3)'; e.currentTarget.style.background = 'transparent'; }}
@@ -305,7 +305,7 @@ const DDeveloper = () => {
                         <span>{reposError}</span>
                         <button
                             onClick={() => setReloadKey(k => k + 1)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-bold cursor-pointer transition-colors"
                             style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                         >
                             <RefreshCw size={14} />

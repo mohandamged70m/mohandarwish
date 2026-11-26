@@ -734,10 +734,10 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-dash-success bg-dash-success/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
-                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-dash-warning bg-dash-warning/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Zap size={17} className={autoMode ? 'fill-dash-warning/40' : ''} /></button>
-                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Settings2 size={17} /></button>
-                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><X size={17} /></button>
+                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-sm transition-colors ${voiceOut ? 'text-dash-success bg-dash-success/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
+                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-sm transition-colors ${autoMode ? 'text-dash-warning bg-dash-warning/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Zap size={17} className={autoMode ? 'fill-dash-warning/40' : ''} /></button>
+                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-sm transition-colors ${showSettings ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Settings2 size={17} /></button>
+                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><X size={17} /></button>
                         </div>
                     </div>
 
@@ -799,10 +799,10 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             <div className={`rounded-sm border p-3.5 flex flex-col gap-2.5 ${isDark ? 'bg-dash-accent-soft border-dash-warning/30' : 'bg-dash-accent-soft border-dash-warning'}`}>
                                 <div className="flex items-center gap-2 text-sm font-bold text-dash-text"><Database size={15} className="text-dash-warning" /> Confirm action</div>
                                 <p className="text-sm text-dash-text">{pending.desc}</p>
-                                {pending.detail && <pre className="text-xs text-dash-text-2 bg-dash-surface-2 dark:bg-dash-surface/5 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
+                                {pending.detail && <pre className="text-xs text-dash-text-2 bg-dash-surface-2 dark:bg-dash-surface/5 rounded-sm p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
                                 <div className="flex gap-2 justify-end">
-                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3">Cancel</button>
-                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-lg text-sm font-bold text-dash-text bg-dash-warning hover:bg-dash-warning flex items-center gap-1.5"><Check size={15} /> Do it</button>
+                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-sm text-sm font-semibold text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3">Cancel</button>
+                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-sm text-sm font-bold text-dash-text bg-dash-warning hover:bg-dash-warning flex items-center gap-1.5"><Check size={15} /> Do it</button>
                                 </div>
                             </div>
                         )}
@@ -829,7 +829,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                     })}
                                 </div>
                                 {quiz.multi && (
-                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent disabled:opacity-80 flex items-center gap-1.5"><Check size={15} /> Submit</button>
+                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent disabled:opacity-80 flex items-center gap-1.5"><Check size={15} /> Submit</button>
                                 )}
                                 {/* Own answer - when none of the choices fit */}
                                 <div className="flex items-center gap-1.5 pt-1">

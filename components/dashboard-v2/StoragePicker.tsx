@@ -239,7 +239,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-dash-surface-2 backdrop-blur-[4px] z-10 rounded-lg"
+                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-dash-surface-2 backdrop-blur-[4px] z-10 rounded-sm"
                             >
                                 <Spinner />
                             </motion.div>
@@ -256,7 +256,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 <div
                                     key={i}
                                     onClick={() => handleFileClick(file)}
-                                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-dash-accent' : ''}`}
+                                    className={`p-3 rounded-sm cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-dash-accent' : ''}`}
                                     style={{
                                         backgroundColor: 'var(--dash-surface-2)',
                                         border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'var(--dash-accent-text)' : 'transparent'}`
@@ -266,7 +266,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                         {file.isFolder ? (
                                             <Folder size={48} className="text-dash-warning" />
                                         ) : file.url ? (
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
+                                            <div className="w-12 h-12 rounded-sm overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                                 <img
                                                     src={file.url}
                                                     alt={file.name}
@@ -294,7 +294,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                     <div className="p-4" style={{ borderTop: `1px solid ${'var(--dash-border)'}` }}>
                         <div className="flex items-center gap-4">
                             {previewUrl && (
-                                <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
+                                <div className="w-16 h-16 rounded-sm overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                     <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
                                 </div>
                             )}

@@ -673,7 +673,7 @@ const DTreasury = () => {
                     const active = tab === t.id;
                     return (
                         <button key={t.id} onClick={() => setTab(t.id)} aria-label={t.label} aria-current={active ? 'page' : undefined}
-                            className={`flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
+                            className={`flex items-center gap-2 px-5 py-3 rounded-sm border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
                                 ${active ? 'bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}`}>
                             <Icon size={18} />
                             <span className={isExtraSmall ? 'hidden' : ''}>{t.label}</span>
@@ -701,7 +701,7 @@ const DTreasury = () => {
                             <div className="glass-panel p-4 sm:p-5">
                                 <div className="flex items-center justify-between gap-3 mb-3.5">
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-dash-accent-soft text-dash-warning"><Lightbulb size={15} /></span>
+                                        <span className="w-7 h-7 rounded-sm flex items-center justify-center shrink-0 bg-dash-accent-soft text-dash-warning"><Lightbulb size={15} /></span>
                                         <span className="text-sm font-bold text-dash-text">Suggestions</span>
                                         <span className="text-xs text-dash-text-2 truncate hidden sm:inline">
                                             {insightsToAct ? `${insightsToAct} waiting on a decision` : 'Nothing is waiting on you'}
@@ -776,10 +776,10 @@ const DTreasury = () => {
                                                         </div>
 
                                                         <div className="absolute top-4 right-4 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                                                            <div className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text cursor-grab active:cursor-grabbing hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors">
+                                                            <div className="p-1.5 rounded-sm text-dash-text-2 hover:text-dash-text cursor-grab active:cursor-grabbing hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors">
                                                                 <GripVertical size={14} />
                                                             </div>
-                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={14} /></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={14} /></button>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(p.status) 13%, transparent)`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
@@ -997,7 +997,7 @@ const DTreasury = () => {
                                                                     {p.client && <p className="text-xs text-dash-text-2 truncate">{p.client}</p>}
                                                                 </div>
                                                                 <div className="absolute top-4 right-4 flex gap-1">
-                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={12} /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={12} /></button>
                                                                 </div>
                                                                 <div className="flex items-center justify-between text-xs border-t border-dash-border pt-2 mt-1 gap-2 flex-wrap">
                                                                     <span className="font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
@@ -1005,7 +1005,7 @@ const DTreasury = () => {
                                                                 </div>
                                                                 {/* This list holds both endings, so it says which one this was. */}
                                                                 <div className="text-xs text-dash-text-2 flex items-center gap-1 mt-1"><Clock size={11} /><span>{statusMeta(p.status).label} {p.endDate || '-'}</span></div>
-                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-lg text-xs font-bold bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/15 transition-all w-fit px-3">Reopen</button>
+                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-sm text-xs font-bold bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/15 transition-all w-fit px-3">Reopen</button>
                                                             </div>
                                                         );
                                                     })}
@@ -1281,7 +1281,7 @@ const DTreasury = () => {
                                     <label className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">Show totals in</label>
                                     <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-dash-surface-2'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
+                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-sm text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -1290,7 +1290,7 @@ const DTreasury = () => {
                                     <p className="text-xs text-dash-text-2 -mt-1">Used when you don't name a currency - e.g. "add 100" vs "add 100$". New projects & expenses are added in this currency.</p>
                                     <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-dash-surface-2'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{c}</button>
+                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-sm text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{c}</button>
                                         ))}
                                     </div>
                                 </div>

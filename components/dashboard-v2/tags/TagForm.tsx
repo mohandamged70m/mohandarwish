@@ -93,7 +93,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                     </h2>
                     <button
                         onClick={onClose}
-                        className="btn-icon p-2 hover:bg-input-bg rounded-lg transition-fast"
+                        className="btn-icon p-2 hover:bg-input-bg rounded-sm transition-fast"
                     >
                         <X size={24} />
                     </button>
@@ -105,9 +105,9 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         <div
                             className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold border shadow-sm transition-all duration-300"
                             style={{
-                                backgroundColor: `color-mix(in srgb, color 8%, transparent)`,
+                                backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)`,
                                 color: color,
-                                borderColor: `color-mix(in srgb, color 19%, transparent)`,
+                                borderColor: `color-mix(in srgb, ${color} 19%, transparent)`,
                                 fontSize: '1rem'
                             }}
                         >
@@ -169,7 +169,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
                                 <div
-                                    className="w-full h-full rounded-md shadow-sm border border-input-border transition-all hover:scale-105"
+                                    className="w-full h-full rounded-sm shadow-sm border border-input-border transition-all hover:scale-105"
                                     style={{ backgroundColor: color.length === 7 ? color : 'var(--dash-accent-text)' }}
                                 />
                             </div>
@@ -248,7 +248,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                             className="btn text-dash-text font-semibold shadow-lg transition-transform hover:-translate-y-0.5 px-6"
                             style={{
                                 backgroundColor: color,
-                                boxShadow: `0 4px 12px color-mix(in srgb, color 25%, transparent)`
+                                boxShadow: `0 4px 12px color-mix(in srgb, ${color} 25%, transparent)`
                             }}
                         >
                             Save Tag

@@ -105,7 +105,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                         </div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} account</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -123,13 +123,13 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                                 const on = type === t;
                                 return (
                                     <button key={t} type="button" onClick={() => setType(t)} title={t}
-                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-bold capitalize transition-colors ${on ? 'text-dash-text' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-sm text-xs font-bold capitalize transition-colors ${on ? 'text-dash-text' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {on && (
                                             <motion.span
                                                 layoutId="account-type-pill"
                                                 transition={{ type: 'spring', stiffness: 500, damping: 34 }}
-                                                className="absolute inset-0 rounded-lg"
-                                                style={{ background: ACCOUNT_COLOR[t], boxShadow: `0 4px 14px color-mix(in srgb, ACCOUNT_COLOR[t] 25%, transparent)` }}
+                                                className="absolute inset-0 rounded-sm"
+                                                style={{ background: ACCOUNT_COLOR[t], boxShadow: `0 4px 14px color-mix(in srgb, ${ACCOUNT_COLOR[t]} 25%, transparent)` }}
                                             />
                                         )}
                                         <Icon size={15} className="relative z-10" />
@@ -150,7 +150,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {CURRENCIES.map(c => (
                                     <button key={c} type="button" onClick={() => setCurrency(c)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                        className={`flex-1 py-1.5 rounded-sm text-xs font-bold transition-all ${currency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {CURRENCY_SYMBOL[c]}
                                     </button>
                                 ))}

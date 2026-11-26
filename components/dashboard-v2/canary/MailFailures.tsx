@@ -73,7 +73,7 @@ const MailFailures = ({ isDark, showAlert }: { isDark: boolean; showAlert: Notif
                                 </div>
                                 <button type="button" onClick={() => retry(job)} disabled={busy !== null}
                                     aria-label={`Retry ${job.label}`}
-                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none text-xs font-bold cursor-pointer bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/20 transition-colors disabled:opacity-50 disabled:cursor-default">
+                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-sm border-none text-xs font-bold cursor-pointer bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/20 transition-colors disabled:opacity-50 disabled:cursor-default">
                                     <RotateCw size={13} className={busy === job.id ? 'animate-spin' : ''} />
                                     {busy === job.id ? 'Sending...' : 'Retry'}
                                 </button>

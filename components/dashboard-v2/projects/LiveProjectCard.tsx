@@ -70,7 +70,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
             className="group flex flex-col w-full max-w-sm"
             style={{
                 backgroundColor: 'var(--dash-surface)',
-                borderRadius: '20px',
+                borderRadius: '4px',
                 overflow: 'hidden',
                 boxShadow: 'var(--card-shadow)',
                 border: `1px solid ${'var(--dash-border)'}`,
@@ -132,7 +132,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                                 padding: '6px 14px',
                                 backgroundColor: tech.color ? `color-mix(in srgb, tech.color 25%, transparent)` : 'var(--dash-accent-text)',
                                 color: 'var(--dash-text)',
-                                borderRadius: '20px',
+                                borderRadius: '4px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
                                 border: `1px solid ${tech.color ? tech.color : 'var(--dash-border)'}`,
@@ -158,7 +158,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                                 padding: '6px 14px',
                                 backgroundColor: 'var(--dash-surface-2)',
                                 color: 'var(--dash-text)',
-                                borderRadius: '20px',
+                                borderRadius: '4px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
                                 border: '1px solid var(--dash-border)'
@@ -187,7 +187,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                             padding: '6px 14px',
                             backgroundColor: 'var(--dash-surface-2)',
                             color: 'var(--dash-text)',
-                            borderRadius: '20px',
+                            borderRadius: '4px',
                             fontSize: '0.75rem',
                             fontWeight: 600,
                             border: '1px solid var(--dash-border)',

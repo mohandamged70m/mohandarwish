@@ -333,7 +333,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                     <button
                         onClick={() => changePage(safePageIndex - 1)}
                         disabled={safePageIndex === 0}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-sm transition-colors cursor-pointer ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronLeft size={16} />
                     </button>
@@ -343,7 +343,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                     <button
                         onClick={() => changePage(safePageIndex + 1)}
                         disabled={safePageIndex === totalPages - 1}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-sm transition-colors cursor-pointer ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronRight size={16} />
                     </button>
@@ -455,7 +455,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
 
             {/* Bottom Widgets Integrated */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'} border rounded-[24px] p-6 relative overflow-hidden group`}>
+                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'} border rounded-sm p-6 relative overflow-hidden group`}>
                     <div className="absolute inset-0 bg-radial-at-tl from-dash-accent-soft to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="flex justify-between items-start relative z-10 mb-4">
                         <div className={`${isDark ? 'bg-dash-accent-soft text-dash-accent-text' : 'bg-dash-accent-soft text-dash-accent-text'} w-10 h-10 flex items-center justify-center rounded-sm`}>
@@ -470,7 +470,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                     </div>
                 </div>
 
-                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'} border rounded-[24px] p-6 relative overflow-hidden group`}>
+                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'} border rounded-sm p-6 relative overflow-hidden group`}>
                     <div className="absolute inset-0 bg-radial-at-tl from-dash-success/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="flex justify-between items-start relative z-10 mb-4">
                         <div className={`${isDark ? 'bg-dash-accent-soft text-dash-success' : 'bg-dash-accent-soft text-dash-success'} w-10 h-10 flex items-center justify-center rounded-sm`}>

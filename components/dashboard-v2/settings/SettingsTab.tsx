@@ -1051,7 +1051,7 @@ export default function DSettings() {
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 border-b border-dash-border">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-dash-accent/10 text-dash-accent-text">
+                                <div className="p-2 rounded-sm bg-dash-accent/10 text-dash-accent-text">
                                     <ZoomIn size={20} />
                                 </div>
                                 <div>
@@ -1100,7 +1100,7 @@ export default function DSettings() {
                                     max={3}
                                     step={0.01}
                                     onChange={(e) => setZoom(Number(e.target.value))}
-                                    className="flex-1 h-1.5 bg-dash-surface-20/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    className="flex-1 h-1.5 bg-dash-surface-hover rounded-sm appearance-none cursor-pointer accent-dash-accent"
                                 />
                                 <span className="text-xs font-heading text-dash-accent-text w-10 text-right font-bold">
                                     {Math.round(zoom * 100)}%
@@ -1172,7 +1172,7 @@ export default function DSettings() {
                             aria-label={tab.label}
                             aria-current={isActive ? 'page' : undefined}
                             className={`
-                                settings-tab-btn flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
+                                settings-tab-btn flex items-center gap-2 px-5 py-3 rounded-sm border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
                                 ${isActive ? 'tab-active bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}
                             `}
                         >
@@ -1334,7 +1334,7 @@ export default function DSettings() {
                                             role="tab"
                                             aria-selected={active}
                                             onClick={() => setHeroImageMode(mode)}
-                                            className="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+                                            className="flex items-center justify-center gap-2 py-2 rounded-sm text-sm font-semibold transition-colors cursor-pointer"
                                             style={active
                                                 ? { background: 'var(--dash-accent)', color: 'var(--on-primary)', boxShadow: '0 1px 4px var(--shadow-color)' }
                                                 : { background: 'transparent', color: 'var(--dash-text-3)' }}
@@ -1364,9 +1364,9 @@ export default function DSettings() {
                                 const onBrowse = () => { setFirebaseSelectTarget(isLight ? 'hero' : 'heroDark'); setFirebaseBrowserOpen(true); };
                                 return (
                                     <div className="flex flex-col gap-2">
-                                        <div className="group relative overflow-hidden w-full max-w-full mx-auto md:mx-0 rounded-md bg-[var(--dash-surface-2)] flex items-center justify-center border border-[var(--dash-border)]" style={{ paddingTop: '133%' }}>
+                                        <div className="group relative overflow-hidden w-full max-w-full mx-auto md:mx-0 rounded-sm bg-[var(--dash-surface-2)] flex items-center justify-center border border-[var(--dash-border)]" style={{ paddingTop: '133%' }}>
                                             {preview ? (
-                                                <img src={preview} alt={isLight ? 'Hero Light Preview' : 'Hero Dark Preview'} className="absolute inset-0 w-full h-full object-cover rounded-md" />
+                                                <img src={preview} alt={isLight ? 'Hero Light Preview' : 'Hero Dark Preview'} className="absolute inset-0 w-full h-full object-cover rounded-sm" />
                                             ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-dash-text-3 gap-2">
                                                     {isLight ? <User size={48} className="opacity-20" /> : <Moon size={40} className="opacity-20" />}
@@ -1375,11 +1375,11 @@ export default function DSettings() {
                                                 </div>
                                             )}
 
-                                            <div className="absolute inset-0 bg-dash-surface-2 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                            <div className="absolute inset-0 bg-dash-surface-2 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-sm">
                                                 <button
                                                     onClick={onUpload}
                                                     aria-label={isLight ? 'Upload light hero image' : 'Upload dark hero image'}
-                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-md bg-dash-accent/10 border border-dash-accent/20 text-dash-accent-text font-semibold hover:bg-dash-accent/20 transition"
+                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-sm bg-dash-accent/10 border border-dash-accent/20 text-dash-accent-text font-semibold hover:bg-dash-accent/20 transition"
                                                 >
                                                     <span className="p-1.5 rounded-full bg-dash-accent/10 flex items-center justify-center border border-dash-accent/10">
                                                         <Upload size={16} className="text-dash-accent-text" />
@@ -1389,7 +1389,7 @@ export default function DSettings() {
 
                                                 <button
                                                     onClick={onBrowse}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-dash-warning-soft border border-dash-warning/30 text-dash-warning font-semibold hover:bg-dash-warning-soft transition"
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-dash-warning-soft border border-dash-warning/30 text-dash-warning font-semibold hover:bg-dash-warning-soft transition"
                                                 >
                                                     <HardDrive size={16} className="text-dash-warning" />
                                                     <span className="text-dash-warning">Browse</span>
@@ -1566,7 +1566,7 @@ export default function DSettings() {
                                         <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
                                             {socialLinks.map((link, index) => (
                                                 <li key={index} className="flex items-center gap-3 h-12 pl-3 pr-1.5 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2">
-                                                    <span className="w-7 h-7 rounded-lg bg-dash-accent/10 text-dash-accent-text grid place-items-center shrink-0">
+                                                    <span className="w-7 h-7 rounded-sm bg-dash-accent/10 text-dash-accent-text grid place-items-center shrink-0">
                                                         <Link size={14} />
                                                     </span>
                                                     <span className="font-bold text-sm truncate shrink-0 max-w-[40%]">{link.name}</span>
@@ -1574,7 +1574,7 @@ export default function DSettings() {
                                                     <button
                                                         type="button"
                                                         aria-label={`Remove ${link.name}`}
-                                                        className="w-9 h-9 grid place-items-center shrink-0 text-dash-danger hover:bg-dash-accent-soft rounded-lg transition-colors"
+                                                        className="w-9 h-9 grid place-items-center shrink-0 text-dash-danger hover:bg-dash-accent-soft rounded-sm transition-colors"
                                                         onClick={() => {
                                                             const newLinks = [...socialLinks];
                                                             newLinks.splice(index, 1);
