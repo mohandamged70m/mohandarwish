@@ -183,12 +183,12 @@ const ProjectRow = ({
                                             dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg || '') }} />
                                     )
                                 ) : (
-                                    <span className="text-[10px] font-bold text-dash-text-2 dark:text-dash-text-3">{tag.name.charAt(0)}</span>
+                                    <span className="text-xs font-bold text-dash-text-2 dark:text-dash-text-3">{tag.name.charAt(0)}</span>
                                 )}
                             </div>
                         ))}
                         {project.tags.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-2 dark:bg-dash-surface-2 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-2 dark:bg-dash-surface-2 text-xs font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
                                 +{project.tags.length - 5}
                             </div>
                         )}
@@ -224,7 +224,7 @@ const ProjectRow = ({
                             </div>
                         ))}
                         {project.contributors.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-3 dark:bg-dash-surface-2 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-3 dark:bg-dash-surface-2 text-xs font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
                                 +{project.contributors.length - 5}
                             </div>
                         )}
@@ -770,7 +770,7 @@ const DProjects = () => {
                         className="min-w-0"
                     >
                         {filteredProjects.length === 0 ? (
-                            <div className="p-12 text-center text-dash-text-2">
+                            <div className="empty-state p-12 text-center">
                                 {searchQuery ? "No projects match your search." : "No projects found. Click \"Add Project\" to start."}
                             </div>
                         ) : (

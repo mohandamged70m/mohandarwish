@@ -121,7 +121,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                                     />
                                 )
                             ) : (
-                                <span className="w-[18px] h-[18px] rounded bg-current opacity-40" />
+                                <span className="w-[18px] h-[18px] rounded bg-current opacity-80" />
                             )}
                             {name || 'Tag Name'}
                         </div>

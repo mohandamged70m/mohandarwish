@@ -162,7 +162,7 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                                 <span key={t} className="inline-flex items-center gap-1 pl-3 pr-1 h-8 rounded-sm text-xs font-semibold" style={{ background: chipBg, color: fg }}>
                                     {t}
                                     <button type="button" aria-label={`Remove ${t}`} onClick={() => patch({ tags: draft.tags.filter((_, k) => k !== i) })}
-                                        className="grid place-items-center w-6 h-6 rounded-sm cursor-pointer opacity-60 hover:opacity-100">
+                                        className="grid place-items-center w-6 h-6 rounded-sm cursor-pointer opacity-80 hover:opacity-100">
                                         <X size={13} />
                                     </button>
                                 </span>

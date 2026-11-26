@@ -6,6 +6,7 @@ import { Image as ImageIcon, ExternalLink } from 'lucide-react';
 import { Github } from '@/components/dashboard-v2/ui/BrandIcons';
 import type { ProjectFormData } from '@/types';
 import { useObjectURL } from '@/hooks/useObjectURL';
+import { useReducedMotion } from 'motion/react';
 
 /** LivePreviewCard image/video slot - handles blob URL cleanup automatically. */
 const LivePreviewItem = ({
@@ -29,6 +30,7 @@ const LivePreviewItem = ({
 
 // Live Preview Component
 export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData; isDark: boolean }) => {
+    const reduceMotion = useReducedMotion();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [showContributors, setShowContributors] = useState(false);
 
@@ -45,20 +47,20 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
     });
 
     useEffect(() => {
-        if (sortedImages.length > 1) {
-            const interval = setInterval(() => {
-                setCurrentImageIndex((prev) => (prev + 1) % sortedImages.length);
-            }, 3000);
-            return () => clearInterval(interval);
-        }
-    }, [sortedImages.length]);
+        if (reduceMotion || sortedImages.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prev) => (prev + 1) % sortedImages.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [sortedImages.length, reduceMotion]);
 
     useEffect(() => {
+        if (reduceMotion) return;
         const interval = setInterval(() => {
             setShowContributors(prev => !prev);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [reduceMotion]);
 
     const visibleStack = project.tags.slice(0, 2);
     const remainingStackCount = project.tags.length - 2;
@@ -108,7 +110,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                     </div>
                 )}
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
 
                 <div className="absolute top-[15px] left-[15px] w-[calc(100%-30px)] h-[40px] overflow-hidden pointer-events-none">
                     {/* Stack Container */}
@@ -207,7 +209,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                                 </div>
                             ))}
                             {project.contributors.length > 3 && (
-                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-dash-border/80 shadow-sm bg-dash-surface-3 text-dash-text flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
+                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-dash-border/80 shadow-sm bg-dash-surface-3 text-dash-text flex items-center justify-center text-xs font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
                                     +{project.contributors.length - 3}
                                 </div>
                             )}

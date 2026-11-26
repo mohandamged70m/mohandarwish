@@ -182,6 +182,18 @@
   .dash-root .skeleton { animation: none; }
 }
 
+/* Respect reduced motion across the shell and every portaled modal. */
+@media (prefers-reduced-motion: reduce) {
+  body:has(.dash-root) *,
+  body:has(.dash-root) *::before,
+  body:has(.dash-root) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── Trails: warm cream + maroon, scoped inside the dark admin shell ───── */
 .trails-theme,
 .dash-root .trails-page {

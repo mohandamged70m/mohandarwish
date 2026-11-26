@@ -54,7 +54,7 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
     const stat = (icon: React.ReactNode, value: number, color: string, label: string) => (
         <div className="flex items-center gap-1" title={`${label}: ${value.toLocaleString()}`}>
             <span style={{ color }}>{icon}</span>
-            <span className={`text-[11px] font-bold tabular-nums ${isDark ? 'text-dash-text-2' : 'text-dash-text-2'}`}>
+            <span className={`text-xs font-bold tabular-nums ${isDark ? 'text-dash-text-2' : 'text-dash-text-2'}`}>
                 {value.toLocaleString()}
             </span>
         </div>
@@ -72,13 +72,13 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                         <h3 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
                             Project Rankings
                         </h3>
-                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
+                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-xs font-bold uppercase tracking-[0.15em] mt-1.5`}>
                             Weighted engagement score
                         </p>
                     </div>
                 </div>
                 {/* Weight legend */}
-                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-sm border text-[10px] font-bold ${isDark ? 'bg-dash-surface-2 border-dash-border text-dash-text-3' : 'bg-dash-surface-2 border-dash-border text-dash-text-3'}`}>
+                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-sm border text-xs font-bold ${isDark ? 'bg-dash-surface-2 border-dash-border text-dash-text-3' : 'bg-dash-surface-2 border-dash-border text-dash-text-3'}`}>
                     <span className="flex items-center gap-1"><Eye size={12} className="text-dash-accent-text" />×{RANK_WEIGHTS.view}</span>
                     <span className="flex items-center gap-1"><ExternalLink size={12} className="text-dash-success" />×{RANK_WEIGHTS.live}</span>
                     <span className="flex items-center gap-1"><Github size={12} className="text-dash-accent-text" />×{RANK_WEIGHTS.github}</span>
@@ -127,7 +127,7 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                                         <span className={`font-bold text-sm truncate ${isDark ? 'text-dash-text' : 'text-dash-text'}`} title={p.name}>{p.name}</span>
                                         <span className={`shrink-0 text-sm font-bold tabular-nums ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                                             {p.score.toLocaleString()}
-                                            <span className={`font-bold text-[9px] uppercase tracking-wider ml-1 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>pts</span>
+                                            <span className={`font-bold text-xs uppercase tracking-wider ml-1 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>pts</span>
                                         </span>
                                     </div>
                                     {/* Relative score bar */}
@@ -144,7 +144,7 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                                         {stat(<Github size={12} />, p.githubViews, 'var(--dash-accent)', 'Repo opens')}
                                         {stat(<Download size={12} />, p.downloadViews, 'var(--dash-warning)', 'Downloads')}
                                         <span
-                                            className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-dash-surface-2 text-dash-text-2' : 'bg-dash-surface-2 text-dash-text-3'}`}
+                                            className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-dash-surface-2 text-dash-text-2' : 'bg-dash-surface-2 text-dash-text-3'}`}
                                             title="Conversion - actions per view"
                                         >
                                             {Math.round(p.conversion * 100)}% conv

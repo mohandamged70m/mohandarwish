@@ -267,21 +267,21 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="text-sm font-bold text-dash-text font-heading">{a.tool}</span>
                                             <span
-                                                className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                                                className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                                                 style={a.ok
                                                     ? { background: 'var(--success-soft)', color: 'var(--success)' }
                                                     : { background: 'color-mix(in srgb, var(--danger) 14%, transparent)', color: 'var(--dash-danger)' }}
                                             >
                                                 {a.ok ? <Check size={10} /> : <X size={10} />}{a.ok ? 'ok' : 'error'}
                                             </span>
-                                            <span className="text-dash-text-3 text-[11px] ml-auto shrink-0">{timeAgo(a.at)}</span>
+                                            <span className="text-dash-text-3 text-xs ml-auto shrink-0">{timeAgo(a.at)}</span>
                                         </div>
                                         {argEntries.length > 0 && (
                                             <div className="text-dash-text-3 text-xs mt-1 leading-relaxed break-words">
                                                 {argEntries.map(([k, v], i) => (
                                                     <span key={k}>
-                                                        {i > 0 && <span className="opacity-40"> · </span>}
-                                                        <span className="opacity-60">{k}:</span> {String(v)}
+                                                        {i > 0 && <span className="opacity-80"> · </span>}
+                                                        <span className="opacity-80">{k}:</span> {String(v)}
                                                     </span>
                                                 ))}
                                             </div>

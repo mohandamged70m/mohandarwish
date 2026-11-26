@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipContentProps & { isDa
                 ? 'bg-[var(--scrim)] border-dash-border'
                 : 'bg-dash-surface border-dash-border shadow-[0_20px_40px_var(--shadow-color)]'
                 }`}>
-                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
+                <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
                     }`}>
                     {headerText}
                 </div>
@@ -51,7 +51,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipContentProps & { isDa
                         <div className="w-1.5 h-1.5 rounded-full bg-dash-accent shadow-[0_0_10px_var(--dash-accent-text)]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                             {(item.value || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
+                            <span className={`font-normal text-xs uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
                                 }`}>{subLabel}</span>
                         </span>
                     </div>
@@ -59,7 +59,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipContentProps & { isDa
                         <div className="w-1.5 h-1.5 rounded-full bg-dash-success shadow-[0_0_10px_var(--dash-success)]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                             {(item.projectViews || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
+                            <span className={`font-normal text-xs uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
                                 }`}>Project Views</span>
                         </span>
                     </div>
@@ -67,7 +67,7 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipContentProps & { isDa
                         <div className="w-1.5 h-1.5 rounded-full bg-dash-accent-soft shadow-[0_0_10px_var(--dash-accent)]" />
                         <span className={`text-sm font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                             {(item.socialClicks || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
+                            <span className={`font-normal text-xs uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'
                                 }`}>Social Clicks</span>
                         </span>
                     </div>
@@ -83,7 +83,7 @@ const CustomTick = ({ x, y, payload, index, data, isDark }: XAxisTickContentProp
     if (!item) return null;
     return (
         <g transform={`translate(${x},${y})`}>
-            <text x={0} y={15} textAnchor="middle" className={`${isDark ? 'fill-dash-text-3' : 'fill-dash-text-3'} !text-[11px] font-bold uppercase tracking-widest`}>{payload.value}</text>
+            <text x={0} y={15} textAnchor="middle" className={`${isDark ? 'fill-dash-text-3' : 'fill-dash-text-3'} !text-xs font-bold uppercase tracking-widest`}>{payload.value}</text>
         </g>
     );
 };
@@ -294,7 +294,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
             <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
                 <div className="flex items-end gap-6 sm:gap-10">
                     <div>
-                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>
+                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-xs font-bold uppercase tracking-[0.25em] mb-1.5`}>
                             {filter === 'daily' ? 'Month Views' : filter === 'weekly' ? 'Period Views' : 'Total Views'}
                         </p>
                         <h3 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
@@ -302,7 +302,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                         </h3>
                     </div>
                     <div>
-                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>Today</p>
+                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-xs font-bold uppercase tracking-[0.25em] mb-1.5`}>Today</p>
                         <div className="flex items-center gap-2">
                             <h3 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
                                 {todayViews}
@@ -316,7 +316,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                         <button
                             key={f}
                             onClick={(e) => { e.stopPropagation(); setFilter(f); }}
-                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${filter === f
+                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-xs font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${filter === f
                                 ? 'bg-dash-accent text-dash-text shadow-lg shadow-[0_8px_24px_var(--shadow-color)]'
                                 : `${isDark ? 'text-dash-text-3 hover:text-dash-text-2' : 'text-dash-text-3 hover:text-dash-text-2'}`
                                 }`}
@@ -466,7 +466,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                         <h4 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-3xl font-bold tracking-tight tabular-nums`}>
                             {pageSocials.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
+                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-xs font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
                     </div>
                 </div>
 
@@ -481,7 +481,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                         <h4 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-3xl font-bold tracking-tight tabular-nums`}>
                             {pageProjects.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
+                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-xs font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
                     </div>
                 </div>
             </div>

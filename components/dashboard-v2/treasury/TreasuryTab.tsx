@@ -477,7 +477,15 @@ const DTreasury = () => {
     ];
 
     if (loading || !settingsLoaded) {
-        return <div className="w-full h-full flex items-center justify-center text-dash-text-2"><Sparkles className="animate-pulse mr-2" size={20} /> Loading treasury…</div>;
+        return (
+            <div className="w-full h-full p-6 flex flex-col gap-3" role="status" aria-busy="true" aria-label="Loading treasury">
+                <div className="skeleton h-6 w-48 rounded-sm" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[0, 1, 2, 3].map(i => <div key={i} className="skeleton h-24 rounded-sm" />)}
+                </div>
+                <div className="skeleton h-64 w-full rounded-sm" />
+            </div>
+        );
     }
 
     const sectionTitle = (icon: React.ReactNode, text: string, action?: React.ReactNode) => (
@@ -529,7 +537,7 @@ const DTreasury = () => {
                 <span className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, c 14%, transparent)`, color: c }}><Icon size={17} /></span>
                 <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                        <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] leading-tight" style={{ color: c }}>{ins.label}</span>
+                        <span className="text-xs font-bold uppercase tracking-[0.08em] leading-tight" style={{ color: c }}>{ins.label}</span>
                         {ins.value && <span className="text-xs font-bold text-dash-text tnum shrink-0">{ins.value}</span>}
                     </span>
                     <span className="block text-[13px] leading-snug text-dash-text-2 mt-0.5">{ins.text}</span>
@@ -552,9 +560,9 @@ const DTreasury = () => {
                         <span className="text-sm font-semibold text-dash-text truncate block">{proj ? proj.name : (i.note || 'Payment')}</span>
                         <span className="text-xs text-dash-text-2 truncate block">{i.date}{proj && i.note ? ` · ${i.note}` : ''}{acct ? ` · → ${acct.name}` : ''}</span>
                     </div>
-                    {i.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-dash-text-2 font-semibold flex-shrink-0" title={`${i.attachments.length} attachment${i.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{i.attachments.length}</span> : null}
+                    {i.attachments?.length ? <span className="flex items-center gap-0.5 text-xs text-dash-text-2 font-semibold flex-shrink-0" title={`${i.attachments.length} attachment${i.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{i.attachments.length}</span> : null}
                     <span className="text-sm font-bold text-dash-success tnum flex-shrink-0">+{formatMoney(i.amount, i.currency)}</span>
-                    <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    <Pencil size={14} className="text-dash-text-2 opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
             );
         }
@@ -567,14 +575,14 @@ const DTreasury = () => {
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-dash-text truncate">{e.label}</span>
-                        {e.recurring && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">monthly</span>}
-                        {e.clientPaid && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-warning/15 text-dash-warning">client-paid</span>}
+                        {e.recurring && <span className="text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">monthly</span>}
+                        {e.clientPaid && <span className="text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-warning/15 text-dash-warning">client-paid</span>}
                     </div>
                     <span className="text-xs text-dash-text-2 truncate block">{e.category ? `${e.category} · ` : ''}{eproj ? `${eproj.name} · ` : ''}{e.date}{eacct ? ` · ← ${eacct.name}` : ''}</span>
                 </div>
-                {e.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-dash-text-2 font-semibold flex-shrink-0" title={`${e.attachments.length} attachment${e.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{e.attachments.length}</span> : null}
+                {e.attachments?.length ? <span className="flex items-center gap-0.5 text-xs text-dash-text-2 font-semibold flex-shrink-0" title={`${e.attachments.length} attachment${e.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{e.attachments.length}</span> : null}
                 <span className="text-sm font-bold text-dash-danger tnum flex-shrink-0">−{formatMoney(e.amount, e.currency)}</span>
-                <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                <Pencil size={14} className="text-dash-text-2 opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0" />
             </div>
         );
     };
@@ -620,16 +628,16 @@ const DTreasury = () => {
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-dash-text truncate">{r.to}</span>
-                        {r.via === 'mcp' && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">via AI</span>}
+                        {r.via === 'mcp' && <span className="text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">via AI</span>}
                     </div>
-                    <div className="text-[11px] text-dash-text-2 truncate">
+                    <div className="text-xs text-dash-text-2 truncate">
                         {r.projectNames && r.projectNames.length ? r.projectNames.join(', ') : '-'} · {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </div>
-                    {r.receiptNo && <div className="text-[10px] text-dash-text-2 font-heading mt-0.5">{r.receiptNo}</div>}
+                    {r.receiptNo && <div className="text-xs text-dash-text-2 font-heading mt-0.5">{r.receiptNo}</div>}
                 </div>
                 <div className="text-right shrink-0">
                     <div className="text-base font-bold text-dash-text tnum">{formatMoney(r.total, r.currency)}</div>
-                    {typeof r.balance === 'number' && r.balance > 0 && <div className="text-[10.5px] text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(r.balance, r.currency)} due</div>}
+                    {typeof r.balance === 'number' && r.balance > 0 && <div className="text-xs text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(r.balance, r.currency)} due</div>}
                 </div>
             </div>
         );
@@ -642,7 +650,7 @@ const DTreasury = () => {
                 return (
                     <div key={c.label} className="glass-panel p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider">{c.label}</span>
+                            <span className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">{c.label}</span>
                             <Icon size={16} style={{ color: c.color }} />
                         </div>
                         <RollingNumber
@@ -699,7 +707,7 @@ const DTreasury = () => {
                                             {insightsToAct ? `${insightsToAct} waiting on a decision` : 'Nothing is waiting on you'}
                                         </span>
                                     </div>
-                                    <span className={`text-[11px] font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-dash-warning/15 text-dash-warning' : 'bg-dash-surface-2 dark:bg-dash-surface-3 text-dash-text-2'}`}>{insights.length}</span>
+                                    <span className={`text-xs font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-dash-warning/15 text-dash-warning' : 'bg-dash-surface-2 dark:bg-dash-surface-3 text-dash-text-2'}`}>{insights.length}</span>
                                 </div>
                                 <div className="grid gap-1.5 sm:grid-cols-2">
                                     {insights.slice(0, INSIGHT_PREVIEW).map(renderInsight)}
@@ -744,7 +752,7 @@ const DTreasury = () => {
                                     <p className="text-xs text-dash-text-2 -mt-2">Drag cards to reorder - everything not finished. Click a card to focus details.</p>
 
                                     {activeProjects.length === 0 ? (
-                                        <div className="border-2 border-dashed border-input-border rounded-sm p-8 text-center text-dash-text-2 text-sm">No active projects. Click "+ Project" to add one.</div>
+                                        <div className="empty-state border-2 p-8 text-center text-sm">No active projects. Click "+ Project" to add one.</div>
                                     ) : (
                                         <Reorder.Group as="div" layoutScroll axis="x" values={activeProjects} onReorder={handleReorderActive} className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar">
                                             {activeProjects.map(p => {
@@ -774,23 +782,23 @@ const DTreasury = () => {
                                                             <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={14} /></button>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(p.status) 13%, transparent)`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
+                                                            <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(p.status) 13%, transparent)`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
                                                             {p.monthly
-                                                                ? <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--dash-success) 13%, transparent)', color: 'var(--dash-success)' }}>monthly</span>
-                                                                : <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, payColor[pay] 13%, transparent)`, color: payColor[pay] }}>{pay}</span>}
+                                                                ? <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--dash-success) 13%, transparent)', color: 'var(--dash-success)' }}>monthly</span>
+                                                                : <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, payColor[pay] 13%, transparent)`, color: payColor[pay] }}>{pay}</span>}
                                                             {/* The list already flags retainers; flag plans too, or installments are
                                                                 invisible until you open the project. */}
                                                             {hasInstallments(p) && (
-                                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'color-mix(in srgb, var(--dash-accent) 13%, transparent)', color: 'var(--dash-accent-text)' }}>{p.installmentMonths}x</span>
+                                                                <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'color-mix(in srgb, var(--dash-accent) 13%, transparent)', color: 'var(--dash-accent-text)' }}>{p.installmentMonths}x</span>
                                                             )}
                                                         </div>
                                                         <div>
                                                             <span className="text-base font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}{p.monthly ? <span className="text-xs font-bold text-dash-text-2">/mo</span> : ''}</span>
-                                                            {received > 0 && <p className="text-[10.5px] text-dash-success font-semibold leading-tight mt-0.5">{formatMoney(received, p.priceCurrency)} received</p>}
-                                                            {!p.monthly && bal > 0 && <p className="text-[10.5px] text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(bal, p.priceCurrency)} to collect</p>}
-                                                            {p.monthly && (() => { const np = projectNextPaymentDate(p, data.income); return np ? <p className="text-[10.5px] text-dash-text-2 font-semibold leading-tight mt-0.5">next {new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p> : null; })()}
+                                                            {received > 0 && <p className="text-xs text-dash-success font-semibold leading-tight mt-0.5">{formatMoney(received, p.priceCurrency)} received</p>}
+                                                            {!p.monthly && bal > 0 && <p className="text-xs text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(bal, p.priceCurrency)} to collect</p>}
+                                                            {p.monthly && (() => { const np = projectNextPaymentDate(p, data.income); return np ? <p className="text-xs text-dash-text-2 font-semibold leading-tight mt-0.5">next {new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p> : null; })()}
                                                         </div>
-                                                        <div className="text-[10.5px] text-dash-text-2 flex items-center gap-1 mt-auto pt-2"><Clock size={11} /><span>{p.startDate || '-'}{p.endDate ? ` → ${p.endDate}` : isFinished(p) ? '' : ' → ongoing'}</span></div>
+                                                        <div className="text-xs text-dash-text-2 flex items-center gap-1 mt-auto pt-2"><Clock size={11} /><span>{p.startDate || '-'}{p.endDate ? ` → ${p.endDate}` : isFinished(p) ? '' : ' → ongoing'}</span></div>
                                                     </Reorder.Item>
                                                 );
                                             })}
@@ -806,11 +814,11 @@ const DTreasury = () => {
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
-                                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-dash-accent-text font-body">Project Focus</span>
+                                                        <span className="text-xs font-bold uppercase tracking-[0.15em] text-dash-accent-text font-body">Project Focus</span>
                                                         <h3 className="text-lg font-bold text-dash-text truncate mt-0.5" title={focusedProject.name}>{focusedProject.name}</h3>
                                                         {focusedProject.client && <p className="text-xs text-dash-text-2 truncate">{focusedProject.client}</p>}
                                                     </div>
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(focusedProject.status) 13%, transparent)`, color: statusColor(focusedProject.status) }}>{statusMeta(focusedProject.status).label}</span>
+                                                    <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(focusedProject.status) 13%, transparent)`, color: statusColor(focusedProject.status) }}>{statusMeta(focusedProject.status).label}</span>
                                                 </div>
 
                                                 {/* Progress Tracker */}
@@ -846,7 +854,7 @@ const DTreasury = () => {
                                                                 ))}
                                                             </div>
                                                             {onPlan && (
-                                                                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                                                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                                                     <span className="inline-flex items-center gap-1.5 font-bold text-dash-accent-text">
                                                                         <CalendarClock size={13} className="shrink-0" />
                                                                         <span className="tnum">{months} installments x {formatMoney(perMonth, focusedProject.priceCurrency)}/mo</span>
@@ -854,7 +862,7 @@ const DTreasury = () => {
                                                                     <span className="font-semibold text-dash-text-2 tnum">{paidCount} of {months} paid</span>
                                                                 </div>
                                                             )}
-                                                            <div className="flex flex-wrap items-center justify-between text-[11px] text-dash-text-2 gap-2 mt-0.5">
+                                                            <div className="flex flex-wrap items-center justify-between text-xs text-dash-text-2 gap-2 mt-0.5">
                                                                 <span className="font-semibold text-dash-success tnum">{formatMoney(received, focusedProject.priceCurrency)} received</span>
                                                                 <span className="font-semibold text-dash-warning tnum">{formatMoney(projectBalance(focusedProject, data.income, data.config.rates), focusedProject.priceCurrency)} left</span>
                                                             </div>
@@ -868,12 +876,12 @@ const DTreasury = () => {
                                                         <div className="flex items-center gap-2 min-w-0">
                                                             <Repeat size={15} className="text-dash-success shrink-0" />
                                                             <div className="min-w-0">
-                                                                <div className="text-[10px] font-bold uppercase tracking-wider text-dash-success">Monthly retainer</div>
+                                                                <div className="text-xs font-bold uppercase tracking-wider text-dash-success">Monthly retainer</div>
                                                                 <div className="text-xs text-dash-text-2 truncate">{focusedProject.priceAmount ? `${formatMoney(focusedProject.priceAmount, focusedProject.priceCurrency)}/mo` : 'No rate set'}</div>
                                                             </div>
                                                         </div>
                                                         <div className="text-right shrink-0">
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Next payment</div>
+                                                            <div className="text-xs font-bold uppercase tracking-wider text-dash-text-2">Next payment</div>
                                                             <div className="text-xs font-bold text-dash-text tnum">
                                                                 {(() => { const np = projectNextPaymentDate(focusedProject, data.income); return np ? new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Log a payment'; })()}
                                                             </div>
@@ -883,13 +891,13 @@ const DTreasury = () => {
 
                                                 {/* Sub-Ledger: Linked Transactions */}
                                                 <div className="flex flex-col gap-2">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2 font-body">Linked ledger</span>
+                                                    <span className="text-xs font-bold uppercase tracking-wider text-dash-text-2 font-body">Linked ledger</span>
                                                     <div className="max-h-[140px] overflow-y-auto pr-1 flex flex-col gap-1.5 custom-scrollbar min-h-[60px]">
                                                         {(() => {
                                                             const linkedInc = data.income.filter(i => i.projectId === focusedProject.id);
                                                             const linkedExp = data.expenses.filter(e => e.projectId === focusedProject.id);
                                                             if (linkedInc.length === 0 && linkedExp.length === 0) {
-                                                                return <div className="text-[11px] text-dash-text-2 italic text-center py-4 bg-dash-surface-2 dark:bg-dash-surface-2 rounded-sm border border-dashed border-dash-border">No payments or expenses linked.</div>;
+                                                                return <div className="empty-state text-xs italic text-center py-4">No payments or expenses linked.</div>;
                                                             }
                                                             return (
                                                                 <>
@@ -921,7 +929,7 @@ const DTreasury = () => {
                                                     <button onClick={() => setModal({ mode: 'expense', expense: { projectId: focusedProject.id, date: localDayKey(Date.now()), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '', label: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-danger bg-dash-accent-soft hover:bg-dash-accent-soft transition-all"><Plus size={14} /> Log expense</button>
                                                 </div>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-dash-text-2"><CheckCircle2 size={12} /> Status</div>
+                                                    <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-dash-text-2"><CheckCircle2 size={12} /> Status</div>
                                                     <Select
                                                         value={focusedProject.status}
                                                         options={PROJECT_STATUSES.map(m => ({ value: m.id, label: m.label, hint: m.hint }))}
@@ -934,18 +942,18 @@ const DTreasury = () => {
                                                         rarely ended on the day someone got round to marking it. */}
                                                     {isFinished(focusedProject) && (
                                                         <div className="flex flex-col gap-1 mt-0.5">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Ended</span>
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-dash-text-2">Ended</span>
                                                             <DatePicker value={focusedProject.endDate || ''} onChange={(d) => setProjectDate(focusedProject, 'endDate', d)} isDark={isDark} placeholder="Not ended" />
                                                         </div>
                                                     )}
                                                     {focusedProject.status === 'paused' && (
                                                         <div className="flex flex-col gap-1 mt-0.5">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Paused since</span>
+                                                            <span className="text-xs font-bold uppercase tracking-wider text-dash-text-2">Paused since</span>
                                                             <DatePicker value={focusedProject.pausedAt || ''} onChange={(d) => setProjectDate(focusedProject, 'pausedAt', d)} isDark={isDark} placeholder="Today" />
                                                         </div>
                                                     )}
                                                     {focusedProject.status === 'closed' && focusedProject.closedReason && (
-                                                        <p className="text-[11px] text-dash-text-2 m-0">{focusedProject.closedReason}</p>
+                                                        <p className="text-xs text-dash-text-2 m-0">{focusedProject.closedReason}</p>
                                                     )}
                                                 </div>
                                                 <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-text bg-dash-surface-2 dark:bg-dash-surface-3 hover:bg-black/[0.09] dark:hover:bg-dash-surface-3 transition-all"><Receipt size={14} /> Receipt</button>
@@ -963,7 +971,7 @@ const DTreasury = () => {
                                     <div className="flex items-center gap-2">
                                         <CheckCircle2 size={16} className="text-dash-success" />
                                         <span className="text-sm font-bold text-dash-text">Completed projects archive</span>
-                                        <span className="text-[11px] font-bold tnum px-2 py-0.5 rounded-full bg-dash-accent-soft text-dash-success">{completedProjects.length}</span>
+                                        <span className="text-xs font-bold tnum px-2 py-0.5 rounded-full bg-dash-accent-soft text-dash-success">{completedProjects.length}</span>
                                     </div>
                                     <motion.div animate={{ rotate: archiveOpen ? -90 : 0 }} transition={{ duration: 0.2 }}><ChevronLeft size={16} /></motion.div>
                                 </button>
@@ -986,18 +994,18 @@ const DTreasury = () => {
                                                                 <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-dash-success" />
                                                                 <div className="min-w-0 pr-10">
                                                                     <h4 className="text-sm font-bold text-dash-text truncate" title={p.name}>{p.name}</h4>
-                                                                    {p.client && <p className="text-[11px] text-dash-text-2 truncate">{p.client}</p>}
+                                                                    {p.client && <p className="text-xs text-dash-text-2 truncate">{p.client}</p>}
                                                                 </div>
                                                                 <div className="absolute top-4 right-4 flex gap-1">
                                                                     <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={12} /></button>
                                                                 </div>
                                                                 <div className="flex items-center justify-between text-xs border-t border-dash-border pt-2 mt-1 gap-2 flex-wrap">
                                                                     <span className="font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
-                                                                    {received > 0 && <span className="text-[10px] text-dash-success font-semibold tnum">paid</span>}
+                                                                    {received > 0 && <span className="text-xs text-dash-success font-semibold tnum">paid</span>}
                                                                 </div>
                                                                 {/* This list holds both endings, so it says which one this was. */}
-                                                                <div className="text-[10px] text-dash-text-2 flex items-center gap-1 mt-1"><Clock size={11} /><span>{statusMeta(p.status).label} {p.endDate || '-'}</span></div>
-                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-lg text-[10px] font-bold bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/15 transition-all w-fit px-3">Reopen</button>
+                                                                <div className="text-xs text-dash-text-2 flex items-center gap-1 mt-1"><Clock size={11} /><span>{statusMeta(p.status).label} {p.endDate || '-'}</span></div>
+                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-lg text-xs font-bold bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/15 transition-all w-fit px-3">Reopen</button>
                                                             </div>
                                                         );
                                                     })}
@@ -1068,7 +1076,7 @@ const DTreasury = () => {
                                 ) : selectedDay ? (
                                     <div className="glass-surface overflow-hidden">
                                         <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
-                                            <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(selectedDay)}</span>
+                                            <span className="text-xs font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(selectedDay)}</span>
                                             {dayRows.length > 0 && (() => { const net = dayNet(dayRows); return <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>; })()}
                                         </div>
                                         {dayRows.length > 0
@@ -1086,7 +1094,7 @@ const DTreasury = () => {
                                             return (
                                                 <div key={day} className="glass-surface overflow-hidden">
                                                     <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
-                                                        <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
+                                                        <span className="text-xs font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
                                                         <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>
                                                     </div>
                                                     <div className="divide-y divide-[var(--dash-border)]">
@@ -1108,9 +1116,9 @@ const DTreasury = () => {
                                 <div className="flex items-center gap-3 min-w-0">
                                     <span className="w-11 h-11 rounded-sm flex items-center justify-center bg-dash-accent/12 text-dash-accent-text shrink-0"><Wallet2 size={22} /></span>
                                     <div className="min-w-0">
-                                        <div className="text-[11px] font-bold uppercase tracking-wider text-dash-text-2">Total balance · {cur}</div>
+                                        <div className="text-xs font-bold uppercase tracking-wider text-dash-text-2">Total balance · {cur}</div>
                                         <div className="text-2xl sm:text-3xl font-bold tnum text-dash-text leading-tight" style={{ color: liquidTotal >= 0 ? undefined : 'var(--dash-danger)' }}>{formatMoney(liquidTotal, cur)}</div>
-                                        <div className="text-[11px] text-dash-text-2">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
+                                        <div className="text-xs text-dash-text-2">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
                                     </div>
                                 </div>
                                 <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Plus size={16} /> Account</button>
@@ -1137,21 +1145,21 @@ const DTreasury = () => {
                                                         <span className="w-10 h-10 rounded-sm flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, tColor 12%, transparent)`, color: tColor }}><Icon size={18} /></span>
                                                         <div className="min-w-0">
                                                             <div className="text-sm font-bold text-dash-text truncate" title={a.name}>{a.name}</div>
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.type} · {a.currency}</div>
+                                                            <div className="text-xs font-bold uppercase tracking-wider text-dash-text-2">{a.type} · {a.currency}</div>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
                                                         {a.excludeFromNetProfit && (
-                                                            <span title="Excluded from Net profit and the earnings chart" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-dash-surface-3 text-dash-text-2">Off P&amp;L</span>
+                                                            <span title="Excluded from Net profit and the earnings chart" className="text-xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-dash-surface-3 text-dash-text-2">Off P&amp;L</span>
                                                         )}
-                                                        <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                        <Pencil size={14} className="text-dash-text-2 opacity-80 group-hover:opacity-100 transition-opacity" />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Balance</div>
+                                                    <div className="text-xs font-bold uppercase tracking-wider text-dash-text-2">Balance</div>
                                                     <div className="text-xl font-bold tnum" style={{ color: bal >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{formatMoney(bal, a.currency)}</div>
                                                 </div>
-                                                <div className="text-[11px] text-dash-text-2 flex items-center justify-between gap-2 pt-1 border-t border-[var(--dash-border)]">
+                                                <div className="text-xs text-dash-text-2 flex items-center justify-between gap-2 pt-1 border-t border-[var(--dash-border)]">
                                                     <span>{moves} movement{moves === 1 ? '' : 's'}</span>
                                                     <span className="tnum">opening {formatMoney(a.openingBalance || 0, a.currency)}</span>
                                                 </div>
@@ -1175,7 +1183,7 @@ const DTreasury = () => {
                                                         <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-surface-2 dark:bg-dash-surface/5 text-dash-text-2 shrink-0"><Icon size={16} /></span>
                                                         <div className="min-w-0">
                                                             <div className="text-sm font-semibold text-dash-text truncate">{a.name}</div>
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.currency}</div>
+                                                            <div className="text-xs font-bold uppercase tracking-wider text-dash-text-2">{a.currency}</div>
                                                         </div>
                                                     </div>
                                                     <span className="text-sm font-bold tnum text-dash-text-2">{formatMoney(bal, a.currency)}</span>
@@ -1237,7 +1245,7 @@ const DTreasury = () => {
                                 ) : receiptDay ? (
                                     <div className="glass-surface overflow-hidden">
                                         <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
-                                            <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(receiptDay)}</span>
+                                            <span className="text-xs font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(receiptDay)}</span>
                                             {receiptDayRows.length > 0 && <span className="text-xs font-bold text-dash-text-2 tnum">{receiptDayRows.length} sent</span>}
                                         </div>
                                         {receiptDayRows.length > 0
@@ -1253,7 +1261,7 @@ const DTreasury = () => {
                                         {receiptsByDay.map(([day, rows]) => (
                                             <div key={day} className="glass-surface overflow-hidden">
                                                 <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
-                                                    <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
+                                                    <span className="text-xs font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
                                                     <span className="text-xs font-bold text-dash-text-2 tnum">{rows.length} sent</span>
                                                 </div>
                                                 <div className="divide-y divide-[var(--dash-border)]">{rows.map(renderReceiptRow)}</div>

@@ -631,7 +631,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                 form="projectForm"
                                 disabled={saving}
                                 aria-busy={saving}
-                                className="btn btn-primary px-6 py-2 shadow-lg hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 text-sm font-bold"
+                                className="btn btn-primary px-6 py-2 shadow-lg hover:scale-105 disabled:opacity-80 disabled:hover:scale-100 text-sm font-bold"
                                 style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}
                             >
                                 {saving ? 'Saving...' : `${initialData ? 'Update' : 'Create'} Project`}

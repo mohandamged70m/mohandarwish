@@ -471,7 +471,7 @@ const DTags = () => {
                         {activeSection === 'tags' ? (
                             <>
                                 {filteredTags.length === 0 ? (
-                                    <div className="p-12 text-center text-dash-text-2">
+                                    <div className="empty-state p-12 text-center">
                                         {searchQuery ? "No tags match your search." : "No tags yet. Click the + button to add one."}
                                     </div>
                                 ) : (
@@ -524,7 +524,7 @@ const DTags = () => {
                                                 </div>
                                                 <div className="min-w-0">
                                                     <div className="font-bold text-dash-text text-lg sm:text-xl lg:text-2xl truncate mb-0.5 sm:mb-1">{tag.name}</div>
-                                                    <div className="text-[10px] sm:text-xs font-heading uppercase tracking-widest opacity-40 truncate">{tag.color}</div>
+                                                    <div className="text-xs sm:text-xs font-heading uppercase tracking-widest opacity-80 truncate">{tag.color}</div>
                                                 </div>
                                             </motion.div>
                                         ))}
@@ -534,7 +534,7 @@ const DTags = () => {
                         ) : (
                             <>
                                 {filteredContributors.length === 0 ? (
-                                    <div className="p-12 text-center text-dash-text-2">
+                                    <div className="empty-state p-12 text-center">
                                         {searchQuery ? "No contributors match your search." : "No contributors yet."}
                                     </div>
                                 ) : (
@@ -587,7 +587,7 @@ const DTags = () => {
                                                 {/* Bottom: Info */}
                                                 <div className="min-w-0">
                                                     <div className="font-bold text-dash-text text-lg sm:text-xl truncate mb-0.5 sm:mb-1">{contributor.name}</div>
-                                                    <div className="text-[10px] sm:text-[11px] font-medium text-dash-text-2 bg-dash-accent/5 dark:bg-dash-accent/10 px-2.5 py-1 rounded-full w-fit truncate max-w-full uppercase tracking-wider">
+                                                    <div className="text-xs sm:text-xs font-medium text-dash-text-2 bg-dash-accent/5 dark:bg-dash-accent/10 px-2.5 py-1 rounded-full w-fit truncate max-w-full uppercase tracking-wider">
                                                         {contributor.role}
                                                     </div>
                                                 </div>

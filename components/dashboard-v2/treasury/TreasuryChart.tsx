@@ -1,7 +1,7 @@
 "use client";
 /** Treasury earned-vs-spent chart, by day, week or month, in the display currency. */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, type TooltipContentProps } from 'recharts';
 import { Currency, formatMoney } from '@/lib/treasury';
@@ -28,14 +28,14 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipContentProps & { 
     ];
     return (
         <div className={`p-4 rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--scrim)] border-dash-border' : 'bg-dash-surface border-dash-border shadow-[0_20px_40px_var(--shadow-color)]'}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{header}</div>
+            <div className={`text-xs font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{header}</div>
             <div className="flex flex-col gap-2">
                 {rows.map(r => (
                     <div key={r.label} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: r.c, boxShadow: `0 0 10px ${r.c}` }} />
                         <span className={`text-sm font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                             {formatMoney(r.v, cur)}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{r.label}</span>
+                            <span className={`font-normal text-xs uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{r.label}</span>
                         </span>
                     </div>
                 ))}
@@ -48,6 +48,7 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipContentProps & { 
 export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
     data: ChartPoint[]; filter: ChartFilter; setFilter: (f: ChartFilter) => void; isDark: boolean; cur: Currency;
 }) => {
+    const reduceMotion = useReducedMotion();
     const [pageIndex, setPageIndex] = useState(0);
     const [direction, setDirection] = useState(0);
     const chartRef = useRef<HTMLDivElement>(null);
@@ -124,11 +125,13 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
     }, [currentPageData, filter]);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pageVariants: any = {
-        enter: (dir: number) => ({ x: dir > 0 ? '80%' : '-80%', opacity: 0 }),
-        center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
-        exit: (dir: number) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0, transition: { duration: 0.2 } }),
-    };
+    const pageVariants: any = reduceMotion
+        ? { enter: { opacity: 1 }, center: { opacity: 1 }, exit: { opacity: 1 } }
+        : {
+            enter: (dir: number) => ({ x: dir > 0 ? '80%' : '-80%', opacity: 0 }),
+            center: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+            exit: (dir: number) => ({ x: dir > 0 ? '-30%' : '30%', opacity: 0, transition: { duration: 0.2 } }),
+        };
 
     return (
         <div ref={containerRef} className="glass-panel p-5 sm:p-6 relative overflow-hidden">
@@ -136,21 +139,21 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
                 <div className="flex items-end gap-6 sm:gap-10">
                     <div>
-                        <p className="text-dash-text-2 text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Earned · {cur}</p>
+                        <p className="text-dash-text-2 text-xs font-bold uppercase tracking-[0.25em] mb-1.5">Earned · {cur}</p>
                         <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--dash-success)' }}>
                             {/* keyed on the value so paging the chart re-rolls the figure */}
                             <RollingNumber key={pageEarned} text={formatMoney(pageEarned, cur)} />
                         </h3>
                     </div>
                     <div>
-                        <p className="text-dash-text-2 text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Spent</p>
+                        <p className="text-dash-text-2 text-xs font-bold uppercase tracking-[0.25em] mb-1.5">Spent</p>
                         <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--dash-danger)' }}>{formatMoney(pageSpent, cur)}</h3>
                     </div>
                 </div>
                 <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'}`}>
                     {(['daily', 'weekly', 'monthly'] as ChartFilter[]).map(f => (
                         <button key={f} onClick={() => setFilter(f)}
-                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-dash-accent text-dash-text shadow-lg shadow-[0_8px_24px_var(--shadow-color)]' : isDark ? 'text-dash-text-3 hover:text-dash-text-2' : 'text-dash-text-3 hover:text-dash-text-2'}`}>
+                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-xs font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-dash-accent text-dash-text shadow-lg shadow-[0_8px_24px_var(--shadow-color)]' : isDark ? 'text-dash-text-3 hover:text-dash-text-2' : 'text-dash-text-3 hover:text-dash-text-2'}`}>
                             {f === 'daily' ? 'Day' : f === 'weekly' ? 'Week' : 'Month'}
                         </button>
                     ))}
@@ -160,15 +163,17 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             {/* Row 2: period label (always shown) + pager (only when multiple pages) */}
             <div className="flex items-center gap-2 mb-4">
                 {totalPages > 1 && (
-                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
+                    <button aria-label="Previous period" onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className="p-2 rounded-sm transition-colors text-dash-text-3 hover:text-dash-text disabled:opacity-30 disabled:cursor-not-allowed"><ChevronLeft size={16} /></button>
                 )}
                 <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-dash-text' : 'text-dash-text-2'}`}>{pageTitle || '-'}</span>
                 {totalPages > 1 && (
                     <>
-                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
+                        <button aria-label="Next period" onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className="p-2 rounded-sm transition-colors text-dash-text-3 hover:text-dash-text disabled:opacity-30 disabled:cursor-not-allowed"><ChevronRight size={16} /></button>
                         <div className="flex items-center gap-1 ml-1">
                             {pages.map((_, i) => (
-                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-dash-accent' : `w-1.5 h-1.5 ${isDark ? 'bg-dash-surface-2 hover:bg-dash-surface-3' : 'bg-black/10 hover:bg-black/20'}`}`} />
+                                <button key={i} aria-label={`Period ${i + 1} of ${totalPages}`} aria-current={i === safePageIndex ? 'page' : undefined} onClick={() => changePage(i)} className="w-6 h-6 grid place-items-center rounded-sm cursor-pointer">
+                                    <span className={`block rounded-sm transition-all ${i === safePageIndex ? 'w-4 h-1.5 bg-dash-accent' : 'w-1.5 h-1.5 bg-dash-border-strong hover:bg-dash-accent'}`} />
+                                </button>
                             ))}
                         </div>
                     </>

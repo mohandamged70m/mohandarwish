@@ -138,7 +138,7 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                             type="button"
                             onClick={connect}
                             disabled={busy}
-                            className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer disabled:opacity-60"
+                            className="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer disabled:opacity-80"
                         >
                             {state === 'off' ? <Link2 size={16} /> : <RefreshCw size={16} />}
                             {state === 'off' ? 'Connect' : 'Reconnect'}
@@ -149,7 +149,7 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                             type="button"
                             onClick={() => setConfirmOff(true)}
                             disabled={busy}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-60"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-80"
                             style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                         >
                             <Unlink size={16} />

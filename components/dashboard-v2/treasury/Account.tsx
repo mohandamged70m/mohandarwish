@@ -123,7 +123,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                                 const on = type === t;
                                 return (
                                     <button key={t} type="button" onClick={() => setType(t)} title={t}
-                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold capitalize transition-colors ${on ? 'text-dash-text' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-bold capitalize transition-colors ${on ? 'text-dash-text' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {on && (
                                             <motion.span
                                                 layoutId="account-type-pill"
@@ -157,7 +157,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             </div>
                         </div>
                     </div>
-                    <p className="text-[11px] text-dash-text-2 -mt-1">The balance updates as you log income into and expenses from this account.</p>
+                    <p className="text-xs text-dash-text-2 -mt-1">The balance updates as you log income into and expenses from this account.</p>
 
                     <div>
                         <label className={labelCls}>Notes</label>
@@ -169,7 +169,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <Toggle checked={countsTowardNetProfit} onChange={setCountsTowardNetProfit} aria-label="Counts toward net profit" />
                             <span className="text-sm text-dash-text font-medium flex items-center gap-1.5"><TrendingUp size={14} /> Counts toward net profit</span>
                         </div>
-                        <p className="text-[11px] text-dash-text-2 mt-1.5 ml-7">Turn off for money that isn't real business P&amp;L (e.g. savings, a client's escrow) - income/expenses here still update this account's balance, just not Net profit or the earnings chart.</p>
+                        <p className="text-xs text-dash-text-2 mt-1.5 ml-7">Turn off for money that isn't real business P&amp;L (e.g. savings, a client's escrow) - income/expenses here still update this account's balance, just not Net profit or the earnings chart.</p>
                     </div>
 
                     {isEdit && (

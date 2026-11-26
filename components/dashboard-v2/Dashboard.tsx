@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, lazy, Suspense, startTransition, type ComponentType } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, startTransition, type ComponentType } from 'react';
 import { Layout, Footprints, Settings, Bird, LogOut, Tag, User, GitBranch, Landmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, onSnapshot } from '@/lib/dash-db';
@@ -54,6 +54,8 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
     // Back from connecting Google Calendar (Settings > Calendar shows how it went).
     const [activeTab, setActiveTab] = useState<TabId>('projects');
+    const mainRef = useRef<HTMLDivElement>(null);
+    useEffect(() => { mainRef.current?.focus(); }, [activeTab]);
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe initial route
         if (parkCalendarReturn()) setActiveTab('settings');
@@ -131,7 +133,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             className="dash-root w-full h-screen flex bg-dash-bg relative overflow-hidden touch-pan-y"
             style={{ ['--sidebar-width']: sidebarWidth } as unknown as React.CSSProperties}
         >
-
+            <a href="#dashboard-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[2000] focus:rounded-sm focus:bg-dash-surface focus:px-4 focus:py-2 focus:text-dash-text">Skip to content</a>
 
             {/* Sidebar */}
             <aside
@@ -285,8 +287,14 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     {/* Content Viewport. This fade is the ONE entrance a tab gets: the tabs
                         animate only their own sub-section switches, never their first mount,
                         so nothing paints, hides and fades in a second time. */}
-                    <div className="dashboard-content-area flex-1 relative min-h-0">
-                        <Suspense fallback={null}>
+                    <div id="dashboard-main" ref={mainRef} tabIndex={-1} className="dashboard-content-area flex-1 relative min-h-0 outline-none">
+                        <Suspense fallback={(
+                            <div className="h-full p-6 flex flex-col gap-3" role="status" aria-label="Loading workspace">
+                                <div className="skeleton h-8 w-48 rounded-sm" />
+                                <div className="skeleton h-4 w-72 rounded-sm" />
+                                <div className="skeleton h-32 w-full rounded-sm" />
+                            </div>
+                        )}>
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}

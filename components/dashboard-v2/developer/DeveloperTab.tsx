@@ -203,7 +203,7 @@ const DDeveloper = () => {
                                         onClick={() => moveRepo(name, -1)}
                                         disabled={i === 0}
                                         aria-label={`Move ${name} up`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-dash-text"
+                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowUp size={15} />
@@ -212,7 +212,7 @@ const DDeveloper = () => {
                                         onClick={() => moveRepo(name, 1)}
                                         disabled={i === repos.length - 1}
                                         aria-label={`Move ${name} down`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-dash-text"
+                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-70 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowDown size={15} />
@@ -235,7 +235,7 @@ const DDeveloper = () => {
                             className="flex flex-col items-center justify-center text-center gap-2 py-8 px-4 rounded-sm text-dash-text-3"
                             style={{ border: '2px dashed var(--dash-border)' }}
                         >
-                            <ListChecks size={22} className="opacity-40" />
+                            <ListChecks size={22} className="opacity-80" />
                             <span className="text-xs">Select repos from the list to feature them</span>
                         </div>
                     )}

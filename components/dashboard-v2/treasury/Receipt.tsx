@@ -340,7 +340,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
         }
     };
 
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
+    const labelCls = 'block text-xs font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
     const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-dash-surface-2 border-black/10 focus:border-dash-accent/60'} text-dash-text`;
     const showPeriod = selectedProjects.some(p => p.monthly && perPayment[p.id]);
 
@@ -384,7 +384,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         type="button"
                                         onClick={() => setKind(k)}
                                         title={hint}
-                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-dash-text shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
+                                        className={`px-2 py-2 rounded-lg text-xs font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-dash-text shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
                                     >
                                         {title}
                                     </button>
@@ -412,7 +412,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                 </span>
                                                 <span className="min-w-0 flex-1">
                                                     <span className="block text-sm font-semibold text-dash-text truncate">{p.name}</span>
-                                                    {p.client && <span className="block text-[11px] text-dash-text-2 truncate">{p.client}</span>}
+                                                    {p.client && <span className="block text-xs text-dash-text-2 truncate">{p.client}</span>}
                                                 </span>
                                                 <span className="text-xs font-bold text-dash-text-2 tnum shrink-0">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
                                             </button>
@@ -428,14 +428,14 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                                 key={mode}
                                                                 type="button"
                                                                 onClick={() => setPerPayment(prev => ({ ...prev, [p.id]: mode === 'payment' }))}
-                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-dash-text' : 'text-dash-text-2 hover:text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2'}`}
+                                                                className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-dash-text' : 'text-dash-text-2 hover:text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2'}`}
                                                             >
                                                                 {text}
                                                             </button>
                                                         );
                                                     })}
                                                     {single && (
-                                                        <span className="text-[10px] text-dash-text-2 tnum ml-auto shrink-0 truncate">
+                                                        <span className="text-xs text-dash-text-2 tnum ml-auto shrink-0 truncate">
                                                             {p.monthly
                                                                 ? formatMoney(p.priceAmount || 0, p.priceCurrency)
                                                                 : `${formatMoney(installmentMonthlyAmount(p), p.priceCurrency)} x ${p.installmentMonths}`}
@@ -509,12 +509,12 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                     </div>
                                 )}
                                 {datedCount === 0 ? (
-                                    <p className="mt-1.5 text-[11px] text-dash-text-2">No dated payment is logged against this project yet, so set the date yourself.</p>
+                                    <p className="mt-1.5 text-xs text-dash-text-2">No dated payment is logged against this project yet, so set the date yourself.</p>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={() => setManualDate(m => !m)}
-                                        className="mt-1.5 text-[11px] font-bold text-dash-accent-text hover:underline bg-transparent border-none p-0 cursor-pointer"
+                                        className="mt-1.5 text-xs font-bold text-dash-accent-text hover:underline bg-transparent border-none p-0 cursor-pointer"
                                     >
                                         {useManualDate ? 'Use the logged dates' : 'Set the date manually'}
                                     </button>
@@ -532,14 +532,14 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                             <textarea className={`${inputCls} min-h-[60px] resize-y`} value={note} onChange={e => setNote(e.target.value)} placeholder="Thanks for your business, payment terms, etc." />
                         </div>
 
-                        <div className="text-[11px] text-dash-text-2">Receipt no. <span className="font-heading text-dash-text">{receiptNo}</span></div>
+                        <div className="text-xs text-dash-text-2">Receipt no. <span className="font-heading text-dash-text">{receiptNo}</span></div>
                     </div>
 
                     {/* Preview - scaled to fit the panel, no scrollbars */}
                     <div className="p-5 flex flex-col gap-3 min-h-[360px] md:min-h-0 md:flex-1 min-w-0 bg-dash-surface-2 dark:bg-dash-surface-2">
                         <div className="flex items-center justify-between">
                             <span className={labelCls} style={{ margin: 0 }}>Preview</span>
-                            {sentTo && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-dash-success"><Check size={12} /> Sent to {sentTo}</span>}
+                            {sentTo && <span className="inline-flex items-center gap-1 text-xs font-bold text-dash-success"><Check size={12} /> Sent to {sentTo}</span>}
                         </div>
                         <div ref={fitRef} className="flex-1 min-h-0 overflow-hidden flex items-center justify-center">
                             {/* The border wraps the receipt itself (sized to the scaled doc), so the
@@ -569,7 +569,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                     <button
                         onClick={send}
                         disabled={!canSend || !!sentTo}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-dash-text transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-dash-success disabled:opacity-100' : 'bg-dash-accent hover:bg-dash-accent disabled:opacity-40'}`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-dash-text transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-dash-success disabled:opacity-100' : 'bg-dash-accent hover:bg-dash-accent disabled:opacity-80'}`}
                     >
                         {sending ? <Loader2 size={16} className="animate-spin" /> : sentTo ? <Check size={16} strokeWidth={3} /> : <Send size={16} />}
                         {sending ? 'Sending…' : sentTo ? `Sent to ${sentTo}` : (kind === 'due' ? 'Send request' : 'Send receipt')}

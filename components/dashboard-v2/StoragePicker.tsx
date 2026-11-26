@@ -15,7 +15,7 @@ const Spinner = () => (
             <div className="absolute inset-0 border-4 border-dash-accent/20 rounded-full"></div>
             <div className="absolute inset-0 border-4 border-dash-accent border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <span className="text-[10px] font-bold text-dash-accent-text/80 uppercase tracking-widest animate-pulse">Syncing...</span>
+        <span className="text-xs font-bold text-dash-accent-text/80 uppercase tracking-widest animate-pulse">Syncing...</span>
     </div>
 );
 

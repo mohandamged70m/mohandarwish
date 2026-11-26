@@ -1227,7 +1227,7 @@ const DCanary = () => {
                                                 <h4 className="text-sm font-bold m-0 truncate" style={{ color: 'var(--dash-text)' }}>{meeting.title}</h4>
                                                 {meeting.email && (
                                                     <div className="flex items-center gap-1.5 min-w-0" style={{ color: 'var(--dash-text-2)' }}>
-                                                        <Mail size={11} className="opacity-60 shrink-0" />
+                                                        <Mail size={11} className="opacity-80 shrink-0" />
                                                         <span className="text-xs truncate">{meeting.email}</span>
                                                     </div>
                                                 )}
@@ -1325,7 +1325,7 @@ const DCanary = () => {
                                                         )}
                                                     </div>
                                                 )}
-                                                <p className="m-0 text-xs opacity-60 line-clamp-1 mt-0.5">{email.message}</p>
+                                                <p className="m-0 text-xs opacity-80 line-clamp-1 mt-0.5">{email.message}</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className="text-xs font-bold opacity-80">{new Date(email.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                                     {email.attachments.length > 0 && (
@@ -1492,7 +1492,7 @@ const DCanary = () => {
                                             <div className="flex items-center justify-between pb-2 border-b border-dashed" style={{ borderColor: 'var(--dash-border)' }}>
                                                 <div className="flex items-center gap-2">
                                                     <Paperclip size={16} className="text-dash-accent-text" />
-                                                    <span className="text-xs font-bold uppercase tracking-widest opacity-60">
+                                                    <span className="text-xs font-bold uppercase tracking-widest opacity-80">
                                                         Attachments ({selectedEmail.attachments.length})
                                                     </span>
                                                 </div>
@@ -1560,7 +1560,7 @@ const DCanary = () => {
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Email</span>
                                                 <a href={`mailto:${viewingMeeting.email}`} className="text-sm font-semibold hover:text-dash-accent-text transition-colors break-all select-all inline-flex items-center gap-2" style={{ color: 'var(--dash-text)' }}>
-                                                    <Mail size={14} className="opacity-60 shrink-0" />
+                                                    <Mail size={14} className="opacity-80 shrink-0" />
                                                     {viewingMeeting.email}
                                                 </a>
                                             </div>
@@ -1572,7 +1572,7 @@ const DCanary = () => {
                                             </div>
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Time</span>
-                                                <span className="text-sm font-semibold inline-flex items-center gap-2" style={{ color: 'var(--dash-text)' }}><Clock size={14} className="opacity-60 shrink-0" />{viewingMeeting.time}</span>
+                                                <span className="text-sm font-semibold inline-flex items-center gap-2" style={{ color: 'var(--dash-text)' }}><Clock size={14} className="opacity-80 shrink-0" />{viewingMeeting.time}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5 items-start">

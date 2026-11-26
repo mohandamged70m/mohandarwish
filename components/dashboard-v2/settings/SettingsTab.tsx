@@ -1056,7 +1056,7 @@ export default function DSettings() {
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base leading-none">Crop Photo</h3>
-                                    <p className="text-[11px] text-dash-text-3 mt-1 uppercase tracking-wider font-medium opacity-60">Adjust your profile image</p>
+                                    <p className="text-xs text-dash-text-3 mt-1 uppercase tracking-wider font-medium opacity-80">Adjust your profile image</p>
                                 </div>
                             </div>
                             <button
@@ -1108,8 +1108,8 @@ export default function DSettings() {
                             </div>
 
                             <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div className="text-[11px] text-dash-text-3 max-w-[200px]">
-                                    <span className="opacity-60">Drag to move. Scroll or use slider to zoom.</span>
+                                <div className="text-xs text-dash-text-3 max-w-[200px]">
+                                    <span className="opacity-80">Drag to move. Scroll or use slider to zoom.</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -1309,7 +1309,7 @@ export default function DSettings() {
                                 {heroImageMode === 'dark' && heroImagePreviewDark && (
                                     <button
                                         onClick={handleClearHeroImageDark}
-                                        className="text-[10px] uppercase tracking-wider text-dash-danger hover:text-dash-danger transition shrink-0"
+                                        className="text-xs uppercase tracking-wider text-dash-danger hover:text-dash-danger transition shrink-0"
                                         title="Clear dark hero image"
                                     >
                                         Clear
@@ -1370,8 +1370,8 @@ export default function DSettings() {
                                             ) : (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-dash-text-3 gap-2">
                                                     {isLight ? <User size={48} className="opacity-20" /> : <Moon size={40} className="opacity-20" />}
-                                                    <span className="text-xs font-semibold uppercase tracking-widest opacity-30">{isLight ? 'No Image' : 'No Dark Image'}</span>
-                                                    {!isLight && <span className="text-[10px] text-dash-text-3 opacity-70 px-4 text-center">Falls back to light image if empty</span>}
+                                                    <span className="text-xs font-semibold uppercase tracking-widest opacity-70">{isLight ? 'No Image' : 'No Dark Image'}</span>
+                                                    {!isLight && <span className="text-xs text-dash-text-3 opacity-70 px-4 text-center">Falls back to light image if empty</span>}
                                                 </div>
                                             )}
 
@@ -1427,7 +1427,7 @@ export default function DSettings() {
                                             {profileImagePreview ? (
                                                 <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover rounded-full" />
                                             ) : (
-                                                <User size={40} className="text-dash-text-3 opacity-40" />
+                                                <User size={40} className="text-dash-text-3 opacity-80" />
                                             )}
                                         </div>
 
@@ -1589,7 +1589,7 @@ export default function DSettings() {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="text-center p-5 border border-dashed border-black/10 dark:border-dash-border rounded-sm text-dash-text-3 text-sm">
+                                        <div className="empty-state text-center p-5 text-sm">
                                             No links yet. Add up to 5.
                                         </div>
                                     )}

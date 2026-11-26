@@ -120,7 +120,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-center sm:text-left text-dash-text-3 text-[10px] mt-1 pl-1">SVG files recommended for best quality</p>
+                            <p className="text-center sm:text-left text-dash-text-3 text-xs mt-1 pl-1">SVG files recommended for best quality</p>
                         </div>
 
                         <div className="flex justify-end gap-3 mt-4">
