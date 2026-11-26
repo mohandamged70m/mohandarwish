@@ -1,0 +1,113 @@
+/*
+ * One interaction language for every dashboard button.
+ * Default: calm and legible. Hover: one step brighter/deeper.
+ * Press: tiny downward displacement (no layout shift). Focus: always visible.
+ * Disabled: unmistakably inert. No hover-only affordances.
+ */
+.dash-root button,
+.dash-root [role="button"] {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease,
+    filter 150ms ease,
+    transform 100ms ease;
+}
+
+.dash-root button:focus-visible,
+.dash-root [role="button"]:focus-visible {
+  outline: 2px solid var(--dash-accent-text);
+  outline-offset: 2px;
+}
+
+.dash-root button:not(:disabled):not([aria-disabled="true"]):active,
+.dash-root [role="button"]:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.dash-root button:disabled,
+.dash-root button[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  filter: grayscale(0.4);
+}
+
+/* Primary CTA: wine fill, warm-white text, a restrained glow on hover. */
+.dash-root .btn-primary,
+.dash-root button.bg-dash-accent {
+  background-color: var(--dash-accent);
+  color: var(--on-primary);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.dash-root .btn-primary:not(:disabled):hover,
+.dash-root button.bg-dash-accent:not(:disabled):hover {
+  background-color: var(--dash-accent-hover);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+/* Secondary: quiet surface, hairline border, wine on hover. */
+.dash-root .btn-secondary {
+  background-color: var(--dash-surface-raised);
+  color: var(--dash-text);
+  border: 1px solid var(--dash-border);
+}
+
+.dash-root .btn-secondary:not(:disabled):hover {
+  background-color: var(--dash-surface-hover);
+  border-color: var(--dash-border-strong);
+  color: var(--dash-accent-text);
+}
+
+/* Icon buttons: invisible until hover, but always labelled and focusable. */
+.dash-root .btn-icon {
+  background: transparent;
+  color: var(--dash-text-2);
+  border: 1px solid transparent;
+}
+
+.dash-root .btn-icon:not(:disabled):hover {
+  background-color: var(--dash-surface-hover);
+  border-color: var(--dash-border);
+  color: var(--dash-text);
+}
+
+/* Tailwind hover utilities get the same deeper accent, not a flat repeat. */
+.dash-root button[class*="hover:bg-dash-accent"]:not(:disabled):hover {
+  background-color: var(--dash-accent-hover) !important;
+}
+
+/* Inline-styled legacy buttons still get a coherent hover state. */
+.dash-root button[style*="--dash-accent"]:not(:disabled):hover {
+  background-color: var(--dash-accent-hover) !important;
+  color: var(--on-primary) !important;
+}
+
+.dash-root button[style*="--dash-danger"]:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--danger) 85%, var(--background)) !important;
+  color: var(--on-primary) !important;
+}
+
+/* Sidebar and tab buttons keep their active state but get a hover step. */
+.dash-root button.sidebar-item:not(:disabled):hover {
+  background-color: var(--dash-surface-3);
+  color: var(--dash-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-root button,
+  .dash-root [role="button"] {
+    transition-duration: 0ms;
+  }
+
+  .dash-root button:not(:disabled):active,
+  .dash-root [role="button"]:not(:disabled):active {
+    transform: none;
+  }
+}
