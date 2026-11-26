@@ -181,3 +181,178 @@
 @media (prefers-reduced-motion: reduce) {
   .dash-root .skeleton { animation: none; }
 }
+
+/* ── Trails: warm cream + maroon, scoped inside the dark admin shell ───── */
+.trails-theme,
+.dash-root .trails-page {
+  --background: #faf6f0;
+  --surface: #fffdf9;
+  --surface-raised: #fff8f1;
+  --surface-hover: #f5ece4;
+  --border: #e3d1c8;
+  --border-strong: #a88378;
+  --text: #250902;
+  --text-2: #6b4a3e;
+  --muted: #7c6357;
+  --primary: #800e13;
+  --primary-hover: #640d14;
+  --primary-soft: #fbe4da;
+  --highlight: #800e13;
+  --highlight-hover: #640d14;
+  --highlight-soft: #fbe4da;
+  --on-primary: #fff7ed;
+  --success: #047857;
+  --warning: #b45309;
+  --danger: #be123c;
+  --info: #0369a1;
+  --chart-1: #800e13;
+  --chart-2: #a88378;
+  --chart-3: #6b4a3e;
+  --chart-4: #b45309;
+  --chart-5: #7c6357;
+  --shadow-color: rgba(80, 25, 15, 0.18);
+  color-scheme: light;
+  background: var(--background);
+  color: var(--text);
+}
+
+.trails-page ul[role="list"] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trails-page .trail-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.trails-page .trail-scroll {
+  max-height: calc(100dvh - 260px);
+  overflow-y: auto;
+  padding-bottom: 96px; /* floating Spark never covers the last row */
+}
+
+.trails-page .trail-day-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.trails-page .trail-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1.2fr) minmax(0, 1fr) 160px 110px 80px;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.trails-page .trail-row:hover,
+.trails-page .trail-row:focus-visible {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.trails-page .trail-row:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.trails-page .trail-cell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trails-page .trail-primary {
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.trails-page .trail-secondary {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.trails-page .trail-placeholder {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: transparent;
+}
+
+.trails-page .trail-subtitle {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  margin: 2px 0 0;
+}
+
+.trails-page .trail-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trails-page .trail-chip--cv { background: #fbe4da; color: #800e13; }
+.trails-page .trail-chip--contact { background: #f5e6e8; color: #800e13; }
+.trails-page .trail-chip--book { background: #f7ecdc; color: #8a4b09; }
+.trails-page .trail-chip--link { background: #efe4dc; color: #6b4a3e; }
+.trails-page .trail-chip--quiet { background: var(--surface-hover); color: var(--text-2); }
+
+.trails-page .trail-mobile-meta { display: none; }
+
+.trails-page .trail-search {
+  height: 40px;
+  font-size: 14px;
+}
+
+.trails-page .trail-skeleton-row {
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+@media (max-width: 767px) {
+  .trails-page .trail-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 4px 10px;
+    padding: 12px;
+  }
+
+  .trails-page .trail-row > :nth-child(2) { grid-column: 2; grid-row: 1; }
+  .trails-page .trail-row > :nth-child(3) { grid-column: 2; grid-row: 2; }
+  .trails-page .trail-row > :nth-child(n+4) { display: none; }
+  .trails-page .trail-mobile-meta { display: block; font-size: 12px; }
+}

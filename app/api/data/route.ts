@@ -146,6 +146,12 @@ export async function POST(req: Request) {
       });
     } else if (op === "trailsDiagnostics" && owner) {
       data = await convexQuery(api.trails.diagnostics, {});
+    } else if (op === "dedupeTrails" && owner) {
+      const windowMs =
+        typeof a.windowMs === "number" && a.windowMs >= 1000 && a.windowMs <= 300_000
+          ? a.windowMs
+          : 60_000;
+      data = await convexMutation(api.trails.dedupeWindow, { windowMs });
     } else
       return NextResponse.json(
         { error: "Unsupported operation" },

@@ -150,6 +150,8 @@ export interface SessionDoc {
   Owner: boolean;
   /** Set on rows rebuilt from the pre-rewrite blobs. */
   Legacy: boolean;
+  /** Set by the owner-only dedupe op when this is a duplicate of another visit. */
+  Hidden?: boolean;
 }
 
 /** `Analytics/Days/Items/{YYYY-MM-DD}` - one rollup per day. */

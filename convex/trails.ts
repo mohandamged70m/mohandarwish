@@ -227,6 +227,28 @@ async function getData(ctx: any, path: string): Promise<Dict> {
   const data = row?.data;
   return isObj(data) ? (data as Dict) : {};
 }
+const DUPLICATE_WINDOW_MS = 60_000;
+
+/** Sessions opened for the same visitor, country and browser within one minute. */
+async function recentSessions(ctx: any): Promise<Array<{ path: string; data: Dict }>> {
+  const rows: any[] = await ctx.db.query("dashboardDocs").collect();
+  return rows
+    .filter((row) => String(row.path).startsWith(`${SESSIONS}/`) && isObj(row.data))
+    .map((row) => ({ path: String(row.path), data: row.data as Dict }));
+}
+
+function sameOpening(a: Dict, b: Dict): boolean {
+  const ag = isObj(a.Geo) ? a.Geo : {};
+  const bg = isObj(b.Geo) ? b.Geo : {};
+  const ad = isObj(a.Device) ? a.Device : {};
+  const bd = isObj(b.Device) ? b.Device : {};
+  return (
+    str(a.Visitor, 40) === str(b.Visitor, 40) &&
+    str(ag.Code, 4) === str(bg.Code, 4) &&
+    str(ad.Browser, 40) === str(bd.Browser, 40)
+  );
+}
+
 async function upsertData(ctx: any, path: string, data: Dict): Promise<void> {
   const row: any = await ctx.db
     .query("dashboardDocs")
@@ -302,6 +324,35 @@ export const applyFlush = mutation({
     const add = isObj(args.add) ? (args.add as Dict) : {};
     const set = isObj(args.set) ? (args.set as Dict) : {};
     const hello = isObj(args.hello) ? (args.hello as Dict) : null;
+
+    // Server-side collapse of the classic StrictMode / double-open duplicate:
+    // a second opening for the same visitor + country + browser in the same
+    // minute is not a second visit. The client stops on this terminal result.
+    const newEvents = Array.isArray(args.events) ? args.events : [];
+    if (!hasSession && hello && num(add.activeMs, Number.MAX_SAFE_INTEGER) === 0 && newEvents.length === 0) {
+      const helloDevice = isObj(hello.device) ? (hello.device as Dict) : {};
+      const argGeo = isObj(args.geo) ? (args.geo as Dict) : {};
+      const startedAt = num(hello.startedAt, Number.MAX_SAFE_INTEGER);
+      const candidate: Dict = {
+        Visitor: visitor,
+        Geo: argGeo,
+        Device: helloDevice,
+      };
+      const sessions = await recentSessions(ctx);
+      const duplicate = sessions.some(({ path: otherPath, data }) => {
+        if (otherPath === path) return false;
+        if (num(data.ActiveMs, Number.MAX_SAFE_INTEGER) <= 1000) return false;
+        if (Math.abs(num(data.StartedAt, Number.MAX_SAFE_INTEGER) - startedAt) > DUPLICATE_WINDOW_MS) return false;
+        return sameOpening(data, candidate);
+      });
+      if (duplicate)
+        return {
+          status: "terminal",
+          reason: "duplicate-window",
+          tracked: false as const,
+          hello: false as const,
+        };
+    }
 
     const openMs = num(add.openMs, 6 * HOUR_MS);
     const activeMs = num(add.activeMs, 6 * HOUR_MS);
@@ -1455,5 +1506,42 @@ export const diagnostics = query({
       },
       outboxPending: pending.length,
     };
+  },
+});
+
+/**
+ * Owner-only cleanup for historical duplicates. Marks the shorter duplicate
+ * as Hidden instead of deleting it, so totals and the audit trail stay intact.
+ */
+export const dedupeWindow = mutation({
+  args: { serverKey: v.string(), windowMs: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    requireServer(args.serverKey);
+    const windowMs = Math.min(
+      Math.max(Math.round(args.windowMs ?? DUPLICATE_WINDOW_MS), 1000),
+      5 * 60_000,
+    );
+    const sessions = await recentSessions(ctx);
+    const groups = new Map<string, Array<{ path: string; data: Dict }>>();
+    for (const row of sessions) {
+      const d = row.data;
+      const started = num(d.StartedAt, Number.MAX_SAFE_INTEGER);
+      if (!started) continue;
+      const key = `${str(d.Visitor, 40)}|${str((isObj(d.Geo) ? d.Geo : {}).Code, 4)}|${str((isObj(d.Device) ? d.Device : {}).Browser, 40)}|${Math.floor(started / windowMs)}`;
+      const list = groups.get(key) || [];
+      list.push(row);
+      groups.set(key, list);
+    }
+    let hidden = 0;
+    for (const list of groups.values()) {
+      if (list.length < 2) continue;
+      list.sort((a, b) => num(b.data.ActiveMs, 0) - num(a.data.ActiveMs, 0));
+      for (const row of list.slice(1)) {
+        if (row.data.Hidden === true) continue;
+        await upsertData(ctx, row.path, { ...row.data, Hidden: true });
+        hidden += 1;
+      }
+    }
+    return { hidden };
   },
 });

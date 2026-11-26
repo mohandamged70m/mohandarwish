@@ -117,7 +117,7 @@
   --dash-text-3: var(--muted);
   --dash-accent: var(--primary);
   --dash-accent-hover: var(--primary-hover);
-  --dash-accent-text: var(--accent);
+  --dash-accent-text: var(--highlight);
   --dash-accent-soft: var(--primary-soft);
   --dash-success: var(--success);
   --dash-warning: var(--warning);

@@ -64,6 +64,18 @@ export async function POST(req: Request) {
       { status: 200 },
     );
 
+  // Next.js prefetches are RSC requests that never run client effects. If one
+  // ever reaches this route, it is not a visit — stop the collector immediately.
+  if (
+    req.headers.get("purpose") === "prefetch" ||
+    req.headers.get("rsc") === "1" ||
+    req.headers.has("next-router-state-tree")
+  )
+    return NextResponse.json(
+      { ok: true, tracked: false, hello: true, terminal: true, reason: "prefetch" },
+      { status: 200 },
+    );
+
   let owner = false;
   try {
     owner = isOwnerSession(await auth());

@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import {
     Copy, Check, MoreVertical, Edit2, Trash2, Activity, Plus, Briefcase, Eye, Globe,
     Footprints, Link2, Radio, Users, Mail, FileText, BellRing, BellOff,
-    Search, Filter, ArrowRight, Compass,
+    Search, Filter, ArrowRight, Compass, X, RotateCcw, Inbox, AlertCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, onSnapshot, updateDoc, collection, getDocs, setDoc, deleteDoc, query, orderBy, limit as fsLimit, where } from '@/lib/dash-db';
@@ -17,12 +17,14 @@ import Toggle from '@/components/dashboard-v2/ui/Toggle';
 import RollingNumber from '@/components/dashboard-v2/ui/RollingNumber';
 import useSafeAlert from '@/hooks/useSafeAlert';
 import MConfirmModal, { ConfirmType } from '../ConfirmModal';
-import MStory, { DeviceIcon, Flag, isLive, loadFlagFont } from './Story';
-import { formatMs, sawBookPage, sentLabel, type SessionDoc, type LinkDoc, type TotalsDoc, type DayDoc, type SocialStatsDoc } from '@/lib/analytics/types';
+import MStory, { isLive, loadFlagFont } from './Story';
+import { formatMs, sawBookPage, type SessionDoc, type LinkDoc, type TotalsDoc, type DayDoc, type SocialStatsDoc } from '@/lib/analytics/types';
 import { STORY_KEY } from '@/components/dashboard/primitives/Algorithm';
 import useTheme from '@/hooks/useTheme';
 import { ChartDataPoint, AnalyticsChart } from './AnalyticsChart';
 import { RankInput, ProjectRankings } from './ProjectRankings';
+import VisitRow from './VisitRow';
+import { dayLabel } from './format';
 
 /**
  * Trails - what people actually did on the portfolio.
@@ -74,7 +76,7 @@ const VIEWS: Array<{ id: TrailsView; label: string; icon: typeof Footprints; tin
 ];
 
 const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
-    { id: 'all', label: 'Everyone' },
+    { id: 'all', label: 'All' },
     { id: 'live', label: 'Reading now' },
     { id: 'links', label: 'From a link' },
     { id: 'book', label: 'Book page' },
@@ -97,7 +99,16 @@ const DTrails = () => {
     const [rankProjects, setRankProjects] = useState<RankInput[]>([]);
 
     const [storyFilter, setStoryFilter] = useState<StoryFilter>('all');
+    const [dataReady, setDataReady] = useState(false);
+    const [loadError, setLoadError] = useState(false);
+    const [showQuickBounces, setShowQuickBounces] = useState(false);
     useEffect(() => { loadFlagFont(); }, []);
+    // Scope the cream + maroon theme to this tab and its portals.
+    useEffect(() => {
+        document.body.classList.add('trails-theme');
+        void dataCall('dedupeTrails', { windowMs: 60_000 }).catch(() => { });
+        return () => document.body.classList.remove('trails-theme');
+    }, []);
     const [search, setSearch] = useState('');
     const [linkFilter, setLinkFilter] = useState<string | null>(null);
     const [openStoryId, setOpenStoryId] = useState<string | null>(null);
@@ -141,12 +152,20 @@ const DTrails = () => {
         const onDenied = () => {
             if (told) return;
             told = true;
+            setLoadError(true);
+            setDataReady(true);
             showAlert({ type: 'error', message: 'Could not load visits.' });
         };
 
         const stories = onSnapshot(
             query(collection(db, 'Analytics', 'Sessions', 'Items'), orderBy('StartedAt', 'desc'), fsLimit(300)),
-            snap => setSessions(snap.docs.map(d => ({ ...(d.data() as SessionDoc), Id: d.id }))),
+            snap => {
+                setSessions(snap.docs
+                    .map(d => ({ ...(d.data() as SessionDoc), Id: d.id }))
+                    .filter(s => !s.Hidden && !s.Owner));
+                setLoadError(false);
+                setDataReady(true);
+            },
             onDenied,
         );
 
@@ -229,24 +248,52 @@ const DTrails = () => {
     }, [sessions, openStoryId, pendingStory]);
 
     // ── derived ──────────────────────────────────────────────────────────
+    const countedSessions = useMemo(
+        () => sessions.filter(s => !s.Owner && !s.Hidden && (showQuickBounces || (s.ActiveMs || 0) >= 1000)),
+        [sessions, showQuickBounces],
+    );
+
+    const matchesFilter = useCallback((s: SessionDoc, filter: StoryFilter) => {
+        if (filter === 'live') return isLive(s);
+        if (filter === 'links') return !!s.Link;
+        if (filter === 'book') return sawBookPage(s);
+        if (filter === 'contacted') return !!(s.Contact?.Opens || s.Contact?.Sent);
+        return true;
+    }, []);
+
+    const filterCounts = useMemo(() => {
+        const counts: Record<StoryFilter, number> = { all: 0, live: 0, links: 0, book: 0, contacted: 0 };
+        for (const s of countedSessions) {
+            for (const f of STORY_FILTERS) if (matchesFilter(s, f.id)) counts[f.id] += 1;
+        }
+        return counts;
+    }, [countedSessions, matchesFilter]);
+
     const visibleStories = useMemo(() => {
         const needle = search.trim().toLowerCase();
-        return sessions.filter(s => {
-            if (s.Owner) return false;                       // the owner's own browser
+        return countedSessions.filter(s => {
             if (linkFilter && s.Link?.Id !== linkFilter) return false;
-            if (storyFilter === 'live' && !isLive(s)) return false;
-            if (storyFilter === 'links' && !s.Link) return false;
-            if (storyFilter === 'book' && !sawBookPage(s)) return false;
-            if (storyFilter === 'contacted' && !(s.Contact?.Opens || s.Contact?.Sent)) return false;
+            if (!matchesFilter(s, storyFilter)) return false;
             if (!needle) return true;
             return [
                 s.Geo?.Country, s.Geo?.Code, s.Device?.Browser, s.Device?.OS,
                 s.Link?.Name, s.Link?.For, s.Entry?.Ref,
             ].some(field => (field || '').toLowerCase().includes(needle));
         });
-    }, [sessions, search, storyFilter, linkFilter]);
+    }, [countedSessions, search, storyFilter, linkFilter, matchesFilter]);
 
-    const liveCount = useMemo(() => sessions.filter(s => !s.Owner && isLive(s)).length, [sessions]);
+    const groupedStories = useMemo(() => {
+        const groups: Array<{ label: string; rows: SessionDoc[] }> = [];
+        for (const s of visibleStories) {
+            const label = dayLabel(Number(s.StartedAt) || 0);
+            const group = groups.find(g => g.label === label);
+            if (group) group.rows.push(s);
+            else groups.push({ label, rows: [s] });
+        }
+        return groups;
+    }, [visibleStories]);
+
+    const liveCount = filterCounts.live;
 
     const chartData = useMemo(() => {
         if (!dailySeries.length) return [] as ChartDataPoint[];
@@ -454,13 +501,16 @@ const DTrails = () => {
     ];
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-y-auto lg:overflow-hidden p-1 sm:p-0">
+        <div className="trails-page flex flex-col gap-4 h-full overflow-y-auto lg:overflow-hidden p-1 sm:p-0">
             <LoadingCurtain open={isLoading} portal />
+            <div className="shrink-0">
+                <p className="trail-subtitle">{viewCaption}</p>
+            </div>
 
             {/* One header row - tabs, what you're looking at, and the live pill.
                 Everything below it is content. */}
             <div className="flex items-center gap-x-3 gap-y-2 flex-wrap shrink-0">
-                <div className="flex overflow-x-auto" style={{
+                <div role="tablist" aria-label="Trails views" className="flex overflow-x-auto" style={{
                     gap: isExtraSmall ? '4px' : '6px',
                     backgroundColor: 'var(--dash-surface-2)',
                     padding: isExtraSmall ? '4px' : '5px',
@@ -473,8 +523,10 @@ const DTrails = () => {
                         return (
                             <button
                                 key={item.id}
+                                role="tab"
+                                aria-selected={active}
                                 onClick={() => setView(item.id)}
-                                className="relative flex items-center whitespace-nowrap cursor-pointer font-semibold transition-colors"
+                                className="relative flex items-center whitespace-nowrap cursor-pointer font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dash-accent"
                                 style={{
                                     gap: isExtraSmall ? '6px' : '8px',
                                     padding: isExtraSmall ? '8px 12px' : '9px 16px',
@@ -488,7 +540,7 @@ const DTrails = () => {
                                     <motion.span
                                         layoutId="trails-view-pill"
                                         className="absolute inset-0 rounded-[10px]"
-                                        style={{ background: `rgba(${item.tint}, ${isDark ? 0.18 : 0.1})` }}
+                                        style={{ background: `color-mix(in srgb, ${item.tint} 14%, transparent)` }}
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 )}
@@ -512,8 +564,6 @@ const DTrails = () => {
                     </button>
                 )}
 
-                {/* Hidden on the narrowest screens, where the tabs already fill the row. */}
-                <p className="text-dash-text-3 text-sm m-0 hidden md:block ml-auto text-right">{viewCaption}</p>
             </div>
 
             <div className="flex-1 min-h-0">
@@ -534,170 +584,118 @@ const DTrails = () => {
                                     {/* filters */}
                                     <div className="flex items-center gap-3 flex-wrap">
                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                            {STORY_FILTERS.map(f => (
-                                                <button
-                                                    key={f.id}
-                                                    onClick={() => setStoryFilter(f.id)}
-                                                    className="px-3 h-9 rounded-sm text-xs font-bold cursor-pointer transition-colors"
-                                                    style={{
-                                                        background: storyFilter === f.id
-                                                            ? ('var(--dash-accent-text)')
-                                                            : ('var(--dash-border)'),
-                                                        color: storyFilter === f.id ? 'var(--dash-accent-text)' : 'var(--dash-text-3)',
-                                                    }}
-                                                >
-                                                    {f.label}
-                                                </button>
-                                            ))}
+                                            {STORY_FILTERS.map(f => {
+                                                const active = storyFilter === f.id;
+                                                return (
+                                                    <button
+                                                        key={f.id}
+                                                        type="button"
+                                                        aria-pressed={active}
+                                                        onClick={() => setStoryFilter(f.id)}
+                                                        className={`inline-flex items-center gap-2 h-9 px-3 rounded-sm text-xs font-semibold cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dash-accent ${active
+                                                            ? 'bg-dash-accent text-white'
+                                                            : 'bg-dash-surface-raised text-dash-text-2 hover:bg-dash-surface-hover'}`}
+                                                    >
+                                                        {f.label}
+                                                        <span className={`tabular-nums px-1.5 py-0.5 rounded-sm text-[11px] ${active ? 'bg-white/15 text-white' : 'bg-dash-surface-hover text-dash-text-2'}`}>
+                                                            {filterCounts[f.id]}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
 
                                         <div className="relative flex-1 min-w-[180px]">
-                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--dash-text-3)' }} />
+                                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-dash-text-3" />
                                             <input
                                                 type="text"
                                                 value={search}
                                                 onChange={e => setSearch(e.target.value)}
-                                                placeholder="Country, browser, link…"
+                                                placeholder="Search visits, countries, browsers…"
                                                 aria-label="Search visits"
-                                                className="w-full h-9 rounded-sm border pl-9 pr-3 text-xs outline-none transition-colors focus:border-dash-accent"
+                                                className="trail-search w-full rounded-sm border pl-10 pr-10 outline-none transition-colors focus:border-dash-accent"
                                                 style={{
-                                                    backgroundColor: 'var(--dash-surface-2)',
+                                                    backgroundColor: 'var(--dash-surface)',
                                                     borderColor: 'var(--dash-border)',
                                                     color: 'var(--dash-text)',
                                                 }}
                                             />
+                                            {search && (
+                                                <button
+                                                    type="button"
+                                                    aria-label="Clear search"
+                                                    onClick={() => setSearch('')}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-sm cursor-pointer text-dash-text-2 hover:bg-dash-surface-hover focus-visible:outline-2 focus-visible:outline-dash-accent"
+                                                >
+                                                    <X size={15} />
+                                                </button>
+                                            )}
                                         </div>
 
                                         {linkFilter && (
                                             <button
                                                 onClick={() => setLinkFilter(null)}
-                                                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-sm text-xs font-bold cursor-pointer"
-                                                style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}
+                                                className="inline-flex items-center gap-1.5 px-3 h-9 rounded-sm text-xs font-bold cursor-pointer bg-dash-accent text-white"
                                             >
                                                 <Filter size={13} />
                                                 {links.find(l => l.id === linkFilter)?.Name || 'Link'}
                                                 <Plus size={13} className="rotate-45" />
                                             </button>
                                         )}
+
+                                        <label className="inline-flex items-center gap-2 h-9 px-2 rounded-sm cursor-pointer text-xs font-semibold text-dash-text-2">
+                                            <Toggle
+                                                checked={showQuickBounces}
+                                                onChange={setShowQuickBounces}
+                                                aria-label="Show quick bounces"
+                                            />
+                                            Show quick bounces
+                                        </label>
                                     </div>
                                 </div>
 
                                 {/* the list - the only part that scrolls */}
-                                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-12">
-                                    {visibleStories.length === 0 ? (
-                                        <div className="glass-surface rounded-sm border-dashed p-12 text-center text-dash-text-2">
-                                            {sessions.length === 0
-                                                ? 'No visits recorded yet. The first one shows up here the moment it happens.'
-                                                : 'Nothing matches that filter.'}
+                                <div className="trail-scroll flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1">
+                                    {loadError ? (
+                                        <div className="trail-panel border-dashed p-10 text-center flex flex-col items-center gap-3">
+                                            <AlertCircle size={24} className="text-dash-danger" />
+                                            <p className="trail-primary">Could not load visits</p>
+                                            <p className="trail-secondary">Check the connection and try again.</p>
+                                            <button type="button" onClick={() => window.location.reload()}
+                                                className="btn btn-secondary inline-flex items-center gap-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-dash-accent">
+                                                <RotateCcw size={14} /> Retry
+                                            </button>
+                                        </div>
+                                    ) : !dataReady ? (
+                                        <div className="trail-panel" aria-busy="true" aria-label="Loading visits">
+                                            {[0, 1, 2, 3].map(i => (
+                                                <div key={i} className="trail-skeleton-row skeleton" />
+                                            ))}
+                                        </div>
+                                    ) : visibleStories.length === 0 ? (
+                                        <div className="trail-panel border-dashed p-10 text-center flex flex-col items-center gap-3">
+                                            <Inbox size={24} className="text-dash-text-3" />
+                                            <p className="trail-primary">No visits match these filters</p>
+                                            <p className="trail-secondary">Try clearing the search or showing quick bounces.</p>
+                                            <button type="button"
+                                                onClick={() => { setSearch(''); setStoryFilter('all'); setLinkFilter(null); }}
+                                                className="btn btn-secondary inline-flex items-center gap-2 cursor-pointer focus-visible:outline-2 focus-visible:outline-dash-accent">
+                                                <RotateCcw size={14} /> Reset filters
+                                            </button>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col gap-2">
-                                            {visibleStories.map(story => {
-                                                const live = isLive(story);
-                                                const when = story.StartedAt
-                                                    ? new Date(story.StartedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
-                                                    : 'Before the rewrite';
-                                                const projectCount = Object.keys(story.Projects || {}).length;
-                                                const socialCount = Object.keys(story.Socials || {}).length;
-                                                const deepest = Math.round(
-                                                    Object.values(story.Scroll || {}).reduce((top, pct) => Math.max(top, pct), 0),
-                                                );
-                                                // What they actually did. These used to be crammed into the
-                                                // subtitle; as chips they fill the middle of the row, which
-                                                // was dead space between the name and the duration.
-                                                const did: { label: string; tint: string }[] = [];
-                                                if (projectCount) did.push({ label: `${projectCount} project${projectCount === 1 ? '' : 's'}`, tint: 'var(--chart-2)' });
-                                                if (story.Cv?.Opens) did.push({ label: 'CV', tint: 'var(--chart-3)' });
-                                                // /book and the contact modal are two ways in, so each keeps its own chip.
-                                                if (story.Contact?.Sent) {
-                                                    did.push({ label: sentLabel(story.Contact.Sent), tint: story.Contact.Sent === 'book' ? 'var(--chart-4)' : 'var(--chart-3)' });
-                                                } else if (story.Contact?.Opens) {
-                                                    did.push({ label: 'opened contact', tint: 'var(--chart-3)' });
-                                                }
-                                                if (sawBookPage(story) && story.Contact?.Sent !== 'book') did.push({ label: 'saw /book', tint: 'var(--chart-4)' });
-                                                if (socialCount) did.push({ label: `${socialCount} social${socialCount === 1 ? '' : 's'}`, tint: 'var(--chart-5)' });
-
-                                                return (
-                                                    <button
-                                                        key={story.Id}
-                                                        onClick={() => setOpenStoryId(story.Id)}
-                                                        className="w-full text-left flex items-center gap-3 sm:gap-4 px-4 py-3.5 rounded-sm border cursor-pointer transition-colors"
-                                                        style={{
-                                                            background: 'var(--dash-surface-2)',
-                                                            borderColor: live ? 'var(--dash-accent-soft)' : 'var(--dash-border)',
-                                                        }}
-                                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--dash-surface-3)'; }}
-                                                        onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'var(--dash-border)' : 'var(--dash-text)'; }}
-                                                    >
-                                                        <span className="w-9 h-9 rounded-sm grid place-items-center shrink-0 text-base"
-                                                            style={{ background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}>
-                                                            <Flag code={story.Geo?.Code} fallback={<DeviceIcon type={story.Device?.Type} size={16} />} />
-                                                        </span>
-
-                                                        <span className="flex flex-col min-w-0 gap-0.5" style={{ flex: '1 1 200px' }}>
-                                                            <span className="flex items-center gap-2 min-w-0">
-                                                                <span className="text-sm font-bold truncate" style={{ color: 'var(--dash-text)' }}>
-                                                                    {story.Geo?.Country || 'Somewhere'}
-                                                                </span>
-                                                                {story.Link && (
-                                                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wide shrink-0"
-                                                                        style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
-                                                                        {story.Link.Name.toUpperCase()}
-                                                                    </span>
-                                                                )}
-                                                                {live && (
-                                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse" style={{ background: 'var(--dash-success)' }} />
-                                                                )}
-                                                            </span>
-                                                            <span className="text-[11px] truncate" style={{ color: 'var(--dash-text-3)' }}>
-                                                                {when} · {story.Entry?.Ref ? `from ${story.Entry.Ref}` : 'direct'}
-                                                            </span>
-                                                        </span>
-
-                                                        <span className="hidden xl:flex items-center gap-1.5 min-w-0 overflow-hidden" style={{ flex: '1 1 240px' }}>
-                                                            {did.length ? did.map(chip => (
-                                                                <span
-                                                                    key={chip.label}
-                                                                    className="px-2 h-6 inline-flex items-center rounded-md text-[10px] font-bold whitespace-nowrap shrink-0"
-                                                                    style={{ background: `rgba(${chip.tint},0.14)`, color: `${chip.tint}` }}
-                                                                >
-                                                                    {chip.label}
-                                                                </span>
-                                                            )) : (
-                                                                <span className="text-[11px]" style={{ color: 'var(--dash-text-3)' }}>just looked around</span>
-                                                            )}
-                                                        </span>
-
-                                                        {/* how far down the page they actually got */}
-                                                        <span className="hidden 2xl:flex items-center gap-2 shrink-0 w-[86px]"
-                                                            title={deepest > 0 ? `Read ${deepest}% of the way down` : undefined}>
-                                                            {deepest > 0 && (
-                                                                <>
-                                                                    <span className="h-1.5 flex-1 rounded-full overflow-hidden"
-                                                                        style={{ background: 'var(--dash-surface-2)' }}>
-                                                                        <span className="block h-full rounded-full"
-                                                                            style={{ width: `${Math.min(100, deepest)}%`, background: 'var(--dash-accent)' }} />
-                                                                    </span>
-                                                                    <span className="text-[10px] font-bold tabular-nums w-7 text-right" style={{ color: 'var(--dash-text-3)' }}>
-                                                                        {deepest}%
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </span>
-
-                                                        <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold shrink-0" style={{ color: 'var(--dash-text-3)' }}>
-                                                            <DeviceIcon type={story.Device?.Type} size={13} />
-                                                            {story.Device?.Browser || '?'}
-                                                        </span>
-
-                                                        <span className="text-xs font-bold tabular-nums shrink-0 w-14 text-right"
-                                                            style={{ color: story.ActiveMs > 60_000 ? 'var(--dash-success)' : 'var(--dash-text-3)' }}>
-                                                            {formatMs(story.ActiveMs || 0)}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                        <ul role="list" className="trail-panel flex flex-col">
+                                            {groupedStories.map(group => (
+                                                <li key={group.label} role="presentation">
+                                                    <div className="trail-day-header">{group.label}</div>
+                                                    <ul role="list">
+                                                        {group.rows.map(story => (
+                                                            <VisitRow key={story.Id} session={story} onOpen={setOpenStoryId} />
+                                                        ))}
+                                                    </ul>
+                                                </li>
+                                            ))}
+                                        </ul>
                                     )}
                                 </div>
                             </div>
