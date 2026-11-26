@@ -84,7 +84,7 @@ const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
 ];
 
 const DTrails = () => {
-    const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const [windowWidth, setWindowWidth] = useState(1200);
     const isDark = useTheme();
     const [isLoading, setIsLoading] = useState(false);
     const { alert, showAlert, hideAlert } = useSafeAlert(4000);
@@ -137,6 +137,7 @@ const DTrails = () => {
 
     useEffect(() => {
         const onResize = () => setWindowWidth(window.innerWidth);
+        onResize();
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
     }, []);

@@ -140,7 +140,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     const [quizCustom, setQuizCustom] = useState('');
     const lastSend = useRef(0);
     const callWindow = useRef<number[]>([]);
-    const [autoMode, setAutoMode] = useState(() => typeof window !== 'undefined' && localStorage.getItem('llm_auto') === '1');
+    const [autoMode, setAutoMode] = useState(false);
     const autoRef = useRef(autoMode);
     useEffect(() => { autoRef.current = autoMode; }, [autoMode]);
     const toggleAuto = () => setAutoMode(v => { const next = !v; try { localStorage.setItem('llm_auto', next ? '1' : '0'); } catch { /* ignore */ } return next; });
@@ -153,7 +153,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     const speakingRef = useRef(false);
     const busyRef = useRef(false);
     const spokeTurnRef = useRef(false); // this turn was started by voice → speak the reply
-    const [voiceOut, setVoiceOut] = useState(() => typeof window !== 'undefined' && localStorage.getItem('llm_voice') === '1');
+    const [voiceOut, setVoiceOut] = useState(false);
     const voiceOutRef = useRef(voiceOut);
     useEffect(() => { voiceOutRef.current = voiceOut; }, [voiceOut]);
     const toggleVoiceOut = () => setVoiceOut(v => {
@@ -165,7 +165,15 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
     // Available system voices + the chosen one (persisted). Voices load async.
     const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [voiceName, setVoiceName] = useState(() => (typeof window !== 'undefined' && localStorage.getItem('llm_voice_name')) || '');
+    const [voiceName, setVoiceName] = useState('');
+    useEffect(() => {
+        try {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- load persisted preferences after hydration
+            setAutoMode(localStorage.getItem('llm_auto') === '1');
+            setVoiceOut(localStorage.getItem('llm_voice') === '1');
+            setVoiceName(localStorage.getItem('llm_voice_name') || '');
+        } catch { /* private mode */ }
+    }, []);
     useEffect(() => {
         if (typeof window === 'undefined' || !window.speechSynthesis) return;
         const load = () => { const vs = window.speechSynthesis.getVoices(); if (vs.length) setVoices(vs); };

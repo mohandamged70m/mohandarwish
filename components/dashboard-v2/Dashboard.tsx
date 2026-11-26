@@ -53,7 +53,11 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     useEffect(() => installDashboardDialogA11y(), []);
 
     // Back from connecting Google Calendar (Settings > Calendar shows how it went).
-    const [activeTab, setActiveTab] = useState<TabId>(() => (parkCalendarReturn() ? 'settings' : 'projects'));
+    const [activeTab, setActiveTab] = useState<TabId>('projects');
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration-safe initial route
+        if (parkCalendarReturn()) setActiveTab('settings');
+    }, []);
     const [profileImage, setProfileImage] = useState<string>('');
     // In-dashboard AI copilot ("Spark") can be switched off from Settings → MCP.
     // Defaults on; only skips mounting when explicitly disabled in Settings/MCP.

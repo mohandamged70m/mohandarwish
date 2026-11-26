@@ -252,6 +252,15 @@ function applyConstraints(rows: Row[], constraints: Constraint[]): Row[] {
         const v = getPath(r.data, c.field);
         if (c.op === "==") return v === c.value;
         if (c.op === "!=") return v !== c.value;
+        // Unsupported operators used to silently return every row.
+        if (c.op === ">") return (v as never) > (c.value as never);
+        if (c.op === ">=") return (v as never) >= (c.value as never);
+        if (c.op === "<") return (v as never) < (c.value as never);
+        if (c.op === "<=") return (v as never) <= (c.value as never);
+        if (c.op === "in")
+          return Array.isArray(c.value) && c.value.includes(v as never);
+        if (c.op === "array-contains")
+          return Array.isArray(v) && v.includes(c.value as never);
         return true;
       });
     }
@@ -312,8 +321,37 @@ function querySnap(rows: Row[]): QuerySnapshot {
 
 // ---------------------------------------------------------------------------
 // Snapshot listeners keep the existing interface and poll through the gateway.
-// Only changed snapshots are emitted; requests never overlap.
+// One shared 15s tick drives every listener, and reads with the same key within
+// a tick share one request — a dashboard with 7 tabs no longer issues 7+ full
+// collection scans every quarter-minute.
 // ---------------------------------------------------------------------------
+
+const tickSubscribers = new Set<() => void>();
+let tickTimer: ReturnType<typeof setInterval> | undefined;
+let tickReads = new Map<string, Promise<unknown>>();
+
+function subscribeTick(fn: () => void): () => void {
+  tickSubscribers.add(fn);
+  if (!tickTimer) {
+    tickTimer = setInterval(() => {
+      tickReads = new Map();
+      for (const subscriber of [...tickSubscribers]) subscriber();
+    }, 15_000);
+  }
+  return () => {
+    tickSubscribers.delete(fn);
+    if (!tickSubscribers.size && tickTimer) {
+      clearInterval(tickTimer);
+      tickTimer = undefined;
+    }
+  };
+}
+
+function snapshotKey(target: DocRef | ColRef | Query): string {
+  if (target.kind === "doc") return `doc:${target.path}`;
+  if (target.kind === "col") return `col:${target.path}`;
+  return `query:${JSON.stringify({ col: target.col.path, constraints: target.constraints })}`;
+}
 
 export function onSnapshot(
   target: DocRef,
@@ -331,12 +369,21 @@ export function onSnapshot(
   onError?: (e: { message: string; code?: string }) => void,
 ): () => void {
   let alive = true;
-  let timer: ReturnType<typeof setTimeout>;
+  let running = false;
   let previous = "";
   const emit = async () => {
+    if (running) return;
+    running = true;
     try {
-      const snap =
-        target.kind === "doc" ? await getDoc(target) : await getDocs(target);
+      const key = snapshotKey(target);
+      let read = tickReads.get(key) as
+        | Promise<DocSnapshot | QuerySnapshot>
+        | undefined;
+      if (!read) {
+        read = target.kind === "doc" ? getDoc(target) : getDocs(target);
+        tickReads.set(key, read);
+      }
+      const snap = await read;
       const signature = JSON.stringify(
         target.kind === "doc"
           ? {
@@ -355,13 +402,15 @@ export function onSnapshot(
     } catch (e) {
       if (alive)
         onError?.({ message: e instanceof Error ? e.message : "Read failed" });
+    } finally {
+      running = false;
     }
-    if (alive) timer = setTimeout(emit, 15_000);
   };
+  const unsubscribe = subscribeTick(emit);
   void emit();
   return () => {
     alive = false;
-    clearTimeout(timer);
+    unsubscribe();
   };
 }
 
