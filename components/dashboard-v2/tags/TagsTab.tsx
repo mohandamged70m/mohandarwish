@@ -379,6 +379,7 @@ const DTags = () => {
 
                 <button
                     onClick={handleOptionsClick}
+                    aria-label={`Add ${activeSection === 'tags' ? 'tag' : 'contributor'}`}
                     className="flex items-center justify-center btn btn-primary"
                     style={{
                         padding: buttonPadding,

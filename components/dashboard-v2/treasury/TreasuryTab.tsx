@@ -546,7 +546,7 @@ const DTreasury = () => {
             const proj = i.projectId ? data.projects.find(p => p.id === i.projectId) : null;
             const acct = i.accountId ? data.accounts.find(a => a.id === i.accountId) : null;
             return (
-                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
+                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
                     <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-success flex-shrink-0"><Banknote size={16} /></div>
                     <div className="min-w-0 flex-1">
                         <span className="text-sm font-semibold text-dash-text truncate block">{proj ? proj.name : (i.note || 'Payment')}</span>
@@ -562,7 +562,7 @@ const DTreasury = () => {
         const eproj = e.projectId ? data.projects.find(p => p.id === e.projectId) : null;
         const eacct = e.accountId ? data.accounts.find(a => a.id === e.accountId) : null;
         return (
-            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
+            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
                 <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-danger flex-shrink-0"><Receipt size={16} /></div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -664,7 +664,7 @@ const DTreasury = () => {
                     const Icon = t.icon;
                     const active = tab === t.id;
                     return (
-                        <button key={t.id} onClick={() => setTab(t.id)}
+                        <button key={t.id} onClick={() => setTab(t.id)} aria-label={t.label} aria-current={active ? 'page' : undefined}
                             className={`flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
                                 ${active ? 'bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}`}>
                             <Icon size={18} />
@@ -894,14 +894,14 @@ const DTreasury = () => {
                                                             return (
                                                                 <>
                                                                     {linkedInc.map(i => (
-                                                                        <div key={`li-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} title="Edit this payment"
+                                                                        <div key={`li-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} title="Edit this payment"
                                                                             className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-dash-success/[0.03] dark:bg-dash-success/[0.05] border border-dash-success/30 text-xs cursor-pointer hover:border-dash-success/30 hover:bg-dash-success/[0.08] transition-colors">
                                                                             <span className="text-dash-text-2 truncate max-w-[120px] flex items-center gap-1.5">{i.note || 'Payment'}<Pencil size={11} className="text-dash-text-2 opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
                                                                             <span className="font-bold text-dash-success tnum">+{formatMoney(i.amount, i.currency)}</span>
                                                                         </div>
                                                                     ))}
                                                                     {linkedExp.map(e => (
-                                                                        <div key={`le-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} title="Edit this expense"
+                                                                        <div key={`le-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} title="Edit this expense"
                                                                             className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-dash-accent-soft dark:bg-dash-accent-soft border border-dash-danger/30 text-xs cursor-pointer hover:border-dash-danger/30 hover:bg-dash-accent-soft transition-colors">
                                                                             <span className="text-dash-text-2 truncate max-w-[120px] flex items-center gap-1.5">{e.label}<Pencil size={11} className="text-dash-text-2 opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
                                                                             <span className="font-bold text-dash-danger tnum">-{formatMoney(e.amount, e.currency)}</span>
@@ -1130,7 +1130,7 @@ const DTreasury = () => {
                                         const Icon = ACCOUNT_ICON[a.type];
                                         const tColor = ACCOUNT_COLOR[a.type];
                                         return (
-                                            <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0}
+                                            <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                                                 className="group glass-panel p-4 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow relative">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="flex items-center gap-2.5 min-w-0">
@@ -1169,7 +1169,7 @@ const DTreasury = () => {
                                             const bal = accountBalance(a, data.income, data.expenses, data.config.rates);
                                             const Icon = ACCOUNT_ICON[a.type];
                                             return (
-                                                <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0}
+                                                <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
                                                     className="glass-surface p-3.5 flex items-center justify-between gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-surface-2 dark:bg-dash-surface/5 text-dash-text-2 shrink-0"><Icon size={16} /></span>

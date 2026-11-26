@@ -77,6 +77,7 @@ interface ProjectRowProps {
     setViewingProject: (p: ProjectData) => void;
     setViewingContributor: (c: ContributorData) => void;
     onReorderEnd: () => void;
+    onMove: (id: string | number, dir: -1 | 1) => void;
     activeMenu: string | number | null;
     setActiveMenu: (id: string | number | null) => void;
     setMenuPos: (pos: { top: number; right: number }) => void;
@@ -92,6 +93,7 @@ const ProjectRow = ({
     setViewingProject,
     setViewingContributor,
     onReorderEnd,
+    onMove,
     activeMenu,
     setActiveMenu,
     setMenuPos
@@ -118,13 +120,18 @@ const ProjectRow = ({
                 zIndex: 100
             }}
         >
-            {/* Drag Handle */}
-            <div
-                className={`flex items-center justify-center text-dash-text-2 transition-opacity ${searchQuery.length < 2 ? 'opacity-40 hover:opacity-100 cursor-grab' : 'opacity-10 cursor-not-allowed'}`}
-                onPointerDown={(e) => searchQuery.length < 2 && controls.start(e)}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <GripVertical size={18} />
+            {/* Reorder: drag for pointer users, buttons for keyboard/touch. */}
+            <div className="flex flex-col items-center justify-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                <div
+                    className={`flex items-center justify-center text-dash-text-2 transition-opacity ${searchQuery.length < 2 ? 'cursor-grab hover:opacity-100' : 'opacity-10 cursor-not-allowed'}`}
+                    onPointerDown={(e) => searchQuery.length < 2 && controls.start(e)}
+                >
+                    <GripVertical size={16} />
+                </div>
+                <button type="button" aria-label={`Move ${project.name} up`} onClick={() => onMove(project.id ?? project.name, -1)}
+                    className="w-7 h-7 grid place-items-center rounded-sm text-dash-text-2 hover:bg-dash-surface-hover focus-visible:outline-2 focus-visible:outline-dash-accent">↑</button>
+                <button type="button" aria-label={`Move ${project.name} down`} onClick={() => onMove(project.id ?? project.name, 1)}
+                    className="w-7 h-7 grid place-items-center rounded-sm text-dash-text-2 hover:bg-dash-surface-hover focus-visible:outline-2 focus-visible:outline-dash-accent">↓</button>
             </div>
 
             {/* Project Info */}
@@ -654,6 +661,16 @@ const DProjects = () => {
         setProjects(placeReordered(sortedProjects, reordered));
     };
 
+    const moveProject = (id: string | number, dir: -1 | 1) => {
+        const from = filteredProjects.findIndex(p => p.id === id);
+        const to = from + dir;
+        if (from < 0 || to < 0 || to >= filteredProjects.length) return;
+        const next = [...filteredProjects];
+        [next[from], next[to]] = [next[to], next[from]];
+        handleReorder(next);
+        window.setTimeout(() => { void persistOrder(); }, 50);
+    };
+
     const persistOrder = async () => {
         const changes = changedListings(projects, storedListing.current);
         if (!changes.length) return;
@@ -763,6 +780,7 @@ const DProjects = () => {
                                     setViewingProject={setViewingProject}
                                     setViewingContributor={setViewingContributor}
                                     onReorderEnd={persistOrder}
+                                    onMove={moveProject}
                                     activeMenu={activeMenu}
                                     setActiveMenu={setActiveMenu}
                                     setMenuPos={setMenuPos}

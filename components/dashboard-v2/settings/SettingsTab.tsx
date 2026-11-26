@@ -1163,6 +1163,8 @@ export default function DSettings() {
                         <button
                             key={tab.id}
                             onClick={() => handleTabChange(tab.id)}
+                            aria-label={tab.label}
+                            aria-current={isActive ? 'page' : undefined}
                             className={`
                                 settings-tab-btn flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
                                 ${isActive ? 'tab-active bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}
