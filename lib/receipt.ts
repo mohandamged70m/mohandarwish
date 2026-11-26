@@ -1,7 +1,12 @@
 // Receipt/invoice builder (replaces the old lib/receipt).
 
-import type { Currency } from "./treasury";
-import { CURRENCY_SYMBOL } from "./treasury";
+import type { Currency, Rates, TreasuryIncome, TreasuryProject } from "./treasury";
+import {
+  CURRENCY_SYMBOL,
+  convert,
+  projectContractTotal,
+  projectReceived,
+} from "./treasury";
 
 export interface ReceiptLine {
   name: string;
@@ -83,4 +88,64 @@ export function buildReceiptHtml(data: ReceiptData): string {
     (data.note ? `<p style="margin-top:12px;white-space:pre-wrap">${esc(data.note)}</p>` : "") +
     `<p style="margin-top:24px;color:#64748b">— Mohand Darwish</p></body></html>`
   );
+}
+
+/** Shown when a legacy payment row has no date recorded. */
+export const LEGACY_PAYMENT_LABEL = "Date not recorded";
+
+/** One project's price / paid / balance line, expressed in the receipt currency. */
+export function projectReceiptLine(
+  project: TreasuryProject,
+  income: TreasuryIncome[],
+  rates: Rates,
+  currency: Currency,
+): { name: string; note?: string; price: number; paid: number; balance: number } {
+  const price = convert(projectContractTotal(project), project.priceCurrency, currency, rates);
+  const paid = convert(projectReceived(project, income, rates), project.priceCurrency, currency, rates);
+  return {
+    name: project.name,
+    note: project.client || project.notes || undefined,
+    price,
+    paid,
+    balance: Math.max(0, price - paid),
+  };
+}
+
+export interface ReceiptPaymentHistoryRow {
+  date: string;
+  amount: number;
+  note?: string;
+  entry?: TreasuryIncome;
+  project?: TreasuryProject;
+}
+
+/**
+ * Real income rows backing a receipt, oldest first. `latestPerProject` marks
+ * scopes (a single installment / retainer month) where only the newest payment
+ * should be listed beside that line's Paid figure.
+ */
+export function receiptPaymentRows(
+  projects: TreasuryProject[],
+  income: TreasuryIncome[],
+  rates: Rates,
+  currency: Currency,
+  latestPerProject?: (project: TreasuryProject) => boolean,
+): ReceiptPaymentHistoryRow[] {
+  const byId = new Map(projects.map((p) => [p.id, p]));
+  const rows = income
+    .filter((i) => !!i.projectId && byId.has(i.projectId))
+    .map((i) => ({
+      date: i.date || "",
+      amount: convert(i.amount, i.currency, currency, rates),
+      note: i.note || undefined,
+      entry: i,
+      project: byId.get(i.projectId ?? ""),
+    }));
+  const single = projects.filter((p) => latestPerProject?.(p));
+  if (single.length === 1) {
+    const id = single[0].id;
+    const newest = rows.filter((r) => r.entry?.projectId === id).sort((a, b) => b.date.localeCompare(a.date))[0];
+    return newest ? [newest] : [];
+  }
+  return rows.sort((a, b) => a.date.localeCompare(b.date));
 }

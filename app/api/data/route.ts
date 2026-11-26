@@ -51,6 +51,70 @@ export async function POST(req: Request) {
       if (typeof a.path !== "string") throw new Error();
       await convexMutation(api.docs.deleteDoc, { path: a.path });
       data = null;
+    } else if (op === "batch" && owner) {
+      if (!Array.isArray(a.ops) || a.ops.length > 500 || a.ops.length === 0)
+        throw new Error();
+      const ops = a.ops.map((raw: unknown) => {
+        if (!raw || typeof raw !== "object" || Array.isArray(raw))
+          throw new Error();
+        const o = raw as Record<string, unknown>;
+        if (
+          Object.keys(o).some(
+            (k) => k !== "type" && k !== "path" && k !== "data" && k !== "options",
+          )
+        )
+          throw new Error();
+        if (o.type !== "set" && o.type !== "delete" && o.type !== "update")
+          throw new Error();
+        if (
+          typeof o.path !== "string" ||
+          !o.path ||
+          o.path.length > 500
+        )
+          throw new Error();
+        if (o.type === "delete") {
+          if (o.data !== undefined || o.options !== undefined)
+            throw new Error();
+          return { type: o.type, path: o.path };
+        }
+        if (!o.data || typeof o.data !== "object" || Array.isArray(o.data))
+          throw new Error();
+        let options:
+          | { merge?: boolean; mergeFields?: string[] }
+          | undefined;
+        if (o.options !== undefined) {
+          if (!o.options || typeof o.options !== "object" || Array.isArray(o.options))
+            throw new Error();
+          const opt = o.options as Record<string, unknown>;
+          if (
+            Object.keys(opt).some(
+              (k) => k !== "merge" && k !== "mergeFields",
+            )
+          )
+            throw new Error();
+          if (opt.merge !== undefined && typeof opt.merge !== "boolean")
+            throw new Error();
+          if (opt.mergeFields !== undefined) {
+            if (
+              !Array.isArray(opt.mergeFields) ||
+              opt.mergeFields.length > 100 ||
+              opt.mergeFields.some((f) => typeof f !== "string" || !f)
+            )
+              throw new Error();
+            options = { mergeFields: opt.mergeFields as string[] };
+          }
+          if (opt.merge !== undefined)
+            options = { ...(options ?? {}), merge: opt.merge as boolean };
+        }
+        return {
+          type: o.type,
+          path: o.path,
+          data: o.data,
+          ...(options ? { options } : {}),
+        };
+      });
+      await convexMutation(api.docs.applyBatch, { ops });
+      data = null;
     } else if (op === "createLink" && owner) {
       if (!a.name || !a.for || typeof a.name !== "string" || typeof a.for !== "string")
         throw new Error();

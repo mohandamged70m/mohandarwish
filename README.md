@@ -75,7 +75,11 @@ components/
     stack/            # StackSection + StackSurvey (tech-swap)
     developer/        # Developer profile, GitHub stats/graphs, repos
   booking/            # BookButton, BookingModal, CustomTimePicker
-  dashboard/          # CMS modules (D-*, M-*) + Assistant + primitives/
+  dashboard/          # original CMS modules + shared primitives/modals
+  dashboard-v2/       # current owner dashboard: Projects, Tags, Trails, Developer,
+                      # Treasury, Settings (Account/Availability/Tech Stack/Calendar/MCP),
+                      # Canary (bookings/inbox/categories/book page/mail failures),
+                      # Spark assistant + Convex-compatible Firestore shims
   cv/                 # CV modal
   layout/             # nav, providers (theme), path-memory, modal-viewport
   ui/                 # button, badge, alert, selects, motion-primitives
@@ -137,6 +141,8 @@ CONVEX_SERVER_KEY=...
 | `RATE_LIMIT_SECRET` | Optional; hashes visitor addresses for rate limits (falls back to `AUTH_SECRET`) | Generated like `AUTH_SECRET` |
 | `CONVEX_SERVER_KEY` | Server-only secret, identical in Next.js and Convex deployment environments | Generated; `npx convex env set CONVEX_SERVER_KEY` |
 | `MEETING_SYNC_URL` | Optional Apps Script calendar integration | Your Apps Script deployment URL |
+| `GOOGLE_CALENDAR_BRIDGE_URL` | Optional Google Calendar OAuth bridge for the new Settings → Calendar tab; unset = honest "not configured" | Your bridge endpoint |
+| `MAIL_JOB_RETRY_URL` | Optional mail-job retry backend for Canary → Mail failures; unset = honest 503 | Your retry endpoint |
 | `RESEND_FROM` | Verified email sender | Your verified Resend domain |
 
 ### Google OAuth setup (one-time, in your Google Cloud project)

@@ -26,6 +26,10 @@
   --navbar-border: rgba(255, 255, 255, 0.08);
   --danger: #f43f5e;
   --danger-rgb: 244,63,94;
+  /* Amber is reserved for warning banners / "needs attention" states only. */
+  --warning: #f59e0b;
+  --warning-rgb: 245,158,11;
+  --success: #10b981;
   --bg-secondary: #151515;
   --card-bg: rgba(255,255,255,0.9);
   --card-border: rgba(0,0,0,0.05);
@@ -94,6 +98,9 @@ html.light {
   --navbar-border: #e8d5cc;
   --danger: #e11d48;
   --danger-rgb: 225,29,72;
+  --warning: #b45309;
+  --warning-rgb: 180,83,9;
+  --success: #047857;
   --bg-secondary: #f5ece4;
 
   --background: var(--bg-primary);

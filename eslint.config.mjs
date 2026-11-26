@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated Convex client — never hand-edited, never linted.
     "convex/_generated/**",
+    // Reference copy of the old Firebase dashboard — not part of the app.
+    "Copy-Dashboard/**",
   ]),
 ]);
 

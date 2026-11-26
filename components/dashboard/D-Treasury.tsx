@@ -61,8 +61,11 @@ interface ChartPoint { label: string; fullDate: string; earned: number; spent: n
 const INSIGHT_ICONS: Record<InsightIcon, typeof Wallet> = {
     outstanding: Clock, invoice: Receipt, ratio: Percent, profit: TrendingUp,
     loss: TrendingDown, noprice: Tag, running: Hourglass, recurring: Repeat, empty: Lightbulb,
+    overdue: Clock, installment: Clock, paused: Hourglass, closed: Clock, live: TrendingUp,
+    pending: Hourglass, runway: Percent, account: Wallet, client: Tag, unlinked: Tag,
+    email: Tag, rates: Repeat,
 };
-const TONE_COLOR: Record<InsightTone, string> = { warn: '#f59e0b', good: '#22c55e', info: '#ef4444' };
+const TONE_COLOR: Record<InsightTone, string> = { warn: '#f59e0b', good: '#22c55e', info: '#ef4444', urgent: '#ef4444' };
 
 // ── D-Views-style frosted tooltip ──────────────────────────────────────────
 const ChartTooltip = ({ active, payload, isDark, cur }: TooltipProps<number, string> & { isDark?: boolean; cur: Currency; payload?: { payload: ChartPoint }[] }) => {

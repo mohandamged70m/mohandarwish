@@ -1,8 +1,8 @@
 // Firebase-functions compatible shim.
 //
-// dashboard/ calls three Cloud Functions: syncMeeting, sendReply, sendReceipt.
-// They are re-implemented as Next API routes below; this module keeps the
-// httpsCallable(fn)(payload) -> { data } call shape unchanged.
+// dashboard/ calls Cloud Functions: syncMeeting, sendReply, sendReceipt,
+// googleCalendar, retryMailJob. They are re-implemented as Next API routes;
+// this module keeps the httpsCallable(fn)(payload) -> { data } call shape.
 
 export function getFunctions(
   _app?: unknown,
@@ -11,19 +11,24 @@ export function getFunctions(
   return { region: typeof _region === "string" ? _region : "us-central1" };
 }
 
-type Callable = (
-  payload: Record<string, unknown>,
-) => Promise<{ data: unknown }>;
+type Callable<TPayload = Record<string, unknown>, TResult = unknown> = (
+  payload: TPayload,
+) => Promise<{ data: TResult }>;
 
 const ROUTES: Record<string, string> = {
   syncMeeting: "/api/dashboard/sync-meeting",
   sendReply: "/api/dashboard/send-reply",
   sendReceipt: "/api/dashboard/send-receipt",
+  googleCalendar: "/api/dashboard/google-calendar",
+  retryMailJob: "/api/dashboard/retry-mail-job",
 };
 
-export function httpsCallable(_fns: unknown, name: string): Callable {
+export function httpsCallable<
+  TPayload = Record<string, unknown>,
+  TResult = unknown,
+>(_fns: unknown, name: string): Callable<TPayload, TResult> {
   const route = ROUTES[name] ?? `/api/dashboard/${name}`;
-  return async (payload: Record<string, unknown>) => {
+  return async (payload: TPayload) => {
     const r = await fetch(route, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,6 +41,6 @@ export function httpsCallable(_fns: unknown, name: string): Callable {
         `Function ${name} failed (${r.status})`;
       throw new Error(msg);
     }
-    return { data };
+    return { data: data as TResult };
   };
 }

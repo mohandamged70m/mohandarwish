@@ -69,6 +69,8 @@ export interface ProjectData {
 export interface ProjectFormData extends Omit<ProjectData, "images" | "icon"> {
   images: (File | string)[];
   icon?: File | string;
+  /** Long-form case study authored in the newer project editor. */
+  caseStudy?: string;
 }
 
 // --- Bridge to site types (no duplication): import site shapes from here

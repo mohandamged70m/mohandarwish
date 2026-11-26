@@ -30,7 +30,7 @@ export const DEFAULT_CONFIG: TreasuryConfig = {
   ratesUpdatedAt: undefined,
 };
 
-export type ProjectStatus = "active" | "pending" | "completed";
+export type ProjectStatus = "active" | "pending" | "completed" | "paused" | "closed";
 
 export interface TreasuryProject {
   id: string;
@@ -50,6 +50,10 @@ export interface TreasuryProject {
   endDate?: string | null;
   done?: boolean;
   nextPaymentDate?: string;
+  /** Lifecycle stamps used by the newer Treasury board. */
+  pausedAt?: string | null;
+  closedAt?: string | null;
+  closedReason?: string;
   order: number;
   createdAt?: number;
 }
@@ -131,9 +135,104 @@ export type InsightIcon =
   | "noprice"
   | "running"
   | "recurring"
-  | "empty";
+  | "empty"
+  | "overdue"
+  | "installment"
+  | "paused"
+  | "closed"
+  | "live"
+  | "pending"
+  | "runway"
+  | "account"
+  | "client"
+  | "unlinked"
+  | "email"
+  | "rates";
 
-export type InsightTone = "warn" | "good" | "info";
+export type InsightTone = "warn" | "good" | "info" | "urgent";
+
+/** An actionable suggestion rendered by the Treasury overview. */
+export interface Insight {
+  id?: string;
+  icon: InsightIcon;
+  tone: InsightTone;
+  label: string;
+  text: string;
+  value?: string;
+  action?: InsightAction | null;
+}
+
+export interface InsightAction {
+  tab: "overview" | "projects" | "money" | "accounts" | "receipts" | "settings";
+  label?: string;
+  filter?: string;
+  projectId?: string;
+}
+
+export const PROJECT_STATUSES: ReadonlyArray<{
+  id: ProjectStatus;
+  label: string;
+  hint: string;
+}> = [
+  { id: "active", label: "Active", hint: "Work is in progress" },
+  { id: "pending", label: "Pending", hint: "Not started yet" },
+  { id: "paused", label: "Paused", hint: "On hold" },
+  { id: "completed", label: "Completed", hint: "Delivered" },
+  { id: "closed", label: "Closed", hint: "Finished and archived" },
+];
+
+export function statusMeta(status: string): {
+  id: string;
+  label: string;
+  hint: string;
+  color: string;
+  finished: boolean;
+  publicly: boolean;
+} {
+  const found = PROJECT_STATUSES.find((s) => s.id === status);
+  const id = found?.id ?? "active";
+  const finished = id === "completed" || id === "closed";
+  return {
+    id,
+    label: found?.label ?? "Active",
+    hint: found?.hint ?? "Work is in progress",
+    color:
+      id === "active"
+        ? "var(--success)"
+        : id === "pending"
+          ? "var(--warning)"
+          : finished
+            ? "var(--accent-text)"
+            : "var(--text-muted)",
+    finished,
+    publicly: !finished || id === "completed",
+  };
+}
+
+export function isFinished(p: Pick<TreasuryProject, "status" | "done">): boolean {
+  return p.done === true || statusMeta(p.status).finished;
+}
+
+export function isOngoing(p: Pick<TreasuryProject, "status" | "done">): boolean {
+  return !isFinished(p);
+}
+
+export function normalizeProject(
+  id: string,
+  raw: Partial<TreasuryProject> | undefined,
+  index: number,
+): TreasuryProject {
+  return {
+    ...(raw ?? {}),
+    id,
+    status: raw?.status ?? "active",
+    order: raw?.order ?? index,
+  } as TreasuryProject;
+}
+
+export function actionableCount<T>(insights: ReadonlyArray<T>): number {
+  return insights.filter((i) => !!(i as { action?: unknown }).action).length;
+}
 
 export interface ExpenseTemplate {
   label: string;
@@ -261,8 +360,10 @@ export function projectPayments(p: TreasuryProject, income: TreasuryIncome[]): P
     .map((i) => ({ id: i.id, date: i.date || "", amount: i.amount || 0, currency: i.currency }));
 }
 
-export function paymentTimeLabel(): string {
+export function paymentTimeLabel(entry?: { date?: string }): string {
   // Income rows carry dates but no clock time — no time part to show.
+  // Accepting the optional entry keeps the newer receipt UI compatible.
+  void entry;
   return "";
 }
 
@@ -276,8 +377,13 @@ function addMonths(dateStr: string, n: number): string {
   return out.toISOString().slice(0, 10);
 }
 
-export function nextMonthlyPaymentDate(p: TreasuryProject, fromDate: string): string {
-  void p;
+export function nextMonthlyPaymentDate(p: Partial<TreasuryProject>, fromDate: string): string {
+  // Advance the project's stored schedule day, not the payment's arrival day:
+  // a retainer paid early or late still keeps its original monthly slot.
+  const stored = p.nextPaymentDate;
+  if (stored && /^\d{4}-\d{2}-\d{2}$/.test(stored) && stored >= fromDate) {
+    return addMonths(stored, 1);
+  }
   return addMonths(fromDate, 1);
 }
 

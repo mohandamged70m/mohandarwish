@@ -10,6 +10,9 @@ import { storageCall } from "./dash-transport";
 
 const BUCKET = "firebase"; // legacy app handle shape only
 
+/** Firebase-compatible name used by the ported dashboard tabs. */
+export type StorageReference = StorageRef;
+
 export interface StorageRef {
   kind: "file" | "prefix";
   path: string;
@@ -47,6 +50,7 @@ export function ref(_storage: unknown, pathOrUrl: string): StorageRef {
 export async function uploadBytes(
   storageRef: StorageRef,
   data: File | Blob | ArrayBuffer | Uint8Array,
+  _metadata?: { contentType?: string; cacheControl?: string },
 ): Promise<{ ref: StorageRef }> {
   const body =
     data instanceof ArrayBuffer

@@ -7,13 +7,19 @@
 //   doc(db, ...segs) / collection(db, ...segs)
 //   query(col, ...constraints) with where(field,'==',v), orderBy, limit(n)
 //   onSnapshot(target, onNext, onError?) -> unsubscribe
-//   getDoc / getDocs / setDoc ({merge}) / updateDoc (dotted keys) / deleteDoc
-//   deleteField() / serverTimestamp() / increment() / writeBatch(db)
+//   getDoc / getDocs / setDoc ({merge, mergeFields}) / updateDoc (dotted keys) / deleteDoc
+//   deleteField() / serverTimestamp() / increment() / writeBatch(db) / addDoc
+//   runTransaction(db, fn) — reads first, then one atomic `batch` gateway call
+//
+// increment() is a real sentinel now: the Convex mutation applies the delta to
+// the value as stored, so concurrent writers no longer overwrite each other.
+// deleteField() is likewise resolved on the server for batch/transaction writes.
 
 import { dataCall } from "./dash-transport";
 
 const DF = "__dash_delete_field__";
 const ST = "__dash_server_timestamp__";
+const INC = "__dash_increment__";
 
 // ---------------------------------------------------------------------------
 // Sentinels
@@ -27,7 +33,7 @@ export function serverTimestamp(): unknown {
   return { [ST]: true };
 }
 
-function isDeleteField(v: unknown): boolean {
+export function isDeleteField(v: unknown): boolean {
   return (
     !!v &&
     typeof v === "object" &&
@@ -36,7 +42,7 @@ function isDeleteField(v: unknown): boolean {
   );
 }
 
-function isServerTimestamp(v: unknown): boolean {
+export function isServerTimestamp(v: unknown): boolean {
   return (
     !!v &&
     typeof v === "object" &&
@@ -45,13 +51,24 @@ function isServerTimestamp(v: unknown): boolean {
   );
 }
 
+export function isIncrement(v: unknown): boolean {
+  return (
+    !!v &&
+    typeof v === "object" &&
+    !Array.isArray(v) &&
+    INC in (v as Record<string, unknown>)
+  );
+}
+
+// Timestamps are resolved here (client clock is fine). Delete and increment
+// sentinels stay intact so the server can apply them to the stored value.
 function resolveSentinels(v: unknown): unknown {
   if (isServerTimestamp(v)) return new Date().toISOString();
+  if (isDeleteField(v) || isIncrement(v)) return v;
   if (Array.isArray(v)) return v.map(resolveSentinels);
   if (v && typeof v === "object") {
     const out: Record<string, unknown> = {};
     for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-      if (isDeleteField(val)) continue;
       out[k] = resolveSentinels(val);
     }
     return out;
@@ -79,6 +96,11 @@ export interface ColRef {
   path: string;
 }
 
+/** Firebase-compatible type name used by the ported dashboard tabs. */
+export type DocumentReference = DocRef;
+// QuerySnapshot is declared below with the existing snapshot shape; the ported
+// tabs import that same type rather than defining a second, conflicting shape.
+
 function joinSegs(segs: string[]): string {
   return segs
     .flatMap((s) => String(s).split("/"))
@@ -95,6 +117,19 @@ export function doc(_db: unknown, ...segs: string[]): DocRef {
 
 export function collection(_db: unknown, ...segs: string[]): ColRef {
   return { kind: "col", path: joinSegs(segs) };
+}
+
+/** Firestore-style addDoc: generate an id, write through setDoc, return the ref. */
+export async function addDoc(
+  col: ColRef,
+  data: Record<string, unknown>,
+): Promise<DocRef> {
+  const id =
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const ref = doc(undefined, col.path, id);
+  await setDoc(ref, data);
+  return ref;
 }
 
 // ---------------------------------------------------------------------------
@@ -127,10 +162,11 @@ export function limit(n: number): Constraint {
   return { t: "limit", n };
 }
 
-export function increment(n: number): number {
-  // See old note: write current+delta back for JS writers; real atomic
-  // increments happen server-side in convex/docs.ts merge functions.
-  return n;
+/** Server-applied delta: convex/docs.ts adds n to the value as stored. */
+export function increment(n: number): unknown {
+  if (typeof n !== "number" || !Number.isFinite(n))
+    throw new Error("increment requires a finite number");
+  return { [INC]: n };
 }
 
 export function query(col: ColRef, ...constraints: Constraint[]): Query {
@@ -427,11 +463,21 @@ async function mirrorCanary(patch: Record<string, unknown>): Promise<void> {
 export async function setDoc(
   ref: DocRef,
   data: Record<string, unknown>,
-  opts?: { merge?: boolean },
+  opts?: { merge?: boolean; mergeFields?: string[] },
 ): Promise<void> {
   const clean = resolveSentinels(data) as Record<string, unknown>;
   let next: Record<string, unknown>;
-  if (opts?.merge) {
+  if (opts?.mergeFields?.length) {
+    // mergeFields replaces each named field whole (no deep merge of maps).
+    const existingSnap = await getDoc(ref);
+    next = { ...(existingSnap.data() ?? {}) };
+    for (const field of opts.mergeFields) {
+      const val = getPath(clean, field);
+      if (val === undefined) continue;
+      if (isDeleteField(val)) delPath(next, field);
+      else setPath(next, field, val);
+    }
+  } else if (opts?.merge) {
     const existingSnap = await getDoc(ref);
     next = { ...(existingSnap.data() ?? {}) };
     for (const [k, v] of Object.entries(clean)) {
@@ -471,11 +517,80 @@ export async function deleteDoc(ref: DocRef): Promise<void> {
   await dataCall("deleteDoc", { path: ref.path });
 }
 
+// ---------------------------------------------------------------------------
+// Atomic writes: one Convex mutation for a transaction or a write batch.
+// ---------------------------------------------------------------------------
+
+export interface BatchWriteOptions {
+  merge?: boolean;
+  mergeFields?: string[];
+}
+
+export interface BatchOp {
+  type: "set" | "delete" | "update";
+  path: string;
+  data?: unknown;
+  options?: BatchWriteOptions;
+}
+
+async function commitOps(ops: BatchOp[]): Promise<void> {
+  if (!ops.length) return;
+  // Copy: a batch may be reused after commit without rewriting the request.
+  await dataCall("batch", { ops: [...ops] });
+}
+
+export interface Transaction {
+  get: (ref: DocRef) => Promise<DocSnapshot>;
+  set: (
+    ref: DocRef,
+    data: Record<string, unknown>,
+    opts?: BatchWriteOptions,
+  ) => void;
+  update: (ref: DocRef, patch: Record<string, unknown>) => void;
+  delete: (ref: DocRef) => void;
+}
+
+/**
+ * Firestore-style transaction. `fn` may await reads (resolved via getDoc) but
+ * its writes are queued locally and committed together only after it returns.
+ */
+export async function runTransaction<T>(
+  _db: unknown,
+  fn: (tx: Transaction) => T | Promise<T>,
+): Promise<T> {
+  const ops: BatchOp[] = [];
+  const tx: Transaction = {
+    async get(ref) {
+      const data = await dataCall<Record<string, unknown> | null>("getDoc", {
+        path: ref.path,
+      });
+      return docSnap(ref, data ?? undefined);
+    },
+    set(ref, data, opts) {
+      ops.push({
+        type: "set",
+        path: ref.path,
+        data,
+        ...(opts ? { options: { ...opts } } : {}),
+      });
+    },
+    update(ref, patch) {
+      ops.push({ type: "update", path: ref.path, data: patch });
+    },
+    delete(ref) {
+      ops.push({ type: "delete", path: ref.path });
+    },
+  };
+  const result = await fn(tx);
+  await commitOps(ops);
+  return result;
+}
+
 interface Batch {
   set: (
     ref: DocRef,
     data: Record<string, unknown>,
-    opts?: { merge?: boolean },
+    opts?: BatchWriteOptions,
   ) => Batch;
   update: (ref: DocRef, patch: Record<string, unknown>) => Batch;
   delete: (ref: DocRef) => Batch;
@@ -484,22 +599,28 @@ interface Batch {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function writeBatch(_db: unknown): Batch {
-  const ops: (() => Promise<void>)[] = [];
+  const ops: BatchOp[] = [];
   const batch: Batch = {
     set(ref, data, opts) {
-      ops.push(() => setDoc(ref, data, opts));
+      ops.push({
+        type: "set",
+        path: ref.path,
+        data,
+        ...(opts ? { options: { ...opts } } : {}),
+      });
       return batch;
     },
     update(ref, patch) {
-      ops.push(() => updateDoc(ref, patch));
+      ops.push({ type: "update", path: ref.path, data: patch });
       return batch;
     },
     delete(ref) {
-      ops.push(() => deleteDoc(ref));
+      ops.push({ type: "delete", path: ref.path });
       return batch;
     },
     async commit() {
-      for (const op of ops) await op();
+      await commitOps(ops);
+      ops.length = 0;
     },
   };
   return batch;

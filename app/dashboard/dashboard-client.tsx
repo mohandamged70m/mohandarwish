@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { signOut } from "next-auth/react";
-import Dashboard from "@/components/dashboard/Dashboard";
+import Dashboard from "@/components/dashboard-v2/Dashboard";
 import { STORY_KEY } from "@/components/dashboard/primitives/Algorithm";
 
 // Authenticated owner shell. The server page already verified the Auth.js owner

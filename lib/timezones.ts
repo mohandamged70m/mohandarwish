@@ -48,3 +48,27 @@ const ZONES: [number, string][] = [
 export function timezoneOptions(): TimezoneOption[] {
   return ZONES.map(([value, label]) => ({ value, label }));
 }
+
+/**
+ * IANA zone options used by the ported Settings tab (strings, unlike the
+ * numeric UTC-offset options above). Falls back to a short list when the
+ * runtime lacks Intl.supportedValuesOf.
+ */
+export interface IanaTimezoneOption {
+  value: string;
+  label: string;
+}
+
+export function timeZoneOptions(): IanaTimezoneOption[] {
+  const fallback = ["Africa/Cairo", "Europe/London", "Europe/Berlin", "America/New_York", "Asia/Dubai"];
+  let zones: string[] = fallback;
+  try {
+    const supported = (Intl as unknown as {
+      supportedValuesOf?: (key: string) => string[];
+    }).supportedValuesOf?.("timeZone");
+    if (supported?.length) zones = supported;
+  } catch {
+    /* keep the fallback */
+  }
+  return zones.map((value) => ({ value, label: value }));
+}
