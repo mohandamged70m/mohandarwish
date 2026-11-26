@@ -1058,7 +1058,7 @@ const DCanary = () => {
                 // own base class (see the grid-cols note in the modal).
                 <motion.div key="bookings" custom={sectionCustom} variants={SECTION_VARIANTS} initial="hidden" animate="shown" exit="gone" className="grid grid-cols-1 lg:grid-cols-canary gap-8" style={{ alignItems: belowLg ? 'start' : 'stretch' }}>
                     {/* Left: Calendar Component */}
-                    <motion.div variants={PANEL_VARIANTS} className="canary-panel w-full h-fit flex flex-col gap-4 min-[460px]:gap-6 p-4 min-[460px]:p-8 rounded-sm border shadow-sm relative overflow-visible"
+                    <motion.div variants={PANEL_VARIANTS} className="canary-panel canary-calendar w-full h-fit flex flex-col gap-3 p-3 md:p-4 rounded-sm border shadow-sm relative overflow-visible"
                         style={{
                             backgroundColor: containerBg,
                             borderColor: 'var(--dash-border)',
@@ -1087,7 +1087,7 @@ const DCanary = () => {
                         </div>
 
                         {/* Day Headers */}
-                        <div className="grid grid-cols-7 gap-1 md:gap-2">
+                        <div className="grid grid-cols-7 gap-1">
                             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
                                 <div key={idx} className="canary-weekday text-center font-bold tracking-widest">
                                     {day}
@@ -1106,7 +1106,7 @@ const DCanary = () => {
                                     animate="center"
                                     exit="exit"
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                    className="grid grid-cols-7 gap-1 md:gap-3 w-full"
+                                    className="grid grid-cols-7 gap-1 w-full"
                                 >
                                     {calendarDays.map((date, idx) => {
                                         const isSelected = date?.toDateString() === selectedDate.toDateString();
@@ -1125,7 +1125,7 @@ const DCanary = () => {
                                                 // this column width made the month taller than a laptop viewport, so
                                                 // the whole page picked up a scrollbar and clipped the button below.
                                                 // The ratio still scales with the panel, so nothing is hard-coded.
-                                                style={{ aspectRatio: '1 / 0.82' }}
+                                                style={{ aspectRatio: '1 / 0.6', minHeight: 34 }}
                                                 className={`canary-day relative flex flex-col items-center justify-center gap-1
                                                 ${date ? '' : 'opacity-0 pointer-events-none'}
                                             `}
