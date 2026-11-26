@@ -24,6 +24,19 @@ export const getUrl = query({
   },
 });
 
+export const resolveByUrls = query({
+  args: { serverKey: v.string(), urls: v.array(v.string()) },
+  handler: async (ctx, { serverKey, urls }) => {
+    requireServer(serverKey);
+    const wanted = new Set(urls);
+    if (!wanted.size) return [];
+    const rows = await ctx.db.query("storageMap").collect();
+    return rows
+      .filter((row) => wanted.has(row.url))
+      .map((row) => ({ url: row.url, path: row.path }));
+  },
+});
+
 export const setMapping = mutation({
   args: {
     serverKey: v.string(),

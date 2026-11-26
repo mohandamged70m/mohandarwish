@@ -23,6 +23,11 @@ export async function POST(req: Request) {
       case "getByPath":
         data = await convexQuery(api.storage.getByPath, { path: a.path });
         break;
+      case "resolvePaths":
+        data = await convexQuery(api.storage.resolveByUrls, {
+          urls: Array.isArray(a.urls) ? a.urls.filter((u: unknown) => typeof u === "string").slice(0, 500) : [],
+        });
+        break;
       case "listChildren":
         data = await convexQuery(api.storage.listChildren, {
           prefix: a.prefix,

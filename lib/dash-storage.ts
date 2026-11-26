@@ -31,11 +31,33 @@ function baseName(path: string): string {
   return i >= 0 ? clean.slice(i + 1) : clean;
 }
 
+const urlPaths = new Map<string, string>();
+const cleanUrl = (url: string) => url.split("?")[0];
+
+/** Remember a logical path for a Convex/Firebase download URL. */
+export function rememberUrlPath(url: string, path: string): void {
+  if (url && path) urlPaths.set(cleanUrl(url), path);
+}
+
+/** A path only when it is known — safe for cleanup decisions. */
+export function knownPathFromUrl(url: string): string | null {
+  return urlPaths.get(cleanUrl(url)) ?? null;
+}
+
+/** Preload URL→path mappings from the server before a save needs them. */
+export async function rememberStoragePaths(urls: string[]): Promise<void> {
+  const unique = [...new Set(urls.filter(Boolean))];
+  if (!unique.length) return;
+  const rows = await storageCall<{ url: string; path: string }[]>("resolvePaths", { urls: unique });
+  for (const row of rows) rememberUrlPath(row.url, row.path);
+}
+
 function pathFromUrl(url: string): string {
-  // Try Convex storage URL format: .../api/storage/<storageId> — we can't map
-  // back to a path synchronously; require callers to pass the logical path.
-  // Kept for call-site compatibility: strip query, return last segment.
-  const clean = url.split("?")[0];
+  const known = knownPathFromUrl(url);
+  if (known) return known;
+  // Unknown Convex URL: last segment is the storage id, not the logical path.
+  // Callers that make destructive decisions must use knownPathFromUrl instead.
+  const clean = cleanUrl(url);
   const i = clean.lastIndexOf("/");
   return i >= 0 ? clean.slice(i + 1) : clean;
 }
@@ -72,6 +94,7 @@ export async function uploadBytes(
     storageId: storageId as never,
   });
   if (!url) throw new Error("Missing storage URL");
+  rememberUrlPath(url, storageRef.path);
   await storageCall("setMapping", {
     path: storageRef.path,
     storageId: storageId as never,
@@ -86,6 +109,7 @@ export async function getDownloadURL(storageRef: StorageRef): Promise<string> {
     path: storageRef.path,
   });
   if (!hit?.url) throw new Error(`No file at ${storageRef.path}`);
+  rememberUrlPath(hit.url, storageRef.path);
   return hit.url;
 }
 

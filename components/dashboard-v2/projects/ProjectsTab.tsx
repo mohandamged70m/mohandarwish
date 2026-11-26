@@ -6,7 +6,7 @@ import { Plus, Search, MoreVertical, ExternalLink, Eye, Edit2, Trash2, GripVerti
 import { Github } from '@/components/dashboard-v2/ui/BrandIcons';
 import { collection, doc, onSnapshot, getDoc, deleteDoc, writeBatch, runTransaction, type DocumentReference } from '@/lib/dash-db';
 import { Reorder, useDragControls } from 'motion/react';
-import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getStorage, type StorageReference } from '@/lib/dash-storage';
+import { ref, uploadBytes, getDownloadURL, listAll, deleteObject, getStorage, rememberStoragePaths, type StorageReference } from '@/lib/dash-storage';
 import app, { db } from '@/lib/dash-db';
 // Local Storage handle: this module is in the lazy Dashboard chunk, so calling
 // getStorage here keeps firebase/storage out of the eager bundle while leaving
@@ -535,6 +535,12 @@ const DProjects = () => {
         }
 
         setIsLoading(true);
+        // Convex URLs are opaque storage ids; resolve them to logical paths before any
+        // relocation or cleanup decision (otherwise saved images get deleted).
+        await rememberStoragePaths([
+            ...(typeof data.icon === 'string' ? [data.icon] : []),
+            ...data.images.filter((file): file is string => typeof file === 'string'),
+        ]);
         // Files written for this save, removed again if the save fails (a create or rename
         // writes into a folder no stored project uses yet).
         const written: StorageReference[] = [];
