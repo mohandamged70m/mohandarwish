@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Anton, Inter, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Nav } from "@/components/layout/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
 import { PathMemory } from "@/components/layout/path-memory";
 import { Providers } from "@/components/layout/providers";
@@ -152,6 +153,10 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-bg-surface focus:px-4 focus:py-2 focus:text-sm focus:text-text-primary focus:shadow-lg">
             Skip to content
           </a>
+          {/* Banner landmark wraps the fixed navigation bar. */}
+          <header>
+            <Nav />
+          </header>
           <CvModalHost />
           <RouteCurtain />
           {children}
