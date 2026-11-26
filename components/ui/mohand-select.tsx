@@ -98,7 +98,7 @@ export function MohandSelect({ value, options, onChange, placeholder = "Selectâ€
 
   const showSearch = (searchable ?? opts.length > 8) && opts.length > 8;
   const filtered = query ? opts.filter((o) => o.label.toLowerCase().includes(query.toLowerCase())) : opts;
-  const triggerCls = `w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-sm transition-colors outline-none ${isDark ? "bg-white/5 border-white/10 hover:border-white/20" : "bg-black/[0.03] border-black/10 hover:border-black/20"} ${open ? "border-accent/60" : ""} ${selected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${className}`;
+  const triggerCls = `w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-sm border text-sm transition-colors outline-none bg-[var(--surface-raised)] border-[var(--border)] hover:border-[var(--border-strong)] ${open ? "border-accent/60" : ""} ${selected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} ${className}`;
 
   return (
     <>
@@ -114,10 +114,10 @@ export function MohandSelect({ value, options, onChange, placeholder = "Selectâ€
               initial={entry.initial} animate={entry.animate} exit={entry.exit}
               transition={{ default: { type: "spring", stiffness: 560, damping: 38, mass: 0.7 }, opacity: { duration: 0.12 } }}
               style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 10000, transformOrigin: pos.flipUp ? "bottom center" : "top center" }}
-              className={`rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-xl ${isDark ? "bg-[#15151c]/80 border-white/10" : "bg-white/80 border-black/10"}`}
+              className={`rounded-sm border shadow-md overflow-hidden bg-[var(--surface)] border-[var(--border)]`}
             >
               {showSearch && (
-                <div className={`flex items-center gap-2 px-3 py-2 border-b ${isDark ? "border-white/10" : "border-black/10"}`}>
+                <div className={`flex items-center gap-2 px-3 py-2 border-b border-[var(--border)]`}>
                   <Search size={14} className="text-[var(--text-muted)]" />
                   <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filterâ€¦" className="flex-1 bg-transparent outline-none text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]" />
                 </div>
@@ -126,7 +126,7 @@ export function MohandSelect({ value, options, onChange, placeholder = "Selectâ€
                 {filtered.length === 0 ? (
                   <div className="px-3 py-4 text-center text-[var(--text-muted)] text-sm">No matches</div>
                 ) : filtered.map((o) => (
-                  <button key={o.value} ref={o.value === value ? selectedRef : undefined} type="button" role="option" aria-selected={o.value === value} aria-disabled={o.disabled || undefined} disabled={o.disabled} onClick={() => { if (o.disabled) return; onChange(o.value); setOpen(false); }} className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${o.disabled ? "text-[var(--text-muted)] opacity-40 cursor-not-allowed line-through" : o.value === value ? "bg-accent/15 text-accent font-semibold" : "text-[var(--text-primary)] hover:bg-black/5 dark:hover:bg-white/10"}`}>
+                  <button key={o.value} ref={o.value === value ? selectedRef : undefined} type="button" role="option" aria-selected={o.value === value} aria-disabled={o.disabled || undefined} disabled={o.disabled} onClick={() => { if (o.disabled) return; onChange(o.value); setOpen(false); }} className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${o.disabled ? "text-[var(--text-muted)] opacity-50 cursor-not-allowed line-through" : o.value === value ? "bg-[var(--primary-soft)] text-[var(--highlight)] font-semibold" : "text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"}`}>
                     <span className="truncate">{o.label}</span>
                     {o.hint && <span className="text-[var(--text-muted)] text-xs flex-shrink-0">{o.hint}</span>}
                     {!o.disabled && o.value === value && <Check size={15} className="flex-shrink-0" />}

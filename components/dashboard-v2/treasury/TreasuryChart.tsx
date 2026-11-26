@@ -27,15 +27,15 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipContentProps & { 
         { c: 'var(--dash-accent-text)', label: 'Net', v: net },
     ];
     return (
-        <div className={`p-4 rounded-sm border shadow-2xl backdrop-blur-3xl ${isDark ? 'bg-black/80 border-dash-border' : 'bg-dash-surface/70 border-black/5 shadow-[0_20px_40px_var(--dash-border)]'}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-dash-text-3'}`}>{header}</div>
+        <div className={`p-4 rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--scrim)] border-dash-border' : 'bg-dash-surface border-dash-border shadow-[0_20px_40px_var(--shadow-color)]'}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{header}</div>
             <div className="flex flex-col gap-2">
                 {rows.map(r => (
                     <div key={r.label} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: r.c, boxShadow: `0 0 10px ${r.c}` }} />
-                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>
+                        <span className={`text-sm font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>
                             {formatMoney(r.v, cur)}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-dash-text-3'}`}>{r.label}</span>
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-dash-text-3' : 'text-dash-text-3'}`}>{r.label}</span>
                         </span>
                     </div>
                 ))}
@@ -147,10 +147,10 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                         <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--dash-danger)' }}>{formatMoney(pageSpent, cur)}</h3>
                     </div>
                 </div>
-                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/5'}`}>
+                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'}`}>
                     {(['daily', 'weekly', 'monthly'] as ChartFilter[]).map(f => (
                         <button key={f} onClick={() => setFilter(f)}
-                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-dash-accent text-white shadow-lg shadow-blue-600/25' : isDark ? 'text-[#666] hover:text-[#999]' : 'text-dash-text-3 hover:text-dash-text-2'}`}>
+                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-dash-accent text-dash-text shadow-lg shadow-[0_8px_24px_var(--shadow-color)]' : isDark ? 'text-dash-text-3 hover:text-dash-text-2' : 'text-dash-text-3 hover:text-dash-text-2'}`}>
                             {f === 'daily' ? 'Day' : f === 'weekly' ? 'Week' : 'Month'}
                         </button>
                     ))}
@@ -160,15 +160,15 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             {/* Row 2: period label (always shown) + pager (only when multiple pages) */}
             <div className="flex items-center gap-2 mb-4">
                 {totalPages > 1 && (
-                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
+                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
                 )}
-                <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-white/80' : 'text-dash-text-2'}`}>{pageTitle || '-'}</span>
+                <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-dash-text' : 'text-dash-text-2'}`}>{pageTitle || '-'}</span>
                 {totalPages > 1 && (
                     <>
-                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
+                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-dash-text-3 hover:text-dash-text disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
                         <div className="flex items-center gap-1 ml-1">
                             {pages.map((_, i) => (
-                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-dash-accent' : `w-1.5 h-1.5 ${isDark ? 'bg-dash-surface/15 hover:bg-dash-surface/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
+                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-dash-accent' : `w-1.5 h-1.5 ${isDark ? 'bg-dash-surface-2 hover:bg-dash-surface-3' : 'bg-black/10 hover:bg-black/20'}`}`} />
                             ))}
                         </div>
                     </>

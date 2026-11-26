@@ -17,12 +17,7 @@
   --section-bg: var(--dash-surface);
   --section-shadow: none;
   --subnav-bg: var(--dash-surface-2);
-  --danger: var(--dash-danger);
-  --danger-rgb: 251, 113, 133;
-  --warning: var(--dash-warning);
-  --warning-rgb: 251, 191, 36;
-  --success: var(--dash-success);
-  --info: var(--dash-accent-text);
+  /* Status tokens are inherited from the canonical palette (theme-aware). */
 
   background: var(--dash-bg);
   color: var(--dash-text);
@@ -84,7 +79,7 @@
 }
 
 .dash-root .modal-backdrop {
-  background: rgba(0, 0, 0, 0.62);
+  background: var(--scrim);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
@@ -97,8 +92,8 @@
 }
 
 .dash-root .btn-primary {
-  background-color: var(--dash-accent);
-  color: #fff7ed;
+  background-color: var(--primary);
+  color: var(--on-primary);
   box-shadow: none;
 }
 
@@ -131,12 +126,58 @@
 }
 
 .dash-root ::selection {
-  background: var(--dash-accent);
-  color: #fff7ed;
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .dash-root .custom-scrollbar::-webkit-scrollbar-thumb,
 .dash-root ::-webkit-scrollbar-thumb {
   background: var(--dash-border-strong);
   border-radius: 4px;
+}
+
+/* Consistent states across every tab. */
+.dash-root .dashboard-card,
+.dash-root .elevated {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-root [aria-selected="true"],
+.dash-root tr.selected {
+  background: var(--primary-soft);
+}
+
+.dash-root button:disabled,
+.dash-root input:disabled,
+.dash-root select:disabled,
+.dash-root textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dash-root .empty-state {
+  background: var(--surface-raised);
+  border: 1px dashed var(--border);
+  color: var(--text-2);
+}
+
+.dash-root .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-raised) 0%,
+    var(--surface-hover) 50%,
+    var(--surface-raised) 100%
+  );
+  background-size: 200% 100%;
+  animation: dash-skeleton 1.4s ease-in-out infinite;
+}
+
+@keyframes dash-skeleton {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-root .skeleton { animation: none; }
 }

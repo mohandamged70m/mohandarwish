@@ -38,7 +38,7 @@ export const ColorSwatches = ({ value, onPick, isDark }: { value: string; onPick
 export const CategoryBadge = ({ cat, size = 'sm' }: { cat: MeetingCategory; size?: 'sm' | 'md' }) => (
     <span
         className={`inline-flex items-center gap-1.5 rounded-md font-semibold ${size === 'md' ? 'px-2.5 py-1 text-xs' : 'p-1 px-1.5 text-[11px]'}`}
-        style={{ background: `${cat.color}1f`, color: cat.color }}
+        style={{ background: `color-mix(in srgb, cat.color 12%, transparent)`, color: cat.color }}
     >
         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cat.color }} />
         {cat.name}

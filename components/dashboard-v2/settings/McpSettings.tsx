@@ -107,7 +107,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             aria-checked={on}
             aria-label={label}
             className="relative shrink-0 rounded-full transition-colors"
-            style={{ width: 46, height: 28, background: on ? 'var(--accent)' : ('var(--dash-border)') }}
+            style={{ width: 46, height: 28, background: 'var(--dash-surface-3)' }}
         >
             <span className="absolute top-[3px] rounded-full bg-dash-surface shadow-sm transition-all" style={{ width: 22, height: 22, left: on ? 21 : 3 }} />
         </button>
@@ -123,7 +123,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             {/* Header + status */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--accent)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                         <Plug size={24} />
                     </span>
                     <div className="min-w-0">
@@ -209,7 +209,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                     type="button"
                     onClick={() => patch({ revokedBefore: Date.now() }, 'All MCP access revoked')}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors"
-                    style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
+                    style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                 >
                     <RotateCcw size={16} />
                     Revoke
@@ -268,7 +268,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                                 className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                                                 style={a.ok
                                                     ? { background: 'var(--dash-success)', color: 'var(--dash-success)' }
-                                                    : { background: 'rgba(var(--danger-rgb),0.14)', color: 'var(--dash-danger)' }}
+                                                    : { background: 'color-mix(in srgb, var(--danger) 14%, transparent)', color: 'var(--dash-danger)' }}
                                             >
                                                 {a.ok ? <Check size={10} /> : <X size={10} />}{a.ok ? 'ok' : 'error'}
                                             </span>

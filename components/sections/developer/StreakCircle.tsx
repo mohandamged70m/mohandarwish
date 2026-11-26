@@ -78,7 +78,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                     placeItems: 'center',
                     filter:
                         hasStreak && !isLoading
-                            ? 'drop-shadow(0 6px 18px rgba(255,100,0,0.55))'
+                            ? 'drop-shadow(0 6px 18px color-mix(in srgb, var(--warning) 55%, transparent))'
                             : 'grayscale(0.85) opacity(0.35)',
                     transition: 'filter 0.5s ease',
                     marginBottom: -8,
@@ -93,7 +93,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                         inset: 0,
                         display: 'grid',
                         placeItems: 'center',
-                        color: hasStreak && !isLoading ? '#ff6a00' : 'var(--text-muted)',
+                        color: hasStreak && !isLoading ? 'var(--warning)' : 'var(--text-muted)',
                         opacity: showAnimation && hasStreak && !isLoading ? 0 : 1,
                         transition: 'opacity 0.4s ease',
                     }}
@@ -140,7 +140,7 @@ const StreakCircle = ({ streak, isLoading = false }: StreakCircleProps) => {
                     fontWeight: 800,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    color: hasStreak && !isLoading ? 'rgba(255,140,0,0.75)' : 'var(--text-muted)',
+                    color: hasStreak && !isLoading ? 'color-mix(in srgb, var(--warning) 75%, transparent)' : 'var(--text-muted)',
                     marginTop: 4,
                     transition: 'color 0.4s ease',
                 }}

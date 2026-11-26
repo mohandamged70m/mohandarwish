@@ -651,7 +651,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
         const me = m.role === 'user';
         return (
             <div key={i} className={`flex ${me ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-sm text-sm ${me ? 'bg-dash-accent text-white rounded-br-md' : isDark ? 'bg-dash-surface/10 text-white rounded-bl-md' : 'bg-black/[0.05] text-dash-text rounded-bl-md'}`}>
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-sm text-sm ${me ? 'bg-dash-accent text-dash-text rounded-br-md' : isDark ? 'bg-dash-surface-2 text-dash-text rounded-bl-md' : 'bg-dash-surface-2 text-dash-text rounded-bl-md'}`}>
                     {me ? m.text : <Markdown>{m.text}</Markdown>}
                 </div>
             </div>
@@ -665,8 +665,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                 onClick={() => setOpen(o => !o)}
                 data-spark-ui
                 aria-label="AI assistant"
-                className={`fixed bottom-5 right-5 z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[var(--dash-bg)]/90 border-dash-border' : 'bg-dash-surface/90 border-black/10'} backdrop-blur-xl`}
-                style={{ boxShadow: '0 10px 40px var(--dash-border)' }}
+                className={`fixed bottom-5 right-5 z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[var(--dash-bg)]/90 border-dash-border' : 'bg-dash-surface border-black/10'} `}
+                style={{ boxShadow: '0 10px 40px var(--shadow-color)' }}
             >
                 <Sparkles ref={iconRef} size={26} style={{ filter: 'drop-shadow(0 0 7px)' }} />
             </button>
@@ -675,14 +675,14 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             {createPortal(
                 <div ref={cursorRef} data-spark-ui className="fixed z-[2000] pointer-events-none" style={{ left: 0, top: 0, opacity: 0, transform: 'translate(-2px,-2px)' }}>
                     <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-dash-info/40" style={{ opacity: 0 }} />
-                    <MousePointer2 size={24} className="text-dash-accent-text fill-blue-500/30" style={{ filter: 'drop-shadow(0 2px 4px var(--dash-border))' }} />
+                    <MousePointer2 size={24} className="text-dash-accent-text fill-dash-accent/30" style={{ filter: 'drop-shadow(0 2px 4px var(--shadow-color))' }} />
                 </div>,
                 document.body
             )}
 
             {/* Chat modal */}
             {open && createPortal(
-                <div data-spark-ui role="dialog" aria-label="Spark assistant" className="fixed bottom-24 right-5 z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-sm border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100vh - 8rem))', background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)', borderColor: 'var(--dash-border)', }}>
+                <div data-spark-ui role="dialog" aria-label="Spark assistant" className="fixed bottom-24 right-5 z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-sm border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100vh - 8rem))', background: 'var(--dash-surface)', borderColor: 'var(--dash-border)', }}>
                     {/* Header */}
                     <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--dash-border)]">
                         <div className="flex items-center gap-2.5 min-w-0">
@@ -696,10 +696,10 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-dash-success bg-dash-success/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
-                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-dash-warning bg-dash-warning/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Zap size={17} className={autoMode ? 'fill-amber-500/40' : ''} /></button>
-                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Settings2 size={17} /></button>
-                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><X size={17} /></button>
+                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-dash-success bg-dash-success/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
+                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-dash-warning bg-dash-warning/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Zap size={17} className={autoMode ? 'fill-dash-warning/40' : ''} /></button>
+                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Settings2 size={17} /></button>
+                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><X size={17} /></button>
                         </div>
                     </div>
 
@@ -708,7 +708,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                         <div className="p-4 flex flex-col gap-3 border-b border-[var(--dash-border)] bg-dash-surface-2 dark:bg-dash-surface-2">
                             <div>
                                 <label className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider mb-1.5 block">API key (this browser)</label>
-                                <input value={keyInput} onChange={e => setKeyInput(e.target.value)} aria-label="API key override" type="password" placeholder={`active: ${maskedKey}`} className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text`} />
+                                <input value={keyInput} onChange={e => setKeyInput(e.target.value)} aria-label="API key override" type="password" placeholder={`active: ${maskedKey}`} className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10'} text-dash-text`} />
                                 <p className="text-[10px] text-dash-text-2 mt-1">The key is held server-side by the <code>llm</code> Cloud Function - nothing ships in the bundle. Paste one here only to override it in this browser for testing. {provider ? `Provider: ${PROVIDER_LABEL[provider]}.` : ''}</p>
                             </div>
                             <div className="flex items-end gap-2">
@@ -739,9 +739,9 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             {/* Memory - persists in Firestore (Spark/Memory); Spark can also edit this herself */}
                             <div className="pt-2 border-t border-[var(--dash-border)] flex flex-col gap-2">
                                 <div className="flex items-center gap-1.5 text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider"><Brain size={13} /> Memory</div>
-                                <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
-                                <textarea value={memory.instructions || ''} onChange={e => setMemory(m => ({ ...m, instructions: e.target.value }))} rows={3} placeholder="Standing instructions for Spark (how she should behave, tone, defaults)…" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none resize-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
-                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions }).then(() => setSettingsMsg('Memory saved')).catch(() => setSettingsMsg('Save failed'))} className="self-end px-4 py-2 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent transition-all active:scale-95">Save memory</button>
+                                <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
+                                <textarea value={memory.instructions || ''} onChange={e => setMemory(m => ({ ...m, instructions: e.target.value }))} rows={3} placeholder="Standing instructions for Spark (how she should behave, tone, defaults)…" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none resize-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
+                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions }).then(() => setSettingsMsg('Memory saved')).catch(() => setSettingsMsg('Save failed'))} className="self-end px-4 py-2 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent transition-all active:scale-95">Save memory</button>
                             </div>
                         </div>
                     )}
@@ -761,10 +761,10 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                             <div className={`rounded-sm border p-3.5 flex flex-col gap-2.5 ${isDark ? 'bg-dash-accent-soft border-dash-warning/30' : 'bg-dash-accent-soft border-dash-warning'}`}>
                                 <div className="flex items-center gap-2 text-sm font-bold text-dash-text"><Database size={15} className="text-dash-warning" /> Confirm action</div>
                                 <p className="text-sm text-dash-text">{pending.desc}</p>
-                                {pending.detail && <pre className="text-[11px] text-dash-text-2 bg-black/5 dark:bg-dash-surface/5 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
+                                {pending.detail && <pre className="text-[11px] text-dash-text-2 bg-dash-surface-2 dark:bg-dash-surface/5 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
                                 <div className="flex gap-2 justify-end">
-                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10">Cancel</button>
-                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-dash-warning hover:bg-dash-warning flex items-center gap-1.5"><Check size={15} /> Do it</button>
+                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3">Cancel</button>
+                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-lg text-sm font-bold text-dash-text bg-dash-warning hover:bg-dash-warning flex items-center gap-1.5"><Check size={15} /> Do it</button>
                                 </div>
                             </div>
                         )}
@@ -782,16 +782,16 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                                 key={i}
                                                 onClick={() => quiz.multi ? toggleQuiz(o) : answerQuiz(o)}
                                                 className={`w-full text-left px-3.5 py-2.5 rounded-sm border text-sm font-medium transition-all flex items-center gap-2.5
-                                                    ${sel ? 'bg-dash-accent text-white border-dash-accent' : isDark ? 'bg-dash-surface/5 border-dash-border text-dash-text hover:border-dash-accent/50' : 'bg-dash-surface border-black/10 text-dash-text hover:border-dash-accent/50'}`}
+                                                    ${sel ? 'bg-dash-accent text-dash-text border-dash-accent' : isDark ? 'bg-dash-surface/5 border-dash-border text-dash-text hover:border-dash-accent/50' : 'bg-dash-surface border-black/10 text-dash-text hover:border-dash-accent/50'}`}
                                             >
-                                                {quiz.multi && <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${sel ? 'bg-dash-surface/20 border-dash-border0' : 'border-current opacity-50'}`}>{sel && <Check size={12} />}</span>}
+                                                {quiz.multi && <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${sel ? 'bg-dash-surface-2 border-dash-border0' : 'border-current opacity-50'}`}>{sel && <Check size={12} />}</span>}
                                                 <span>{o}</span>
                                             </button>
                                         );
                                     })}
                                 </div>
                                 {quiz.multi && (
-                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
+                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
                                 )}
                                 {/* Own answer - when none of the choices fit */}
                                 <div className="flex items-center gap-1.5 pt-1">
@@ -807,7 +807,7 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                         placeholder="Type your own answer…"
                                         className={`flex-1 px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface border-black/10'} text-dash-text placeholder:text-dash-text-2`}
                                     />
-                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} aria-label="Send your answer" className="p-2 rounded-sm bg-dash-accent text-white hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
+                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} aria-label="Send your answer" className="p-2 rounded-sm bg-dash-accent text-dash-text hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
                                 </div>
                             </div>
                         )}
@@ -815,9 +815,9 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
                     {/* Input */}
                     <div className="p-3 border-t border-[var(--dash-border)] flex items-center gap-2">
-                        <input value={input} onChange={e => setInput(e.target.value)} aria-label="Message Spark" onKeyDown={e => { if (e.key === 'Enter') send(); }} disabled={busy} placeholder={busy ? 'Working…' : listening ? 'Listening…' : 'Ask Spark…'} className={`flex-1 px-3.5 py-2.5 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2 disabled:opacity-60`} />
-                        <button onClick={toggleConvo} aria-label={convoMode ? 'Stop voice chat' : 'Start voice chat'} aria-pressed={convoMode} title={convoMode ? 'Stop voice chat' : 'Start hands-free voice chat'} className={`p-2.5 rounded-sm transition-all flex-shrink-0 active:scale-95 ${convoMode ? (listening ? 'bg-dash-danger text-white animate-pulse' : 'bg-dash-success text-white') : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Mic size={18} /></button>
-                        <button onClick={() => send()} disabled={busy || !input.trim()} aria-label="Send message" className="p-2.5 rounded-sm bg-dash-accent text-white hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95">
+                        <input value={input} onChange={e => setInput(e.target.value)} aria-label="Message Spark" onKeyDown={e => { if (e.key === 'Enter') send(); }} disabled={busy} placeholder={busy ? 'Working…' : listening ? 'Listening…' : 'Ask Spark…'} className={`flex-1 px-3.5 py-2.5 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10'} text-dash-text placeholder:text-dash-text-2 disabled:opacity-60`} />
+                        <button onClick={toggleConvo} aria-label={convoMode ? 'Stop voice chat' : 'Start voice chat'} aria-pressed={convoMode} title={convoMode ? 'Stop voice chat' : 'Start hands-free voice chat'} className={`p-2.5 rounded-sm transition-all flex-shrink-0 active:scale-95 ${convoMode ? (listening ? 'bg-dash-danger text-dash-text animate-pulse' : 'bg-dash-success text-dash-text') : 'text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}><Mic size={18} /></button>
+                        <button onClick={() => send()} disabled={busy || !input.trim()} aria-label="Send message" className="p-2.5 rounded-sm bg-dash-accent text-dash-text hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95">
                             {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                         </button>
                     </div>

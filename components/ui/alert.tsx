@@ -13,10 +13,10 @@ interface AlertProps {
 }
 
 const styles: Record<AlertType, { border: string; Icon: typeof CheckCircle }> = {
-  success: { border: "rgb(34,197,94)", Icon: CheckCircle },
-  error: { border: "rgb(239,68,68)", Icon: AlertCircle },
-  warning: { border: "rgb(234,179,8)", Icon: AlertTriangle },
-  info: { border: "var(--accent-primary)", Icon: Info },
+  success: { border: "var(--success)", Icon: CheckCircle },
+  error: { border: "var(--danger)", Icon: AlertCircle },
+  warning: { border: "var(--warning)", Icon: AlertTriangle },
+  info: { border: "var(--highlight)", Icon: Info },
 };
 
 export default function Alert({ type, message, onClose, duration = 4000 }: AlertProps) {
@@ -37,7 +37,7 @@ export default function Alert({ type, message, onClose, duration = 4000 }: Alert
       role={type === "error" || type === "warning" ? "alert" : "status"}
       aria-live={type === "error" || type === "warning" ? "assertive" : "polite"}
       className="fixed left-4 right-4 top-4 z-[10050] flex items-center gap-3 rounded-md p-4 shadow-lg backdrop-blur-md sm:left-auto sm:right-6 sm:top-6 sm:min-w-[320px] sm:max-w-[420px] sm:w-auto"
-      style={{ backgroundColor: "var(--bg-surface, #ffffff)", borderLeft: `4px solid ${border}` }}
+      style={{ backgroundColor: "var(--surface)", borderLeft: `4px solid ${border}` }}
     >
       <div className="flex items-center justify-center" style={{ color: border }}>
         <Icon size={24} />

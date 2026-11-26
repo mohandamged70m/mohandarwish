@@ -61,32 +61,32 @@ export function buildReceiptHtml(data: ReceiptData): string {
   const lineRows = data.lines
     .map(
       (l) =>
-        `<tr><td style="padding:8px;border:1px solid #e2e8f0">${esc(l.name)}${l.note ? `<div style="font-size:12px;color:#64748b">${esc(l.note)}</div>` : ""}</td>` +
-        `<td style="padding:8px;border:1px solid #e2e8f0;text-align:right">${esc(money(l.price, data.currency))}</td>` +
-        `<td style="padding:8px;border:1px solid #e2e8f0;text-align:right">${esc(money(l.paid, data.currency))}</td>` +
-        `<td style="padding:8px;border:1px solid #e2e8f0;text-align:right">${l.balance === null ? "—" : esc(money(l.balance, data.currency))}</td></tr>`
+        `<tr><td style="padding:8px;border:1px solid #e8d5cc">${esc(l.name)}${l.note ? `<div style="font-size:12px;color:#6b4a3e">${esc(l.note)}</div>` : ""}</td>` +
+        `<td style="padding:8px;border:1px solid #e8d5cc;text-align:right">${esc(money(l.price, data.currency))}</td>` +
+        `<td style="padding:8px;border:1px solid #e8d5cc;text-align:right">${esc(money(l.paid, data.currency))}</td>` +
+        `<td style="padding:8px;border:1px solid #e8d5cc;text-align:right">${l.balance === null ? "—" : esc(money(l.balance, data.currency))}</td></tr>`
     )
     .join("");
   const payRows = (data.payments ?? [])
     .map(
       (p) =>
-        `<tr><td style="padding:8px;border:1px solid #e2e8f0">${esc(p.dateLabel)}${p.note ? ` — ${esc(p.note)}` : ""}</td>` +
-        `<td style="padding:8px;border:1px solid #e2e8f0;text-align:right">${esc(money(p.amount, data.currency))}</td></tr>`
+        `<tr><td style="padding:8px;border:1px solid #e8d5cc">${esc(p.dateLabel)}${p.note ? ` — ${esc(p.note)}` : ""}</td>` +
+        `<td style="padding:8px;border:1px solid #e8d5cc;text-align:right">${esc(money(p.amount, data.currency))}</td></tr>`
     )
     .join("");
   return (
-    `<!doctype html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;color:#0f172a;max-width:640px;margin:0 auto;padding:24px">` +
+    `<!doctype html><html><head><meta charset="utf-8"></head><body style="font-family:sans-serif;color:#250902;max-width:640px;margin:0 auto;padding:24px">` +
     `<h1 style="font-size:22px">${esc(title)} ${esc(data.receiptNo)}</h1>` +
-    `<p style="color:#64748b">${esc(data.dateLabel)}${data.customerName ? ` · ${esc(data.customerName)}` : ""}${data.customerEmail ? ` · ${esc(data.customerEmail)}` : ""}</p>` +
+    `<p style="color:#6b4a3e">${esc(data.dateLabel)}${data.customerName ? ` · ${esc(data.customerName)}` : ""}${data.customerEmail ? ` · ${esc(data.customerEmail)}` : ""}</p>` +
     (data.paidOnLabel ? `<p>Paid on: ${esc(data.paidOnLabel)}</p>` : "") +
     (data.dueByLabel ? `<p>Due by: ${esc(data.dueByLabel)}</p>` : "") +
     `<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr>` +
-    `<th style="text-align:left;padding:8px;border:1px solid #e2e8f0">Item</th><th style="padding:8px;border:1px solid #e2e8f0">Price</th><th style="padding:8px;border:1px solid #e2e8f0">Paid</th><th style="padding:8px;border:1px solid #e2e8f0">Balance</th>` +
+    `<th style="text-align:left;padding:8px;border:1px solid #e8d5cc">Item</th><th style="padding:8px;border:1px solid #e8d5cc">Price</th><th style="padding:8px;border:1px solid #e8d5cc">Paid</th><th style="padding:8px;border:1px solid #e8d5cc">Balance</th>` +
     `</tr></thead><tbody>${lineRows}</tbody></table>` +
     `<p style="text-align:right;font-size:16px">Total: <strong>${esc(money(data.totals.price, data.currency))}</strong> · Paid: <strong>${esc(money(data.totals.paid, data.currency))}</strong> · Balance: <strong>${esc(money(data.totals.balance, data.currency))}</strong></p>` +
     (payRows ? `<h3>Payments</h3><table style="width:100%;border-collapse:collapse"><tbody>${payRows}</tbody></table>` : "") +
     (data.note ? `<p style="margin-top:12px;white-space:pre-wrap">${esc(data.note)}</p>` : "") +
-    `<p style="margin-top:24px;color:#64748b">— Mohand Darwish</p></body></html>`
+    `<p style="margin-top:24px;color:#6b4a3e">— Mohand Darwish</p></body></html>`
   );
 }
 

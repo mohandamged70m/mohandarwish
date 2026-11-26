@@ -1,25 +1,34 @@
 /* ================= /book, on the portfolio's tokens =================
    Scoped under .bp. Light values here, dark under .dark .bp (the site's theme class). */
 .bp {
-  --bg-primary: #f5f5f5; --bg-secondary: #fff; --text-primary: #000; --text-secondary: #374151; --text-muted: #52525b;
-  --accent: #3395ff; --blue: rgb(59,130,246); --success: #10b981;
-  --glass-bg-deep: rgba(255,255,255,.8); --card-border: rgba(0,0,0,.05); --glass-inset: inset 0 0 0 1px rgba(255,255,255,.3);
-  --input-bg: rgba(0,0,0,.05); --input-border: rgba(0,0,0,.08); --slot-bg: rgba(0,0,0,.03); --slot-border: rgba(0,0,0,.08); --nav-bg: rgba(0,0,0,.05);
-  --pill-bg: rgba(255,255,255,.4); --pill-border: rgba(0,0,0,.08); --pill-shadow: 0 8px 32px rgba(0,0,0,.05);
-  --paint-ink: #000; --wall-dot: rgba(0,0,0,.02);
+  /* /book reuses the site palette — no private grey/blue theme. */
+  --bg-primary: var(--background);
+  --bg-secondary: var(--surface);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--muted);
+  --accent: var(--primary);
+  --blue: var(--info);
+  --success: var(--success);
+  --glass-bg-deep: var(--surface);
+  --card-border: var(--border);
+  --glass-inset: inset 0 0 0 1px var(--border);
+  --input-bg: var(--surface-raised);
+  --input-border: var(--border-strong);
+  --slot-bg: var(--surface-raised);
+  --slot-border: var(--border);
+  --nav-bg: var(--surface-raised);
+  --pill-bg: var(--surface);
+  --pill-border: var(--border);
+  --pill-shadow: var(--shadow-md);
+  --paint-ink: var(--text);
+  --wall-dot: var(--border);
   container-type: inline-size; position: relative; overflow: hidden; min-height: 100dvh;
   background: var(--bg-primary); color: var(--text-primary);
   font-family: var(--font-inter), system-ui, sans-serif;
 }
-.dark .bp {
-  --bg-primary: #0a0a0a; --bg-secondary: #1a1a1a; --text-primary: #fff; --text-secondary: #e5e7eb; --text-muted: #9ca3af;
-  --glass-bg-deep: rgba(10,10,12,.6); --card-border: rgba(255,255,255,.1); --glass-inset: inset 0 0 0 1px rgba(255,255,255,.06);
-  --input-bg: rgba(255,255,255,.05); --input-border: rgba(255,255,255,.1); --slot-bg: rgba(255,255,255,.03); --slot-border: rgba(255,255,255,.1); --nav-bg: rgba(255,255,255,.1);
-  --pill-bg: rgba(0,0,0,.4); --pill-border: rgba(255,255,255,.08); --pill-shadow: 0 8px 32px rgba(0,0,0,.2);
-  --paint-ink: #fff; --wall-dot: rgba(255,255,255,.03);
-}
 .bp *, .bp *::before, .bp *::after { box-sizing: border-box; }
-.bp ::selection { background: var(--accent); color: #fff; }
+.bp ::selection { background: var(--primary); color: var(--on-primary); }
 .bp :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* Hidden until the entrance starts (BookPage sets data-intro="done"), so the name and photo
    never show, blink off, then animate back in. */

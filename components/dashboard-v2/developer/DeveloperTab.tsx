@@ -192,7 +192,7 @@ const DDeveloper = () => {
                                             width: 22, height: 22, borderRadius: 6,
                                             background: 'var(--dash-accent)',
                                             border: '1px solid var(--dash-accent)',
-                                            color: 'var(--accent)',
+                                            color: 'var(--on-primary)',
                                         }}
                                     >
                                         {i + 1}
@@ -222,7 +222,7 @@ const DDeveloper = () => {
                                         aria-label={`Remove ${name}`}
                                         className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors"
                                         style={{ width: 44, height: 44 }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--dash-danger)'; e.currentTarget.style.background = 'rgba(var(--danger-rgb),0.1)'; }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--dash-danger)'; e.currentTarget.style.background = 'color-mix(in srgb, var(--danger) 10%, transparent)'; }}
                                         onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--dash-text-3)'; e.currentTarget.style.background = 'transparent'; }}
                                     >
                                         <Trash2 size={15} />
@@ -300,13 +300,13 @@ const DDeveloper = () => {
                     <div
                         role="alert"
                         className="flex flex-col items-center gap-3 py-5 px-4 rounded-sm text-center text-sm"
-                        style={{ border: '1px solid rgba(var(--danger-rgb),0.3)', background: 'rgba(var(--danger-rgb),0.05)', color: 'var(--dash-danger)' }}
+                        style={{ border: '1px solid color-mix(in srgb, var(--danger) 30%, transparent)', background: 'color-mix(in srgb, var(--danger) 5%, transparent)', color: 'var(--dash-danger)' }}
                     >
                         <span>{reposError}</span>
                         <button
                             onClick={() => setReloadKey(k => k + 1)}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors"
-                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
+                            style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                         >
                             <RefreshCw size={14} />
                             Retry
@@ -346,7 +346,7 @@ const DDeveloper = () => {
                                             width: 20, height: 20, borderRadius: 6,
                                             background: selected ? 'var(--dash-accent)' : 'transparent',
                                             border: `1.5px solid ${selected ? 'var(--accent)' : 'var(--dash-border)'}`,
-                                            color: 'var(--accent)',
+                                            color: 'var(--on-primary)',
                                         }}
                                     >
                                         {selected ? <Check size={12} strokeWidth={3.5} /> : ''}

@@ -133,7 +133,7 @@ const ProjectRow = ({
                     {project.icon ? (
                         <FileImage src={project.icon} alt={project.name} className="w-full h-full object-cover" />
                     ) : project.images.length > 0 ? (
-                        <div className="w-full h-full bg-dash-accent text-white flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
+                        <div className="w-full h-full bg-dash-accent text-dash-text flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
                     ) : (
                         <span className="text-xl"></span>
                     )}
@@ -159,7 +159,7 @@ const ProjectRow = ({
                             <div key={idx} title={tag.name}
                                 className="w-8 h-8 rounded-full flex items-center justify-center border shadow-sm relative transition-all hover:z-20 cursor-help hover:scale-110"
                                 style={{
-                                    backgroundColor: tag.color ? `${tag.color}40` : 'var(--dash-accent-text)',
+                                    backgroundColor: tag.color ? `color-mix(in srgb, tag.color 25%, transparent)` : 'var(--dash-accent-text)',
                                     borderColor: tag.color || 'var(--dash-accent-text)',
                                     color: 'white',
                                     zIndex: 10 - idx,
@@ -181,7 +181,7 @@ const ProjectRow = ({
                             </div>
                         ))}
                         {project.tags.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-2 dark:bg-dash-surface/10 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-2 dark:bg-dash-surface-2 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
                                 +{project.tags.length - 5}
                             </div>
                         )}
@@ -197,7 +197,7 @@ const ProjectRow = ({
                     <div className="flex items-center">
                         {project.contributors.slice(0, 5).map((c, i) => (
                             <div key={i}
-                                className="w-7 h-7 rounded-full overflow-hidden border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-3 shadow-sm relative transition-all hover:z-20 cursor-pointer hover:scale-110"
+                                className="w-7 h-7 rounded-full overflow-hidden border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-3 shadow-sm relative transition-all hover:z-20 cursor-pointer hover:scale-110"
                                 title={c.name}
                                 style={{
                                     zIndex: 10 - i,
@@ -217,7 +217,7 @@ const ProjectRow = ({
                             </div>
                         ))}
                         {project.contributors.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-3 dark:bg-dash-surface/10 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-dash-border dark:border-[var(--dash-bg)] bg-dash-surface-3 dark:bg-dash-surface-2 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
                                 +{project.contributors.length - 5}
                             </div>
                         )}
@@ -245,7 +245,7 @@ const ProjectRow = ({
                         });
                         setActiveMenu(activeMenu === project.id ? null : project.id!);
                     }}
-                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/5'}`}
+                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5'}`}
                 >
                     <MoreVertical size={20} />
                 </button>
@@ -826,7 +826,7 @@ const DProjects = () => {
                                 color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-border)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-surface-3)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Eye size={16} /> View
@@ -842,7 +842,7 @@ const DProjects = () => {
                                 color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-border)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-surface-3)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Edit2 size={16} /> Edit

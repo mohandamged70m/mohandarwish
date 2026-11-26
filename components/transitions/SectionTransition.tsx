@@ -426,16 +426,16 @@ function SectionCurtain({
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
         transition={{ duration: exiting ? 0.24 : 0.2, ease: EASE, delay: 0.06 }}
-        className="absolute inset-0 overflow-hidden bg-[#160404]/70 backdrop-blur-md"
+        className="absolute inset-0 overflow-hidden bg-[var(--scrim)] backdrop-blur-md"
       />
       {/* cinematic red gradient curtain (play red → deep maroon + vignette) */}
       <motion.div
         initial={{ y: from }}
         animate={{ y: exiting ? to : '0%' }}
         transition={{ duration: exiting ? 0.28 : 0.2, ease: EASE }}
-        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-b from-[#E11D48]/85 via-[#B30F23]/75 to-[#7F1D1D]/90 shadow-[inset_0_0_200px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-b from-[var(--primary)] via-[var(--primary-hover)] to-[var(--surface-hover)] shadow-[inset_0_0_200px_var(--shadow-color)] backdrop-blur-xl"
       >
-        <span className="flex overflow-hidden font-heading text-[clamp(1.75rem,5vw,3rem)] font-bold uppercase tracking-[0.12em] text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]">
+        <span className="flex overflow-hidden font-heading text-[clamp(1.75rem,5vw,3rem)] font-bold uppercase tracking-[0.12em] text-[var(--on-primary)] drop-shadow-[0_2px_16px_var(--shadow-color)]">
           {letters.map((ch, i) => (
             <motion.span
               key={i}

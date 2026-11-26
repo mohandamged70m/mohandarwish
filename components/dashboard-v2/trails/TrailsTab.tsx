@@ -68,9 +68,9 @@ type TrailsView = 'stories' | 'overview' | 'links';
 
 // ── the tab ──────────────────────────────────────────────────────────────
 const VIEWS: Array<{ id: TrailsView; label: string; icon: typeof Footprints; tint: string }> = [
-    { id: 'stories', label: 'Stories', icon: Footprints, tint: '59, 130, 246' },
-    { id: 'overview', label: 'Overview', icon: Activity, tint: '16, 185, 129' },
-    { id: 'links', label: 'Links', icon: Link2, tint: '168, 85, 247' },
+    { id: 'stories', label: 'Stories', icon: Footprints, tint: 'var(--chart-1)' },
+    { id: 'overview', label: 'Overview', icon: Activity, tint: 'var(--chart-2)' },
+    { id: 'links', label: 'Links', icon: Link2, tint: 'var(--chart-3)' },
 ];
 
 const STORY_FILTERS: Array<{ id: StoryFilter; label: string }> = [
@@ -479,7 +479,7 @@ const DTrails = () => {
                                     gap: isExtraSmall ? '6px' : '8px',
                                     padding: isExtraSmall ? '8px 12px' : '9px 16px',
                                     borderRadius: '10px',
-                                    color: active ? `rgb(${item.tint})` : 'var(--dash-text-2)',
+                                    color: active ? `${item.tint}` : 'var(--dash-text-2)',
                                     fontSize: isExtraSmall ? '13px' : '14px',
                                     flex: isExtraSmall ? 1 : 'none',
                                 }}
@@ -561,9 +561,9 @@ const DTrails = () => {
                                                 aria-label="Search visits"
                                                 className="w-full h-9 rounded-sm border pl-9 pr-3 text-xs outline-none transition-colors focus:border-dash-accent"
                                                 style={{
-                                                    backgroundColor: isDark ? 'var(--dash-border)' : 'var(--dash-text)',
+                                                    backgroundColor: 'var(--dash-surface-2)',
                                                     borderColor: 'var(--dash-border)',
-                                                    color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)',
+                                                    color: 'var(--dash-text)',
                                                 }}
                                             />
                                         </div>
@@ -606,16 +606,16 @@ const DTrails = () => {
                                                 // subtitle; as chips they fill the middle of the row, which
                                                 // was dead space between the name and the duration.
                                                 const did: { label: string; tint: string }[] = [];
-                                                if (projectCount) did.push({ label: `${projectCount} project${projectCount === 1 ? '' : 's'}`, tint: '16,185,129' });
-                                                if (story.Cv?.Opens) did.push({ label: 'CV', tint: '245,158,11' });
+                                                if (projectCount) did.push({ label: `${projectCount} project${projectCount === 1 ? '' : 's'}`, tint: 'var(--chart-2)' });
+                                                if (story.Cv?.Opens) did.push({ label: 'CV', tint: 'var(--chart-3)' });
                                                 // /book and the contact modal are two ways in, so each keeps its own chip.
                                                 if (story.Contact?.Sent) {
-                                                    did.push({ label: sentLabel(story.Contact.Sent), tint: story.Contact.Sent === 'book' ? '14,165,233' : '236,72,153' });
+                                                    did.push({ label: sentLabel(story.Contact.Sent), tint: story.Contact.Sent === 'book' ? 'var(--chart-4)' : 'var(--chart-3)' });
                                                 } else if (story.Contact?.Opens) {
-                                                    did.push({ label: 'opened contact', tint: '236,72,153' });
+                                                    did.push({ label: 'opened contact', tint: 'var(--chart-3)' });
                                                 }
-                                                if (sawBookPage(story) && story.Contact?.Sent !== 'book') did.push({ label: 'saw /book', tint: '14,165,233' });
-                                                if (socialCount) did.push({ label: `${socialCount} social${socialCount === 1 ? '' : 's'}`, tint: '139,92,246' });
+                                                if (sawBookPage(story) && story.Contact?.Sent !== 'book') did.push({ label: 'saw /book', tint: 'var(--chart-4)' });
+                                                if (socialCount) did.push({ label: `${socialCount} social${socialCount === 1 ? '' : 's'}`, tint: 'var(--chart-5)' });
 
                                                 return (
                                                     <button
@@ -623,10 +623,10 @@ const DTrails = () => {
                                                         onClick={() => setOpenStoryId(story.Id)}
                                                         className="w-full text-left flex items-center gap-3 sm:gap-4 px-4 py-3.5 rounded-sm border cursor-pointer transition-colors"
                                                         style={{
-                                                            background: isDark ? 'var(--dash-border)' : 'var(--dash-text)',
+                                                            background: 'var(--dash-surface-2)',
                                                             borderColor: live ? 'var(--dash-accent-soft)' : 'var(--dash-border)',
                                                         }}
-                                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--dash-border)'; }}
+                                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--dash-surface-3)'; }}
                                                         onMouseLeave={e => { e.currentTarget.style.background = isDark ? 'var(--dash-border)' : 'var(--dash-text)'; }}
                                                     >
                                                         <span className="w-9 h-9 rounded-sm grid place-items-center shrink-0 text-base"
@@ -636,7 +636,7 @@ const DTrails = () => {
 
                                                         <span className="flex flex-col min-w-0 gap-0.5" style={{ flex: '1 1 200px' }}>
                                                             <span className="flex items-center gap-2 min-w-0">
-                                                                <span className="text-sm font-bold truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                                                <span className="text-sm font-bold truncate" style={{ color: 'var(--dash-text)' }}>
                                                                     {story.Geo?.Country || 'Somewhere'}
                                                                 </span>
                                                                 {story.Link && (
@@ -659,7 +659,7 @@ const DTrails = () => {
                                                                 <span
                                                                     key={chip.label}
                                                                     className="px-2 h-6 inline-flex items-center rounded-md text-[10px] font-bold whitespace-nowrap shrink-0"
-                                                                    style={{ background: `rgba(${chip.tint},0.14)`, color: `rgb(${chip.tint})` }}
+                                                                    style={{ background: `rgba(${chip.tint},0.14)`, color: `${chip.tint}` }}
                                                                 >
                                                                     {chip.label}
                                                                 </span>
@@ -711,11 +711,11 @@ const DTrails = () => {
                                             {counters.map(c => (
                                                 <div key={c.label} className="rounded-[24px] border p-5 flex flex-col gap-3"
                                                     style={{
-                                                        background: isDark ? 'var(--dash-border)' : 'var(--dash-text)',
+                                                        background: 'var(--dash-surface-2)',
                                                         borderColor: 'var(--dash-border)',
                                                     }}>
                                                     <span className="w-9 h-9 rounded-sm grid place-items-center"
-                                                        style={{ background: `${c.tint}1f`, color: c.tint }}>
+                                                        style={{ background: `color-mix(in srgb, c.tint 12%, transparent)`, color: c.tint }}>
                                                         {c.icon}
                                                     </span>
                                                     <div className="flex flex-col">
@@ -749,10 +749,10 @@ const DTrails = () => {
                                                         <Compass size={20} />
                                                     </div>
                                                     <div>
-                                                        <h3 className={`${isDark ? 'text-white' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
+                                                        <h3 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
                                                             How they found you
                                                         </h3>
-                                                        <p className={`${isDark ? 'text-[#666]' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
+                                                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
                                                             {(() => {
                                                                 const ai = sources.filter(s => s.Kind === 'ai').reduce((t, s) => t + (s.Sessions || 0), 0);
                                                                 const all = sources.reduce((t, s) => t + (s.Sessions || 0), 0);
@@ -767,11 +767,11 @@ const DTrails = () => {
                                                     {sources.map(s => {
                                                         const kind = SOURCE_KINDS[s.Kind || 'referral'] || SOURCE_KINDS.referral;
                                                         return (
-                                                            <div key={s.name} className={`flex items-center justify-between gap-4 px-4 py-3 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/[0.04]'}`}>
+                                                            <div key={s.name} className={`flex items-center justify-between gap-4 px-4 py-3 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'}`}>
                                                                 <span className="flex items-center gap-2.5 min-w-0">
-                                                                    <span className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-dash-text'}`}>{s.Name || s.name}</span>
+                                                                    <span className={`text-sm font-bold truncate ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>{s.Name || s.name}</span>
                                                                     <span className="text-[9px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full shrink-0"
-                                                                        style={{ color: kind.color, background: `${kind.color}1f` }}>
+                                                                        style={{ color: kind.color, background: `color-mix(in srgb, kind.color 12%, transparent)` }}>
                                                                         {kind.label}
                                                                     </span>
                                                                 </span>
@@ -788,22 +788,22 @@ const DTrails = () => {
                                         {socials.length > 0 && (
                                             <div className={`w-full ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-dash-border shadow-sm'} rounded-[28px] p-5 sm:p-8 border`}>
                                                 <div className="flex items-center gap-3 mb-6">
-                                                    <div className={`${isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-600'} w-10 h-10 flex items-center justify-center rounded-sm`}>
+                                                    <div className={`${isDark ? 'bg-dash-accent-soft text-dash-accent-text' : 'bg-dash-accent-soft text-dash-accent-text'} w-10 h-10 flex items-center justify-center rounded-sm`}>
                                                         <Globe size={20} />
                                                     </div>
                                                     <div>
-                                                        <h3 className={`${isDark ? 'text-white' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
+                                                        <h3 className={`${isDark ? 'text-dash-text' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
                                                             Where they went next
                                                         </h3>
-                                                        <p className={`${isDark ? 'text-[#666]' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
+                                                        <p className={`${isDark ? 'text-dash-text-3' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
                                                             Social links, and how long they stayed away
                                                         </p>
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col gap-2">
                                                     {socials.map(s => (
-                                                        <div key={s.name} className={`flex items-center justify-between gap-4 px-4 py-3 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/[0.04]'}`}>
-                                                            <span className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-dash-text'}`}>{s.name}</span>
+                                                        <div key={s.name} className={`flex items-center justify-between gap-4 px-4 py-3 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-dash-border'}`}>
+                                                            <span className={`text-sm font-bold truncate ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>{s.name}</span>
                                                             <span className="flex items-center gap-4 shrink-0 text-[11px] font-bold tabular-nums" style={{ color: 'var(--dash-text-3)' }}>
                                                                 <span>{(s.Clicks || 0).toLocaleString()} clicks</span>
                                                                 <span style={{ color: 'var(--dash-accent-text)' }}>{formatMs(s.AwayMs || 0)} away</span>
@@ -893,7 +893,7 @@ const DTrails = () => {
                                                             onClick={() => patchLink(link.id, { Notify: link.Notify === false }, link.Notify === false ? 'You will be emailed on every open.' : 'Notifications off for this link.')}
                                                             className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-[10px] font-bold cursor-pointer transition-colors"
                                                             style={{
-                                                                background: link.Notify !== false ? 'var(--dash-accent-text)' : ('var(--dash-border)'),
+                                                                background: 'var(--dash-surface-3)',
                                                                 color: link.Notify !== false ? 'var(--dash-accent-text)' : 'var(--dash-text-3)',
                                                             }}
                                                         >
@@ -902,13 +902,13 @@ const DTrails = () => {
                                                         </button>
                                                         {link.Tailor?.AutoCv && (
                                                             <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-[10px] font-bold"
-                                                                style={{ background: 'var(--dash-warning)', color: 'var(--dash-warning)' }}>
+                                                                style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
                                                                 <FileText size={13} /> CV opens itself
                                                             </span>
                                                         )}
                                                         {(link.Tailor?.Pinned?.length || 0) > 0 && (
                                                             <span className="inline-flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-[10px] font-bold"
-                                                                style={{ background: 'var(--dash-success)', color: 'var(--dash-success)' }}>
+                                                                style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
                                                                 <Briefcase size={13} /> {link.Tailor.Pinned.length} pinned
                                                             </span>
                                                         )}
@@ -940,11 +940,11 @@ const DTrails = () => {
                         style={{ top: `${menuPos.top}px`, right: `${menuPos.right}px`, borderRadius: '16px' }}>
                         <button
                             onClick={() => { const l = links.find(x => x.id === activeMenu); if (l) startEdit(l); }}
-                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10"
+                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3"
                             style={{ color: 'var(--dash-text)' }}>
                             <Edit2 size={15} /> Edit &amp; tailor
                         </button>
-                        <div className="mx-2 my-1 h-px" style={{ background: 'var(--dash-border)' }} />
+                        <div className="mx-2 my-1 h-px" style={{ background: 'var(--dash-surface-2)' }} />
                         <button
                             onClick={() => {
                                 const id = activeMenu;
@@ -956,7 +956,7 @@ const DTrails = () => {
                                     onConfirm: () => forgetLinkVisits(id),
                                 });
                             }}
-                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-orange-500/10"
+                            className="w-full text-left flex items-center gap-2.5 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors hover:bg-dash-warning/15"
                             style={{ color: 'var(--dash-warning)' }}>
                             <Trash2 size={15} /> Forget its visits
                         </button>
@@ -982,7 +982,7 @@ const DTrails = () => {
 
             {/* link editor */}
             {editingLink && draft && createPortal(
-                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/45 backdrop-blur-md animate-fade-in"
+                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-[var(--scrim)] animate-fade-in"
                     onClick={() => { setEditingLink(null); setDraft(null); }}>
                     <motion.div
                         initial={{ opacity: 0, scale: 0.97, y: 8 }}
@@ -1037,7 +1037,7 @@ const DTrails = () => {
                                 ].map(row => (
                                     <div key={row.key} className="flex items-center gap-4 py-3" style={{ borderBottom: '1px solid var(--dash-border)' }}>
                                         <div className="flex flex-col flex-1 min-w-0">
-                                            <span className="text-sm font-semibold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{row.title}</span>
+                                            <span className="text-sm font-semibold" style={{ color: 'var(--dash-text)' }}>{row.title}</span>
                                             <span className="text-[11px]" style={{ color: 'var(--dash-text-3)' }}>{row.note}</span>
                                         </div>
                                         <Toggle
@@ -1067,7 +1067,7 @@ const DTrails = () => {
                                                 })}
                                                 className="px-3 h-8 rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
                                                 style={{
-                                                    background: on ? 'var(--dash-success)' : ('var(--dash-border)'),
+                                                    background: 'var(--dash-surface-3)',
                                                     color: on ? 'var(--dash-success)' : 'var(--dash-text-3)',
                                                 }}
                                             >

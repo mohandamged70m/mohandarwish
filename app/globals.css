@@ -3,170 +3,182 @@
 /* Class-based dark mode (next-themes toggles .dark on <html>) */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * SINGLE SOURCE OF TRUTH
+ * Only the semantic tokens in :root / .light hold literal colours. Every other
+ * name below is an alias. Themes override semantics, never individual literals.
+ */
 :root {
-  /* Backgrounds — Dark (default): black base + wine system */
-  --bg-primary: #0a0a0a;
-  --bg-surface: #250902;
-  --bg-surface-hover: #38040e;
-  --border: #640d14;
-  --border-strong: #ad2831;
+  /* Structure: canvas < surface < raised < hover */
+  --background: #0a0a0a;
+  --surface: #120504;
+  --surface-raised: #1b0807;
+  --surface-hover: #250902;
+  /* Decorative hairline (grid) vs functional boundary (inputs, controls, 3:1+) */
+  --border: #381216;
+  --border-strong: #c33a43;
 
-  /* Accent — Wine (dark): fills wine, text ember for AA on black */
-  --accent-primary: #ad2831;
-  --accent-text: #e8624a;
-  --accent-hover: #800e13;
-  --accent-soft: #38040e;
-  --accent-ring: rgba(173, 40, 49, 0.35);
-  --accent-soft-text: #ffd9cc;
+  /* Brand: wine fill, ember text. Primary is used sparingly. */
+  --primary: #ad2831;
+  --primary-hover: #c33a43;
+  --primary-soft: rgba(173, 40, 49, 0.16);
+  --on-primary: #fff7ed;
+  --highlight: #e8624a;
+  --highlight-hover: #f4896f;
+  --highlight-soft: rgba(232, 98, 74, 0.12);
+  --on-soft: #ffd9cc;
 
-  /* Owner dashboard: dense admin UI. Deep near-black surfaces, wine accents,
-     calibrated borders and muted semantic colours — never border-as-background. */
-  --dash-bg: #0a0a0a;
-  --dash-surface: #120504;
-  --dash-surface-2: #1b0807;
-  --dash-surface-3: #250902;
-  --dash-border: #381216;
-  --dash-border-strong: #6d1d24;
-  --dash-text: #fff7ed;
-  --dash-text-2: #d8bfaf;
-  --dash-text-3: #a68a7a;
-  --dash-accent: #ad2831;
-  --dash-accent-hover: #c33a43;
-  --dash-accent-text: #f4896f;
-  --dash-accent-soft: rgba(173, 40, 49, 0.16);
-  --dash-success: #4ade80;
-  --dash-warning: #fbbf24;
-  --dash-danger: #fb7185;
-  --dash-info: #7dd3fc;
+  /* Type */
+  --text: #fff7ed;
+  --text-2: #d8bfaf;
+  --muted: #a68a7a;
 
-  /* Mohand compat aliases — mapped to wine palette */
-  --accent: var(--accent-primary);
-  --accent-rgb: 173,40,49;
-  --navbar-bg: rgba(10, 10, 10, 0.72);
-  --navbar-border: rgba(255, 255, 255, 0.08);
-  --danger: #f43f5e;
-  --danger-rgb: 244,63,94;
-  /* Amber is reserved for warning banners / "needs attention" states only. */
-  --warning: #f59e0b;
-  --warning-rgb: 245,158,11;
-  --success: #10b981;
-  --bg-secondary: #151515;
-  --card-bg: rgba(255,255,255,0.9);
-  --card-border: rgba(0,0,0,0.05);
-  --card-shadow: 0 8px 32px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.5);
-  --section-border: rgba(0,0,0,0.1);
-  --section-bg: rgba(255,255,255,0.7);
-  --section-shadow: 0 2px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
-  --input-bg: rgba(0,0,0,0.05);
-  --input-border: rgba(0,0,0,0.08);
-  --glass-bg-deep: rgba(255,255,255,0.8);
-  --subnav-bg: rgba(255,255,255,0.35);
-  --info: var(--accent-primary);
+  /* Status — semantic only, never decoration */
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+  --info: #7dd3fc;
+  --success-soft: rgba(var(--success-rgb), 0.14);
+  --warning-soft: rgba(var(--warning-rgb), 0.14);
+  --danger-soft: rgba(var(--danger-rgb), 0.14);
+  --info-soft: rgba(var(--info-rgb), 0.14);
+  --success-rgb: 74, 222, 128;
+  --warning-rgb: 251, 191, 36;
+  --danger-rgb: 251, 113, 133;
+  --info-rgb: 125, 211, 252;
 
-  /* Text — contrast tuned for 4.5:1 on --bg-surface #250902 and --bg-primary #0a0a0a */
-  --text-primary: #fff7ed;
-  --text-secondary: #d8bfaf;
-  --text-muted: #a68a7a;
-  --text-on-accent: #fff7ed;
+  /* Ordered chart sequence derived from the palette */
+  --chart-1: #ad2831;
+  --chart-2: #e8624a;
+  --chart-3: #f4896f;
+  --chart-4: #c33a43;
+  --chart-5: #a68a7a;
 
-  /* Fonts — will be set via next/font variables */
+  /* Elevation & overlays */
+  --ring: var(--highlight);
+  --scrim: rgba(0, 0, 0, 0.62);
+  --overlay-dark: #000000;
+  --shadow-color: rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 2px var(--shadow-color);
+  --shadow-md: 0 8px 24px var(--shadow-color);
+  --shadow-accent: 0 0 20px var(--primary-soft);
+
+  /* Fonts */
   --font-display: var(--font-space-grotesk);
   --font-heading: var(--font-plex-mono);
   --font-body: var(--font-inter);
-
-  /* Radius & Shadow */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-pill: 4px;
-  --shadow-accent: 0 0 20px rgba(173, 40, 49, 0.35);
 
-  /* Legacy compat for existing components */
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
+  /* --- Legacy aliases: no colour literals below this line --- */
+  --bg-primary: var(--background);
+  --bg-surface: var(--surface);
+  --bg-surface-hover: var(--surface-hover);
+  --bg-secondary: var(--surface-hover);
+  --accent-primary: var(--primary);
+  --accent-hover: var(--primary-hover);
+  --accent-text: var(--highlight);
+  --accent-soft: var(--primary-soft);
+  --accent-ring: var(--primary-soft);
+  --accent-soft-text: var(--on-soft);
+  --accent: var(--primary);
+  --accent-rgb: 173, 40, 49;
+  --text-primary: var(--text);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--muted);
+  --text-on-accent: var(--on-primary);
+  --foreground: var(--text);
+  --paint-ink: var(--on-primary);
+  --blue: var(--info);
 
-  /* /book (booking-system) paint & status colours */
-  --success: #10b981;
-  --blue: rgb(59, 130, 246);
-  --paint-ink: #fff;
+  --navbar-bg: color-mix(in srgb, var(--background) 72%, transparent);
+  --navbar-border: var(--border);
+  --card-bg: color-mix(in srgb, var(--surface-hover) 60%, transparent);
+  --card-border: var(--border);
+  --card-shadow: var(--shadow-md);
+  --section-border: var(--border);
+  --section-bg: color-mix(in srgb, var(--text) 3%, transparent);
+  --section-shadow: var(--shadow-sm);
+  --input-bg: var(--surface-raised);
+  --input-border: var(--border-strong);
+  --glass-bg-deep: color-mix(in srgb, var(--background) 60%, transparent);
+  --subnav-bg: color-mix(in srgb, var(--background) 50%, transparent);
+
+  /* Dashboard aliases — the admin UI shares the exact same palette */
+  --dash-bg: var(--background);
+  --dash-surface: var(--surface);
+  --dash-surface-2: var(--surface-raised);
+  --dash-surface-3: var(--surface-hover);
+  --dash-border: var(--border);
+  --dash-border-strong: var(--border-strong);
+  --dash-text: var(--text);
+  --dash-text-2: var(--text-2);
+  --dash-text-3: var(--muted);
+  --dash-accent: var(--primary);
+  --dash-accent-hover: var(--primary-hover);
+  --dash-accent-text: var(--accent);
+  --dash-accent-soft: var(--primary-soft);
+  --dash-success: var(--success);
+  --dash-warning: var(--warning);
+  --dash-danger: var(--danger);
+  --dash-info: var(--info);
+  --dash-success-soft: var(--success-soft);
+  --dash-warning-soft: var(--warning-soft);
+  --dash-danger-soft: var(--danger-soft);
+  --dash-info-soft: var(--info-soft);
 
   color-scheme: dark;
 }
 
-/* Light theme — warm paper + wine (DESIGN.md §2/§4). Dark stays black+wine. */
+/* Light theme — warm paper + wine. Only semantics are repeated here. */
 .light,
 html.light {
-  --bg-primary: #faf6f0;
-  --bg-surface: #ffffff;
-  --bg-surface-hover: #f5ece4;
+  --background: #faf6f0;
+  --surface: #ffffff;
+  --surface-raised: #faf1ea;
+  --surface-hover: #f5ece4;
   --border: #e8d5cc;
-  --border-strong: #d6bfaf;
+  /* 3.15:1 on paper / 3.35:1 on white — passes the UI-element threshold. */
+  --border-strong: #a88378;
 
-  --accent-primary: #800e13;
-  --accent-text: #800e13;
-  --accent-hover: #640d14;
-  --accent-soft: #fbe4da;
-  --accent-ring: rgba(128, 14, 19, 0.14);
-  --accent-soft-text: #5a0a10;
+  --primary: #800e13;
+  --primary-hover: #640d14;
+  --primary-soft: #fbe4da;
+  --on-primary: #ffffff;
+  --highlight: #800e13;
+  --highlight-hover: #640d14;
+  --highlight-soft: #fbe4da;
+  --on-soft: #5a0a10;
 
-  /* Dashboard — warm paper surfaces with wine accents (never blue/grey). */
-  --dash-bg: #faf6f0;
-  --dash-surface: #ffffff;
-  --dash-surface-2: #faf1ea;
-  --dash-surface-3: #f5ece4;
-  --dash-border: #e8d5cc;
-  --dash-border-strong: #d6bfaf;
-  --dash-text: #250902;
-  --dash-text-2: #6b4a3e;
-  --dash-text-3: #a08a7d;
-  --dash-accent: #800e13;
-  --dash-accent-hover: #640d14;
-  --dash-accent-text: #800e13;
-  --dash-accent-soft: #fbe4da;
-  --dash-success: #047857;
-  --dash-warning: #b45309;
-  --dash-danger: #be123c;
-  --dash-info: #0369a1;
+  --text: #250902;
+  --text-2: #6b4a3e;
+  /* Darkened from #a08a7d (2.8:1) to pass 4.5:1 on raised surfaces. */
+  --muted: #7c6357;
 
-  --text-primary: #250902;
-  --text-secondary: #6b4a3e;
-  --text-muted: #a08a7d;
-  --text-on-accent: #ffffff;
-  --paint-ink: #000;
-
-  --navbar-bg: rgba(250, 246, 240, 0.8);
-  --navbar-border: #e8d5cc;
-  --danger: #e11d48;
-  --danger-rgb: 225,29,72;
-  --warning: #b45309;
-  --warning-rgb: 180,83,9;
   --success: #047857;
-  --bg-secondary: #f5ece4;
+  --warning: #b45309;
+  --danger: #be123c;
+  --info: #0369a1;
+  --success-rgb: 4, 120, 87;
+  --warning-rgb: 180, 83, 9;
+  --danger-rgb: 190, 18, 60;
+  --info-rgb: 3, 105, 161;
 
-  --background: var(--bg-primary);
-  --foreground: var(--text-primary);
-  --shadow-accent: 0 0 20px rgba(128, 14, 19, 0.12);
+  --chart-1: #800e13;
+  --chart-2: #b45309;
+  --chart-3: #be123c;
+  --chart-4: #6b4a3e;
+  --chart-5: #7c6357;
+
+  --scrim: rgba(37, 9, 2, 0.45);
+  --overlay-dark: #250902;
+  --shadow-color: rgba(80, 25, 15, 0.18);
 }
 
+/* Dark is the :root default — no duplicate literals here. */
 html.dark {
   color-scheme: dark;
-  --accent: #ad2831;
-  --paint-ink: #fff;
-  --accent-rgb: 173,40,49;
-  --navbar-bg: rgba(10, 10, 10, 0.72);
-  --navbar-border: rgba(255, 255, 255, 0.08);
-  --danger: #f43f5e;
-  --danger-rgb: 244,63,94;
-  --bg-secondary: #250902;
-  --card-bg: rgba(37,9,2,0.6);
-  --card-border: rgba(255,255,255,0.1);
-  --card-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-  --section-border: rgba(255,255,255,0.1);
-  --section-bg: rgba(255,255,255,0.03);
-  --section-shadow: 0 2px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
-  --input-bg: rgba(255,255,255,0.05);
-  --input-border: rgba(255,255,255,0.08);
-  --glass-bg-deep: rgba(10,10,12,0.6);
-  --subnav-bg: rgba(0,0,0,0.5);
 }
 
 html.light {
@@ -174,7 +186,34 @@ html.light {
 }
 
 @theme inline {
-  /* Tailwind color utilities */
+  /* Canonical semantic utilities — one palette, no colour literals here */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--primary);
+  --color-brand-hover: var(--primary-hover);
+  --color-brand-soft: var(--primary-soft);
+  --color-on-brand: var(--on-primary);
+  --color-highlight: var(--highlight);
+  --color-highlight-hover: var(--highlight-hover);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-muted: var(--muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Legacy utilities (old Mohand theme names) */
   --color-bg-primary: var(--bg-primary);
   --color-bg-surface: var(--bg-surface);
   --color-bg-surface-hover: var(--bg-surface-hover);
@@ -216,6 +255,14 @@ html.light {
   --color-dash-warning: var(--dash-warning);
   --color-dash-danger: var(--dash-danger);
   --color-dash-info: var(--dash-info);
+  --color-dash-success-soft: var(--dash-success-soft);
+  --color-dash-warning-soft: var(--dash-warning-soft);
+  --color-dash-danger-soft: var(--dash-danger-soft);
+  --color-dash-info-soft: var(--dash-info-soft);
+  --color-success-soft: var(--success-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger-soft: var(--danger-soft);
+  --color-info-soft: var(--info-soft);
 
   /* Legacy */
   --color-background: var(--background);
@@ -489,7 +536,7 @@ html[data-theme-anim="1"]::view-transition-new(root) {
   backdrop-filter: blur(20px) saturate(1.8);
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid var(--card-border);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.3);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--overlay-dark) 15%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--text) 30%, transparent);
   border-radius: 24px;
 }
 .custom-scrollbar { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
@@ -503,19 +550,19 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .input-label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
 .input-container { position: relative; }
 .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 1; }
-.input-with-icon { width: 100%; padding: 12px 16px 12px 44px; border: none; border-radius: 12px; background-color: var(--input-bg); backdrop-filter: blur(12px); color: var(--text-primary); font-family: inherit; font-size: 0.875rem; outline: none; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.input-with-icon { width: 100%; padding: 12px 16px 12px 44px; border: none; border-radius: 12px; background-color: var(--input-bg); backdrop-filter: blur(12px); color: var(--text-primary); font-family: inherit; font-size: 0.875rem; outline: none; transition: all 0.2s ease; box-shadow: 0 4px 12px color-mix(in srgb, var(--overlay-dark) 10%, transparent); }
 .input-with-icon:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
 .dashboard-input { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-primary); outline: none; transition: all 0.2s ease; }
 .dashboard-input:focus { border-color: var(--accent-primary); background-color: var(--bg-surface); }
 .dashboard-textarea { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--input-border); background-color: var(--input-bg); color: var(--text-primary); outline: none; transition: all 0.2s ease; min-height: 120px; resize: none; }
 .dashboard-textarea:focus { border-color: var(--accent-primary); background-color: var(--bg-surface); }
-.toggle-container { display: flex; align-items: center; justify-content: space-between; padding: 16px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; backdrop-filter: blur(12px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.toggle-switch { position: relative; width: 44px; height: 24px; background-color: var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.toggle-container { display: flex; align-items: center; justify-content: space-between; padding: 16px; background-color: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; backdrop-filter: blur(12px); box-shadow: 0 4px 12px color-mix(in srgb, var(--overlay-dark) 10%, transparent); }
+.toggle-switch { position: relative; width: 44px; height: 24px; background-color: var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 3px color-mix(in srgb, var(--overlay-dark) 10%, transparent); }
 .toggle-switch.active { background-color: var(--accent-primary); box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-primary) 30%, transparent); }
-.toggle-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background-color: white; border-radius: 50%; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle-knob { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background-color: var(--on-primary); border-radius: 50%; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px color-mix(in srgb, var(--overlay-dark) 20%, transparent); }
 .toggle-switch.active .toggle-knob { left: 22px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s ease; border: none; font-family: inherit; }
-.btn-primary { background-color: var(--accent-primary); color: white; box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent); }
+.btn-primary { background-color: var(--accent-primary); color: var(--on-primary); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 30%, transparent); }
 .btn-primary:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-primary) 40%, transparent); }
 .btn-icon { padding: 8px; border-radius: 8px; background: transparent; color: var(--text-secondary); border: none; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
 .btn-icon:hover { background-color: var(--input-bg); color: var(--text-primary); }
@@ -524,9 +571,9 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 /* ── Dashboard modal primitives (M-TagForm, M-ContributorForm, M-FirebaseStorage) ── */
-.modal-backdrop { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: rgba(0, 0, 0, 0.45); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.2s ease; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; background-color: color-mix(in srgb, var(--overlay-dark) 45%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; transition: opacity 0.2s ease; }
 .modal-backdrop.open { opacity: 1; }
-.modal-content { width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 20px; background: var(--glass-bg-deep); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); border: 1px solid var(--card-border); box-shadow: var(--card-shadow), 0 24px 64px rgba(0, 0, 0, 0.25); }
+.modal-content { width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; border-radius: 20px; background: var(--glass-bg-deep); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); border: 1px solid var(--card-border); box-shadow: var(--card-shadow), 0 24px 64px color-mix(in srgb, var(--overlay-dark) 25%, transparent); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; background: inherit; z-index: 1; }
 .modal-form { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 /* ── Dashboard inputs ── */
@@ -536,7 +583,7 @@ html[data-theme-anim="1"]::view-transition-new(root) {
 .input-field:disabled { opacity: 0.6; cursor: not-allowed; }
 /* ── Dashboard glass + icon boxes + entrance animations ── */
 .glass-panel { background: var(--glass-bg-deep); backdrop-filter: blur(20px) saturate(1.6); -webkit-backdrop-filter: blur(20px) saturate(1.6); border: 1px solid var(--card-border); box-shadow: var(--card-shadow); border-radius: 20px; }
-.icon-box { display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; color: #fff; flex-shrink: 0; }
+.icon-box { display: inline-flex; align-items: center; justify-content: center; border-radius: 14px; color: var(--on-primary); flex-shrink: 0; }
 .icon-box-md { width: 48px; height: 48px; }
 @keyframes dash-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dash-scale-in { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -656,13 +703,13 @@ section[id="contact"] {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
+  background: color-mix(in srgb, var(--text) 8%, transparent);
   -webkit-backdrop-filter: blur(32px);
   backdrop-filter: blur(32px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid color-mix(in srgb, var(--text) 20%, transparent);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--overlay-dark) 40%, transparent);
 }
-.glass-btn-play:hover { transform: scale(1.1); background: rgba(255, 255, 255, 0.15); }
+.glass-btn-play:hover { transform: scale(1.1); background: color-mix(in srgb, var(--text) 15%, transparent); }
 @media (max-width: 1023px) { .glass-btn-play { width: 54px; height: 54px; } }
 .glass-btn-hub {
   display: inline-flex;
@@ -676,13 +723,13 @@ section[id="contact"] {
   padding: 0 12px;
   background: none;
   border: none;
-  color: #fff;
+  color: var(--on-primary);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.glass-btn-hub button:hover { background: rgba(255, 255, 255, 0.12); }
+.glass-btn-hub button:hover { background: color-mix(in srgb, var(--text) 12%, transparent); }
 @media (max-width: 1023px) { .glass-btn-hub { height: 36px; border-radius: 12px; } }
 .glass-pill {
   display: inline-flex;
@@ -697,7 +744,7 @@ section[id="contact"] {
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px color-mix(in srgb, var(--overlay-dark) 10%, transparent);
 }
 .glass-pill.dark {
   background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
@@ -720,7 +767,7 @@ section[id="contact"] {
   color: var(--text-secondary);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--overlay-dark) 6%, transparent);
   transition: all 0.3s ease;
 }
 .glass-chip:hover { transform: translateY(-1px); color: var(--text-primary); }
@@ -792,24 +839,15 @@ section[id="contact"] {
 .commits-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 .commits-scroll::-webkit-scrollbar-track { background: transparent; }
 
-/* Contribution graph levels — wine scale on black */
-:root, html.dark {
-  --commits-l0: rgba(128, 128, 128, 0.14);
-  --commits-l1: rgba(100, 13, 20, 0.5);
-  --commits-l2: rgba(128, 14, 19, 0.65);
-  --commits-l3: rgba(173, 40, 49, 0.8);
-  --commits-l4: #ad2831;
-  --tooltip-bg: rgba(20, 20, 22, 0.92);
-  --tooltip-text: #f5f5f5;
-}
-html.light {
-  --commits-l0: rgba(0, 0, 0, 0.07);
-  --commits-l1: rgba(128, 14, 19, 0.22);
-  --commits-l2: rgba(128, 14, 19, 0.45);
-  --commits-l3: rgba(128, 14, 19, 0.68);
-  --commits-l4: #800e13;
-  --tooltip-bg: rgba(255, 255, 255, 0.96);
-  --tooltip-text: #250902;
+/* Contribution graph levels — one wine scale, derived from the primary token. */
+:root {
+  --commits-l0: color-mix(in srgb, var(--muted) 14%, transparent);
+  --commits-l1: color-mix(in srgb, var(--primary) 45%, transparent);
+  --commits-l2: color-mix(in srgb, var(--primary) 65%, transparent);
+  --commits-l3: color-mix(in srgb, var(--primary) 80%, transparent);
+  --commits-l4: var(--primary);
+  --tooltip-bg: var(--surface);
+  --tooltip-text: var(--text);
 }
 
 /* ── Expanding bottom nav (Osmo resource, adapted to portfolio tokens) ── */
@@ -835,7 +873,7 @@ html.light {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--overlay-dark) 35%, transparent);
   flex-flow: column-reverse;
   justify-content: flex-start;
   align-items: center;

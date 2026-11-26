@@ -190,7 +190,7 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
                                     <HardDrive size={16} className="mr-2" /> Local
                                 </button>
                                 <input id="local-up" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                                <button type="button" onClick={() => setFirebaseBrowserOpen(true)} className="btn btn-secondary py-2 text-sm border-orange-500/30 text-orange-500">
+                                <button type="button" onClick={() => setFirebaseBrowserOpen(true)} className="btn btn-secondary py-2 text-sm border-dash-warning/30 text-dash-warning">
                                     <img src={firebaseIcon} alt="Firebase" className="w-4 h-4 mr-2" /> Firebase
                                 </button>
                             </div>

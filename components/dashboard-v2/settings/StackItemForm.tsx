@@ -58,7 +58,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
 
     return createPortal(
         <>
-            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100] flex items-center justify-center animate-fade-in p-4">
+            <div className="fixed inset-0 bg-[var(--scrim)] z-[1100] flex items-center justify-center animate-fade-in p-4">
                 <div className="glass-panel w-full max-w-[500px] overflow-hidden animate-scale-in">
                     <div className="p-6 border-b border-dash-border flex justify-between items-center">
                         <h2 className="heading-md text-base sm:text-lg md:text-xl">{initialData ? 'Edit Stack' : 'Add Stack'}</h2>
@@ -84,8 +84,8 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                         {icon ? (
                                             <>
                                                 <img src={icon} alt="Icon" className="w-full h-full object-contain" />
-                                                <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => { setIcon(''); setIconFile(null); }}>
-                                                    <X size={20} className="text-white" />
+                                                <div className="absolute inset-0 bg-[var(--scrim)] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" onClick={() => { setIcon(''); setIconFile(null); }}>
+                                                    <X size={20} className="text-dash-text" />
                                                 </div>
                                             </>
                                         ) : (
@@ -99,7 +99,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     {/* Local Upload */}
                                     <div
                                         onClick={() => iconInputRef.current?.click()}
-                                        className="p-3 rounded-lg border border-dash-border hover:bg-dash-surface-20/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
+                                        className="p-3 rounded-lg border border-dash-border hover:bg-dash-surface-30/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
                                     >
                                         <div className="p-1.5 rounded-md bg-dash-surface-3">
                                             <HardDrive size={16} className="text-dash-text-2" />
@@ -111,12 +111,12 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     {/* Firebase Selection */}
                                     <div
                                         onClick={() => setFirebaseBrowserOpen(true)}
-                                        className="p-3 rounded-lg border border-orange-500/20 bg-orange-500/5 hover:bg-orange-500/10 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
+                                        className="p-3 rounded-lg border border-dash-warning/30 bg-dash-warning-soft hover:bg-dash-warning/15 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
                                     >
-                                        <div className="p-1.5 rounded-md bg-orange-500/10">
+                                        <div className="p-1.5 rounded-md bg-dash-warning/15">
                                             <img src={firebaseIcon} alt="Firebase" className="w-4 h-4" />
                                         </div>
-                                        <span className="text-xs text-orange-500 font-medium">Select from Firebase</span>
+                                        <span className="text-xs text-dash-warning font-medium">Select from Firebase</span>
                                     </div>
                                 </div>
                             </div>

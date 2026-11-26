@@ -108,10 +108,10 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
         }
     };
 
-    const fg = isDark ? 'var(--dash-text)' : 'var(--dash-bg)';
+    const fg = 'var(--dash-text)';
     const inputStyle = { backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: fg };
     const inputCls = 'w-full min-w-0 h-11 rounded-sm border px-4 text-sm font-medium outline-none focus:border-dash-accent transition-colors';
-    const chipBg = 'var(--dash-border)';
+    const chipBg = 'var(--dash-surface-2)';
 
     return (
         <div

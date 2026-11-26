@@ -62,7 +62,7 @@ const MailFailures = ({ isDark, showAlert }: { isDark: boolean; showAlert: Notif
                         className="overflow-hidden list-none m-0 p-0 flex flex-col"
                     >
                         {jobs.map(job => (
-                            <li key={job.id} className={`flex items-start gap-3 pt-3 mt-3 border-t ${isDark ? 'border-dash-border' : 'border-black/5'}`}>
+                            <li key={job.id} className={`flex items-start gap-3 pt-3 mt-3 border-t ${isDark ? 'border-dash-border' : 'border-dash-border'}`}>
                                 <div className="min-w-0 flex-1">
                                     <div className="font-semibold text-dash-text truncate">{job.label}</div>
                                     <div className="text-xs text-dash-text-2">

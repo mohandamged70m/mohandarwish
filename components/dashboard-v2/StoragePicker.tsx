@@ -173,7 +173,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                 <div className="modal-header" style={{ borderBottom: `1px solid ${'var(--dash-border)'}` }}>
                     <div className="flex items-center gap-3">
                         <div className="icon-box icon-box-md" style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent-hover) 100%)' }}>
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--dash-text)">
                                 <path d="M3.89 15.673L6.255.461A.542.542 0 0 1 7.27.289l2.543 4.771zm16.794 3.692l-2.25-14a.54.54 0 0 0-.919-.295L3.316 19.365l7.856 4.427a1.621 1.621 0 0 0 1.588 0zM14.3 7.148l-1.82-3.482a.542.542 0 0 0-.96 0L3.53 17.984z" />
                             </svg>
                         </div>
@@ -239,7 +239,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-dash-surface/[0.05] backdrop-blur-[4px] z-10 rounded-lg"
+                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-dash-surface-2 backdrop-blur-[4px] z-10 rounded-lg"
                             >
                                 <Spinner />
                             </motion.div>
@@ -256,7 +256,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 <div
                                     key={i}
                                     onClick={() => handleFileClick(file)}
-                                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-blue-500' : ''}`}
+                                    className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-dash-accent' : ''}`}
                                     style={{
                                         backgroundColor: 'var(--dash-surface-2)',
                                         border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'var(--dash-accent-text)' : 'transparent'}`

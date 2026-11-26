@@ -26,22 +26,22 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
             <div
                 className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-4 rounded-full shadow-2xl border pointer-events-auto"
                 style={{
-                    background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)',
+                    background: 'var(--dash-surface)',
                     borderColor: 'var(--dash-border)',
                 }}
             >
                 <button
                     onClick={onApply}
                     disabled={saving}
-                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-blue-500/20 text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:scale-105 transition-all whitespace-nowrap disabled:opacity-60"
+                    className="btn-primary px-5 sm:px-8 py-2.5 sm:py-3 rounded-full shadow-2xl shadow-[0_8px_24px_var(--shadow-color)] text-[13px] sm:text-[15px] font-bold flex items-center gap-2 hover:scale-105 transition-all whitespace-nowrap disabled:opacity-60"
                 >
                     <Save size={18} className="sm:w-5 sm:h-5" /> {saving ? 'Saving…' : applyLabel}
                 </button>
                 <button
                     onClick={onCancel}
                     className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border transition-all font-semibold text-[13px] sm:text-[14px] whitespace-nowrap ${isDark
-                        ? 'bg-dash-surface/5 hover:bg-dash-surface/10 text-white border-dash-border'
-                        : 'bg-black/5 hover:bg-black/10 text-black border-black/10'}`}
+                        ? 'bg-dash-surface/5 hover:bg-dash-surface-3 text-dash-text border-dash-border'
+                        : 'bg-dash-surface-2 hover:bg-black/10 text-black border-black/10'}`}
                 >
                     {cancelLabel}
                 </button>

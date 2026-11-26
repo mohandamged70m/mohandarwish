@@ -6,21 +6,23 @@ export interface MeetingCategory {
   color: string;
 }
 
+// Category colours are palette tokens, not literal hex values: one source of
+// truth, automatic dark/light adaptation.
 export const PERSONAL_CATEGORY: MeetingCategory = {
   id: "personal",
   name: "Personal",
-  color: "#3b82f6",
+  color: "var(--chart-1)",
 };
 
 export const CATEGORY_COLORS: string[] = [
-  "#3b82f6",
-  "#ad2831",
-  "#f59e0b",
-  "#ec4899",
-  "#8b5cf6",
-  "#22c55e",
-  "#06b6d4",
-  "#f43f5e",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--success)",
+  "var(--warning)",
+  "var(--info)",
 ];
 
 export const MAX_CATEGORY_NAME = 28;

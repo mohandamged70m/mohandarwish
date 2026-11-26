@@ -524,9 +524,9 @@ const DTreasury = () => {
                 className={`group text-left w-full flex items-start gap-3 p-3 rounded-sm border transition-[background-color,border-color] duration-200
                     ${ins.tone === 'urgent'
                         ? 'border-dash-danger/25 bg-dash-accent-soft'
-                        : 'border-dash-border dark:border-dash-border bg-dash-surface-2 dark:bg-dash-surface-2'}
+                        : 'border-dash-border bg-dash-surface-2 dark:bg-dash-surface-2'}
                     ${act ? 'cursor-pointer hover:border-dash-accent/40 hover:bg-dash-accent/[0.05]' : 'cursor-default'}`}>
-                <span className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0" style={{ background: `${c}24`, color: c }}><Icon size={17} /></span>
+                <span className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, c 14%, transparent)`, color: c }}><Icon size={17} /></span>
                 <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
                         <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] leading-tight" style={{ color: c }}>{ins.label}</span>
@@ -534,7 +534,7 @@ const DTreasury = () => {
                     </span>
                     <span className="block text-[13px] leading-snug text-dash-text-2 mt-0.5">{ins.text}</span>
                 </span>
-                {act && <ChevronRight size={15} className="shrink-0 mt-1.5 text-dash-text-2/35 group-hover:text-dash-accent-text transition-colors" />}
+                {act && <ChevronRight size={15} className="shrink-0 mt-1.5 text-dash-text-2 group-hover:text-dash-accent-text transition-colors" />}
             </button>
         );
     };
@@ -546,7 +546,7 @@ const DTreasury = () => {
             const proj = i.projectId ? data.projects.find(p => p.id === i.projectId) : null;
             const acct = i.accountId ? data.accounts.find(a => a.id === i.accountId) : null;
             return (
-                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-dash-surface-2 transition-colors group">
+                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
                     <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-success flex-shrink-0"><Banknote size={16} /></div>
                     <div className="min-w-0 flex-1">
                         <span className="text-sm font-semibold text-dash-text truncate block">{proj ? proj.name : (i.note || 'Payment')}</span>
@@ -562,7 +562,7 @@ const DTreasury = () => {
         const eproj = e.projectId ? data.projects.find(p => p.id === e.projectId) : null;
         const eacct = e.accountId ? data.accounts.find(a => a.id === e.accountId) : null;
         return (
-            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-dash-surface-2 transition-colors group">
+            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors group">
                 <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-danger flex-shrink-0"><Receipt size={16} /></div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ const DTreasury = () => {
                     <div className="text-[11px] text-dash-text-2 truncate">
                         {r.projectNames && r.projectNames.length ? r.projectNames.join(', ') : '-'} · {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </div>
-                    {r.receiptNo && <div className="text-[10px] text-dash-text-2/60 font-heading mt-0.5">{r.receiptNo}</div>}
+                    {r.receiptNo && <div className="text-[10px] text-dash-text-2 font-heading mt-0.5">{r.receiptNo}</div>}
                 </div>
                 <div className="text-right shrink-0">
                     <div className="text-base font-bold text-dash-text tnum">{formatMoney(r.total, r.currency)}</div>
@@ -699,7 +699,7 @@ const DTreasury = () => {
                                             {insightsToAct ? `${insightsToAct} waiting on a decision` : 'Nothing is waiting on you'}
                                         </span>
                                     </div>
-                                    <span className={`text-[11px] font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-dash-warning/15 text-dash-warning' : 'bg-black/[0.05] dark:bg-dash-surface/[0.07] text-dash-text-2'}`}>{insights.length}</span>
+                                    <span className={`text-[11px] font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-dash-warning/15 text-dash-warning' : 'bg-dash-surface-2 dark:bg-dash-surface-3 text-dash-text-2'}`}>{insights.length}</span>
                                 </div>
                                 <div className="grid gap-1.5 sm:grid-cols-2">
                                     {insights.slice(0, INSIGHT_PREVIEW).map(renderInsight)}
@@ -716,7 +716,7 @@ const DTreasury = () => {
                                 </AnimatePresence>
                                 {insights.length > INSIGHT_PREVIEW && (
                                     <button onClick={() => setInsightsOpen(o => !o)}
-                                        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 rounded-sm border-none bg-transparent cursor-pointer text-xs font-bold text-dash-text-2 hover:text-dash-text hover:bg-black/[0.03] dark:hover:bg-dash-surface/[0.04] transition-colors">
+                                        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 rounded-sm border-none bg-transparent cursor-pointer text-xs font-bold text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors">
                                         {insightsOpen ? 'Show less' : `${insights.length - INSIGHT_PREVIEW} more`}
                                         <ChevronDown size={14} className={`transition-transform duration-200 ${insightsOpen ? 'rotate-180' : ''}`} />
                                     </button>
@@ -739,7 +739,7 @@ const DTreasury = () => {
                                     {sectionTitle(
                                         <Briefcase size={16} className="text-dash-accent-text" />,
                                         'Active projects',
-                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Project</button>
+                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Plus size={16} /> Project</button>
                                     )}
                                     <p className="text-xs text-dash-text-2 -mt-2">Drag cards to reorder - everything not finished. Click a card to focus details.</p>
 
@@ -755,10 +755,10 @@ const DTreasury = () => {
                                                 return (
                                                     <Reorder.Item as="div" key={p.id} value={p} onDragEnd={persistOrder}
                                                         onClick={() => setFocusedProjectId(p.id)}
-                                                        className={`group flex-shrink-0 w-[240px] p-4 flex flex-col gap-3 cursor-grab active:cursor-grabbing relative border rounded-sm backdrop-blur-md shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 select-none
+                                                        className={`group flex-shrink-0 w-[240px] p-4 flex flex-col gap-3 cursor-grab active:cursor-grabbing relative border rounded-sm shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 select-none
                                                             ${isFocused
                                                                 ? 'bg-dash-surface border-dash-accent/50 dark:border-dash-accent/50 ring-1 ring-dash-accent/30 dark:bg-dash-surface'
-                                                                : 'bg-dash-surface-2 dark:bg-dash-surface border-dash-border dark:border-dash-border'}`}
+                                                                : 'bg-dash-surface-2 dark:bg-dash-surface border-dash-border'}`}
                                                     >
                                                         <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full" style={{ background: statusColor(p.status) }} />
 
@@ -768,20 +768,20 @@ const DTreasury = () => {
                                                         </div>
 
                                                         <div className="absolute top-4 right-4 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                                                            <div className="p-1.5 rounded-lg text-dash-text-2/45 hover:text-dash-text cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors">
+                                                            <div className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text cursor-grab active:cursor-grabbing hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors">
                                                                 <GripVertical size={14} />
                                                             </div>
-                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><Pencil size={14} /></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={14} /></button>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${statusColor(p.status)}22`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(p.status) 13%, transparent)`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
                                                             {p.monthly
-                                                                ? <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'var(--dash-success)22', color: 'var(--dash-success)' }}>monthly</span>
-                                                                : <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${payColor[pay]}22`, color: payColor[pay] }}>{pay}</span>}
+                                                                ? <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'color-mix(in srgb, var(--dash-success) 13%, transparent)', color: 'var(--dash-success)' }}>monthly</span>
+                                                                : <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, payColor[pay] 13%, transparent)`, color: payColor[pay] }}>{pay}</span>}
                                                             {/* The list already flags retainers; flag plans too, or installments are
                                                                 invisible until you open the project. */}
                                                             {hasInstallments(p) && (
-                                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'var(--dash-accent)22', color: 'var(--dash-accent-text)' }}>{p.installmentMonths}x</span>
+                                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'color-mix(in srgb, var(--dash-accent) 13%, transparent)', color: 'var(--dash-accent-text)' }}>{p.installmentMonths}x</span>
                                                             )}
                                                         </div>
                                                         <div>
@@ -810,7 +810,7 @@ const DTreasury = () => {
                                                         <h3 className="text-lg font-bold text-dash-text truncate mt-0.5" title={focusedProject.name}>{focusedProject.name}</h3>
                                                         {focusedProject.client && <p className="text-xs text-dash-text-2 truncate">{focusedProject.client}</p>}
                                                     </div>
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: `${statusColor(focusedProject.status)}22`, color: statusColor(focusedProject.status) }}>{statusMeta(focusedProject.status).label}</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: `color-mix(in srgb, statusColor(focusedProject.status) 13%, transparent)`, color: statusColor(focusedProject.status) }}>{statusMeta(focusedProject.status).label}</span>
                                                 </div>
 
                                                 {/* Progress Tracker */}
@@ -828,19 +828,19 @@ const DTreasury = () => {
                                                     // carries the rounding tolerance a bare floor() got wrong).
                                                     const paidCount = installmentsPaidCount(focusedProject, data.income, data.config.rates);
                                                     return (
-                                                        <div className="flex flex-col gap-2 p-3.5 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2 border border-black/5 dark:border-dash-border">
+                                                        <div className="flex flex-col gap-2 p-3.5 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2 border border-dash-border">
                                                             <div className="flex items-center justify-between text-xs font-bold text-dash-text-2">
                                                                 <span>Payment progress</span>
                                                                 <span className="tnum text-dash-success">{pct}% paid</span>
                                                             </div>
-                                                            <div className="w-full h-2 rounded-full bg-black/10 dark:bg-dash-surface/10 overflow-hidden relative">
+                                                            <div className="w-full h-2 rounded-full bg-black/10 dark:bg-dash-surface-2 overflow-hidden relative">
                                                                 <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.4, ease: "easeOut" }} className="h-full bg-dash-success rounded-full" />
                                                                 {/* On a plan, notch the bar into one segment per installment, so you can
                                                                     read "how many months are covered" straight off the bar. */}
                                                                 {onPlan && Array.from({ length: months - 1 }, (_, i) => (
                                                                     <div
                                                                         key={i}
-                                                                        className="absolute top-0 bottom-0 w-px bg-dash-surface/70 dark:bg-black/50"
+                                                                        className="absolute top-0 bottom-0 w-px bg-dash-surface dark:bg-[var(--scrim)]"
                                                                         style={{ left: `${((i + 1) / months) * 100}%` }}
                                                                     />
                                                                 ))}
@@ -889,7 +889,7 @@ const DTreasury = () => {
                                                             const linkedInc = data.income.filter(i => i.projectId === focusedProject.id);
                                                             const linkedExp = data.expenses.filter(e => e.projectId === focusedProject.id);
                                                             if (linkedInc.length === 0 && linkedExp.length === 0) {
-                                                                return <div className="text-[11px] text-dash-text-2 italic text-center py-4 bg-black/[0.01] dark:bg-dash-surface/[0.01] rounded-sm border border-dashed border-black/5 dark:border-dash-border">No payments or expenses linked.</div>;
+                                                                return <div className="text-[11px] text-dash-text-2 italic text-center py-4 bg-dash-surface-2 dark:bg-dash-surface-2 rounded-sm border border-dashed border-dash-border">No payments or expenses linked.</div>;
                                                             }
                                                             return (
                                                                 <>
@@ -948,7 +948,7 @@ const DTreasury = () => {
                                                         <p className="text-[11px] text-dash-text-2 m-0">{focusedProject.closedReason}</p>
                                                     )}
                                                 </div>
-                                                <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-text bg-black/[0.05] dark:bg-dash-surface/[0.07] hover:bg-black/[0.09] dark:hover:bg-dash-surface/[0.11] transition-all"><Receipt size={14} /> Receipt</button>
+                                                <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-text bg-dash-surface-2 dark:bg-dash-surface-3 hover:bg-black/[0.09] dark:hover:bg-dash-surface-3 transition-all"><Receipt size={14} /> Receipt</button>
                                             </div>
                                         </div>
                                     ) : (
@@ -979,10 +979,9 @@ const DTreasury = () => {
                                                         const received = projectReceived(p, data.income, data.config.rates);
                                                         return (
                                                             <div key={p.id} onClick={() => setFocusedProjectId(p.id)}
-                                                                className={`p-4 rounded-sm border flex flex-col gap-2 relative shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 cursor-pointer backdrop-blur-sm
-                                                                    ${focusedProject?.id === p.id
+                                                                className={`p-4 rounded-sm border flex flex-col gap-2 relative shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 cursor-pointer ${focusedProject?.id === p.id
                                                                         ? 'bg-dash-surface border-dash-accent/30 ring-1 ring-dash-accent/30 dark:bg-[var(--dash-surface)]'
-                                                                        : 'bg-dash-surface-2 dark:bg-[var(--dash-surface)] border-dash-border dark:border-dash-border'}`}
+                                                                        : 'bg-dash-surface-2 dark:bg-[var(--dash-surface)] border-dash-border'}`}
                                                             >
                                                                 <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-dash-success" />
                                                                 <div className="min-w-0 pr-10">
@@ -990,9 +989,9 @@ const DTreasury = () => {
                                                                     {p.client && <p className="text-[11px] text-dash-text-2 truncate">{p.client}</p>}
                                                                 </div>
                                                                 <div className="absolute top-4 right-4 flex gap-1">
-                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><Pencil size={12} /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"><Pencil size={12} /></button>
                                                                 </div>
-                                                                <div className="flex items-center justify-between text-xs border-t border-black/[0.03] dark:border-white/[0.03] pt-2 mt-1 gap-2 flex-wrap">
+                                                                <div className="flex items-center justify-between text-xs border-t border-dash-border pt-2 mt-1 gap-2 flex-wrap">
                                                                     <span className="font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
                                                                     {received > 0 && <span className="text-[10px] text-dash-success font-semibold tnum">paid</span>}
                                                                 </div>
@@ -1048,14 +1047,14 @@ const DTreasury = () => {
                                                 />
                                             </div>
                                         )}
-                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add money</button>
+                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Plus size={16} /> Add money</button>
                                     </div>
                                 )}
                                 {/* Day navigator: ‹  date  › */}
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => stepDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
+                                    <button onClick={() => stepDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                     <div className="w-44"><DatePicker value={selectedDay} onChange={setSelectedDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
-                                    <button onClick={() => stepDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
+                                    <button onClick={() => stepDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
                                     {selectedDay && <button onClick={() => setSelectedDay('')} className="text-xs font-semibold text-dash-accent-text hover:text-dash-info px-1">Clear</button>}
                                 </div>
                             </div>
@@ -1068,7 +1067,7 @@ const DTreasury = () => {
                                     <div className="glass-surface p-6 text-center text-dash-text-2 text-sm">No entries match these filters.</div>
                                 ) : selectedDay ? (
                                     <div className="glass-surface overflow-hidden">
-                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
                                             <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(selectedDay)}</span>
                                             {dayRows.length > 0 && (() => { const net = dayNet(dayRows); return <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>; })()}
                                         </div>
@@ -1086,7 +1085,7 @@ const DTreasury = () => {
                                             const net = dayNet(rows);
                                             return (
                                                 <div key={day} className="glass-surface overflow-hidden">
-                                                    <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                                    <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
                                                         <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
                                                         <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>
                                                     </div>
@@ -1114,14 +1113,14 @@ const DTreasury = () => {
                                         <div className="text-[11px] text-dash-text-2">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
                                     </div>
                                 </div>
-                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Account</button>
+                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Plus size={16} /> Account</button>
                             </div>
 
                             {data.accounts.length === 0 ? (
                                 <div className="glass-panel p-10 text-center flex flex-col items-center gap-3">
                                     <span className="w-14 h-14 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text"><Landmark size={26} /></span>
                                     <p className="text-sm text-dash-text-2 max-w-sm">No accounts yet. Add a bank, cash or wallet, then pick it when logging income or an expense to track each balance.</p>
-                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
+                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1135,7 +1134,7 @@ const DTreasury = () => {
                                                 className="group glass-panel p-4 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow relative">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <span className="w-10 h-10 rounded-sm flex items-center justify-center shrink-0" style={{ background: `${tColor}1f`, color: tColor }}><Icon size={18} /></span>
+                                                        <span className="w-10 h-10 rounded-sm flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, tColor 12%, transparent)`, color: tColor }}><Icon size={18} /></span>
                                                         <div className="min-w-0">
                                                             <div className="text-sm font-bold text-dash-text truncate" title={a.name}>{a.name}</div>
                                                             <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.type} · {a.currency}</div>
@@ -1143,7 +1142,7 @@ const DTreasury = () => {
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
                                                         {a.excludeFromNetProfit && (
-                                                            <span title="Excluded from Net profit and the earnings chart" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-dash-surface/[0.08] text-dash-text-2">Off P&amp;L</span>
+                                                            <span title="Excluded from Net profit and the earnings chart" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-dash-surface-3 text-dash-text-2">Off P&amp;L</span>
                                                         )}
                                                         <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity" />
                                                     </div>
@@ -1173,7 +1172,7 @@ const DTreasury = () => {
                                                 <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0}
                                                     className="glass-surface p-3.5 flex items-center justify-between gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-black/5 dark:bg-dash-surface/5 text-dash-text-2 shrink-0"><Icon size={16} /></span>
+                                                        <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-surface-2 dark:bg-dash-surface/5 text-dash-text-2 shrink-0"><Icon size={16} /></span>
                                                         <div className="min-w-0">
                                                             <div className="text-sm font-semibold text-dash-text truncate">{a.name}</div>
                                                             <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.currency}</div>
@@ -1221,9 +1220,9 @@ const DTreasury = () => {
                                 )}
                                 {data.receipts.length > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => stepReceiptDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
+                                        <button onClick={() => stepReceiptDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                         <div className="w-44"><DatePicker value={receiptDay} onChange={setReceiptDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
-                                        <button onClick={() => stepReceiptDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
+                                        <button onClick={() => stepReceiptDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
                                         {receiptDay && <button onClick={() => setReceiptDay('')} className="text-xs font-semibold text-dash-accent-text hover:text-dash-info px-1">Clear</button>}
                                     </div>
                                 )}
@@ -1237,7 +1236,7 @@ const DTreasury = () => {
                                     <div className="glass-surface p-6 text-center text-dash-text-2 text-sm">No receipts match these filters.</div>
                                 ) : receiptDay ? (
                                     <div className="glass-surface overflow-hidden">
-                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
                                             <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(receiptDay)}</span>
                                             {receiptDayRows.length > 0 && <span className="text-xs font-bold text-dash-text-2 tnum">{receiptDayRows.length} sent</span>}
                                         </div>
@@ -1253,7 +1252,7 @@ const DTreasury = () => {
                                     <div className="flex flex-col gap-3">
                                         {receiptsByDay.map(([day, rows]) => (
                                             <div key={day} className="glass-surface overflow-hidden">
-                                                <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                                <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface-2' : 'bg-dash-surface-2'}`}>
                                                     <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
                                                     <span className="text-xs font-bold text-dash-text-2 tnum">{rows.length} sent</span>
                                                 </div>
@@ -1272,18 +1271,18 @@ const DTreasury = () => {
                                 <h3 className="heading-sm m-0">Currency</h3>
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">Show totals in</label>
-                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
+                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-dash-surface-2'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
+                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">Default for new entries</label>
                                     <p className="text-xs text-dash-text-2 -mt-1">Used when you don't name a currency - e.g. "add 100" vs "add 100$". New projects & expenses are added in this currency.</p>
-                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
+                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-dash-surface-2'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-dash-success text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{c}</button>
+                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{c}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -1317,7 +1316,7 @@ const DTreasury = () => {
                                     <h3 className="heading-sm m-0">Export</h3>
                                     <p className="text-xs text-dash-text-2 mt-1">Download a styled, self-contained HTML report of all projects & spendings.</p>
                                 </div>
-                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Download size={16} /> Export report</button>
+                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-accent hover:bg-dash-accent shadow-lg shadow-[0_8px_24px_var(--shadow-color)] transition-all active:scale-95"><Download size={16} /> Export report</button>
                             </div>
                         </>
                     )}

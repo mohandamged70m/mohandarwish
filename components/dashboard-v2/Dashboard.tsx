@@ -129,7 +129,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             <aside
                 className={`
                     h-full flex flex-col z-10 transition-all duration-300
-                    bg-[var(--navbar-bg)] backdrop-blur-xl border-r border-[var(--navbar-border)]
+                    bg-[var(--navbar-bg)] border-r border-[var(--navbar-border)]
                     ${isExtraSmall ? 'p-[12px_8px] gap-1' : isMobile ? 'p-[16px_12px] gap-2' : 'p-[24px_16px] gap-2'}
                 `}
                 style={{
@@ -149,7 +149,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     `}
                 >
                     <div
-                        className="rounded-lg overflow-hidden flex items-center justify-center bg-dash-surface-3 dark:bg-dash-surface-3"
+                        className="rounded-lg overflow-hidden flex items-center justify-center bg-dash-surface-3"
                         style={{
                             width: avatarSize,
                             height: avatarSize,
@@ -163,7 +163,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <User className="text-dash-text-3/50" size={isExtraSmall ? 16 : 20} />
+                            <User className="text-dash-text-3" size={isExtraSmall ? 16 : 20} />
                         )}
                     </div>
                     {!isMobile && (
@@ -193,7 +193,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                     sidebar-item group relative w-full flex items-center transition-colors duration-200 border-0 cursor-pointer
                                     ${isMobile ? 'justify-center' : 'justify-start'}
                                     ${isExtraSmall ? 'p-2.5 rounded-[10px]' : 'p-3 rounded-sm gap-3'}
-                                    ${isActive ? 'bg-dash-surface-3 dark:bg-dash-surface-3 text-dash-text' : 'bg-transparent text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 hover:text-dash-text'}
+                                    ${isActive ? 'bg-dash-surface-3 text-dash-text' : 'bg-transparent text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 hover:text-dash-text'}
                                 `}
                             >
                                 {isActive && (

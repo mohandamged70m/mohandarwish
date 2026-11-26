@@ -131,19 +131,19 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
     };
 
     const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
-    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-dash-accent/60'} text-dash-text`;
+    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-dash-surface-2 border-black/10 focus:border-dash-accent/60'} text-dash-text`;
 
     return createPortal(
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
             onClick={onClose}
         >
             <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
+                className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)]">
@@ -154,7 +154,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             <p className="text-xs text-dash-text-2 m-0 truncate">to {email.name} &middot; {email.email}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all shrink-0"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all shrink-0"><X size={18} /></button>
                 </div>
 
                 {/* Body: compose | preview */}
@@ -189,14 +189,14 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`w-full flex items-center justify-center gap-2 rounded-sm border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-white/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text' : 'border-black/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text'}`}
+                                className={`w-full flex items-center justify-center gap-2 rounded-sm border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-dash-border/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text' : 'border-black/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text'}`}
                             >
                                 <Paperclip size={15} /> Attach files
                             </button>
                             {files.length > 0 && (
                                 <div className="mt-2 flex flex-col gap-1.5">
                                     {files.map(f => (
-                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-dash-surface/5' : 'bg-black/[0.04]'}`}>
+                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                                             <span className="text-dash-accent-text shrink-0">{iconFor(f.name)}</span>
                                             <span className="truncate flex-1 text-dash-text">{f.name}</span>
                                             <span className="text-dash-text-2 shrink-0">{humanSize(f.size)}</span>
@@ -210,15 +210,15 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
 
                         <label className="flex items-center gap-2.5 cursor-pointer select-none">
                             <input type="checkbox" checked={includeQuote} onChange={e => setIncludeQuote(e.target.checked)} className="sr-only peer" />
-                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-dash-accent border-dash-accent' : isDark ? 'border-white/25' : 'border-black/25'}`}>
-                                {includeQuote && <Check size={11} className="text-white" strokeWidth={3} />}
+                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-dash-accent border-dash-accent' : isDark ? 'border-dash-border/25' : 'border-black/25'}`}>
+                                {includeQuote && <Check size={11} className="text-dash-text" strokeWidth={3} />}
                             </span>
                             <span className="text-xs text-dash-text-2">Quote their original message</span>
                         </label>
                     </div>
 
                     {/* Preview */}
-                    <div className="flex-1 min-w-0 flex flex-col bg-black/[0.03] dark:bg-black/20">
+                    <div className="flex-1 min-w-0 flex flex-col bg-dash-surface-2 dark:bg-black/20">
                         <div className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-dash-text-2">Preview</div>
                         <div ref={boxRef} className="flex-1 min-h-[240px] overflow-y-auto overflow-x-hidden custom-scrollbar px-5 pb-5">
                             <div style={{ width: 600 * scale, height: natH * scale }}>
@@ -242,11 +242,11 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                 <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--dash-border)]">
                     <span className="text-xs text-dash-text-2 truncate">From mohandamged70m@gmail.com &middot; you get a bcc copy</span>
                     <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={onClose} className="px-4 py-2 rounded-sm text-sm font-semibold text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
+                        <button onClick={onClose} className="px-4 py-2 rounded-sm text-sm font-semibold text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all">Cancel</button>
                         <button
                             onClick={send}
                             disabled={!canSend}
-                            className="px-5 py-2 rounded-sm bg-dash-accent text-white text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-dash-accent active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                            className="px-5 py-2 rounded-sm bg-dash-accent text-dash-text text-sm font-bold shadow-lg shadow-[0_8px_24px_var(--shadow-color)] hover:bg-dash-accent active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                             <Send size={15} /> {sending ? 'Sending...' : 'Send reply'}
                         </button>

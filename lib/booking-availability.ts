@@ -45,7 +45,7 @@ export function buildHostSlots(cfg: AvailabilityConfig): string[] {
 export function availabilityStatus(raw: unknown): { percent: number; label: string; color: string } {
 	const parsed = parseInt(String(raw ?? "100%"));
 	const percent = Number.isNaN(parsed) ? 100 : parsed;
-	const color = percent >= 100 ? "#22c55e" : percent >= 75 ? "#a3e635" : percent >= 50 ? "#facc15" : percent >= 25 ? "#fb923c" : "#f87171";
+	const color = percent >= 100 ? "var(--success)" : percent >= 75 ? "var(--success-soft)" : percent >= 50 ? "var(--warning)" : percent >= 25 ? "var(--warning)" : "var(--danger)";
 	const label = percent >= 100 ? "Available" : percent > 0 ? "Handled" : "Busy";
 	return { percent, label, color };
 }

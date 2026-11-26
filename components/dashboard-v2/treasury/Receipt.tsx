@@ -341,20 +341,20 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
     };
 
     const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
-    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-dash-accent/60'} text-dash-text`;
+    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-dash-surface-2 border-black/10 focus:border-dash-accent/60'} text-dash-text`;
     const showPeriod = selectedProjects.some(p => p.monthly && perPayment[p.id]);
 
     return createPortal(
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
             onClick={onClose}
         >
             <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-6xl max-h-[92vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
+                className={`w-full max-w-6xl max-h-[92vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)]">
@@ -362,7 +362,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text"><Receipt size={18} /></div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">New receipt</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body: controls | preview */}
@@ -373,7 +373,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         {/* Is this confirming money received, or asking for money owed? */}
                         <div>
                             <span className={labelCls}>This is</span>
-                            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-sm bg-black/[0.04] dark:bg-dash-surface/[0.06]">
+                            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2">
                                 {([
                                     ['paid', 'Payment received', 'Thank-you receipt'],
                                     ['due', 'Payment request', 'Reminder of what is owed'],
@@ -383,7 +383,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         type="button"
                                         onClick={() => setKind(k)}
                                         title={hint}
-                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-white shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
+                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-dash-text shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
                                     >
                                         {title}
                                     </button>
@@ -400,13 +400,13 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                     const onPlan = hasInstallments(p) || !!p.monthly;
                                     const single = !!perPayment[p.id];
                                     return (
-                                        <div key={p.id} className={`rounded-sm border transition-colors ${on ? 'border-dash-accent/60 bg-dash-accent/[0.06]' : 'border-transparent hover:bg-black/[0.03] dark:hover:bg-dash-surface/[0.04]'}`}>
+                                        <div key={p.id} className={`rounded-sm border transition-colors ${on ? 'border-dash-accent/60 bg-dash-accent/[0.06]' : 'border-transparent hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3'}`}>
                                             <button
                                                 type="button"
                                                 onClick={() => toggle(p.id)}
                                                 className="w-full flex items-center gap-3 p-2.5 text-left bg-transparent border-none cursor-pointer"
                                             >
-                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-dash-accent text-white' : 'border border-black/20 dark:border-white/20'}`}>
+                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-dash-accent text-dash-text' : 'border border-black/20 dark:border-dash-border/20'}`}>
                                                     {on && <Check size={13} strokeWidth={3} />}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
@@ -427,7 +427,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                                 key={mode}
                                                                 type="button"
                                                                 onClick={() => setPerPayment(prev => ({ ...prev, [p.id]: mode === 'payment' }))}
-                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-white' : 'text-dash-text-2 hover:text-dash-text bg-black/[0.04] dark:bg-dash-surface/[0.06]'}`}
+                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-dash-text' : 'text-dash-text-2 hover:text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2'}`}
                                                             >
                                                                 {text}
                                                             </button>
@@ -562,13 +562,13 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
 
                 {/* Footer actions */}
                 <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--dash-border)]">
-                    <button onClick={download} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-black/[0.04] dark:bg-dash-surface/[0.06] hover:bg-black/[0.07] dark:hover:bg-dash-surface/[0.1] transition-colors">
+                    <button onClick={download} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-dash-surface-2 dark:bg-dash-surface-2 hover:bg-black/[0.07] dark:hover:bg-dash-surface/[0.1] transition-colors">
                         <Download size={16} /> Download
                     </button>
                     <button
                         onClick={send}
                         disabled={!canSend || !!sentTo}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-dash-success disabled:opacity-100' : 'bg-dash-accent hover:bg-dash-accent disabled:opacity-40'}`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-dash-text transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-dash-success disabled:opacity-100' : 'bg-dash-accent hover:bg-dash-accent disabled:opacity-40'}`}
                     >
                         {sending ? <Loader2 size={16} className="animate-spin" /> : sentTo ? <Check size={16} strokeWidth={3} /> : <Send size={16} />}
                         {sending ? 'Sending…' : sentTo ? `Sent to ${sentTo}` : (kind === 'due' ? 'Send request' : 'Send receipt')}

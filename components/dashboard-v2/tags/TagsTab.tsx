@@ -476,14 +476,14 @@ const DTags = () => {
                                                 style={{
                                                     backgroundColor: 'var(--dash-surface-2)',
                                                     border: '1px solid var(--dash-border)',
-                                                    boxShadow: '0 10px 30px -10px var(--dash-border)'
+                                                    boxShadow: '0 10px 30px -10px var(--shadow-color)'
                                                 }}
                                             >
                                                 <div className="flex items-center justify-between mb-4 sm:mb-5">
                                                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-sm sm:rounded-sm flex items-center justify-center overflow-hidden p-2 sm:p-3 shadow-inner" style={{
-                                                        backgroundColor: `${tag.color}15`,
+                                                        backgroundColor: `color-mix(in srgb, tag.color 8%, transparent)`,
                                                         color: tag.color,
-                                                        border: `1px solid ${tag.color}25`
+                                                        border: `1px solid color-mix(in srgb, tag.color 15%, transparent)`
                                                     }}>
                                                         {tag.iconSvg ? (
                                                             tag.iconSvg.trim().startsWith('http') ? (
@@ -539,7 +539,7 @@ const DTags = () => {
                                                 style={{
                                                     backgroundColor: 'var(--dash-surface-2)',
                                                     border: '1px solid var(--dash-border)',
-                                                    boxShadow: '0 10px 30px -10px var(--dash-border)'
+                                                    boxShadow: '0 10px 30px -10px var(--shadow-color)'
                                                 }}
                                             >
                                                 {/* Top: Image & Actions */}
@@ -552,7 +552,7 @@ const DTags = () => {
                                                             {contributor.image ? (
                                                                 <img src={typeof contributor.image === 'string' ? contributor.image : undefined} alt={contributor.name} className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-purple-500 to-blue-500 bg-clip-text text-transparent">
+                                                                <span className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-dash-accent to-dash-accent-text bg-clip-text text-transparent">
                                                                     {contributor.name.charAt(0).toUpperCase()}
                                                                 </span>
                                                             )}
@@ -600,7 +600,7 @@ const DTags = () => {
                         initial={{ opacity: 0, scale: 0.85, y: -15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-                        className="fixed z-[1001] p-2 min-w-[200px] border border-white dark:border-white/20 shadow-[0_25px_60px_var(--dash-border)] dark:shadow-[0_25px_60px_var(--dash-border)] ring-4 ring-black/[0.02] dark:ring-white/[0.02]"
+                        className="fixed z-[1001] p-2 min-w-[200px] border border-dash-border/20 shadow-[0_25px_60px_var(--shadow-color)] dark:shadow-[0_25px_60px_var(--shadow-color)] ring-4 ring-black/[0.02] dark:ring-white/[0.02]"
                         style={{
                             top: optionsPos.y,
                             left: optionsPos.x,

@@ -751,9 +751,9 @@ export default function DSettings() {
     }, []);
 
     const getAvailabilityColor = (value: number) => {
-        const red = Math.round(255 * (1 - value / 100));
-        const green = Math.round(255 * (value / 100));
-        return `rgb(${red}, ${green}, 50)`;
+        if (value < 40) return 'var(--danger)';
+        if (value < 70) return 'var(--warning)';
+        return 'var(--success)';
     };
 
     const handleSaveStack = async (data: StackItemData) => {
@@ -1039,9 +1039,9 @@ export default function DSettings() {
 
     if (isCropping && originalImageSrc) {
         return createPortal(
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[3000] flex items-center justify-center p-4 animate-fade-in">
+            <div className="fixed inset-0 bg-[var(--scrim)] z-[3000] flex items-center justify-center p-4 animate-fade-in">
                 <div className="w-full max-w-lg">
-                    <div className={`glass-panel overflow-hidden rounded-sm border ${isDark ? 'border-dash-border bg-zinc-900/90' : 'border-black/5 bg-dash-surface/90'}`}>
+                    <div className={`glass-panel overflow-hidden rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface' : 'border-dash-border bg-dash-surface'}`}>
                         {/* Header */}
                         <div className="flex items-center justify-between p-5 border-b border-dash-border">
                             <div className="flex items-center gap-3">
@@ -1077,7 +1077,7 @@ export default function DSettings() {
                                     containerStyle: { background: 'transparent' },
                                     cropAreaStyle: {
                                         border: '2px solid white',
-                                        boxShadow: '0 0 0 9999px var(--dash-border)'
+                                        boxShadow: '0 0 0 9999px var(--shadow-color)'
                                     }
                                 }}
                             />
@@ -1128,7 +1128,7 @@ export default function DSettings() {
                                     <button
                                         type="button"
                                         onClick={handleCropSave}
-                                        className="btn btn-primary text-xs px-6 py-2 shadow-lg shadow-blue-500/20"
+                                        className="btn btn-primary text-xs px-6 py-2 shadow-lg shadow-[0_8px_24px_var(--shadow-color)]"
                                     >
                                         Save Changes
                                     </button>
@@ -1273,7 +1273,7 @@ export default function DSettings() {
                                             <button onClick={() => { setEditingStack(item); setStackModalOpen(true); }} className="btn-icon p-1 sm:p-1.5"><Edit2 size={14} className="sm:w-4 sm:h-4" /></button>
                                             <button onClick={() => handleDeleteStack(item.id)} className="btn-icon p-1 sm:p-1.5 text-dash-danger hover:bg-dash-accent-soft"><Trash2 size={14} className="sm:w-4 sm:h-4" /></button>
                                         </div>
-                                        {item.icon ? <img src={item.icon} alt={item.name} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 opacity-90 object-contain" /> : <Code size={40} className="text-dash-text-3/50 sm:w-12 sm:h-12 md:w-[60px] md:h-[60px]" />}
+                                        {item.icon ? <img src={item.icon} alt={item.name} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 opacity-90 object-contain" /> : <Code size={40} className="text-dash-text-3 sm:w-12 sm:h-12 md:w-[60px] md:h-[60px]" />}
                                         <h4 className="heading-sm text-xs sm:text-sm md:text-base truncate">{item.name}</h4>
 
                                     </div>
@@ -1301,7 +1301,7 @@ export default function DSettings() {
                                 {heroImageMode === 'dark' && heroImagePreviewDark && (
                                     <button
                                         onClick={handleClearHeroImageDark}
-                                        className="text-[10px] uppercase tracking-wider text-dash-danger/70 hover:text-dash-danger transition shrink-0"
+                                        className="text-[10px] uppercase tracking-wider text-dash-danger hover:text-dash-danger transition shrink-0"
                                         title="Clear dark hero image"
                                     >
                                         Clear
@@ -1328,7 +1328,7 @@ export default function DSettings() {
                                             onClick={() => setHeroImageMode(mode)}
                                             className="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                                             style={active
-                                                ? { background: 'var(--accent)', color: 'var(--dash-text)', boxShadow: '0 1px 4px var(--dash-border)' }
+                                                ? { background: 'var(--accent)', color: 'var(--dash-text)', boxShadow: '0 1px 4px var(--shadow-color)' }
                                                 : { background: 'transparent', color: 'var(--dash-text-3)' }}
                                         >
                                             {isLight ? <Sun size={15} /> : <Moon size={15} />}
@@ -1367,7 +1367,7 @@ export default function DSettings() {
                                                 </div>
                                             )}
 
-                                            <div className="absolute inset-0 bg-dash-surface/10 backdrop-blur-sm flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                            <div className="absolute inset-0 bg-dash-surface-2 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
                                                 <button
                                                     onClick={onUpload}
                                                     aria-label={isLight ? 'Upload light hero image' : 'Upload dark hero image'}
@@ -1381,10 +1381,10 @@ export default function DSettings() {
 
                                                 <button
                                                     onClick={onBrowse}
-                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-orange-400/10 border border-orange-400/20 text-orange-400 font-semibold hover:bg-orange-400/20 transition"
+                                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-dash-warning-soft border border-dash-warning/30 text-dash-warning font-semibold hover:bg-dash-warning-soft transition"
                                                 >
-                                                    <HardDrive size={16} className="text-orange-400" />
-                                                    <span className="text-orange-400">Browse</span>
+                                                    <HardDrive size={16} className="text-dash-warning" />
+                                                    <span className="text-dash-warning">Browse</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -1423,7 +1423,7 @@ export default function DSettings() {
                                             )}
                                         </div>
 
-                                        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-dash-surface/10 backdrop-blur-sm rounded-full">
+                                        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-dash-surface-2 rounded-full">
                                             <button
                                                 aria-label="Upload profile image"
                                                 onClick={() => profileImageInputRef.current?.click()}
@@ -1435,7 +1435,7 @@ export default function DSettings() {
                                             <button
                                                 aria-label="Browse profile image"
                                                 onClick={() => { setFirebaseSelectTarget('profile'); setFirebaseBrowserOpen(true); }}
-                                                className="w-10 h-10 rounded-full bg-orange-400/10 border border-orange-400/20 text-orange-400 flex items-center justify-center hover:bg-orange-400/20 transition"
+                                                className="w-10 h-10 rounded-full bg-dash-warning-soft border border-dash-warning/30 text-dash-warning flex items-center justify-center hover:bg-dash-warning-soft transition"
                                             >
                                                 <HardDrive size={16} />
                                             </button>
@@ -1552,7 +1552,7 @@ export default function DSettings() {
                                     {socialLinks.length > 0 ? (
                                         <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
                                             {socialLinks.map((link, index) => (
-                                                <li key={index} className="flex items-center gap-3 h-12 pl-3 pr-1.5 rounded-sm bg-black/[0.03] dark:bg-dash-surface/[0.04]">
+                                                <li key={index} className="flex items-center gap-3 h-12 pl-3 pr-1.5 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2">
                                                     <span className="w-7 h-7 rounded-lg bg-dash-accent/10 text-dash-accent-text grid place-items-center shrink-0">
                                                         <Link size={14} />
                                                     </span>

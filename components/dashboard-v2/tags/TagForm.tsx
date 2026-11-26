@@ -101,9 +101,9 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         <div
                             className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold border shadow-sm transition-all duration-300"
                             style={{
-                                backgroundColor: `${color}15`,
+                                backgroundColor: `color-mix(in srgb, color 8%, transparent)`,
                                 color: color,
-                                borderColor: `${color}30`,
+                                borderColor: `color-mix(in srgb, color 19%, transparent)`,
                                 fontSize: '1rem'
                             }}
                         >
@@ -241,10 +241,10 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         </button>
                         <button
                             type="submit"
-                            className="btn text-white font-semibold shadow-lg transition-transform hover:-translate-y-0.5 px-6"
+                            className="btn text-dash-text font-semibold shadow-lg transition-transform hover:-translate-y-0.5 px-6"
                             style={{
                                 backgroundColor: color,
-                                boxShadow: `0 4px 12px ${color}40`
+                                boxShadow: `0 4px 12px color-mix(in srgb, color 25%, transparent)`
                             }}
                         >
                             Save Tag

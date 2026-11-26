@@ -237,7 +237,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
             maxHeight: "80vh",
             zIndex: 1,
             borderRadius: isMobile ? 16 : 32,
-            boxShadow: "0 50px 100px rgba(0,0,0,0.5)",
+            boxShadow: "0 50px 100px var(--shadow-color)",
             display: "flex",
             flexDirection: "column",
           }}
@@ -249,7 +249,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
               width: "100%",
               borderRadius: isMobile ? 16 : 32,
               overflow: "hidden",
-              background: "#000",
+              background: "var(--overlay-dark)",
               // Morph target for the card -> modal shared transition.
               // Only inside the modal; full detail pages stay out of it.
               ...(inModal ? { viewTransitionName: "project-morph" } : null),
@@ -282,7 +282,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
             flexDirection: "column",
             alignItems: "center",
             gap: 12,
-            color: "rgba(255,255,255,0.5)",
+            color: "var(--text-2)",
             zIndex: 10,
             pointerEvents: "none",
           }}
@@ -290,7 +290,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
           <span style={{ fontSize: "0.62rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.22em", fontFamily: "var(--font-heading)" }}>
             Scroll for more
           </span>
-          <div style={{ width: 24, height: 42, borderRadius: 15, border: "2px solid rgba(255,255,255,0.2)", display: "flex", justifyContent: "center", padding: 6 }}>
+          <div style={{ width: 24, height: 42, borderRadius: 15, border: "2px solid var(--border-strong)", display: "flex", justifyContent: "center", padding: 6 }}>
             <div style={{ width: 2, height: 8, borderRadius: 2, background: "var(--accent-primary)", animation: "scrollWheel 1.5s ease-in-out infinite", boxShadow: "0 0 10px var(--accent-primary)" }} />
           </div>
         </div>
@@ -316,7 +316,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
               <span
                 style={{
                   padding: "6px 14px",
-                  background: "rgba(163,230,53,0.15)",
+                  background: "var(--success-soft)",
                   color: "var(--accent-primary)",
                   borderRadius: 999,
                   fontSize: "0.7rem",
@@ -328,8 +328,8 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
               >
                 More Details
               </span>
-              <span style={{ width: 4, height: 4, borderRadius: "50%", background: "rgba(255,255,255,0.2)" }} />
-              <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-heading)" }}>
+              <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--border-strong)" }} />
+              <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--text-2)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-heading)" }}>
                 Project ID: #{project.id.toUpperCase()}
               </span>
             </div>
@@ -354,7 +354,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                   margin: 0,
                   fontSize: isMobile ? "1.05rem" : "1.2rem",
                   lineHeight: 1.65,
-                  color: "rgba(255,255,255,0.75)",
+                  color: "var(--text)",
                   fontWeight: 400,
                   borderLeft: "3px solid var(--accent-primary)",
                   paddingLeft: 18,
@@ -364,13 +364,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
               </p>
             )}
             {project.problem && (
-              <div style={{ marginTop: 18, borderRadius: 16, border: "1px solid rgba(163,230,53,0.18)", background: "rgba(163,230,53,0.06)", padding: "14px 16px" }}>
+              <div style={{ marginTop: 18, borderRadius: 16, border: "1px solid var(--border-strong)", background: "var(--success-soft)", padding: "14px 16px" }}>
                 <p style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.12em", color: "var(--accent-primary)", marginBottom: 6, fontWeight: 800 }}>Problem</p>
-                <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.6, color: "rgba(255,255,255,0.82)" }}>{project.problem}</p>
+                <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.6, color: "var(--text)" }}>{project.problem}</p>
               </div>
             )}
             {project.role && (
-              <p style={{ margin: "16px 0 0", fontFamily: "var(--font-heading)", fontSize: "0.9rem", color: "rgba(255,255,255,0.6)" }}>
+              <p style={{ margin: "16px 0 0", fontFamily: "var(--font-heading)", fontSize: "0.9rem", color: "var(--text-2)" }}>
                 <span style={{ color: "white", fontWeight: 600 }}>Role:</span> {project.role}
               </p>
             )}
@@ -422,13 +422,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                 })}
               </div>
             ) : (
-              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem" }}>No stack listed.</p>
+              <p style={{ color: "var(--text-2)", fontSize: "0.9rem" }}>No stack listed.</p>
             )}
 
             {project.highlights && project.highlights.length > 0 && (
               <ul style={{ listStyle: "none", padding: 0, margin: "22px 0 0", display: "flex", flexDirection: "column", gap: 10 }}>
                 {project.highlights.map((h) => (
-                  <li key={h} style={{ display: "flex", gap: 10, fontSize: "0.92rem", color: "rgba(255,255,255,0.78)", lineHeight: 1.5 }}>
+                  <li key={h} style={{ display: "flex", gap: 10, fontSize: "0.92rem", color: "color-mix(in srgb, var(--text) 78%, transparent)", lineHeight: 1.5 }}>
                     <span style={{ marginTop: 7, width: 6, height: 6, borderRadius: "50%", background: "var(--accent-primary)", flexShrink: 0 }} />
                     {h}
                   </li>
@@ -441,7 +441,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
         {/* Sidebar */}
         <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 20 : 24 }}>
           <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-            <Sub style={{ margin: "0 0 16px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Actions</Sub>
+            <Sub style={{ margin: "0 0 16px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in srgb, var(--text) 70%, transparent)" }}>Actions</Sub>
             {(isRealUrl(project.liveUrl) || isRealUrl(project.githubUrl)) ? (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {isRealUrl(project.liveUrl) && (
@@ -486,8 +486,8 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                       justifyContent: "center",
                       gap: 8,
                       borderRadius: 999,
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.1)",
+                      background: "color-mix(in srgb, var(--text) 6%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--text) 10%, transparent)",
                       color: "white",
                       padding: "14px 16px",
                       fontFamily: "var(--font-heading)",
@@ -501,22 +501,22 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                 )}
               </div>
             ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 999, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.04)", padding: "12px 16px", fontFamily: "var(--font-heading)", fontSize: "0.85rem", color: "rgba(255,255,255,0.6)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 999, border: "1px solid color-mix(in srgb, var(--text) 12%, transparent)", background: "color-mix(in srgb, var(--text) 4%, transparent)", padding: "12px 16px", fontFamily: "var(--font-heading)", fontSize: "0.85rem", color: "var(--text-2)" }}>
                 <ExternalLink size={14} /> Links coming soon
               </span>
             )}
             {(isRealUrl(project.liveUrl) || isRealUrl(project.githubUrl)) && (
-              <p style={{ margin: "10px 0 0", fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", textAlign: "center", letterSpacing: "0.08em", textTransform: "uppercase" }}>Check live or source</p>
+              <p style={{ margin: "10px 0 0", fontSize: "0.7rem", color: "color-mix(in srgb, var(--text) 40%, transparent)", textAlign: "center", letterSpacing: "0.08em", textTransform: "uppercase" }}>Check live or source</p>
             )}
           </GlassPanel>
 
           {project.metrics && project.metrics.length > 0 && (
             <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Impact</Sub>
+              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in srgb, var(--text) 70%, transparent)" }}>Impact</Sub>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {project.metrics.map((m) => (
-                  <div key={m.label} style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "14px 14px" }}>
-                    <p style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>{m.label}</p>
+                  <div key={m.label} style={{ borderRadius: 16, border: "1px solid color-mix(in srgb, var(--text) 8%, transparent)", background: "color-mix(in srgb, var(--text) 3%, transparent)", padding: "14px 14px" }}>
+                    <p style={{ margin: 0, fontFamily: "var(--font-heading)", fontSize: "0.65rem", textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-2)" }}>{m.label}</p>
                     <p style={{ margin: "6px 0 0", fontFamily: "var(--font-heading)", fontSize: "1rem", fontWeight: 800, color: "white" }}>{m.value}</p>
                   </div>
                 ))}
@@ -525,13 +525,13 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
           )}
 
           <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-            <Sub style={{ margin: "0 0 10px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>Details</Sub>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>
-              <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Category:</span> {project.category}</div>
-              {project.year && <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Year:</span> {project.year}</div>}
-              <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>ID:</span> {project.id}</div>
+            <Sub style={{ margin: "0 0 10px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in srgb, var(--text) 70%, transparent)" }}>Details</Sub>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: "0.88rem", color: "color-mix(in srgb, var(--text) 70%, transparent)", lineHeight: 1.6 }}>
+              <div><span style={{ color: "color-mix(in srgb, var(--text) 90%, transparent)", fontWeight: 700 }}>Category:</span> {project.category}</div>
+              {project.year && <div><span style={{ color: "color-mix(in srgb, var(--text) 90%, transparent)", fontWeight: 700 }}>Year:</span> {project.year}</div>}
+              <div><span style={{ color: "color-mix(in srgb, var(--text) 90%, transparent)", fontWeight: 700 }}>ID:</span> {project.id}</div>
               {typeof project.views === "number" && project.views > 0 && (
-                <div><span style={{ color: "rgba(255,255,255,0.9)", fontWeight: 700 }}>Views:</span> {project.views}</div>
+                <div><span style={{ color: "color-mix(in srgb, var(--text) 90%, transparent)", fontWeight: 700 }}>Views:</span> {project.views}</div>
               )}
               {project.downloadUrl && (
                 <div>
@@ -545,7 +545,7 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
 
           {project.contributors && project.contributors.length > 0 && (
             <GlassPanel style={{ padding: isMobile ? 18 : 24 }}>
-              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>
+              <Sub style={{ margin: "0 0 14px 0", fontFamily: "var(--font-heading)", fontSize: "0.75rem", fontWeight: 900, letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in srgb, var(--text) 70%, transparent)" }}>
                 Team ({project.contributors.length})
               </Sub>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -558,15 +558,15 @@ export function ProjectDetailContent({ project, headingLevel = "h1" }: Props) {
                     style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, cursor: "pointer", borderRadius: 12 }}
                   >
                     {c.image ? (
-                      <Image src={c.image} alt="" aria-hidden="true" width={36} height={36} unoptimized style={{ borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.15)" }} />
+                      <Image src={c.image} alt="" aria-hidden="true" width={36} height={36} unoptimized style={{ borderRadius: "50%", objectFit: "cover", border: "1px solid color-mix(in srgb, var(--text) 15%, transparent)" }} />
                     ) : (
-                      <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(163,230,53,0.15)", color: "var(--accent-primary)", fontWeight: 800 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--success-soft)", color: "var(--accent-primary)", fontWeight: 800 }}>
                         {c.name.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div style={{ minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: "0.88rem", fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
-                      <p style={{ margin: 0, fontSize: "0.75rem", color: "rgba(255,255,255,0.55)" }}>{c.role}</p>
+                      <p style={{ margin: 0, fontSize: "0.75rem", color: "color-mix(in srgb, var(--text) 55%, transparent)" }}>{c.role}</p>
                     </div>
                   </button>
                 ))}

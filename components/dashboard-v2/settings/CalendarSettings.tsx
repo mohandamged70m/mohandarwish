@@ -80,9 +80,9 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
 
     const state = !status ? 'loading' : !status.connected ? 'off' : status.broken ? 'broken' : 'on';
     const pill = {
-        loading: { text: 'Checking', bg: 'var(--dash-border)', fg: 'var(--dash-text-3)' },
-        off: { text: 'Not connected', bg: 'var(--dash-border)', fg: 'var(--dash-text-3)' },
-        broken: { text: 'Needs reconnecting', bg: 'rgba(var(--danger-rgb),0.12)', fg: 'var(--dash-danger)' },
+        loading: { text: 'Checking', bg: 'var(--dash-surface-2)', fg: 'var(--dash-text-3)' },
+        off: { text: 'Not connected', bg: 'var(--dash-surface-2)', fg: 'var(--dash-text-3)' },
+        broken: { text: 'Needs reconnecting', bg: 'color-mix(in srgb, var(--danger) 12%, transparent)', fg: 'var(--dash-danger)' },
         on: { text: 'Connected', bg: 'var(--dash-accent-soft)', fg: 'var(--dash-success)' },
     }[state];
     const cardStyle = { border: '1px solid var(--dash-border)', background: 'var(--dash-surface-2)' } as const;
@@ -97,7 +97,7 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
 
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--accent)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                         <CalendarDays size={24} />
                     </span>
                     <div className="min-w-0">
@@ -150,7 +150,7 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                             onClick={() => setConfirmOff(true)}
                             disabled={busy}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-60"
-                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
+                            style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                         >
                             <Unlink size={16} />
                             Disconnect

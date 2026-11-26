@@ -51,3 +51,5 @@ __pycache__/
 
 # local reference extraction (input only, never committed)
 /D-trails/
+# original Firebase dashboard copy — local reference only, not part of the app
+/Copy-Dashboard/

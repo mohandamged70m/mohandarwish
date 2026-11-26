@@ -128,13 +128,13 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                         {visibleStack.map((tech, i) => (
                             <span key={i} style={{
                                 padding: '6px 14px',
-                                backgroundColor: tech.color ? `${tech.color}40` : 'var(--dash-accent-text)',
+                                backgroundColor: tech.color ? `color-mix(in srgb, tech.color 25%, transparent)` : 'var(--dash-accent-text)',
                                 color: 'white',
                                 borderRadius: '20px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
                                 border: `1px solid ${tech.color ? tech.color : 'var(--dash-border)'}`,
-                                boxShadow: '0 4px 6px var(--dash-border)',
+                                boxShadow: '0 4px 6px var(--shadow-color)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px'
@@ -190,24 +190,24 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                             fontWeight: 600,
                             border: '1px solid var(--dash-border)',
                             marginRight: '4px',
-                            boxShadow: '0 4px 6px var(--dash-border)'
+                            boxShadow: '0 4px 6px var(--shadow-color)'
                         }}>
                             Contributors
                         </span>
                         <div className="flex ml-1">
                             {project.contributors.slice(0, 3).map((contributor, i) => (
-                                <div key={i} className={`w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-dash-surface-3 ${i > 0 ? '-ml-4' : ''}`} style={{ transform: `translateX(${i * -12}px)` }}>
+                                <div key={i} className={`w-8 h-8 rounded-full overflow-hidden border-2 border-dash-border/80 shadow-sm bg-dash-surface-3 ${i > 0 ? '-ml-4' : ''}`} style={{ transform: `translateX(${i * -12}px)` }}>
                                     {typeof contributor.image === 'string' ? (
                                         <img src={contributor.image} alt={contributor.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-dash-accent text-white text-xs font-bold">
+                                        <div className="w-full h-full flex items-center justify-center bg-dash-accent text-dash-text text-xs font-bold">
                                             {contributor.name.charAt(0)}
                                         </div>
                                     )}
                                 </div>
                             ))}
                             {project.contributors.length > 3 && (
-                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-dash-surface-3 text-white flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
+                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-dash-border/80 shadow-sm bg-dash-surface-3 text-dash-text flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
                                     +{project.contributors.length - 3}
                                 </div>
                             )}

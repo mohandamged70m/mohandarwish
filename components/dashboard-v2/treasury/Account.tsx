@@ -71,7 +71,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
         onClose();
     };
 
-    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10';
+    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10';
     const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-dash-text text-sm outline-none focus:border-dash-accent/50 transition-colors`;
     const labelCls = 'text-xs font-semibold text-dash-text-2 uppercase tracking-wider mb-3 block';
 
@@ -81,7 +81,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="te-overlay fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="te-overlay fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
             onClick={onClose}
         >
             <motion.div
@@ -90,17 +90,17 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`te-content w-full max-w-md max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
+                className={`te-content w-full max-w-md max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 " style={{ background: 'var(--dash-surface)' }}>
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text">
                             <Wallet size={18} />
                         </div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} account</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -118,13 +118,13 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                                 const on = type === t;
                                 return (
                                     <button key={t} type="button" onClick={() => setType(t)} title={t}
-                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold capitalize transition-colors ${on ? 'text-white' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold capitalize transition-colors ${on ? 'text-dash-text' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {on && (
                                             <motion.span
                                                 layoutId="account-type-pill"
                                                 transition={{ type: 'spring', stiffness: 500, damping: 34 }}
                                                 className="absolute inset-0 rounded-lg"
-                                                style={{ background: ACCOUNT_COLOR[t], boxShadow: `0 4px 14px ${ACCOUNT_COLOR[t]}40` }}
+                                                style={{ background: ACCOUNT_COLOR[t], boxShadow: `0 4px 14px color-mix(in srgb, ACCOUNT_COLOR[t] 25%, transparent)` }}
                                             />
                                         )}
                                         <Icon size={15} className="relative z-10" />
@@ -145,7 +145,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {CURRENCIES.map(c => (
                                     <button key={c} type="button" onClick={() => setCurrency(c)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {CURRENCY_SYMBOL[c]}
                                     </button>
                                 ))}
@@ -177,15 +177,15 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
+                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
                         <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
                     <div className="flex-1" />
-                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
-                    <button onClick={save} className="px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 bg-dash-accent hover:bg-dash-accent shadow-blue-500/20">
+                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all">Cancel</button>
+                    <button onClick={save} className="px-6 py-2.5 rounded-sm font-bold text-sm text-dash-text shadow-lg transition-all active:scale-95 bg-dash-accent hover:bg-dash-accent shadow-[0_8px_24px_var(--shadow-color)]">
                         {isEdit ? 'Save' : 'Add'}
                     </button>
                 </div>

@@ -1,13 +1,13 @@
 /* Stack section — every paint value comes from these tokens.
    Scoped to the section via CSS Modules: no other section is affected. */
 .section {
-  --stack-bg: #0a0a0a;
-  --stack-surface: #131010;
-  --stack-text: #f4ece1;
-  --stack-muted: #b3a496;
-  --stack-accent: #b3263e;
-  --stack-accent-bright: #e0455f;
-  --stack-border: rgba(244, 236, 225, 0.16);
+  --stack-bg: var(--background);
+  --stack-surface: var(--surface);
+  --stack-text: var(--text);
+  --stack-muted: var(--text-2);
+  --stack-accent: var(--primary);
+  --stack-accent-bright: var(--highlight-hover);
+  --stack-border: var(--border);
 
   background-color: var(--stack-bg);
   color: var(--stack-text);
@@ -114,8 +114,8 @@
   /* clip (where supported) stops focus scroll-into-view from shifting the track */
   overflow: hidden;
   overflow: clip;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, var(--background) 9%, var(--background) 91%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, var(--background) 9%, var(--background) 91%, transparent 100%);
 }
 
 .track {

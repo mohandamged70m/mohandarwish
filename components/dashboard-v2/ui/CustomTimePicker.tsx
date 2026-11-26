@@ -126,7 +126,7 @@ export default function CustomTimePicker({
       </button>
       {open && typeof document !== "undefined" && createPortal(
         <>
-          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex }} />
+          <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, background: "var(--scrim)", zIndex }} />
           <div role="dialog" aria-label="Pick a custom time" style={panelStyle} onClick={(event) => event.stopPropagation()}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
               <select aria-label="Hour" value={hour} onChange={(event) => setHour(event.target.value)} style={controlStyle}>

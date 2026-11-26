@@ -22,20 +22,20 @@ function esc(s: string): string {
 export function buildReplyHtml(args: ReplyHtmlArgs): string {
   const body = esc(args.bodyText).replace(/\n/g, "<br>");
   const quote = args.quote
-    ? `<div style="margin:16px 0 0;padding:12px 14px;border-left:3px solid #3395ff;background:#f4f7fb;border-radius:0 8px 8px 0">` +
-      `<div style="font-size:12px;color:#64748b;margin-bottom:6px">On ${esc(
+    ? `<div style="margin:16px 0 0;padding:12px 14px;border-left:3px solid #800e13;background:#faf1ea;border-radius:0 8px 8px 0">` +
+      `<div style="font-size:12px;color:#6b4a3e;margin-bottom:6px">On ${esc(
         new Date(args.quote.at).toLocaleString()
       )}, ${esc(args.quote.name)} wrote:</div>` +
-      `<div style="font-size:14px;color:#334155;white-space:pre-wrap">${esc(args.quote.message)}</div></div>`
+      `<div style="font-size:14px;color:#250902;white-space:pre-wrap">${esc(args.quote.message)}</div></div>`
     : "";
   const atts =
     args.attachmentNames.length > 0
-      ? `<div style="margin-top:14px;font-size:13px;color:#64748b">Attachments: ${args.attachmentNames
+      ? `<div style="margin-top:14px;font-size:13px;color:#6b4a3e">Attachments: ${args.attachmentNames
           .map(esc)
           .join(", ")}</div>`
       : "";
   return (
-    `<!doctype html><html><body style="font-family:sans-serif;line-height:1.6;color:#0f172a">` +
+    `<!doctype html><html><body style="font-family:sans-serif;line-height:1.6;color:#250902">` +
     `<p>Hi ${esc(args.toName)},</p><div>${body || "<br>"}</div>${quote}${atts}` +
     `<p style="margin-top:20px">— Mohand</p></body></html>`
   );

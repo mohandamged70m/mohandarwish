@@ -520,7 +520,7 @@ const DCanary = () => {
         exit: (d: number) => ({ x: d > 0 ? '-50%' : '50%', opacity: 0 })
     };
 
-    const containerBg = 'var(--dash-border)';
+    const containerBg = 'var(--dash-surface-2)';
 
     const renderAttachmentCard = (file: Attachment) => {
         const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name);
@@ -541,7 +541,7 @@ const DCanary = () => {
                 </div>
 
                 <div className="flex flex-col gap-0.5 overflow-hidden flex-1">
-                    <span className="text-xs font-bold truncate w-full" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{file.name}</span>
+                    <span className="text-xs font-bold truncate w-full" style={{ color: 'var(--dash-text)' }}>{file.name}</span>
                     <span className="text-[10px] opacity-40 uppercase tracking-wider font-bold">
                         {isImage ? 'Image' : isVideo ? 'Video' : 'Document'}
                     </span>
@@ -691,7 +691,7 @@ const DCanary = () => {
                     <Tags size={24} />
                 </span>
                 <div>
-                    <h3 className="text-lg sm:text-xl font-bold m-0" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Categories</h3>
+                    <h3 className="text-lg sm:text-xl font-bold m-0" style={{ color: 'var(--dash-text)' }}>Categories</h3>
                     <p className="text-sm mt-1" style={{ color: 'var(--dash-text-3)' }}>
                         Sort bookings into buckets of your own. You set them when you edit a booking, or the assistant does over MCP - guests are never asked, so anything booked from the site arrives as Personal.
                     </p>
@@ -702,7 +702,7 @@ const DCanary = () => {
                 {/* Personal is the floor of the list, not an entry you can act on. */}
                 <motion.div layout={!reduceMotion} transition={rowLayoutTransition} className="flex items-center gap-3 px-3.5 h-12 rounded-sm" style={{ background: 'var(--dash-surface-2)' }}>
                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: PERSONAL_CATEGORY.color }} />
-                    <span className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{PERSONAL_CATEGORY.name}</span>
+                    <span className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>{PERSONAL_CATEGORY.name}</span>
                     <span className="ml-auto text-[11px] font-bold px-2 py-1 rounded-md shrink-0" style={{ background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}>
                         Default
                     </span>
@@ -747,12 +747,12 @@ const DCanary = () => {
                                             onChange={(e) => setEditCatName(e.target.value)}
                                             onKeyDown={(e) => { if (e.key === 'Enter') saveCategoryEdit(); if (e.key === 'Escape') setEditingCatId(null); }}
                                             className="w-full h-10 rounded-lg border px-3 text-sm font-semibold outline-none focus:border-dash-accent transition-colors"
-                                            style={{ backgroundColor: isDark ? 'var(--dash-border)' : 'var(--dash-text)', borderColor: 'var(--dash-border)', color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}
+                                            style={{ backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: 'var(--dash-text)' }}
                                         />
                                         <div className="flex items-center justify-between gap-3 flex-wrap">
                                             <ColorSwatches value={editCatColor} onPick={setEditCatColor} isDark={isDark} />
                                             <div className="flex items-center gap-1 ml-auto">
-                                                <button type="button" onClick={() => setEditingCatId(null)} className="px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10" style={{ color: 'var(--dash-text-3)' }}>Cancel</button>
+                                                <button type="button" onClick={() => setEditingCatId(null)} className="px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3" style={{ color: 'var(--dash-text-3)' }}>Cancel</button>
                                                 <button type="button" onClick={saveCategoryEdit} disabled={catBusy} className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg text-xs font-bold cursor-pointer transition-colors disabled:opacity-50" style={{ background: 'var(--dash-accent)', color: 'var(--dash-text)' }}>
                                                     <Check size={14} /> Save
                                                 </button>
@@ -770,16 +770,16 @@ const DCanary = () => {
                                         className="group flex items-center gap-3 px-3.5 h-12"
                                     >
                                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cat.color }} />
-                                        <span className="text-sm font-bold truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{cat.name}</span>
+                                        <span className="text-sm font-bold truncate" style={{ color: 'var(--dash-text)' }}>{cat.name}</span>
                                         <span className="text-xs shrink-0" style={{ color: 'var(--dash-text-3)' }}>
                                             {used === 0 ? 'unused' : `${used} booking${used === 1 ? '' : 's'}`}
                                         </span>
                                         {/* Actions stay reachable by keyboard; the mouse only reveals them. */}
                                         <div className="ml-auto flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-                                            <button type="button" onClick={() => startEditCategory(cat)} aria-label={`Rename ${cat.name}`} className="w-8 h-8 grid place-items-center rounded-lg hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors cursor-pointer" style={{ color: 'var(--dash-text-3)' }}>
+                                            <button type="button" onClick={() => startEditCategory(cat)} aria-label={`Rename ${cat.name}`} className="w-8 h-8 grid place-items-center rounded-lg hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors cursor-pointer" style={{ color: 'var(--dash-text-3)' }}>
                                                 <Edit2 size={14} />
                                             </button>
-                                            <button type="button" onClick={() => setConfirmDeleteCat(cat)} aria-label={`Delete ${cat.name}`} className="w-8 h-8 grid place-items-center rounded-lg hover:bg-dash-accent-soft transition-colors cursor-pointer text-dash-danger/70 hover:text-dash-danger">
+                                            <button type="button" onClick={() => setConfirmDeleteCat(cat)} aria-label={`Delete ${cat.name}`} className="w-8 h-8 grid place-items-center rounded-lg hover:bg-dash-accent-soft transition-colors cursor-pointer text-dash-danger hover:text-dash-danger">
                                                 <Trash2 size={14} />
                                             </button>
                                         </div>
@@ -799,7 +799,7 @@ const DCanary = () => {
 
             {/* New category */}
             <div className="flex flex-col gap-3 pt-1">
-                <label htmlFor="new-category" className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>New category</label>
+                <label htmlFor="new-category" className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>New category</label>
                 <div className="flex items-center gap-2">
                     <input
                         id="new-category"
@@ -810,7 +810,7 @@ const DCanary = () => {
                         onChange={(e) => setNewCatName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }}
                         className="flex-1 min-w-0 h-11 rounded-sm border px-4 text-sm font-medium outline-none focus:border-dash-accent transition-colors"
-                        style={{ backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}
+                        style={{ backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: 'var(--dash-text)' }}
                     />
                     <button
                         type="button"
@@ -837,7 +837,7 @@ const DCanary = () => {
                         <Clock size={24} />
                     </span>
                     <div>
-                        <h3 className="text-lg sm:text-xl font-bold m-0" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Working hours &amp; days</h3>
+                        <h3 className="text-lg sm:text-xl font-bold m-0" style={{ color: 'var(--dash-text)' }}>Working hours &amp; days</h3>
                         <p className="text-sm mt-1 max-w-xl" style={{ color: 'var(--dash-text-3)' }}>
                             Pick exactly which days and hours guests can book - toggle any hour on or off individually, gaps in the middle included. These drive the public booking calendar; off-days and unpicked hours are hidden from guests.
                         </p>
@@ -846,7 +846,7 @@ const DCanary = () => {
 
                 {/* Working days */}
                 <div className="flex flex-col gap-3">
-                    <label className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Working days</label>
+                    <label className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>Working days</label>
                     <div className="flex flex-wrap gap-2">
                         {WEEKDAY_LABELS.map((label, d) => {
                             const on = availDraft.workingDays.includes(d);
@@ -874,7 +874,7 @@ const DCanary = () => {
                 {/* Working hours (individually toggleable) */}
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between gap-3">
-                        <label className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Working hours</label>
+                        <label className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>Working hours</label>
                         <span className="text-xs" style={{ color: 'var(--dash-text-3)' }}>{availDraft.hours.length} selected</span>
                     </div>
                     <div className="gap-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(92px, 1fr))' }}>
@@ -904,7 +904,7 @@ const DCanary = () => {
                 {/* Preview */}
                 {previewSlots.length > 0 && (
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>What guests will see</label>
+                        <label className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>What guests will see</label>
                         <div className="flex flex-wrap gap-2">
                             {previewSlots.map(s => (
                                 <span key={s} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}>{s}</span>
@@ -939,8 +939,8 @@ const DCanary = () => {
                 initial={{ opacity: 0, y: 10, scale: 0.92 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="flex items-center gap-1 p-1.5 rounded-sm md:gap-1.5 md:p-2 md:rounded-sm backdrop-blur-xl shadow-[0_4px_20px_var(--dash-border)] dark:shadow-[0_4px_20px_var(--dash-border)]"
-                style={{ backgroundColor: 'var(--subnav-bg, var(--dash-border))', border: '1px solid var(--dash-border)' }}
+                className="flex items-center gap-1 p-1.5 rounded-sm md:gap-1.5 md:p-2 md:rounded-sm shadow-[0_4px_20px_var(--shadow-color)] dark:shadow-[0_4px_20px_var(--shadow-color)]"
+                style={{ backgroundColor: 'var(--dash-surface-2)', border: '1px solid var(--dash-border)' }}
             >
                 {OPTIONS_TABS.map(tab => {
                     const isActive = optionsTab === tab.key;
@@ -1025,7 +1025,7 @@ const DCanary = () => {
                     <Mail size={16} />
                     <span className="hidden sm:inline">Mails</span>
                     {emails.length > 0 && (
-                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${activeSection === 'mails' ? 'bg-dash-accent text-white' : 'bg-dash-surface-3 text-dash-text-2 dark:bg-dash-surface/20 dark:text-white'}`}>
+                        <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${activeSection === 'mails' ? 'bg-dash-accent text-dash-text' : 'bg-dash-surface-3 text-dash-text-2 dark:bg-dash-surface-2 dark:text-dash-text'}`}>
                             {emails.length}
                         </span>
                     )}
@@ -1069,7 +1069,7 @@ const DCanary = () => {
                         <div className="flex items-center justify-between relative z-10 mb-4">
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-4">
-                                    <h3 className="text-2xl font-bold m-0" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                    <h3 className="text-2xl font-bold m-0" style={{ color: 'var(--dash-text)' }}>
                                         {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
                                     </h3>
 
@@ -1077,10 +1077,10 @@ const DCanary = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                                <button onClick={() => changeMonth(-1)} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 dark:hover:bg-dash-surface/5 rounded-lg transition-all border border-transparent hover:border-dash-border" style={{ color: 'var(--dash-border)' }}>
+                                <button onClick={() => changeMonth(-1)} className="w-8 h-8 flex items-center justify-center hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5 rounded-lg transition-all border border-transparent hover:border-dash-border" style={{ color: 'var(--dash-text-2)' }}>
                                     <ChevronLeft size={16} />
                                 </button>
-                                <button onClick={() => changeMonth(1)} className="w-8 h-8 flex items-center justify-center hover:bg-black/5 dark:hover:bg-dash-surface/5 rounded-lg transition-all border border-transparent hover:border-dash-border" style={{ color: 'var(--dash-border)' }}>
+                                <button onClick={() => changeMonth(1)} className="w-8 h-8 flex items-center justify-center hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5 rounded-lg transition-all border border-transparent hover:border-dash-border" style={{ color: 'var(--dash-text-2)' }}>
                                     <ChevronRight size={16} />
                                 </button>
                             </div>
@@ -1089,7 +1089,7 @@ const DCanary = () => {
                         {/* Day Headers */}
                         <div className="grid grid-cols-7 gap-1 md:gap-2">
                             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                                <div key={idx} className="text-center text-[10px] md:text-[11px] font-bold tracking-widest opacity-40" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                <div key={idx} className="text-center text-[10px] md:text-[11px] font-bold tracking-widest opacity-40" style={{ color: 'var(--dash-text)' }}>
                                     {day}
                                 </div>
                             ))}
@@ -1124,7 +1124,7 @@ const DCanary = () => {
                                                 style={{ aspectRatio: '1 / 0.82' }}
                                                 className={`relative rounded-sm md:rounded-sm transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5 md:gap-1
                                                 ${date ? 'hover:scale-[1.02] active:scale-95' : 'opacity-0 pointer-events-none'}
-                                                ${!isSelected ? 'hover:bg-black/5 dark:hover:bg-dash-surface/5' : ''}
+                                                ${!isSelected ? 'hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5' : ''}
                                             `}
                                             >
                                                 {isSelected && date && (
@@ -1143,7 +1143,7 @@ const DCanary = () => {
                                                 )}
                                                 {date && (
                                                     <>
-                                                        <span className={`text-sm md:text-lg font-bold relative z-10 ${isSelected ? 'text-white' : isToday ? 'text-dash-accent-text' : ''}`} style={{ color: !isSelected && !isToday ? (isDark ? 'var(--dash-text)' : 'var(--dash-bg)') : undefined }}>
+                                                        <span className={`text-sm md:text-lg font-bold relative z-10 ${isSelected ? 'text-dash-text' : isToday ? 'text-dash-accent-text' : ''}`} style={{ color: !isSelected && !isToday ? ('var(--dash-text)') : undefined }}>
                                                             {date.getDate()}
                                                         </span>
 
@@ -1152,7 +1152,7 @@ const DCanary = () => {
                                                                 <div
                                                                     key={m.id}
                                                                     className="w-1 h-1 rounded-full"
-                                                                    style={{ backgroundColor: isSelected ? 'var(--dash-border)' : categoryOf(m).color }}
+                                                                    style={{ backgroundColor: isSelected ? 'var(--dash-surface-3)' : categoryOf(m).color }}
                                                                 />
                                                             ))}
                                                         </div>
@@ -1174,7 +1174,7 @@ const DCanary = () => {
                             }}>
                         <div className="flex flex-col gap-3">
 
-                            <h3 className="text-2xl font-bold m-0" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                            <h3 className="text-2xl font-bold m-0" style={{ color: 'var(--dash-text)' }}>
                                 {selectedDate.toLocaleDateString('default', { weekday: 'long', day: 'numeric', month: 'short' })}
                             </h3>
 
@@ -1190,7 +1190,7 @@ const DCanary = () => {
                                                 onClick={() => setCategoryFilter(c.id)}
                                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors"
                                                 style={on
-                                                    ? { background: `${c.color}26`, color: c.color }
+                                                    ? { background: `color-mix(in srgb, c.color 15%, transparent)`, color: c.color }
                                                     : { background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}
                                             >
                                                 {c.id !== 'all' && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: c.color }} />}
@@ -1222,15 +1222,15 @@ const DCanary = () => {
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex flex-col gap-1.5 min-w-0 flex-1">
-                                                <h4 className="text-sm font-bold m-0 truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{meeting.title}</h4>
+                                                <h4 className="text-sm font-bold m-0 truncate" style={{ color: 'var(--dash-text)' }}>{meeting.title}</h4>
                                                 {meeting.email && (
-                                                    <div className="flex items-center gap-1.5 min-w-0" style={{ color: 'var(--dash-border)' }}>
+                                                    <div className="flex items-center gap-1.5 min-w-0" style={{ color: 'var(--dash-text-2)' }}>
                                                         <Mail size={11} className="opacity-60 shrink-0" />
                                                         <span className="text-[11px] truncate">{meeting.email}</span>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center gap-2 text-[11px] font-medium flex-wrap" style={{ color: 'var(--dash-border)' }}>
-                                                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-black/5 dark:bg-dash-surface/5">
+                                                <div className="flex items-center gap-2 text-[11px] font-medium flex-wrap" style={{ color: 'var(--dash-text-2)' }}>
+                                                    <div className="flex items-center gap-1.5 p-1 rounded-md bg-dash-surface-2 dark:bg-dash-surface/5">
                                                         <Clock size={12} className="opacity-70" />
                                                         <span>{meeting.time}</span>
                                                     </div>
@@ -1251,9 +1251,9 @@ const DCanary = () => {
                                                     className="p-2 hover:bg-dash-accent-soft rounded-lg transition-all group/del"
                                                     aria-label="Delete session"
                                                 >
-                                                    <Trash2 size={14} className="text-dash-danger/60 group-hover/del:text-dash-danger" />
+                                                    <Trash2 size={14} className="text-dash-danger group-hover/del:text-dash-danger" />
                                                 </button>
-                                                <ChevronRight size={16} className="opacity-30 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all" style={{ color: 'var(--dash-border)' }} />
+                                                <ChevronRight size={16} className="opacity-30 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all" style={{ color: 'var(--dash-text-2)' }} />
                                             </div>
                                         </div>
                                     </div>
@@ -1268,8 +1268,8 @@ const DCanary = () => {
 
                         <button
                             onClick={handleAddNew}
-                            className="w-full py-3 md:py-4 rounded-sm font-bold text-white text-xs md:text-sm flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
-                            style={{ background: 'linear-gradient(135deg, var(--dash-bg) 0%, var(--dash-surface-3) 100%)', boxShadow: '0 8px 30px var(--dash-border)' }}
+                            className="w-full py-3 md:py-4 rounded-sm font-bold text-dash-text text-xs md:text-sm flex items-center justify-center gap-2 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            style={{ background: 'linear-gradient(135deg, var(--dash-bg) 0%, var(--dash-surface-3) 100%)', boxShadow: '0 8px 30px var(--shadow-color)' }}
                         >
                             <Plus size={16} />
                             CREATE NEW SESSION
@@ -1287,7 +1287,7 @@ const DCanary = () => {
                             }}>
                         <div className="flex flex-col gap-2">
 
-                            <h3 className="text-2xl font-bold m-0" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Inbox</h3>
+                            <h3 className="text-2xl font-bold m-0" style={{ color: 'var(--dash-text)' }}>Inbox</h3>
                         </div>
 
                         <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-1 mr-1 custom-scrollbar">
@@ -1296,7 +1296,7 @@ const DCanary = () => {
                                     <div
                                         key={email.id}
                                         onClick={() => setSelectedEmail(email)}
-                                        className={`group relative p-3 md:p-4 rounded-sm md:rounded-sm border transition-all cursor-pointer ${selectedEmail?.id === email.id ? 'shadow-md' : 'hover:translate-x-1 hover:border-dash-border dark:hover:border-white/20'}`}
+                                        className={`group relative p-3 md:p-4 rounded-sm md:rounded-sm border transition-all cursor-pointer ${selectedEmail?.id === email.id ? 'shadow-md' : 'hover:translate-x-1 hover:border-dash-border dark:hover:border-dash-border/20'}`}
                                         style={{
                                             borderColor: selectedEmail?.id === email.id ? 'var(--dash-accent-text)' : ('var(--dash-border)'),
                                             backgroundColor: selectedEmail?.id === email.id ? ('var(--dash-accent-text)') : ('var(--dash-border)')
@@ -1304,7 +1304,7 @@ const DCanary = () => {
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex flex-col gap-1 overflow-hidden flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold m-0 truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{email.name}</h4>
+                                                <h4 className="text-sm font-bold m-0 truncate" style={{ color: 'var(--dash-text)' }}>{email.name}</h4>
                                                 <div className="flex items-center gap-1.5 min-w-0">
                                                     <Mail size={11} className="opacity-50 shrink-0" />
                                                     <span className="text-[11px] opacity-70 truncate select-all">{email.email}</span>
@@ -1314,7 +1314,7 @@ const DCanary = () => {
                                                         <Phone size={11} className="opacity-50 shrink-0" />
                                                         <span className="text-[11px] opacity-70 truncate select-all">{email.number}</span>
                                                         {email.whatsapp && (
-                                                            <span className="text-[9px] font-bold text-dash-success bg-green-500/10 px-1.5 py-0.5 rounded-full shrink-0">WhatsApp</span>
+                                                            <span className="text-[9px] font-bold text-dash-success bg-dash-success/15 px-1.5 py-0.5 rounded-full shrink-0">WhatsApp</span>
                                                         )}
                                                     </div>
                                                 )}
@@ -1342,7 +1342,7 @@ const DCanary = () => {
                                                         });
                                                         setOpenOptionsId(openOptionsId === email.id ? null : email.id);
                                                     }}
-                                                    className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${openOptionsId === email.id ? 'text-dash-accent-text bg-dash-accent/10' : 'opacity-0 group-hover:opacity-100 hover:bg-black/5 dark:hover:bg-dash-surface/5'}`}
+                                                    className={`p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-all ${openOptionsId === email.id ? 'text-dash-accent-text bg-dash-accent/10' : 'opacity-0 group-hover:opacity-100 hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5'}`}
                                                 >
                                                     <MoreVertical size={16} />
                                                 </button>
@@ -1381,7 +1381,7 @@ const DCanary = () => {
                                             <div className="flex items-center gap-4">
 
                                                 <div className="flex flex-col gap-1">
-                                                    <h2 className="text-xl md:text-2xl font-bold m-0 leading-tight" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                                    <h2 className="text-xl md:text-2xl font-bold m-0 leading-tight" style={{ color: 'var(--dash-text)' }}>
                                                         {selectedEmail.name}
                                                     </h2>
                                                     <div className="flex items-center gap-2 text-xs font-medium opacity-50">
@@ -1403,7 +1403,7 @@ const DCanary = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => handleReplyEmail(selectedEmail)}
-                                                    className="p-2.5 md:px-4 md:py-2 rounded-sm bg-dash-accent text-white shadow-lg shadow-blue-500/20 hover:bg-dash-accent active:scale-95 transition-all flex items-center gap-2"
+                                                    className="p-2.5 md:px-4 md:py-2 rounded-sm bg-dash-accent text-dash-text shadow-lg shadow-[0_8px_24px_var(--shadow-color)] hover:bg-dash-accent active:scale-95 transition-all flex items-center gap-2"
                                                     title="Reply"
                                                 >
                                                     <Reply size={18} />
@@ -1427,30 +1427,30 @@ const DCanary = () => {
                                             }}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-black/5 dark:bg-dash-surface/5 opacity-70">
+                                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-dash-surface-2 dark:bg-dash-surface/5 opacity-70">
                                                     <Mail size={14} />
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] uppercase font-bold opacity-40">Email Address</span>
-                                                    <span className="text-sm font-semibold select-all" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{selectedEmail.email}</span>
+                                                    <span className="text-sm font-semibold select-all" style={{ color: 'var(--dash-text)' }}>{selectedEmail.email}</span>
                                                 </div>
                                             </div>
 
                                             {selectedEmail.number && (
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-black/5 dark:bg-dash-surface/5 opacity-70">
+                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-dash-surface-2 dark:bg-dash-surface/5 opacity-70">
                                                         <Clock size={14} className="rotate-0" />
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] uppercase font-bold opacity-40">Phone Number</span>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-semibold select-all" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{selectedEmail.number}</span>
+                                                            <span className="text-sm font-semibold select-all" style={{ color: 'var(--dash-text)' }}>{selectedEmail.number}</span>
                                                             {selectedEmail.whatsapp && (
                                                                 <a
                                                                     href={`https://wa.me/${selectedEmail.number.replace(/\D/g, '')}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="px-1.5 py-0.5 rounded bg-green-500/15 text-dash-success text-[9px] font-bold uppercase tracking-wider border border-green-500/20 hover:bg-green-500/25 transition-colors cursor-pointer no-underline"
+                                                                    className="px-1.5 py-0.5 rounded bg-dash-success/15 text-dash-success text-[9px] font-bold uppercase tracking-wider border border-dash-success/30 hover:bg-dash-success/20 transition-colors cursor-pointer no-underline"
                                                                     title="Chat on WhatsApp"
                                                                 >
                                                                     WA
@@ -1469,7 +1469,7 @@ const DCanary = () => {
                                     <div className="flex flex-col gap-2">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40 ml-1">Message Content</span>
                                         <div className="p-4 md:p-6 rounded-[24px]" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
-                                            <p className="m-0 text-sm md:text-base leading-loose whitespace-pre-wrap font-medium opacity-90" style={{ color: 'var(--dash-border)' }}>
+                                            <p className="m-0 text-sm md:text-base leading-loose whitespace-pre-wrap font-medium opacity-90" style={{ color: 'var(--dash-text-2)' }}>
                                                 {selectedEmail.message}
                                             </p>
                                         </div>
@@ -1515,7 +1515,7 @@ const DCanary = () => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 md:p-4"
+                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--scrim)] p-2 md:p-4"
                             >
                                 <div className="absolute inset-0" onClick={() => setViewingMeeting(null)} />
                                 <motion.div
@@ -1533,11 +1533,11 @@ const DCanary = () => {
                                                 <CalendarIcon size={22} />
                                             </span>
                                             <div className="min-w-0">
-                                                <h3 className="text-lg font-bold m-0 truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{viewingMeeting.title}</h3>
+                                                <h3 className="text-lg font-bold m-0 truncate" style={{ color: 'var(--dash-text)' }}>{viewingMeeting.title}</h3>
                                                 <p className="text-[11px] font-semibold uppercase tracking-wider m-0" style={{ color: 'var(--dash-text-3)' }}>Booking details</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setViewingMeeting(null)} className="p-2 hover:bg-black/5 dark:hover:bg-dash-surface/5 rounded-lg transition-colors shrink-0" style={{ color: 'var(--dash-border)' }} aria-label="Close">
+                                        <button onClick={() => setViewingMeeting(null)} className="p-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface/5 rounded-lg transition-colors shrink-0" style={{ color: 'var(--dash-text-2)' }} aria-label="Close">
                                             <X size={18} />
                                         </button>
                                     </div>
@@ -1547,7 +1547,7 @@ const DCanary = () => {
                                         {viewingMeeting.email && (
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Email</span>
-                                                <a href={`mailto:${viewingMeeting.email}`} className="text-sm font-semibold hover:text-dash-accent-text transition-colors break-all select-all inline-flex items-center gap-2" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                                <a href={`mailto:${viewingMeeting.email}`} className="text-sm font-semibold hover:text-dash-accent-text transition-colors break-all select-all inline-flex items-center gap-2" style={{ color: 'var(--dash-text)' }}>
                                                     <Mail size={14} className="opacity-60 shrink-0" />
                                                     {viewingMeeting.email}
                                                 </a>
@@ -1556,11 +1556,11 @@ const DCanary = () => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Date</span>
-                                                <span className="text-sm font-semibold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{viewingMeeting.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                                <span className="text-sm font-semibold" style={{ color: 'var(--dash-text)' }}>{viewingMeeting.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
                                             </div>
                                             <div className="flex flex-col gap-1">
                                                 <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Time</span>
-                                                <span className="text-sm font-semibold inline-flex items-center gap-2" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}><Clock size={14} className="opacity-60 shrink-0" />{viewingMeeting.time}</span>
+                                                <span className="text-sm font-semibold inline-flex items-center gap-2" style={{ color: 'var(--dash-text)' }}><Clock size={14} className="opacity-60 shrink-0" />{viewingMeeting.time}</span>
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5 items-start">
@@ -1569,7 +1569,7 @@ const DCanary = () => {
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>What it&apos;s for</span>
-                                            <span className="text-sm leading-relaxed" style={{ color: 'var(--dash-border)' }}>{viewingMeeting.reason || 'No description provided.'}</span>
+                                            <span className="text-sm leading-relaxed" style={{ color: 'var(--dash-text-2)' }}>{viewingMeeting.reason || 'No description provided.'}</span>
                                         </div>
                                         {viewingMeeting.link && (
                                             <a href={viewingMeeting.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm text-sm font-bold transition-colors self-start no-underline" style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
@@ -1615,7 +1615,7 @@ const DCanary = () => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-2 md:p-4"
+                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--scrim)] p-2 md:p-4"
                             >
                                 <div className="absolute inset-0" onClick={() => setEditingMeeting(null)} />
 
@@ -1625,7 +1625,7 @@ const DCanary = () => {
                                     animate={{ scale: 1, opacity: 1, y: 0 }}
                                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
                                     className="relative w-full max-w-3xl rounded-sm md:rounded-[28px] overflow-hidden flex flex-col shadow-2xl max-h-[92vh]"
-                                    style={{ backgroundColor: isDark ? 'var(--dash-surface)' : 'var(--dash-border)', border: `1px solid ${'var(--dash-border)'}` }}
+                                    style={{ backgroundColor: 'var(--dash-surface)', border: `1px solid ${'var(--dash-border)'}` }}
                                 >
                                     {/* Header: says what this is and which booking, so the fields
                                         below don't have to carry that job on their own. */}
@@ -1635,7 +1635,7 @@ const DCanary = () => {
                                                 <Edit2 size={20} />
                                             </span>
                                             <div className="min-w-0">
-                                                <h3 className="text-base md:text-lg font-bold m-0 leading-tight" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>Edit booking</h3>
+                                                <h3 className="text-base md:text-lg font-bold m-0 leading-tight" style={{ color: 'var(--dash-text)' }}>Edit booking</h3>
                                                 <p className="text-xs m-0 mt-0.5 truncate" style={{ color: 'var(--dash-text-3)' }}>
                                                     {editOriginal
                                                         ? `Booked for ${editOriginal.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} at ${editOriginal.time}`
@@ -1644,7 +1644,7 @@ const DCanary = () => {
                                                 </p>
                                             </div>
                                         </div>
-                                        <button onClick={() => setEditingMeeting(null)} aria-label="Close" className="w-9 h-9 grid place-items-center shrink-0 hover:bg-black/5 dark:hover:bg-dash-surface/10 rounded-lg transition-colors cursor-pointer" style={{ color: 'var(--dash-border)' }}>
+                                        <button onClick={() => setEditingMeeting(null)} aria-label="Close" className="w-9 h-9 grid place-items-center shrink-0 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 rounded-lg transition-colors cursor-pointer" style={{ color: 'var(--dash-text-2)' }}>
                                             <X size={18} />
                                         </button>
                                     </div>
@@ -1662,7 +1662,7 @@ const DCanary = () => {
                                                         id="booking-title"
                                                         type="text"
                                                         className="w-full h-11 rounded-sm border px-3.5 text-sm font-medium transition-colors focus:border-dash-accent outline-none"
-                                                        style={{ backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}
+                                                        style={{ backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: 'var(--dash-text)' }}
                                                         value={editingMeeting.title}
                                                         onChange={(e) => setEditingMeeting({ ...editingMeeting, title: e.target.value })}
                                                         placeholder="Guest or meeting name"
@@ -1674,7 +1674,7 @@ const DCanary = () => {
                                                     <div className="flex items-center gap-2">
                                                         {/* The swatch is the only place the colour appears in this
                                                             modal, so the pick reads at a glance next to the name. */}
-                                                        <span className="w-11 h-11 grid place-items-center rounded-sm shrink-0" style={{ background: `${categoryOf(editingMeeting).color}1f` }}>
+                                                        <span className="w-11 h-11 grid place-items-center rounded-sm shrink-0" style={{ background: `color-mix(in srgb, categoryOf(editingMeeting).color 12%, transparent)` }}>
                                                             <span className="w-3 h-3 rounded-full" style={{ background: categoryOf(editingMeeting).color }} />
                                                         </span>
                                                         <div className="flex-1 min-w-0">
@@ -1716,7 +1716,7 @@ const DCanary = () => {
                                                                     className="h-9 rounded-lg text-[11px] font-bold border transition-colors disabled:cursor-not-allowed cursor-pointer"
                                                                     style={on
                                                                         ? { background: 'var(--dash-accent)', color: 'var(--dash-text)', borderColor: 'var(--dash-accent-text)' }
-                                                                        : { background: 'transparent', color: isTaken ? 'var(--dash-text-3)' : (isDark ? 'var(--dash-text)' : 'var(--dash-bg)'), borderColor: 'var(--dash-border)', opacity: isTaken ? 0.35 : 1 }}
+                                                                        : { background: 'transparent', color: isTaken ? 'var(--dash-text-3)' : ('var(--dash-text)'), borderColor: 'var(--dash-border)', opacity: isTaken ? 0.35 : 1 }}
                                                                     title={isTaken ? 'Already booked' : undefined}
                                                                 >
                                                                     {time}
@@ -1731,7 +1731,7 @@ const DCanary = () => {
                                                             className="h-9 rounded-lg text-[11px] font-bold border transition-colors cursor-pointer whitespace-nowrap"
                                                             style={customOn
                                                                 ? { background: 'var(--dash-accent)', color: 'var(--dash-text)', borderColor: 'var(--dash-accent-text)' }
-                                                                : { background: 'transparent', color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)', borderColor: 'var(--dash-border)' }}
+                                                                : { background: 'transparent', color: 'var(--dash-text)', borderColor: 'var(--dash-border)' }}
                                                             isDark={isDark}
                                                             active={customOn}
                                                             value={editingMeeting.time}
@@ -1753,7 +1753,7 @@ const DCanary = () => {
                                                 {editingMeeting.via && (
                                                     <div className="flex flex-col gap-1.5">
                                                         <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>Booked from</span>
-                                                        <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--dash-border)' }}>
+                                                        <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--dash-text-2)' }}>
                                                             {editingMeeting.via === 'book' ? 'The book page (mohanddarwish.vercel.app/book)' : 'The contact window on the portfolio'}
                                                         </p>
                                                     </div>
@@ -1762,7 +1762,7 @@ const DCanary = () => {
                                                 {editingMeeting.reason && (
                                                     <div className="flex flex-col gap-1.5">
                                                         <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--dash-text-3)' }}>What it&apos;s for</span>
-                                                        <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--dash-border)' }}>{editingMeeting.reason}</p>
+                                                        <p className="text-sm leading-relaxed m-0" style={{ color: 'var(--dash-text-2)' }}>{editingMeeting.reason}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -1770,12 +1770,12 @@ const DCanary = () => {
                                             {/* Right: when */}
                                             <div className="flex flex-col gap-3 min-w-0">
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <span className="text-sm font-bold" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                                    <span className="text-sm font-bold" style={{ color: 'var(--dash-text)' }}>
                                                         {modalViewDate.toLocaleDateString('default', { month: 'long', year: 'numeric' })}
                                                     </span>
                                                     <div className="flex items-center gap-1">
-                                                        <button type="button" onClick={() => changeModalMonth(-1)} aria-label="Previous month" className="w-7 h-7 grid place-items-center rounded-lg cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10" style={{ color: 'var(--dash-border)' }}><ChevronLeft size={15} /></button>
-                                                        <button type="button" onClick={() => changeModalMonth(1)} aria-label="Next month" className="w-7 h-7 grid place-items-center rounded-lg cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10" style={{ color: 'var(--dash-border)' }}><ChevronRight size={15} /></button>
+                                                        <button type="button" onClick={() => changeModalMonth(-1)} aria-label="Previous month" className="w-7 h-7 grid place-items-center rounded-lg cursor-pointer transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3" style={{ color: 'var(--dash-text-2)' }}><ChevronLeft size={15} /></button>
+                                                        <button type="button" onClick={() => changeModalMonth(1)} aria-label="Next month" className="w-7 h-7 grid place-items-center rounded-lg cursor-pointer transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3" style={{ color: 'var(--dash-text-2)' }}><ChevronRight size={15} /></button>
                                                     </div>
                                                 </div>
 
@@ -1810,7 +1810,7 @@ const DCanary = () => {
                                                                         disabled={!date}
                                                                         onClick={() => date && setEditingMeeting({ ...editingMeeting, date })}
                                                                         title={isPast ? 'This day has already passed' : undefined}
-                                                                        className={`relative grid place-items-center aspect-square rounded-lg border-none bg-transparent p-0 ${date ? 'cursor-pointer' : 'pointer-events-none'} ${date && !isSelected ? 'hover:bg-black/5 dark:hover:bg-dash-surface/10' : ''}`}
+                                                                        className={`relative grid place-items-center aspect-square rounded-lg border-none bg-transparent p-0 ${date ? 'cursor-pointer' : 'pointer-events-none'} ${date && !isSelected ? 'hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3' : ''}`}
                                                                         style={{ opacity: date ? (isPast && !isSelected ? 0.4 : 1) : 0 }}
                                                                     >
                                                                         {isSelected && date && (
@@ -1822,7 +1822,7 @@ const DCanary = () => {
                                                                             />
                                                                         )}
                                                                         <span className="relative z-10 text-xs" style={{
-                                                                            color: isSelected ? 'var(--dash-text)' : (isToday ? 'var(--dash-accent-text)' : (isDark ? 'var(--dash-text)' : 'var(--dash-bg)')),
+                                                                            color: isSelected ? 'var(--dash-text)' : (isToday ? 'var(--dash-accent-text)' : ('var(--dash-text)')),
                                                                             fontWeight: isSelected || isToday ? 700 : 500,
                                                                         }}>
                                                                             {date?.getDate()}
@@ -1837,7 +1837,7 @@ const DCanary = () => {
                                                 {/* Where this edit actually lands, spelled out. */}
                                                 <div className="rounded-sm px-3 py-2.5 mt-auto" style={{ background: 'var(--dash-surface-2)' }}>
                                                     <div className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--dash-text-3)' }}>Moving to</div>
-                                                    <div className="text-sm font-bold leading-snug" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>
+                                                    <div className="text-sm font-bold leading-snug" style={{ color: 'var(--dash-text)' }}>
                                                         {editingMeeting.date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
                                                     </div>
                                                     <div className="text-sm font-semibold" style={{ color: 'var(--dash-accent-text)' }}>{editingMeeting.time}</div>
@@ -1863,7 +1863,7 @@ const DCanary = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingMeeting(null)}
-                                                className="px-4 h-10 rounded-sm font-bold text-sm cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10"
+                                                className="px-4 h-10 rounded-sm font-bold text-sm cursor-pointer transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3"
                                                 style={{ color: 'var(--dash-text-3)' }}
                                             >
                                                 Discard
@@ -1872,7 +1872,7 @@ const DCanary = () => {
                                                 type="button"
                                                 onClick={() => handleSaveMeeting()}
                                                 disabled={!editDirty}
-                                                className="inline-flex items-center gap-2 px-5 h-10 rounded-sm text-white font-bold text-sm cursor-pointer transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
+                                                className="inline-flex items-center gap-2 px-5 h-10 rounded-sm text-dash-text font-bold text-sm cursor-pointer transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100"
                                                 style={{ background: 'var(--dash-accent)' }}
                                             >
                                                 <Check size={17} strokeWidth={2.5} />
@@ -1981,7 +1981,7 @@ const DCanary = () => {
                             top: `${menuPos.top}px`,
                             right: `${menuPos.right}px`,
                             borderRadius: '16px',
-                            backgroundColor: isDark ? 'var(--dash-surface)' : 'var(--dash-border)',
+                            backgroundColor: 'var(--dash-surface)',
                             border: '1px solid var(--dash-border)',
                             }}>
                             <button
@@ -2034,7 +2034,7 @@ const DCanary = () => {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setPreviewAttachment(null)}
-                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-8"
+                                className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--scrim)] p-4 sm:p-8"
                             >
                                 <div
                                     className="relative max-w-5xl max-h-full w-full rounded-sm overflow-hidden shadow-2xl bg-black"
@@ -2042,12 +2042,12 @@ const DCanary = () => {
                                 >
                                     <button
                                         onClick={() => setPreviewAttachment(null)}
-                                        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-md transition-colors"
+                                        className="absolute top-4 right-4 z-50 p-2 rounded-full bg-[var(--scrim)] hover:bg-[var(--scrim)] text-dash-text transition-colors"
                                     >
                                         <X size={24} />
                                     </button>
 
-                                    <div className="flex w-full h-full items-center justify-center bg-zinc-900">
+                                    <div className="flex w-full h-full items-center justify-center bg-dash-surface">
                                         {/\.(jpg|jpeg|png|gif|webp)$/i.test(previewAttachment.name) ? (
                                             <img
                                                 src={previewAttachment.url}
@@ -2070,14 +2070,14 @@ const DCanary = () => {
                                         )}
                                     </div>
 
-                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-white">
+                                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent text-dash-text">
                                         <div className="flex items-center justify-between">
                                             <span className="font-bold truncate">{previewAttachment.name}</span>
                                             <a
                                                 href={previewAttachment.url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="px-4 py-2 rounded-lg bg-dash-surface/10 hover:bg-dash-surface/20 transition-colors flex items-center gap-2 text-sm font-bold"
+                                                className="px-4 py-2 rounded-lg bg-dash-surface-2 hover:bg-dash-surface-3 transition-colors flex items-center gap-2 text-sm font-bold"
                                             >
                                                 <ExternalLink size={14} /> Open Original
                                             </a>

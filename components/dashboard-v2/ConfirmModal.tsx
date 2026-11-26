@@ -36,28 +36,28 @@ const MConfirmModal = ({
                     icon: <AlertCircle className="text-dash-danger" size={28} />,
                     bg: 'var(--dash-danger)',
                     border: 'var(--dash-danger)',
-                    btn: 'bg-dash-danger hover:bg-dash-danger shadow-red-500/20'
+                    btn: 'bg-dash-danger hover:bg-dash-danger shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             case 'success':
                 return {
                     icon: <AlertCircle className="text-dash-success" size={28} />,
                     bg: 'var(--dash-accent-soft)',
                     border: 'var(--dash-accent-soft)',
-                    btn: 'bg-green-500 hover:bg-green-600 shadow-green-500/20'
+                    btn: 'bg-dash-success hover:brightness-90 shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             case 'info':
                 return {
                     icon: <Info className="text-dash-accent-text" size={28} />,
                     bg: 'var(--dash-accent-text)',
                     border: 'var(--dash-accent-text)',
-                    btn: 'bg-dash-accent hover:bg-dash-accent shadow-blue-500/20'
+                    btn: 'bg-dash-accent hover:bg-dash-accent shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             default:
                 return {
                     icon: <AlertTriangle className="text-dash-warning" size={28} />,
                     bg: 'var(--dash-warning)',
                     border: 'var(--dash-warning)',
-                    btn: 'bg-dash-warning hover:bg-dash-warning shadow-amber-500/20'
+                    btn: 'bg-dash-warning hover:bg-dash-warning shadow-[0_8px_24px_var(--shadow-color)]'
                 };
         }
     };
@@ -72,7 +72,7 @@ const MConfirmModal = ({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
                 >
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -97,7 +97,7 @@ const MConfirmModal = ({
                                 {styles.icon}
                             </div>
                             <div>
-                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-dash-text'}`}>{title}</h3>
+                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>{title}</h3>
                                 <p className={`text-sm leading-relaxed ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>
                                     {message}
                                 </p>
@@ -108,7 +108,7 @@ const MConfirmModal = ({
                         <div className={`p-4 flex gap-3 ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                             <button
                                 onClick={onClose}
-                                className={`flex-1 px-4 py-2.5 rounded-sm font-semibold text-sm transition-all ${isDark ? 'hover:bg-dash-surface/10 text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-2'}`}
+                                className={`flex-1 px-4 py-2.5 rounded-sm font-semibold text-sm transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-2'}`}
                             >
                                 {cancelText}
                             </button>
@@ -117,7 +117,7 @@ const MConfirmModal = ({
                                     onConfirm();
                                     onClose();
                                 }}
-                                className={`flex-1 px-4 py-2.5 rounded-sm font-bold text-sm text-white transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${styles.btn}`}
+                                className={`flex-1 px-4 py-2.5 rounded-sm font-bold text-sm text-dash-text transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${styles.btn}`}
                             >
                                 {confirmText}
                             </button>
@@ -127,7 +127,7 @@ const MConfirmModal = ({
                         <button
                             onClick={onClose}
                             aria-label="Close"
-                            className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-dash-surface/10 text-dash-text-3 hover:text-dash-text-3' : 'hover:bg-dash-surface-2 text-dash-text-3 hover:text-dash-text-2'}`}
+                            className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text-2'}`}
                         >
                             <X size={18} />
                         </button>

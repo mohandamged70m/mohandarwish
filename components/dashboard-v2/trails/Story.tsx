@@ -58,13 +58,13 @@ export const isLive = (s: SessionDoc): boolean =>
 const EVENT_COLOR: Record<string, string> = {
     section: 'var(--dash-accent-text)',
     project: 'var(--dash-success)',
-    project_end: 'var(--dash-success)66',
+    project_end: 'color-mix(in srgb, var(--dash-success) 40%, transparent)',
     out: 'var(--dash-accent-text)',
     social: 'var(--dash-accent)',
-    social_back: 'var(--dash-accent)66',
+    social_back: 'color-mix(in srgb, var(--dash-accent) 40%, transparent)',
     cv: 'var(--dash-warning)',
     contact: 'var(--dash-accent)',
-    contact_tab: 'var(--dash-accent)88',
+    contact_tab: 'color-mix(in srgb, var(--dash-accent) 53%, transparent)',
     contact_sent: 'var(--dash-success)',
     copy: 'var(--dash-warning)',
     scroll: 'var(--dash-text-3)',
@@ -113,7 +113,7 @@ function describe(e: SessionEvent): string {
 const Fact = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
     <div className="flex items-baseline justify-between gap-3 py-2" style={{ borderBottom: `1px solid ${'var(--dash-border)'}` }}>
         <span className="text-[10px] font-bold uppercase tracking-[0.12em] shrink-0" style={{ color: 'var(--dash-text-3)' }}>{label}</span>
-        <span className="text-xs font-semibold text-right min-w-0 [overflow-wrap:anywhere]" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{value || '-'}</span>
+        <span className="text-xs font-semibold text-right min-w-0 [overflow-wrap:anywhere]" style={{ color: 'var(--dash-text)' }}>{value || '-'}</span>
     </div>
 );
 
@@ -122,7 +122,7 @@ const Bar = ({ label, value, max, color, suffix, isDark }: {
 }) => (
     <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-bold truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{label}</span>
+            <span className="text-xs font-bold truncate" style={{ color: 'var(--dash-text)' }}>{label}</span>
             <span className="text-[11px] font-bold tabular-nums shrink-0" style={{ color: 'var(--dash-text-3)' }}>{suffix}</span>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--dash-surface-2)' }}>
@@ -186,7 +186,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-md animate-fade-in"
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-[var(--scrim)] animate-fade-in"
             onClick={onClose}
         >
             <motion.div
@@ -232,7 +232,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             {summary ? ` · ${summary}` : ''}
                         </p>
                     </div>
-                    <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-sm cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10 shrink-0" style={{ color: 'var(--dash-text-3)' }}>
+                    <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-sm cursor-pointer transition-colors hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 shrink-0" style={{ color: 'var(--dash-text-3)' }}>
                         <X size={18} />
                     </button>
                 </div>
@@ -252,7 +252,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: stat.tint }}>
                                 {stat.icon}{stat.label}
                             </span>
-                            <span className="text-lg font-bold tabular-nums" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{stat.value}</span>
+                            <span className="text-lg font-bold tabular-nums" style={{ color: 'var(--dash-text)' }}>{stat.value}</span>
                         </div>
                     ))}
                 </div>
@@ -287,7 +287,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                                 )}
                                             </div>
                                             <div className="flex items-baseline justify-between gap-3 flex-1 pb-3 min-w-0">
-                                                <span className="text-sm min-w-0 [overflow-wrap:anywhere]" style={{ color: 'var(--dash-border)' }}>
+                                                <span className="text-sm min-w-0 [overflow-wrap:anywhere]" style={{ color: 'var(--dash-text-2)' }}>
                                                     {describe(e)}
                                                 </span>
                                                 <span className="text-[10px] font-bold tabular-nums shrink-0" style={{ color: 'var(--dash-text-3)' }}>
@@ -398,7 +398,7 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                     <button
                         type="button"
                         onClick={() => onDelete(story.Id)}
-                        className="inline-flex items-center gap-2 px-3 h-10 rounded-sm text-xs font-bold cursor-pointer transition-colors text-dash-danger/80 hover:text-dash-danger hover:bg-dash-accent-soft"
+                        className="inline-flex items-center gap-2 px-3 h-10 rounded-sm text-xs font-bold cursor-pointer transition-colors text-dash-danger hover:text-dash-danger hover:bg-dash-accent-soft"
                     >
                         <Trash2 size={14} /> Delete this visit
                     </button>

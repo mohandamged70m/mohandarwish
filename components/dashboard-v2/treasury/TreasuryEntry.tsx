@@ -297,7 +297,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         onClose();
     };
 
-    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10';
+    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface-2 border-black/10';
     const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-dash-text text-sm outline-none focus:border-dash-accent/50 transition-colors`;
     const labelCls = 'text-xs font-semibold text-dash-text-2 uppercase tracking-wider mb-3 block';
 
@@ -307,7 +307,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
             {CURRENCIES.map(c => (
                 <button key={c} type="button" onClick={() => onChange(c)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                     {CURRENCY_SYMBOL[c]} {c}
                 </button>
             ))}
@@ -320,7 +320,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="te-overlay fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="te-overlay fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
             onClick={onClose}
         >
             <motion.div
@@ -329,17 +329,17 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`te-content w-full max-w-lg max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
+                className={`te-content w-full max-w-lg max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 " style={{ background: 'var(--dash-surface)' }}>
                     <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-sm flex items-center justify-center ${mode === 'income' ? 'bg-dash-accent-soft text-dash-success' : 'bg-dash-accent/10 text-dash-accent-text'}`}>
                             <HeaderIcon size={18} />
                         </div>
                         <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} {titleLabel}</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -502,7 +502,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {(['income', 'expense'] as const).map(k => (
                                     <button key={k} type="button" disabled={isEdit} onClick={() => setKind(k)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-dash-success text-white shadow' : 'bg-dash-danger text-white shadow') : 'text-dash-text-2 hover:text-dash-text'} ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-dash-success text-dash-text shadow' : 'bg-dash-danger text-dash-text shadow') : 'text-dash-text-2 hover:text-dash-text'} ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
                                         {k === 'income' ? 'Income (money in)' : 'Expense (money out)'}
                                     </button>
                                 ))}
@@ -539,7 +539,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                     key={t.label}
                                                     type="button"
                                                     onMouseDown={e => { e.preventDefault(); applyTemplate(t); }}
-                                                    className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-dash-surface/[0.06] transition-colors"
+                                                    className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors"
                                                 >
                                                     <span className="min-w-0">
                                                         <span className="flex items-center gap-1.5 text-sm font-semibold text-dash-text truncate">
@@ -600,7 +600,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                     key={c}
                                                     type="button"
                                                     onMouseDown={e => { e.preventDefault(); setCategory(c); setShowCatSug(false); }}
-                                                    className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-dash-text hover:bg-black/[0.04] dark:hover:bg-dash-surface/[0.06] transition-colors truncate"
+                                                    className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-colors truncate"
                                                 >
                                                     {c}
                                                 </button>
@@ -624,7 +624,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'client') === expClientPaid;
                                             return (
                                                 <button key={val} type="button" onClick={() => setExpClientPaid(val === 'client')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-accent text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );
@@ -692,7 +692,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'yes') === incIsMonthly;
                                             return (
                                                 <button key={val} type="button" onClick={() => setIncIsMonthly(val === 'yes')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-success text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
+                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-success text-dash-text shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );
@@ -719,7 +719,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             <img src={url} alt="Attachment" className="w-full h-full object-cover" />
                                         </a>
                                         <button type="button" onClick={() => removeAttachment(url)} aria-label="Remove attachment"
-                                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center opacity-0 group-hover/att:opacity-100 transition-opacity hover:bg-dash-danger">
+                                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/65 text-dash-text flex items-center justify-center opacity-0 group-hover/att:opacity-100 transition-opacity hover:bg-dash-danger">
                                             <X size={12} />
                                         </button>
                                     </div>
@@ -746,15 +746,15 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
+                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
                         <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
                     <div className="flex-1" />
-                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
-                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-dash-accent hover:bg-dash-accent shadow-blue-500/20' : kind === 'income' ? 'bg-dash-success hover:bg-dash-success shadow-emerald-500/20' : 'bg-dash-danger hover:bg-dash-danger shadow-rose-500/20'}`}>
+                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all">Cancel</button>
+                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-sm font-bold text-sm text-dash-text shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-dash-accent hover:bg-dash-accent shadow-[0_8px_24px_var(--shadow-color)]' : kind === 'income' ? 'bg-dash-success hover:bg-dash-success shadow-[0_8px_24px_var(--shadow-color)]' : 'bg-dash-danger hover:bg-dash-danger shadow-[0_8px_24px_var(--shadow-color)]'}`}>
                         {uploading > 0 && <Loader2 size={15} className="animate-spin" />}
                         {uploading > 0 ? 'Uploading…' : isEdit ? 'Save' : 'Add'}
                     </button>
