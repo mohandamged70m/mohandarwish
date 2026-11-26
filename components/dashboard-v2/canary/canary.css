@@ -61,12 +61,6 @@
   min-height: 34px;
 }
 
-/* Chrome from the public site never appears inside the dashboard shell. */
-body:has(.dash-root) footer,
-body:has(.dash-root) [data-bottom-nav-init] {
-  display: none !important;
-}
-
 /* Calendar day cells */
 .dash-root .canary-page .canary-weekday {
   font-size: 12px;

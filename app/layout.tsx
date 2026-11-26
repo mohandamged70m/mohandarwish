@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { Anton, Inter, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import { Nav } from "@/components/layout/nav";
 import { CvModalHost } from "@/components/cv/CvModal";
 import { PathMemory } from "@/components/layout/path-memory";
 import { Providers } from "@/components/layout/providers";
@@ -154,31 +152,9 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
           <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-bg-surface focus:px-4 focus:py-2 focus:text-sm focus:text-text-primary focus:shadow-lg">
             Skip to content
           </a>
-          {/* Banner landmark wraps the (fixed-position) primary nav. */}
-          <header>
-            <Nav />
-          </header>
           <CvModalHost />
           <RouteCurtain />
           {children}
-          <footer className="w-full border-t border-border bg-bg-primary">
-            <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-8 sm:flex-row sm:px-6 lg:px-8">
-              <p className="font-heading text-xs uppercase tracking-[0.12em] text-text-muted">
-                © {new Date().getFullYear()} Mohand Darwish — Alexandria, EG · GMT+2
-              </p>
-              <nav aria-label="Footer" className="flex items-center gap-5 font-heading text-xs uppercase tracking-[0.12em]">
-                <Link href="/projects" className="text-text-secondary transition-colors hover:text-accent-text">
-                  Projects
-                </Link>
-                <Link href="/llms.txt" className="text-text-secondary transition-colors hover:text-accent-text">
-                  llms.txt
-                </Link>
-                <Link href="/book" className="text-text-secondary transition-colors hover:text-accent-text">
-                  Book a call
-                </Link>
-              </nav>
-            </div>
-          </footer>
           <ModalViewport modal={modal} />
         </Providers>
         <Analytics />
