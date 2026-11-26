@@ -11,6 +11,7 @@ import { EASE } from './motion';
 import { parkCalendarReturn } from '@/lib/calendarReturn';
 import './dashboard.css';
 import './button-states.css';
+import { installDashboardDialogA11y } from './ui/dialog-a11y';
 
 // The parameter name in the function type would trigger `no-unused-vars` in some
 // ESLint configurations, so we suppress that rule for the following type alias.
@@ -49,6 +50,8 @@ const MENU_ITEMS: { id: TabId; label: string; icon: typeof Layout }[] = [
 const isTabId = (s: string): s is TabId => s in TABS;
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
+    useEffect(() => installDashboardDialogA11y(), []);
+
     // Back from connecting Google Calendar (Settings > Calendar shows how it went).
     const [activeTab, setActiveTab] = useState<TabId>(() => (parkCalendarReturn() ? 'settings' : 'projects'));
     const [profileImage, setProfileImage] = useState<string>('');

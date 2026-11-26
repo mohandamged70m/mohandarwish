@@ -20,6 +20,7 @@ import Toggle from '@/components/dashboard-v2/ui/Toggle';
 import ElasticSlider from '@/components/dashboard-v2/ui/reactbits/ElasticSlider';
 import useTheme from '@/hooks/useTheme';
 import { decimalInput } from './digits';
+import MConfirmModal from '../ConfirmModal';
 
 type Mode = 'project' | 'expense' | 'income';
 
@@ -51,6 +52,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
     // "Money" = income or expense in ONE modal; the toggle picks which.
     const isMoney = mode !== 'project';
     const [kind, setKind] = useState<'income' | 'expense'>(mode === 'expense' ? 'expense' : 'income');
+    const [confirmDelete, setConfirmDelete] = useState(false);
 
     // Project fields
     const [name, setName] = useState(project?.name ?? '');
@@ -314,7 +316,8 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         </div>
     );
 
-    return createPortal(
+    return (<>
+        {createPortal(
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -748,7 +751,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 {/* Footer */}
                 <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
-                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
+                        <button onClick={() => setConfirmDelete(true)} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
@@ -762,7 +765,17 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
             </motion.div>
         </motion.div>,
         document.body
-    );
+        )}
+        <MConfirmModal
+            isOpen={confirmDelete}
+            title={`Delete ${mode === 'project' ? 'project' : mode === 'income' ? 'income' : 'expense'}`}
+            message="This cannot be undone. The entry will be permanently removed."
+            type="danger"
+            confirmText="Delete"
+            onConfirm={() => { setConfirmDelete(false); onDelete?.(); onClose(); }}
+            onClose={() => setConfirmDelete(false)}
+        />
+    </>);
 };
 
 export default MTreasuryEntry;

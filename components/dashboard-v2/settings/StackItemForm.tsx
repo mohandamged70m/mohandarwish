@@ -62,7 +62,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                 <div className="glass-panel w-full max-w-[500px] overflow-hidden animate-scale-in">
                     <div className="p-6 border-b border-dash-border flex justify-between items-center">
                         <h2 className="heading-md text-base sm:text-lg md:text-xl">{initialData ? 'Edit Stack' : 'Add Stack'}</h2>
-                        <button onClick={onClose} className="btn-icon"><X size={24} /></button>
+                        <button onClick={onClose} className="btn-icon" aria-label="Close" data-dialog-close><X size={24} /></button>
                     </div>
                     <div className="p-6 flex flex-col gap-4">
                         <div>

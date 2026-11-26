@@ -347,13 +347,14 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
     return createPortal(
         <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] "
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[var(--scrim)] " data-dash-dialog
             onClick={onClose}
         >
             <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
+                role="dialog" aria-modal="true" aria-label="Receipt"
                 className={`w-full max-w-6xl max-h-[92vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
             >
                 {/* Header */}

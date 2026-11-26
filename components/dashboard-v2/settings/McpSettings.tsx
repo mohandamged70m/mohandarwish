@@ -5,6 +5,7 @@ import { doc, onSnapshot, setDoc, collection, query, orderBy, limit } from '@/li
 import { db } from '@/lib/dash-db';
 import Alert from '@/components/dashboard-v2/ui/Alert';
 import useSafeAlert from '@/hooks/useSafeAlert';
+import MConfirmModal from '../ConfirmModal';
 
 interface McpConfig {
     enabled: boolean;
@@ -49,6 +50,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
     const [copied, setCopied] = useState(false);
     const [audit, setAudit] = useState<AuditEntry[]>([]);
     const [writesOnly, setWritesOnly] = useState(false);
+    const [confirmRevoke, setConfirmRevoke] = useState(false);
     const { alert, showAlert, hideAlert } = useSafeAlert();
 
     useEffect(() => {
@@ -116,7 +118,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
     const card = 'rounded-sm p-4 sm:p-5 flex items-center justify-between gap-4';
     const cardStyle = { border: '1px solid var(--dash-border)', background: 'var(--dash-surface-2)' } as const;
 
-    return (
+    return (<>
         <div className="glass-panel p-6 sm:p-8 flex flex-col gap-7 w-full">
             {alert?.show && <Alert type={alert.type} message={alert.message} onClose={hideAlert} duration={alert.duration} />}
 
@@ -207,7 +209,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                 </div>
                 <button
                     type="button"
-                    onClick={() => patch({ revokedBefore: Date.now() }, 'All MCP access revoked')}
+                    onClick={() => setConfirmRevoke(true)}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors"
                     style={{ border: '1px solid color-mix(in srgb, var(--danger) 40%, transparent)', color: 'var(--dash-danger)' }}
                 >
@@ -327,7 +329,16 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                 </div>
             </div>
         </div>
-    );
+        <MConfirmModal
+            isOpen={confirmRevoke}
+            title="Revoke all MCP access"
+            message="Every issued token is invalidated immediately. Connected clients must sign in again."
+            type="danger"
+            confirmText="Revoke all access"
+            onConfirm={() => { setConfirmRevoke(false); void patch({ revokedBefore: Date.now() }, 'All MCP access revoked'); }}
+            onClose={() => setConfirmRevoke(false)}
+        />
+    </>);
 };
 
 export default DMcpPanel;

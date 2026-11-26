@@ -11,6 +11,7 @@ import {
 } from '@/lib/treasury';
 import useTheme from '@/hooks/useTheme';
 import { decimalInput } from './digits';
+import MConfirmModal from '../ConfirmModal';
 
 interface Props {
     config: TreasuryConfig;
@@ -36,6 +37,7 @@ export const ACCOUNT_COLOR: Record<AccountType, string> = {
 };
 
 const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Props) => {
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const isDark = useTheme();
     const [name, setName] = useState(account?.name ?? '');
     const [type, setType] = useState<AccountType>(account?.type ?? 'bank');
@@ -75,7 +77,8 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
     const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-dash-text text-sm outline-none focus:border-dash-accent/50 transition-colors`;
     const labelCls = 'text-xs font-semibold text-dash-text-2 uppercase tracking-wider mb-3 block';
 
-    return createPortal(
+    return (<>
+        {createPortal(
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -179,7 +182,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 {/* Footer */}
                 <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 " style={{ background: 'var(--dash-surface)' }}>
                     {isEdit && onDelete && (
-                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
+                        <button onClick={() => setConfirmDelete(true)} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
@@ -192,7 +195,17 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
             </motion.div>
         </motion.div>,
         document.body
-    );
+        )}
+        <MConfirmModal
+            isOpen={confirmDelete}
+            title="Delete account"
+            message="This cannot be undone. The account will be permanently removed."
+            type="danger"
+            confirmText="Delete account"
+            onConfirm={() => { setConfirmDelete(false); onDelete?.(); onClose(); }}
+            onClose={() => setConfirmDelete(false)}
+        />
+    </>);
 };
 
 export default MAccount;

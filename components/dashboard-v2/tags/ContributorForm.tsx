@@ -120,7 +120,7 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="modal-backdrop open"
+                    className="modal-backdrop open" data-dash-dialog
                     style={{ zIndex: 1100 }}
                 >
                     <motion.div
@@ -133,7 +133,7 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
                     >
                         <div className="modal-header">
                     <h2 className="heading-md">{initialData ? 'Edit Contributor' : 'New Contributor'}</h2>
-                    <button onClick={onClose} className="btn-icon">
+                    <button onClick={onClose} className="btn-icon" aria-label="Close" data-dialog-close>
                         <X size={24} />
                     </button>
                 </div>

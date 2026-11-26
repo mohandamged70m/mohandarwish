@@ -151,7 +151,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="modal-backdrop open"
+                    className="modal-backdrop open" data-dash-dialog
                     style={{ zIndex: 1300 }}
                 >
                     <motion.div
@@ -182,7 +182,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                             <div className="text-sm text-dash-text-2">Browse and select files from Firebase Storage</div>
                         </div>
                     </div>
-                    <button onClick={onClose} className="btn-icon">
+                    <button onClick={onClose} className="btn-icon" aria-label="Close" data-dialog-close>
                         <X size={24} />
                     </button>
                 </div>

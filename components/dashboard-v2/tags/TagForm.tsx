@@ -72,7 +72,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="modal-backdrop open"
+                    className="modal-backdrop open" data-dash-dialog
                     style={{ zIndex: 1100 }}
                 >
                     <motion.div
@@ -80,7 +80,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 15 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                        className="modal-content"
+                        className="modal-content" role="dialog" aria-modal="true" data-dash-dialog
                     >
                 {/* Header */}
                 <div className="modal-header">
