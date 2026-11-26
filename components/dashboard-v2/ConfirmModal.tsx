@@ -36,28 +36,32 @@ const MConfirmModal = ({
                     icon: <AlertCircle className="text-dash-danger" size={28} />,
                     bg: 'var(--dash-danger)',
                     border: 'var(--dash-danger)',
-                    btn: 'bg-dash-danger hover:bg-dash-danger shadow-[0_8px_24px_var(--shadow-color)]'
+                    text: 'text-white',
+                    btn: 'bg-dash-danger hover:brightness-95 shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             case 'success':
                 return {
                     icon: <AlertCircle className="text-dash-success" size={28} />,
                     bg: 'var(--dash-accent-soft)',
                     border: 'var(--dash-accent-soft)',
-                    btn: 'bg-dash-success hover:brightness-90 shadow-[0_8px_24px_var(--shadow-color)]'
+                    text: 'text-[var(--background)]',
+                    btn: 'bg-dash-success hover:brightness-95 shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             case 'info':
                 return {
                     icon: <Info className="text-dash-accent-text" size={28} />,
                     bg: 'var(--dash-accent-text)',
                     border: 'var(--dash-accent-text)',
-                    btn: 'bg-dash-accent hover:bg-dash-accent shadow-[0_8px_24px_var(--shadow-color)]'
+                    text: 'text-white',
+                    btn: 'bg-dash-accent hover:brightness-95 shadow-[0_8px_24px_var(--shadow-color)]'
                 };
             default:
                 return {
                     icon: <AlertTriangle className="text-dash-warning" size={28} />,
                     bg: 'var(--dash-warning)',
                     border: 'var(--dash-warning)',
-                    btn: 'bg-dash-warning hover:bg-dash-warning shadow-[0_8px_24px_var(--shadow-color)]'
+                    text: 'text-[var(--background)]',
+                    btn: 'bg-dash-warning hover:brightness-95 shadow-[0_8px_24px_var(--shadow-color)]'
                 };
         }
     };
@@ -117,7 +121,7 @@ const MConfirmModal = ({
                                     onConfirm();
                                     onClose();
                                 }}
-                                className={`flex-1 px-4 py-2.5 rounded-sm font-bold text-sm text-dash-text transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${styles.btn}`}
+                                className={`flex-1 px-4 py-2.5 rounded-sm font-bold text-sm transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] ${styles.text} ${styles.btn}`}
                             >
                                 {confirmText}
                             </button>

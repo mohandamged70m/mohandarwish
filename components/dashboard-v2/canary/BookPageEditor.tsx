@@ -115,11 +115,11 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
 
     return (
         <div
-            className="canary-panel w-full flex flex-col gap-7 p-6 min-[460px]:p-8 rounded-[24px] min-[460px]:rounded-[32px] border shadow-sm"
+            className="canary-panel w-full flex flex-col gap-7 p-6 min-[460px]:p-8 rounded-sm min-[460px]:rounded-sm border shadow-sm"
             style={{ backgroundColor: containerBg, borderColor: 'var(--dash-border)', gridColumn: '1 / -1' }}
         >
             <div className="flex items-start gap-4">
-                <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
+                <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                     <BookOpen size={24} />
                 </span>
                 <div className="flex-1 min-w-0">
@@ -159,10 +159,10 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {draft.tags.map((t, i) => (
-                                <span key={t} className="inline-flex items-center gap-1 pl-3 pr-1 h-8 rounded-lg text-xs font-semibold" style={{ background: chipBg, color: fg }}>
+                                <span key={t} className="inline-flex items-center gap-1 pl-3 pr-1 h-8 rounded-sm text-xs font-semibold" style={{ background: chipBg, color: fg }}>
                                     {t}
                                     <button type="button" aria-label={`Remove ${t}`} onClick={() => patch({ tags: draft.tags.filter((_, k) => k !== i) })}
-                                        className="grid place-items-center w-6 h-6 rounded-md cursor-pointer opacity-60 hover:opacity-100">
+                                        className="grid place-items-center w-6 h-6 rounded-sm cursor-pointer opacity-60 hover:opacity-100">
                                         <X size={13} />
                                     </button>
                                 </span>
@@ -173,8 +173,8 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                             <input id="bp-new-tag" className={inputCls} style={inputStyle} maxLength={MAX_TAG_LENGTH} value={newTag} placeholder="Add a tag"
                                 onChange={e => setNewTag(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} />
                             <button type="button" onClick={addTag} disabled={!newTag.trim()}
-                                className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                                style={{ background: 'var(--dash-accent)', color: 'var(--dash-text)' }}>
+                                className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-80 disabled:cursor-not-allowed shrink-0"
+                                style={{ background: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                                 <Plus size={16} /> Add
                             </button>
                         </div>
@@ -190,7 +190,7 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                     <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
                         {links.map(l => (
                             <li key={l.id} className="flex items-center gap-3 h-12 px-3 rounded-sm" style={{ background: 'var(--dash-surface-2)' }}>
-                                <span className="grid place-items-center w-7 h-7 rounded-lg shrink-0" style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
+                                <span className="grid place-items-center w-7 h-7 rounded-sm shrink-0" style={{ background: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                                     {l.kind === 'email' ? <Mail size={14} /> : <Link2 size={14} />}
                                 </span>
                                 <span className="text-sm font-bold truncate shrink-0 max-w-[45%]" style={{ color: fg }}>{l.label}</span>
@@ -211,7 +211,7 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                     onClick={save}
                     disabled={!dirty || saving}
                     className="inline-flex items-center gap-2 px-6 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: 'var(--dash-accent)', color: 'var(--dash-text)' }}
+                    style={{ background: 'var(--dash-accent)', color: 'var(--on-primary)' }}
                 >
                     <Check size={16} />
                     {saving ? 'Saving…' : 'Save book page'}

@@ -4,7 +4,7 @@ import { MeetingCategory, CATEGORY_COLORS } from '@/lib/categories';
 
 /** Which of the two booking paths a guest used. Sky for /book, pink for the modal (as in Trails). */
 export const ViaBadge = ({ via }: { via: 'book' | 'contact' }) => (
-    <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-md font-semibold"
+    <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-sm font-semibold"
         style={via === 'book' ? { color: 'var(--dash-info)', background: 'var(--dash-accent-soft)' } : { color: 'var(--dash-accent-text)', background: 'var(--dash-accent-soft)' }}>
         {via === 'book' ? 'Book page' : 'Contact'}
     </div>
@@ -37,7 +37,7 @@ export const ColorSwatches = ({ value, onPick, isDark }: { value: string; onPick
 /** Small coloured pill naming a booking's category - list rows and details view. */
 export const CategoryBadge = ({ cat, size = 'sm' }: { cat: MeetingCategory; size?: 'sm' | 'md' }) => (
     <span
-        className={`inline-flex items-center gap-1.5 rounded-md font-semibold ${size === 'md' ? 'px-2.5 py-1 text-xs' : 'p-1 px-1.5 text-[11px]'}`}
+        className={`inline-flex items-center gap-1.5 rounded-sm font-semibold ${size === 'md' ? 'px-2.5 py-1 text-xs' : 'p-1 px-1.5 text-xs'}`}
         style={{ background: `color-mix(in srgb, cat.color 12%, transparent)`, color: cat.color }}
     >
         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cat.color }} />

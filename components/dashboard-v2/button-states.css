@@ -79,7 +79,7 @@
 }
 
 /* Tailwind hover utilities get the same deeper accent, not a flat repeat. */
-.dash-root button[class*="hover:bg-dash-accent"]:not(:disabled):hover {
+.dash-root button[class*="hover:bg-dash-accent"]:not([class*="bg-dash-accent/"]):not(.canary-tab):not(:disabled):hover {
   background-color: var(--dash-accent-hover) !important;
 }
 

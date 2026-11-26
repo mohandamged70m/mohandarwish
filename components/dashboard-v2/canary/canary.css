@@ -1,0 +1,218 @@
+/* Canary: calm admin surfaces, clear hierarchy, one accent. */
+.dash-root .canary-page {
+  gap: 16px;
+  padding-bottom: 96px; /* Spark never covers the last calendar row or inbox card */
+}
+
+/* Primary section tabs */
+.dash-root .canary-page .canary-tabs {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  padding: 4px;
+}
+
+.dash-root .canary-page .canary-tab {
+  height: 36px;
+  border-radius: 4px;
+  color: var(--dash-text-2);
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.dash-root .canary-page .canary-tab:hover {
+  background: var(--dash-surface-hover);
+  color: var(--dash-text);
+}
+
+.dash-root .canary-page .canary-tab[aria-selected="true"],
+.dash-root .canary-page .canary-tab[aria-pressed="true"] {
+  background: var(--dash-accent);
+  color: var(--on-primary);
+  border-color: transparent;
+}
+
+/* Flat panels instead of large wine blobs */
+.dash-root .canary-page .canary-panel {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-root .canary-page .canary-panel h3 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Calendar day cells */
+.dash-root .canary-page .canary-weekday {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--dash-text-3);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.dash-root .canary-page .canary-day {
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  background: var(--dash-surface);
+}
+
+.dash-root .canary-page .canary-day:hover {
+  border-color: var(--dash-border-strong);
+  background: var(--dash-surface-hover);
+}
+
+.dash-root .canary-page .canary-day[aria-pressed="true"] {
+  background: var(--dash-accent);
+  border-color: var(--dash-accent);
+  color: var(--on-primary);
+}
+
+.dash-root .canary-page .canary-day[aria-pressed="true"] .canary-day-number {
+  color: var(--on-primary);
+}
+
+.dash-root .canary-page .canary-day-number {
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.dash-root .canary-page .canary-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Category filters */
+.dash-root .canary-page .canary-filter {
+  min-height: 32px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-2);
+  font-size: 12px;
+}
+
+.dash-root .canary-page .canary-filter:hover {
+  background: var(--dash-surface-hover);
+  color: var(--dash-text);
+}
+
+.dash-root .canary-page .canary-filter[aria-pressed="true"] {
+  background: var(--primary-soft);
+  border-color: var(--border-strong);
+  color: var(--dash-text);
+}
+
+/* Inbox rows */
+.dash-root .canary-page .canary-mail {
+  border-radius: 4px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.dash-root .canary-page .canary-mail:hover {
+  border-color: var(--dash-border-strong);
+  background: var(--dash-surface-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.dash-root .canary-page .canary-mail[aria-selected="true"] {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.dash-root .canary-page .canary-mail .canary-more {
+  opacity: 1;
+  color: var(--dash-text-3);
+}
+
+.dash-root .canary-page .canary-mail .canary-more:hover {
+  background: var(--dash-surface-hover);
+  color: var(--dash-text);
+}
+
+/* Consistent readable type inside Canary */
+.dash-root .canary-page .canary-label {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dash-text-3);
+}
+
+.dash-root .canary-page .canary-empty {
+  border: 1px dashed var(--dash-border);
+  border-radius: 4px;
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-2);
+}
+
+/* Portaled options menu (outside .dash-root) */
+.canary-menu-item {
+  color: var(--dash-accent-text);
+  font-family: var(--font-body);
+}
+
+.canary-menu-item:hover,
+.canary-menu-item:focus-visible {
+  background: var(--dash-accent);
+  color: var(--on-primary);
+}
+
+.canary-menu-item--danger {
+  color: var(--dash-danger);
+}
+
+.canary-menu-item--danger:hover,
+.canary-menu-item--danger:focus-visible {
+  background: var(--dash-danger);
+  color: var(--on-primary);
+}
+
+/* Portaled options bar uses the same button language. */
+.canary-options-bar {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+}
+
+.canary-options-bar button {
+  height: 36px;
+  border-radius: 4px;
+  color: var(--dash-text-2);
+}
+
+.canary-options-bar button:hover {
+  background: var(--dash-surface-hover);
+  color: var(--dash-text);
+}
+
+.canary-options-bar button[aria-current="page"] {
+  background: var(--dash-accent);
+  color: var(--on-primary);
+}
+
+/* Options bar stays inside the content column, never over the sidebar. */
+.dash-root .canary-options-bar {
+  left: calc(var(--sidebar-width, 260px) + (100vw - var(--sidebar-width, 260px)) / 2);
+  transform: translateX(-50%);
+  max-width: calc(100vw - var(--sidebar-width, 260px) - 24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-root .canary-page * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}

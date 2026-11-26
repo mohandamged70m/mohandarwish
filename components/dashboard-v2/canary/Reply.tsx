@@ -130,7 +130,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
         }
     };
 
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
+    const labelCls = 'block text-xs font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
     const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-dash-surface-2 border-black/10 focus:border-dash-accent/60'} text-dash-text`;
 
     return createPortal(
@@ -154,7 +154,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             <p className="text-xs text-dash-text-2 m-0 truncate">to {email.name} &middot; {email.email}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all shrink-0"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 transition-all shrink-0"><X size={18} /></button>
                 </div>
 
                 {/* Body: compose | preview */}
@@ -196,14 +196,14 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             {files.length > 0 && (
                                 <div className="mt-2 flex flex-col gap-1.5">
                                     {files.map(f => (
-                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
+                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-sm px-2.5 py-1.5 text-xs ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                                             <span className="text-dash-accent-text shrink-0">{iconFor(f.name)}</span>
                                             <span className="truncate flex-1 text-dash-text">{f.name}</span>
                                             <span className="text-dash-text-2 shrink-0">{humanSize(f.size)}</span>
                                             <button onClick={() => removeFile(f.name, f.size)} className="text-dash-text-2 hover:text-dash-danger transition-colors shrink-0"><X size={13} /></button>
                                         </div>
                                     ))}
-                                    <span className={`text-[11px] ${totalBytes > MAX_TOTAL_BYTES ? 'text-dash-danger' : 'text-dash-text-2'}`}>{humanSize(totalBytes)} of 20 MB</span>
+                                    <span className={`text-xs ${totalBytes > MAX_TOTAL_BYTES ? 'text-dash-danger' : 'text-dash-text-2'}`}>{humanSize(totalBytes)} of 20 MB</span>
                                 </div>
                             )}
                         </div>
@@ -219,7 +219,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
 
                     {/* Preview */}
                     <div className="flex-1 min-w-0 flex flex-col bg-dash-surface-2 dark:bg-black/20">
-                        <div className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-dash-text-2">Preview</div>
+                        <div className="px-5 pt-4 pb-2 text-xs font-bold uppercase tracking-wider text-dash-text-2">Preview</div>
                         <div ref={boxRef} className="flex-1 min-h-[240px] overflow-y-auto overflow-x-hidden custom-scrollbar px-5 pb-5">
                             <div style={{ width: 600 * scale, height: natH * scale }}>
                                 <iframe
