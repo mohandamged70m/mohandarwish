@@ -24,6 +24,7 @@ function req(path: string, body: unknown, authed = true) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      origin: "https://site.example",
       ...(authed ? { cookie } : {}),
     },
     body: JSON.stringify(body),

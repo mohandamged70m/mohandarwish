@@ -360,19 +360,25 @@ export default function DSettings() {
     // Dirty flags (heroImageDirty / heroImageDirtyDark) prevent the snapshot from
     // clobbering unsaved local changes - including changes made via the Firebase browser
     // (where heroImageFile is null but a new URL was selected).
+    const dirtyRef = useRef({ profileImageDirty, heroImageDirty, heroImageDirtyDark, isEditingProfile, profileInfoDirty });
+    useEffect(() => {
+        dirtyRef.current = { profileImageDirty, heroImageDirty, heroImageDirtyDark, isEditingProfile, profileInfoDirty };
+    }, [profileImageDirty, heroImageDirty, heroImageDirtyDark, isEditingProfile, profileInfoDirty]);
+
     useEffect(() => {
         const unsubscribe = onSnapshot(doc(db, 'Settings', 'Account'), (snap) => {
             if (snap.exists()) {
                 const data = snap.data();
-                if (data.imageUrl && !profileImageDirty) setProfileImagePreview(data.imageUrl);
-                if (data.heroImageUrl && !heroImageDirty) setHeroImagePreview(data.heroImageUrl);
-                if (data.heroImageUrlDark !== undefined && !heroImageDirtyDark) {
+                const flags = dirtyRef.current;
+                if (data.imageUrl && !flags.profileImageDirty) setProfileImagePreview(data.imageUrl);
+                if (data.heroImageUrl && !flags.heroImageDirty) setHeroImagePreview(data.heroImageUrl);
+                if (data.heroImageUrlDark !== undefined && !flags.heroImageDirtyDark) {
                     setHeroImagePreviewDark(data.heroImageUrlDark || '');
                 }
-                if (data.name && !isEditingProfile && !profileInfoDirty) setProfileName(data.name);
-                if (data.title && !isEditingProfile && !profileInfoDirty) setProfileTitle(data.title);
-                if (!isEditingProfile && !profileInfoDirty) setContactEmail(typeof data.Email === 'string' ? data.Email : '');
-                if (data['Social Links'] && !isEditingProfile && !profileInfoDirty) {
+                if (data.name && !flags.isEditingProfile && !flags.profileInfoDirty) setProfileName(data.name);
+                if (data.title && !flags.isEditingProfile && !flags.profileInfoDirty) setProfileTitle(data.title);
+                if (!flags.isEditingProfile && !flags.profileInfoDirty) setContactEmail(typeof data.Email === 'string' ? data.Email : '');
+                if (data['Social Links'] && !flags.isEditingProfile && !flags.profileInfoDirty) {
                     const links = Object.entries(data['Social Links']).map(([name, url]) => ({
                         name,
                         url: url as string
@@ -384,7 +390,7 @@ export default function DSettings() {
             console.error('Error fetching account settings', err);
         });
         return () => unsubscribe();
-    }, [profileImageDirty, isEditingProfile, profileInfoDirty, heroImageDirty, heroImageDirtyDark]);
+    }, []);
 
     // Cropper State
     const [crop, setCrop] = useState({ x: 0, y: 0 });

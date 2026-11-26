@@ -106,6 +106,27 @@ const WRITABLE: { prefix: string; exact?: boolean; deletable?: boolean }[] = [
     { prefix: 'Spark/Memory', exact: true },
 ];
 
+// Arbitrary model-chosen reads are limited to portfolio content and aggregate
+// analytics. Visitor sessions and the inbox hold PII and are never readable
+// through a tool call, even in auto mode.
+const READABLE: string[] = [
+    'Projects', 'Tags',
+    'Settings/Account', 'Settings/Availability', 'Settings/Developer',
+    'Settings/Tech Stack', 'Settings/Canary',
+    'Treasury/settings', COLLECTIONS.treasuryProjects, COLLECTIONS.treasuryIncome,
+    COLLECTIONS.treasurySpendings, COLLECTIONS.treasuryAccounts,
+    'Analytics/Links/Items', 'Analytics/Totals', 'Analytics/Days/Items',
+    'Analytics/Sources/Items', 'Analytics/Socials/Items', 'Spark/Memory',
+];
+
+function refuseRead(path: string): string | null {
+    const clean = path.split('/').filter(Boolean).join('/');
+    if (!clean || !READABLE.some(p => clean === p || clean.startsWith(p + '/'))) {
+        return `Not allowed: Spark cannot read ${clean}.`;
+    }
+    return null;
+}
+
 /** Returns null when the path is allowed for `op`, or the reason it is not. */
 function refuseWrite(path: string, op: 'write' | 'delete'): string | null {
     const segs = path.split('/').filter(Boolean);
@@ -135,6 +156,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
     const [pending, setPending] = useState<PendingConfirm | null>(null);
+    const pendingRef = useRef<PendingConfirm | null>(null);
+    useEffect(() => { pendingRef.current = pending; }, [pending]);
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [quizSel, setQuizSel] = useState<string[]>([]);
     const [quizCustom, setQuizCustom] = useState('');
@@ -285,7 +308,12 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     // to run from an effect, so the state write inside it is expected here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { if (!open) { convoRef.current = false; stopVoice(); } }, [open]);
-    useEffect(() => () => { convoRef.current = false; stopVoice(); }, []);
+    useEffect(() => () => {
+        convoRef.current = false;
+        stopVoice();
+        // Never leave an awaited confirm/quiz promise hanging on unmount.
+        pendingRef.current?.resolve(false);
+    }, []);
 
     // Spark's persistent memory (Convex doc: Spark/Memory). The page is already
     // owner-gated on the server; load once on mount.
@@ -404,6 +432,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
 
     // ── Firestore path helpers ──────────────────────────────────────────────
     const readPath = async (path: string): Promise<string> => {
+        const denied = refuseRead(path);
+        if (denied) return denied;
         const segs = path.split('/').filter(Boolean);
         if (segs.length % 2 === 0) {
             const snap = await getDoc(doc(db, path));

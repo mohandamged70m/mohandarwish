@@ -36,7 +36,7 @@ const ownerCookie =
 function authed(path: string, init?: RequestInit) {
   return new Request(`https://site.example${path}`, {
     ...init,
-    headers: { ...(init?.headers || {}), cookie: ownerCookie },
+    headers: { ...(init?.headers || {}), cookie: ownerCookie, origin: "https://site.example" },
   });
 }
 
@@ -80,7 +80,7 @@ it("rejects unauthenticated dashboard edits without touching the calendar", asyn
   vi.stubGlobal("fetch", calendar);
   const request = new Request("https://site.example/api/booking/booking-id", {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", origin: "https://site.example" },
     body: JSON.stringify({ date: "10/10/2030", time: "10:00 AM" }),
   });
   expect(
@@ -96,7 +96,7 @@ it("rejects unauthenticated dashboard edits without touching the calendar", asyn
 function req(path: string, body: unknown) {
   return new Request(`https://site.example${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", origin: "https://site.example" },
     body: JSON.stringify(body),
   });
 }

@@ -21,39 +21,63 @@ function decodeEntities(input: string): string {
     .replace(/&apos;/gi, "'");
 }
 
+const SVG_TAGS = new Set([
+  'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
+  'ellipse', 'defs', 'linearGradient', 'radialGradient', 'stop', 'title',
+  'text', 'tspan',
+]);
+const SVG_ATTRS = new Set([
+  'viewBox', 'xmlns', 'd', 'fill', 'stroke', 'stroke-width', 'stroke-linecap',
+  'stroke-linejoin', 'stroke-dasharray', 'points', 'cx', 'cy', 'r', 'x', 'y',
+  'width', 'height', 'rx', 'ry', 'transform', 'opacity', 'fill-opacity',
+  'stroke-opacity', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits',
+  'x1', 'y1', 'x2', 'y2', 'class', 'text-anchor', 'font-size',
+]);
+const VOID_TAGS = new Set(['path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse', 'stop']);
+const escapeXml = (value: string) => value
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&apos;');
+
+/**
+ * Allowlist-based SVG sanitiser. A regex cannot reliably parse HTML, so the
+ * markup is parsed and rebuilt from known-safe tags and attributes instead.
+ * On the server we return empty — icon SVGs are client-only.
+ */
 export function sanitizeSvg(input: string): string {
-  if (!input || typeof input !== "string") return "";
-  let out = input;
-  // Remove dangerous elements entirely (including self-closing forms).
-  out = out.replace(
-    /<(script|foreignObject|iframe|object|embed|base|meta|link)\b[\s\S]*?<\/\1\s*>/gi,
-    "",
-  );
-  out = out.replace(
-    /<(script|foreignObject|iframe|object|embed|base|meta|link)\b[^>]*\/?>/gi,
-    "",
-  );
-  // Strip event handlers and dangerous URL attributes. Attribute values are
-  // entity-decoded before the dangerous-URL check so encoded bypasses
-  // (`&#106;avascript:`, `&#x6a;avascript:`) are caught too. Unquoted values
-  // are handled by the same regex (third alternation).
-  out = out.replace(
-    /(\s+)([a-zA-Z:._-]+)(\s*=\s*)("([^"]*)"|'([^']*)'|([^\s>]+))/g,
-    (match, ws, name, eq, _val, dq, sq, uq) => {
-      const value = dq ?? sq ?? uq ?? "";
-      const decoded = decodeEntities(value);
-      const lowered = decoded.toLowerCase().replace(/\s+/g, "");
-      if (/^on/i.test(name)) return "";
-      if (
-        /javascript:|vbscript:|data:text\/html|data:image\/svg\+xml|data:application/i.test(
-          lowered,
-        )
-      )
-        return "";
-      return match;
-    },
-  );
-  return out.trim();
+  if (!input || typeof input !== 'string' || typeof DOMParser === 'undefined') return '';
+  const doc = new DOMParser().parseFromString(input, 'image/svg+xml');
+  if (doc.querySelector('parsererror')) return '';
+  const root = doc.documentElement;
+  if (!root || root.tagName.toLowerCase() !== 'svg') return '';
+
+  const clean = (node: Element): string => {
+    const tag = node.tagName;
+    if (!SVG_TAGS.has(tag)) return '';
+    const attrs = Array.from(node.attributes)
+      .filter((attr) => {
+        const name = attr.name;
+        if (name.startsWith('on') || !SVG_ATTRS.has(name)) return false;
+        const value = decodeEntities(attr.value).toLowerCase().replace(/\s+/g, '');
+        return !/javascript:|vbscript:|data:text\/html|data:image\/svg|data:application/.test(value);
+      })
+      .map((attr) => ` ${attr.name}="${escapeXml(attr.value)}"`)
+      .join('');
+    const children = Array.from(node.childNodes)
+      .map((child) => {
+        if (child.nodeType === 1) return clean(child as Element);
+        if (child.nodeType === 3) return escapeXml(child.textContent ?? '');
+        return '';
+      })
+      .join('');
+    return VOID_TAGS.has(tag)
+      ? `<${tag}${attrs}/>`
+      : `<${tag}${attrs}>${children}</${tag}>`;
+  };
+
+  return clean(root);
 }
 
 export function sanitizeText(input: unknown, max = 2000): string {
