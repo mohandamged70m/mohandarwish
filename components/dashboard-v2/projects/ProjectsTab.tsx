@@ -161,7 +161,7 @@ const ProjectRow = ({
                                 style={{
                                     backgroundColor: tag.color ? `color-mix(in srgb, tag.color 25%, transparent)` : 'var(--dash-accent-text)',
                                     borderColor: tag.color || 'var(--dash-accent-text)',
-                                    color: 'white',
+                                    color: 'var(--on-primary)',
                                     zIndex: 10 - idx,
                                     marginLeft: idx === 0 ? 0 : -12,
 
@@ -863,7 +863,7 @@ const DProjects = () => {
                                     fontFamily: "var(--font-body)"
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--dash-accent-text)' : 'var(--dash-accent)'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-accent-soft)'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 <Github size={16} /> View Code
@@ -898,7 +898,7 @@ const DProjects = () => {
                                 color: 'var(--dash-danger)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-danger)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--danger-soft)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Trash2 size={16} /> Remove

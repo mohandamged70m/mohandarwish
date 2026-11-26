@@ -446,7 +446,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                 const total = installmentTotal({ priceAmount: price, installmentPercent });
                                                 const per = total / (installmentMonths || 1);
                                                 return (
-                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'var(--dash-accent)' }}>
+                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'var(--primary-soft)' }}>
                                                         <span className="text-dash-text-2">{formatMoney(price, priceCurrency)}</span>
                                                         {installmentPercent > 0 && (
                                                             <span className="text-dash-text-2"> + {installmentPercent}% = <span className="font-bold text-dash-text">{formatMoney(total, priceCurrency)}</span></span>

@@ -420,7 +420,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             {/* Media Card */}
                             <div className="dashboard-card shadow-lg">
                                 <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
+                                    <div className="dashboard-section-number" style={{ backgroundColor: 'var(--dash-accent)', color: 'var(--on-primary)' }}>
                                         <span>2</span>
                                     </div>
                                     <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-dash-text' : 'text-dash-text'}`}>Media & Assets</h3>

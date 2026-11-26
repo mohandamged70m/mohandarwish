@@ -405,9 +405,9 @@ const DTags = () => {
                         padding: tabPadding,
                         borderRadius: isExtraSmall ? '8px' : '10px',
                         backgroundColor: activeSection === 'tags'
-                            ? ('var(--dash-accent-text)')
+                            ? ('var(--dash-accent)')
                             : 'transparent',
-                        color: activeSection === 'tags' ? 'var(--dash-accent-text)' : 'var(--dash-text-2)',
+                        color: activeSection === 'tags' ? 'var(--on-primary)' : 'var(--dash-text-2)',
                         fontSize: tabFontSize,
                         flex: isExtraSmall ? 1 : 'none'
                     }}
@@ -425,7 +425,7 @@ const DTags = () => {
                         backgroundColor: activeSection === 'contributors'
                             ? ('var(--dash-accent)')
                             : 'transparent',
-                        color: activeSection === 'contributors' ? 'var(--dash-accent)' : 'var(--dash-text-2)',
+                        color: activeSection === 'contributors' ? 'var(--on-primary)' : 'var(--dash-text-2)',
                         fontSize: tabFontSize,
                         flex: isExtraSmall ? 1 : 'none'
                     }}

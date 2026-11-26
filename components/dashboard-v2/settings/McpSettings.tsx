@@ -254,8 +254,8 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                         className="grid place-items-center shrink-0 rounded-lg mt-0.5"
                                         style={{
                                             width: 30, height: 30,
-                                            background: a.write ? 'var(--dash-warning)' : 'var(--dash-surface-3)',
-                                            color: a.write ? 'var(--dash-warning)' : 'var(--dash-text-3)',
+                                            background: a.write ? 'var(--warning-soft)' : 'var(--dash-surface-3)',
+                                            color: a.write ? 'var(--warning)' : 'var(--dash-text-3)',
                                         }}
                                         title={a.write ? 'Write' : 'Read'}
                                     >
@@ -267,7 +267,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                             <span
                                                 className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                                                 style={a.ok
-                                                    ? { background: 'var(--dash-success)', color: 'var(--dash-success)' }
+                                                    ? { background: 'var(--success-soft)', color: 'var(--success)' }
                                                     : { background: 'color-mix(in srgb, var(--danger) 14%, transparent)', color: 'var(--dash-danger)' }}
                                             >
                                                 {a.ok ? <Check size={10} /> : <X size={10} />}{a.ok ? 'ok' : 'error'}

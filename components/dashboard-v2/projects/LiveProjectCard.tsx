@@ -129,7 +129,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                             <span key={i} style={{
                                 padding: '6px 14px',
                                 backgroundColor: tech.color ? `color-mix(in srgb, tech.color 25%, transparent)` : 'var(--dash-accent-text)',
-                                color: 'white',
+                                color: 'var(--dash-text)',
                                 borderRadius: '20px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
@@ -155,7 +155,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                             <span style={{
                                 padding: '6px 14px',
                                 backgroundColor: 'var(--dash-surface-2)',
-                                color: 'white',
+                                color: 'var(--dash-text)',
                                 borderRadius: '20px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
@@ -184,7 +184,7 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                         <span style={{
                             padding: '6px 14px',
                             backgroundColor: 'var(--dash-surface-2)',
-                            color: 'white',
+                            color: 'var(--dash-text)',
                             borderRadius: '20px',
                             fontSize: '0.75rem',
                             fontWeight: 600,

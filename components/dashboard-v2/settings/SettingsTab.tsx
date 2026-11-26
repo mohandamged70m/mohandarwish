@@ -1328,7 +1328,7 @@ export default function DSettings() {
                                             onClick={() => setHeroImageMode(mode)}
                                             className="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                                             style={active
-                                                ? { background: 'var(--accent)', color: 'var(--dash-text)', boxShadow: '0 1px 4px var(--shadow-color)' }
+                                                ? { background: 'var(--dash-accent)', color: 'var(--on-primary)', boxShadow: '0 1px 4px var(--shadow-color)' }
                                                 : { background: 'transparent', color: 'var(--dash-text-3)' }}
                                         >
                                             {isLight ? <Sun size={15} /> : <Moon size={15} />}
