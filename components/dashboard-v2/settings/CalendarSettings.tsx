@@ -80,12 +80,12 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
 
     const state = !status ? 'loading' : !status.connected ? 'off' : status.broken ? 'broken' : 'on';
     const pill = {
-        loading: { text: 'Checking', bg: isDark ? 'var(--border)' : 'var(--border)', fg: 'var(--text-muted)' },
-        off: { text: 'Not connected', bg: isDark ? 'var(--border)' : 'var(--border)', fg: 'var(--text-muted)' },
-        broken: { text: 'Needs reconnecting', bg: 'rgba(var(--danger-rgb),0.12)', fg: 'var(--danger)' },
-        on: { text: 'Connected', bg: 'var(--accent-soft)', fg: 'var(--success)' },
+        loading: { text: 'Checking', bg: 'var(--dash-border)', fg: 'var(--dash-text-3)' },
+        off: { text: 'Not connected', bg: 'var(--dash-border)', fg: 'var(--dash-text-3)' },
+        broken: { text: 'Needs reconnecting', bg: 'rgba(var(--danger-rgb),0.12)', fg: 'var(--dash-danger)' },
+        on: { text: 'Connected', bg: 'var(--dash-accent-soft)', fg: 'var(--dash-success)' },
     }[state];
-    const cardStyle = { border: '1px solid var(--section-border)', background: isDark ? 'var(--border)' : 'var(--border)' } as const;
+    const cardStyle = { border: '1px solid var(--dash-border)', background: 'var(--dash-surface-2)' } as const;
     const since = status?.connectedAt
         ? new Date(status.connectedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
         : '';
@@ -97,12 +97,12 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
 
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--accent-primary)', color: 'var(--accent)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--accent)' }}>
                         <CalendarDays size={24} />
                     </span>
                     <div className="min-w-0">
                         <h3 className="heading-md text-lg sm:text-xl m-0">Google Calendar</h3>
-                        <p className="text-muted text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
+                        <p className="text-dash-text-3 text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
                             Every booking makes an event with a Google Meet link in your calendar and invites the guest.
                             Times you are busy in your calendar can't be booked on the site.
                         </p>
@@ -118,8 +118,8 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                 <div className="min-w-0">
                     {state === 'on' || state === 'broken' ? (
                         <>
-                            <div className="text-sm font-bold text-primary break-all">{status?.account || 'Your Google account'}</div>
-                            <div className="text-muted text-xs mt-0.5">
+                            <div className="text-sm font-bold text-dash-text break-all">{status?.account || 'Your Google account'}</div>
+                            <div className="text-dash-text-3 text-xs mt-0.5">
                                 {state === 'broken'
                                     ? 'Google stopped accepting this connection. Bookings are paused until you reconnect.'
                                     : `Connected since ${since}.`}
@@ -127,8 +127,8 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                         </>
                     ) : (
                         <>
-                            <div className="text-sm font-bold text-primary">{state === 'loading' ? 'Checking the connection' : 'Not connected'}</div>
-                            <div className="text-muted text-xs mt-0.5">Until it is, visitors can't book calls with a Meet link.</div>
+                            <div className="text-sm font-bold text-dash-text">{state === 'loading' ? 'Checking the connection' : 'Not connected'}</div>
+                            <div className="text-dash-text-3 text-xs mt-0.5">Until it is, visitors can't book calls with a Meet link.</div>
                         </>
                     )}
                 </div>
@@ -150,7 +150,7 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
                             onClick={() => setConfirmOff(true)}
                             disabled={busy}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-60"
-                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--danger)' }}
+                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
                         >
                             <Unlink size={16} />
                             Disconnect
@@ -160,8 +160,8 @@ const DCalendarPanel = ({ isDark }: { isDark: boolean }) => {
             </div>
 
             <div className="flex items-start gap-3">
-                <ShieldCheck size={18} className="mt-0.5 shrink-0 text-muted" />
-                <p className="text-muted text-xs leading-relaxed m-0 max-w-2xl">
+                <ShieldCheck size={18} className="mt-0.5 shrink-0 text-dash-text-3" />
+                <p className="text-dash-text-3 text-xs leading-relaxed m-0 max-w-2xl">
                     Google asks for two permissions only: to manage events, and to see when you are busy. The site never reads what
                     your other events are, and the booking page only learns which times are taken. The sign-in token stays on the server, encrypted.
                 </p>

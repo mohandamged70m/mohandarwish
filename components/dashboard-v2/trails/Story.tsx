@@ -56,25 +56,25 @@ export const isLive = (s: SessionDoc): boolean =>
     !s.Ended && Date.now() - (s.LastSeenAt || 0) < 60_000;
 
 const EVENT_COLOR: Record<string, string> = {
-    section: 'var(--accent-text)',
-    project: 'var(--success)',
-    project_end: 'var(--success)66',
-    out: 'var(--accent-text)',
-    social: 'var(--accent-primary)',
-    social_back: 'var(--accent-primary)66',
-    cv: 'var(--warning)',
-    contact: 'var(--accent-primary)',
-    contact_tab: 'var(--accent-primary)88',
-    contact_sent: 'var(--success)',
-    copy: 'var(--warning)',
-    scroll: 'var(--text-muted)',
-    idle: 'var(--text-muted)',
-    wake: 'var(--text-muted)',
-    hide: 'var(--text-muted)',
-    show: 'var(--text-muted)',
-    rage: 'var(--danger)',
-    print: 'var(--warning)',
-    end: 'var(--text-muted)',
+    section: 'var(--dash-accent-text)',
+    project: 'var(--dash-success)',
+    project_end: 'var(--dash-success)66',
+    out: 'var(--dash-accent-text)',
+    social: 'var(--dash-accent)',
+    social_back: 'var(--dash-accent)66',
+    cv: 'var(--dash-warning)',
+    contact: 'var(--dash-accent)',
+    contact_tab: 'var(--dash-accent)88',
+    contact_sent: 'var(--dash-success)',
+    copy: 'var(--dash-warning)',
+    scroll: 'var(--dash-text-3)',
+    idle: 'var(--dash-text-3)',
+    wake: 'var(--dash-text-3)',
+    hide: 'var(--dash-text-3)',
+    show: 'var(--dash-text-3)',
+    rage: 'var(--dash-danger)',
+    print: 'var(--dash-warning)',
+    end: 'var(--dash-text-3)',
 };
 
 export const DeviceIcon = ({ type, size = 16 }: { type?: string; size?: number }) => {
@@ -111,9 +111,9 @@ function describe(e: SessionEvent): string {
 }
 
 const Fact = ({ label, value, isDark }: { label: string; value: string; isDark: boolean }) => (
-    <div className="flex items-baseline justify-between gap-3 py-2" style={{ borderBottom: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}` }}>
-        <span className="text-[10px] font-bold uppercase tracking-[0.12em] shrink-0" style={{ color: 'var(--text-muted)' }}>{label}</span>
-        <span className="text-xs font-semibold text-right min-w-0 [overflow-wrap:anywhere]" style={{ color: isDark ? '#fff' : '#000' }}>{value || '-'}</span>
+    <div className="flex items-baseline justify-between gap-3 py-2" style={{ borderBottom: `1px solid ${'var(--dash-border)'}` }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em] shrink-0" style={{ color: 'var(--dash-text-3)' }}>{label}</span>
+        <span className="text-xs font-semibold text-right min-w-0 [overflow-wrap:anywhere]" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{value || '-'}</span>
     </div>
 );
 
@@ -122,10 +122,10 @@ const Bar = ({ label, value, max, color, suffix, isDark }: {
 }) => (
     <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-bold truncate" style={{ color: isDark ? '#fff' : '#000' }}>{label}</span>
-            <span className="text-[11px] font-bold tabular-nums shrink-0" style={{ color: 'var(--text-muted)' }}>{suffix}</span>
+            <span className="text-xs font-bold truncate" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{label}</span>
+            <span className="text-[11px] font-bold tabular-nums shrink-0" style={{ color: 'var(--dash-text-3)' }}>{suffix}</span>
         </div>
-        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: isDark ? 'var(--border)' : 'var(--border)' }}>
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--dash-surface-2)' }}>
             <div className="h-full rounded-full" style={{ width: `${Math.max(3, Math.round((value / (max || 1)) * 100))}%`, background: color, transition: 'width 220ms ease-out' }} />
         </div>
     </div>
@@ -198,9 +198,9 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                 onClick={e => e.stopPropagation()}
             >
                 {/* ── header ─────────────────────────────────────────────── */}
-                <div className="flex items-start gap-4 p-5 sm:p-6 border-b" style={{ borderColor: 'var(--card-border)' }}>
+                <div className="flex items-start gap-4 p-5 sm:p-6 border-b" style={{ borderColor: 'var(--dash-border)' }}>
                     <div className="w-11 h-11 rounded-sm grid place-items-center shrink-0 text-xl"
-                        style={{ background: isDark ? 'var(--border)' : 'var(--border)' }}>
+                        style={{ background: 'var(--dash-surface-2)' }}>
                         <Flag code={story.Geo?.Code} fallback={<DeviceIcon type={device.Type} size={20} />} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -210,29 +210,29 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             </h2>
                             {live && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                    style={{ background: 'var(--accent-soft)', color: 'var(--success)' }}>
+                                    style={{ background: 'var(--dash-accent-soft)', color: 'var(--dash-success)' }}>
                                     <Radio size={10} className="animate-pulse" /> READING NOW
                                 </span>
                             )}
                             {story.Link && (
                                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                    style={{ background: 'var(--accent-primary)', color: 'var(--accent-primary)' }}>
+                                    style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                                     <Link2 size={10} /> {story.Link.Name}
                                 </span>
                             )}
                             {story.Legacy && (
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                    style={{ background: isDark ? 'var(--border)' : 'var(--border)', color: 'var(--text-muted)' }}>
+                                    style={{ background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}>
                                     BEFORE THE REWRITE
                                 </span>
                             )}
                         </div>
-                        <p className="text-xs mt-1 truncate" style={{ color: 'var(--text-muted)' }}>
+                        <p className="text-xs mt-1 truncate" style={{ color: 'var(--dash-text-3)' }}>
                             {started ? started.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Date unknown'}
                             {summary ? ` · ${summary}` : ''}
                         </p>
                     </div>
-                    <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-sm cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-white/10 shrink-0" style={{ color: 'var(--text-muted)' }}>
+                    <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-sm cursor-pointer transition-colors hover:bg-black/5 dark:hover:bg-dash-surface/10 shrink-0" style={{ color: 'var(--dash-text-3)' }}>
                         <X size={18} />
                     </button>
                 </div>
@@ -240,19 +240,19 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                 {/* ── stat strip ─────────────────────────────────────────── */}
                 <div className="grid gap-px px-5 sm:px-6 py-4" style={{
                     gridTemplateColumns: `repeat(${windowWidth < 560 ? 2 : 4}, minmax(0, 1fr))`,
-                    borderBottom: '1px solid var(--card-border)',
+                    borderBottom: '1px solid var(--dash-border)',
                 }}>
                     {[
-                        { icon: <Zap size={14} />, label: 'Active', value: formatMs(story.ActiveMs || 0), tint: 'var(--success)' },
-                        { icon: <Clock size={14} />, label: 'Tab open', value: formatMs(story.OpenMs || 0), tint: 'var(--accent-text)' },
-                        { icon: <ArrowDownWideNarrow size={14} />, label: 'Read down', value: `${deepest}%`, tint: 'var(--accent-primary)' },
-                        { icon: <MousePointer2 size={14} />, label: 'Events', value: String(events.length), tint: 'var(--warning)' },
+                        { icon: <Zap size={14} />, label: 'Active', value: formatMs(story.ActiveMs || 0), tint: 'var(--dash-success)' },
+                        { icon: <Clock size={14} />, label: 'Tab open', value: formatMs(story.OpenMs || 0), tint: 'var(--dash-accent-text)' },
+                        { icon: <ArrowDownWideNarrow size={14} />, label: 'Read down', value: `${deepest}%`, tint: 'var(--dash-accent)' },
+                        { icon: <MousePointer2 size={14} />, label: 'Events', value: String(events.length), tint: 'var(--dash-warning)' },
                     ].map(stat => (
                         <div key={stat.label} className="flex flex-col gap-1 px-1">
                             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: stat.tint }}>
                                 {stat.icon}{stat.label}
                             </span>
-                            <span className="text-lg font-bold tabular-nums" style={{ color: isDark ? '#fff' : '#000' }}>{stat.value}</span>
+                            <span className="text-lg font-bold tabular-nums" style={{ color: isDark ? 'var(--dash-text)' : 'var(--dash-bg)' }}>{stat.value}</span>
                         </div>
                     ))}
                 </div>
@@ -266,9 +266,9 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                         {/* the story itself */}
                         <div className="p-5 sm:p-6 flex flex-col gap-6">
                             <div className="flex flex-col gap-1">
-                                <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>What they did</span>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--dash-text-3)' }}>What they did</span>
                                 {events.length === 0 && (
-                                    <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
+                                    <p className="text-sm mt-2" style={{ color: 'var(--dash-text-3)' }}>
                                         {story.Legacy
                                             ? 'This one predates per-visit recording, so only the totals survived.'
                                             : 'They left before anything happened.'}
@@ -281,16 +281,16 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                     {events.map((e, i) => (
                                         <li key={`${e.t}-${i}`} className="flex gap-3 items-start group">
                                             <div className="flex flex-col items-center self-stretch shrink-0">
-                                                <span className="w-2 h-2 rounded-full mt-1.5" style={{ background: EVENT_COLOR[e.k] || 'var(--text-muted)' }} />
+                                                <span className="w-2 h-2 rounded-full mt-1.5" style={{ background: EVENT_COLOR[e.k] || 'var(--dash-text-3)' }} />
                                                 {i < events.length - 1 && (
-                                                    <span className="w-px flex-1 min-h-3" style={{ background: isDark ? 'var(--border)' : 'var(--border)' }} />
+                                                    <span className="w-px flex-1 min-h-3" style={{ background: 'var(--dash-surface-2)' }} />
                                                 )}
                                             </div>
                                             <div className="flex items-baseline justify-between gap-3 flex-1 pb-3 min-w-0">
-                                                <span className="text-sm min-w-0 [overflow-wrap:anywhere]" style={{ color: isDark ? 'var(--border)' : 'var(--border)' }}>
+                                                <span className="text-sm min-w-0 [overflow-wrap:anywhere]" style={{ color: 'var(--dash-border)' }}>
                                                     {describe(e)}
                                                 </span>
-                                                <span className="text-[10px] font-bold tabular-nums shrink-0" style={{ color: 'var(--text-muted)' }}>
+                                                <span className="text-[10px] font-bold tabular-nums shrink-0" style={{ color: 'var(--dash-text-3)' }}>
                                                     {formatMs(e.t)}
                                                 </span>
                                             </div>
@@ -300,23 +300,23 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                             )}
 
                             {story.EventsCut && (
-                                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                                <p className="text-[11px]" style={{ color: 'var(--dash-text-3)' }}>
                                     The timeline hit its 500-event cap; the totals above still count everything.
                                 </p>
                             )}
 
                             {sections.length > 0 && (
                                 <div className="flex flex-col gap-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>Where the time went</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--dash-text-3)' }}>Where the time went</span>
                                     {sections.map(([name, ms]) => (
-                                        <Bar key={name} label={name} value={ms} max={sectionMax} color="var(--accent-text)" suffix={formatMs(ms)} isDark={isDark} />
+                                        <Bar key={name} label={name} value={ms} max={sectionMax} color="var(--dash-accent-text)" suffix={formatMs(ms)} isDark={isDark} />
                                     ))}
                                 </div>
                             )}
 
                             {projects.length > 0 && (
                                 <div className="flex flex-col gap-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>Projects</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--dash-text-3)' }}>Projects</span>
                                     {projects.map(([id, p]) => {
                                         const outbound = [
                                             p.Live ? `${p.Live}x demo` : '',
@@ -325,10 +325,10 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                         ].filter(Boolean).join(' · ');
                                         return (
                                             <div key={id} className="flex flex-col gap-1">
-                                                <Bar label={id} value={p.Ms || 0} max={projects[0][1].Ms || 1} color="var(--success)"
+                                                <Bar label={id} value={p.Ms || 0} max={projects[0][1].Ms || 1} color="var(--dash-success)"
                                                     suffix={`${formatMs(p.Ms || 0)} · ${p.Opens}x`} isDark={isDark} />
                                                 {outbound && (
-                                                    <span className="text-[10px] font-semibold" style={{ color: 'var(--accent-text)' }}>{outbound}</span>
+                                                    <span className="text-[10px] font-semibold" style={{ color: 'var(--dash-accent-text)' }}>{outbound}</span>
                                                 )}
                                             </div>
                                         );
@@ -338,9 +338,9 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
 
                             {socials.length > 0 && (
                                 <div className="flex flex-col gap-3">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--text-muted)' }}>Left for</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: 'var(--dash-text-3)' }}>Left for</span>
                                     {socials.map(([name, s]) => (
-                                        <Bar key={name} label={name} value={s.AwayMs || 0} max={socials[0][1].AwayMs || 1} color="var(--accent-primary)"
+                                        <Bar key={name} label={name} value={s.AwayMs || 0} max={socials[0][1].AwayMs || 1} color="var(--dash-accent)"
                                             suffix={`${s.Clicks}x · away ${formatMs(s.AwayMs || 0)}`} isDark={isDark} />
                                     ))}
                                 </div>
@@ -350,11 +350,11 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                         {/* who they were */}
                         <div className="p-5 sm:p-6 flex flex-col gap-1 min-w-0"
                             style={{
-                                background: isDark ? 'var(--border)' : 'var(--border)',
-                                borderLeft: wide ? '1px solid var(--card-border)' : 'none',
-                                borderTop: wide ? 'none' : '1px solid var(--card-border)',
+                                background: 'var(--dash-surface-2)',
+                                borderLeft: wide ? '1px solid var(--dash-border)' : 'none',
+                                borderTop: wide ? 'none' : '1px solid var(--dash-border)',
                             }}>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: 'var(--text-muted)' }}>Who was reading</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: 'var(--dash-text-3)' }}>Who was reading</span>
                             <Fact label="Their clock" value={device.LocalTime ? `${device.LocalTime} local` : ''} isDark={isDark} />
                             <Fact label="Timezone" value={device.Timezone} isDark={isDark} />
                             <Fact label="Device" value={[device.Type, device.OS].filter(Boolean).join(' · ')} isDark={isDark} />
@@ -378,14 +378,14 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                                 <div className="flex flex-wrap gap-1.5 pt-3">
                                     {utm.map(([k, v]) => (
                                         <span key={k} title={`${k}: ${v}`} className="px-2 py-0.5 rounded-md text-[10px] font-bold max-w-full [overflow-wrap:anywhere]"
-                                            style={{ background: 'var(--accent-text)', color: 'var(--accent-text)' }}>
+                                            style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                                             {k}: {shortTag(v)}
                                         </span>
                                     ))}
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-2 pt-4 text-[10px] font-semibold" style={{ color: 'var(--text-muted)' }}>
+                            <div className="flex items-center gap-2 pt-4 text-[10px] font-semibold" style={{ color: 'var(--dash-text-3)' }}>
                                 <Gauge size={12} />
                                 {story.Flushes || 0} check-ins · id {story.Id.slice(0, 12)}
                             </div>
@@ -394,11 +394,11 @@ const MStory = ({ story, isDark, windowWidth, onClose, onDelete }: MStoryProps) 
                 </div>
 
                 {/* ── footer ─────────────────────────────────────────────── */}
-                <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--card-border)' }}>
+                <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--dash-border)' }}>
                     <button
                         type="button"
                         onClick={() => onDelete(story.Id)}
-                        className="inline-flex items-center gap-2 px-3 h-10 rounded-sm text-xs font-bold cursor-pointer transition-colors text-red-500/80 hover:text-red-500 hover:bg-red-500/10"
+                        className="inline-flex items-center gap-2 px-3 h-10 rounded-sm text-xs font-bold cursor-pointer transition-colors text-dash-danger/80 hover:text-dash-danger hover:bg-dash-accent-soft"
                     >
                         <Trash2 size={14} /> Delete this visit
                     </button>

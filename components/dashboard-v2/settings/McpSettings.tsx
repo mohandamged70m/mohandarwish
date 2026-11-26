@@ -107,14 +107,14 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             aria-checked={on}
             aria-label={label}
             className="relative shrink-0 rounded-full transition-colors"
-            style={{ width: 46, height: 28, background: on ? 'var(--accent)' : (isDark ? 'var(--border)' : 'var(--border)') }}
+            style={{ width: 46, height: 28, background: on ? 'var(--accent)' : ('var(--dash-border)') }}
         >
-            <span className="absolute top-[3px] rounded-full bg-white shadow-sm transition-all" style={{ width: 22, height: 22, left: on ? 21 : 3 }} />
+            <span className="absolute top-[3px] rounded-full bg-dash-surface shadow-sm transition-all" style={{ width: 22, height: 22, left: on ? 21 : 3 }} />
         </button>
     );
 
     const card = 'rounded-sm p-4 sm:p-5 flex items-center justify-between gap-4';
-    const cardStyle = { border: '1px solid var(--section-border)', background: isDark ? 'var(--border)' : 'var(--border)' } as const;
+    const cardStyle = { border: '1px solid var(--dash-border)', background: 'var(--dash-surface-2)' } as const;
 
     return (
         <div className="glass-panel p-6 sm:p-8 flex flex-col gap-7 w-full">
@@ -123,12 +123,12 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             {/* Header + status */}
             <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--accent-primary)', color: 'var(--accent)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--accent)' }}>
                         <Plug size={24} />
                     </span>
                     <div className="min-w-0">
                         <h3 className="heading-md text-lg sm:text-xl m-0">MCP - Agentic Access</h3>
-                        <p className="text-muted text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
+                        <p className="text-dash-text-3 text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
                             Connect an AI client (e.g. Claude) over OAuth so it can read and manage your portfolio -
                             bookings, messages, treasury and projects - without opening the dashboard.
                         </p>
@@ -137,8 +137,8 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                 <span
                     className="inline-flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-full text-xs font-bold"
                     style={cfg.enabled
-                        ? { background: 'var(--accent-soft)', color: 'var(--success)' }
-                        : { background: isDark ? 'var(--border)' : 'var(--border)', color: 'var(--text-muted)' }}
+                        ? { background: 'var(--dash-accent-soft)', color: 'var(--dash-success)' }
+                        : { background: 'var(--dash-surface-2)', color: 'var(--dash-text-3)' }}
                 >
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'currentColor' }} />
                     {cfg.enabled ? 'Active' : 'Disabled'}
@@ -167,7 +167,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                         <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
                     </button>
                 </div>
-                <p className="text-muted text-xs leading-relaxed">
+                <p className="text-dash-text-3 text-xs leading-relaxed">
                     In Claude: <strong>Settings → Connectors → Add custom connector</strong>, paste this URL, then sign in with your admin Google account.
                 </p>
             </div>
@@ -176,10 +176,10 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div className={card} style={cardStyle}>
                     <div className="flex items-start gap-3 min-w-0">
-                        <Power size={18} className="mt-0.5 shrink-0" style={{ color: cfg.enabled ? 'var(--accent)' : 'var(--text-muted)' }} />
+                        <Power size={18} className="mt-0.5 shrink-0" style={{ color: cfg.enabled ? 'var(--accent)' : 'var(--dash-text-3)' }} />
                         <div className="min-w-0">
-                            <div className="text-sm font-bold text-primary">Enable MCP server</div>
-                            <div className="text-muted text-xs mt-0.5">When off, all connected clients are refused.</div>
+                            <div className="text-sm font-bold text-dash-text">Enable MCP server</div>
+                            <div className="text-dash-text-3 text-xs mt-0.5">When off, all connected clients are refused.</div>
                         </div>
                     </div>
                     {toggle(cfg.enabled, () => patch({ enabled: !cfg.enabled }), 'Enable MCP server')}
@@ -188,11 +188,11 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                 <div className={card} style={cardStyle}>
                     <div className="flex items-start gap-3 min-w-0">
                         {cfg.writesEnabled
-                            ? <ShieldAlert size={18} className="mt-0.5 shrink-0" style={{ color: 'var(--warning)' }} />
-                            : <ShieldCheck size={18} className="mt-0.5 shrink-0 text-muted" />}
+                            ? <ShieldAlert size={18} className="mt-0.5 shrink-0" style={{ color: 'var(--dash-warning)' }} />
+                            : <ShieldCheck size={18} className="mt-0.5 shrink-0 text-dash-text-3" />}
                         <div className="min-w-0">
-                            <div className="text-sm font-bold text-primary">Allow writes</div>
-                            <div className="text-muted text-xs mt-0.5">Lets the AI add / edit / delete. Reads always work.</div>
+                            <div className="text-sm font-bold text-dash-text">Allow writes</div>
+                            <div className="text-dash-text-3 text-xs mt-0.5">Lets the AI add / edit / delete. Reads always work.</div>
                         </div>
                     </div>
                     {toggle(cfg.writesEnabled, () => patch({ writesEnabled: !cfg.writesEnabled }), 'Allow writes')}
@@ -200,16 +200,16 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             </div>
 
             {/* Revoke */}
-            <div className="flex items-center justify-between gap-4 flex-wrap pt-5" style={{ borderTop: '1px solid var(--section-border)' }}>
+            <div className="flex items-center justify-between gap-4 flex-wrap pt-5" style={{ borderTop: '1px solid var(--dash-border)' }}>
                 <div>
-                    <div className="text-sm font-bold text-primary">Revoke all access</div>
-                    <div className="text-muted text-xs mt-0.5">Invalidates every issued token. The client must sign in again.</div>
+                    <div className="text-sm font-bold text-dash-text">Revoke all access</div>
+                    <div className="text-dash-text-3 text-xs mt-0.5">Invalidates every issued token. The client must sign in again.</div>
                 </div>
                 <button
                     type="button"
                     onClick={() => patch({ revokedBefore: Date.now() }, 'All MCP access revoked')}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-colors"
-                    style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--danger)' }}
+                    style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
                 >
                     <RotateCcw size={16} />
                     Revoke
@@ -217,14 +217,14 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             </div>
 
             {/* Activity log - every tool call the connected AI made. */}
-            <div className="flex flex-col gap-4 pt-6" style={{ borderTop: '1px solid var(--section-border)' }}>
+            <div className="flex flex-col gap-4 pt-6" style={{ borderTop: '1px solid var(--dash-border)' }}>
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--accent-primary)', color: 'var(--accent-primary)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                         <Activity size={24} />
                     </span>
                     <div className="min-w-0 flex-1">
                         <h3 className="heading-md text-lg sm:text-xl m-0">Activity log</h3>
-                        <p className="text-muted text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
+                        <p className="text-dash-text-3 text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
                             Every tool call the connected AI makes, newest first - what it read, what it changed, and whether it worked. The clock check is skipped.
                         </p>
                     </div>
@@ -232,7 +232,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                         type="button"
                         onClick={() => setWritesOnly((v) => !v)}
                         className="shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-sm text-xs font-bold cursor-pointer transition-colors"
-                        style={{ border: '1px solid var(--section-border)', color: writesOnly ? 'var(--accent-primary)' : 'var(--text-muted)' }}
+                        style={{ border: '1px solid var(--dash-border)', color: writesOnly ? 'var(--dash-accent)' : 'var(--dash-text-3)' }}
                     >
                         {writesOnly ? <Pencil size={14} /> : <Activity size={14} />}
                         {writesOnly ? 'Writes only' : 'All calls'}
@@ -241,7 +241,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
 
                 <div className="flex flex-col gap-1.5 max-h-[420px] overflow-y-auto custom-scrollbar pr-1">
                     {visibleAudit.length === 0 && (
-                        <div className="text-muted text-sm py-6 text-center">
+                        <div className="text-dash-text-3 text-sm py-6 text-center">
                             No recorded activity yet. Tool calls will appear here as the AI uses the server.
                         </div>
                     )}
@@ -254,8 +254,8 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                         className="grid place-items-center shrink-0 rounded-lg mt-0.5"
                                         style={{
                                             width: 30, height: 30,
-                                            background: a.write ? 'var(--warning)' : 'var(--bg-surface-hover)',
-                                            color: a.write ? 'var(--warning)' : 'var(--text-muted)',
+                                            background: a.write ? 'var(--dash-warning)' : 'var(--dash-surface-3)',
+                                            color: a.write ? 'var(--dash-warning)' : 'var(--dash-text-3)',
                                         }}
                                         title={a.write ? 'Write' : 'Read'}
                                     >
@@ -263,19 +263,19 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                     </span>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-sm font-bold text-primary font-heading">{a.tool}</span>
+                                            <span className="text-sm font-bold text-dash-text font-heading">{a.tool}</span>
                                             <span
                                                 className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
                                                 style={a.ok
-                                                    ? { background: 'var(--success)', color: 'var(--success)' }
-                                                    : { background: 'rgba(var(--danger-rgb),0.14)', color: 'var(--danger)' }}
+                                                    ? { background: 'var(--dash-success)', color: 'var(--dash-success)' }
+                                                    : { background: 'rgba(var(--danger-rgb),0.14)', color: 'var(--dash-danger)' }}
                                             >
                                                 {a.ok ? <Check size={10} /> : <X size={10} />}{a.ok ? 'ok' : 'error'}
                                             </span>
-                                            <span className="text-muted text-[11px] ml-auto shrink-0">{timeAgo(a.at)}</span>
+                                            <span className="text-dash-text-3 text-[11px] ml-auto shrink-0">{timeAgo(a.at)}</span>
                                         </div>
                                         {argEntries.length > 0 && (
-                                            <div className="text-muted text-xs mt-1 leading-relaxed break-words">
+                                            <div className="text-dash-text-3 text-xs mt-1 leading-relaxed break-words">
                                                 {argEntries.map(([k, v], i) => (
                                                     <span key={k}>
                                                         {i > 0 && <span className="opacity-40"> · </span>}
@@ -285,7 +285,7 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                                             </div>
                                         )}
                                         {!a.ok && a.error && (
-                                            <div className="text-xs mt-1 break-words" style={{ color: 'var(--danger)' }}>{a.error}</div>
+                                            <div className="text-xs mt-1 break-words" style={{ color: 'var(--dash-danger)' }}>{a.error}</div>
                                         )}
                                     </div>
                                 </div>
@@ -298,14 +298,14 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
             {/* Dashboard AI assistant (Spark) - the in-dashboard copilot orb. This is a
                 SEPARATE feature from the MCP server above: turning it off just removes
                 the orb from this dashboard (it does not affect external MCP clients). */}
-            <div className="flex flex-col gap-4 pt-6" style={{ borderTop: '1px solid var(--section-border)' }}>
+            <div className="flex flex-col gap-4 pt-6" style={{ borderTop: '1px solid var(--dash-border)' }}>
                 <div className="flex items-start gap-4 min-w-0">
-                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'rgba(139,92,246,0.12)', color: 'var(--accent-primary)' }}>
+                    <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent-soft)', color: 'var(--dash-accent-text)' }}>
                         <Sparkles size={24} />
                     </span>
                     <div className="min-w-0">
                         <h3 className="heading-md text-lg sm:text-xl m-0">Dashboard AI assistant</h3>
-                        <p className="text-muted text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
+                        <p className="text-dash-text-3 text-xs sm:text-sm leading-relaxed mt-1 max-w-2xl">
                             “Spark”, the floating copilot orb inside this dashboard. Independent of the MCP server above -
                             this switch only controls the in-app assistant.
                         </p>
@@ -313,10 +313,10 @@ const DMcpPanel = ({ isDark }: { isDark: boolean }) => {
                 </div>
                 <div className={card} style={cardStyle}>
                     <div className="flex items-start gap-3 min-w-0">
-                        <Bot size={18} className="mt-0.5 shrink-0" style={{ color: cfg.assistantEnabled ? 'var(--accent-primary)' : 'var(--text-muted)' }} />
+                        <Bot size={18} className="mt-0.5 shrink-0" style={{ color: cfg.assistantEnabled ? 'var(--dash-accent)' : 'var(--dash-text-3)' }} />
                         <div className="min-w-0">
-                            <div className="text-sm font-bold text-primary">Show the assistant</div>
-                            <div className="text-muted text-xs mt-0.5">When off, the Spark orb is removed from the dashboard.</div>
+                            <div className="text-sm font-bold text-dash-text">Show the assistant</div>
+                            <div className="text-dash-text-3 text-xs mt-0.5">When off, the Spark orb is removed from the dashboard.</div>
                         </div>
                     </div>
                     {toggle(

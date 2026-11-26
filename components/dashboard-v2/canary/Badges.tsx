@@ -5,7 +5,7 @@ import { MeetingCategory, CATEGORY_COLORS } from '@/lib/categories';
 /** Which of the two booking paths a guest used. Sky for /book, pink for the modal (as in Trails). */
 export const ViaBadge = ({ via }: { via: 'book' | 'contact' }) => (
     <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-md font-semibold"
-        style={via === 'book' ? { color: '#0ea5e9', background: 'rgba(14,165,233,0.12)' } : { color: 'var(--accent-primary)', background: 'rgba(236,72,153,0.12)' }}>
+        style={via === 'book' ? { color: 'var(--dash-info)', background: 'var(--dash-accent-soft)' } : { color: 'var(--dash-accent-text)', background: 'var(--dash-accent-soft)' }}>
         {via === 'book' ? 'Book page' : 'Contact'}
     </div>
 );
@@ -25,7 +25,7 @@ export const ColorSwatches = ({ value, onPick, isDark }: { value: string; onPick
                     onClick={() => onPick(c)}
                     // The ring sits outside the dot so picking one doesn't resize it.
                     className="w-7 h-7 grid place-items-center rounded-full cursor-pointer transition-shadow"
-                    style={{ boxShadow: on ? `0 0 0 2px ${isDark ? '#0b0b0f' : '#fff'}, 0 0 0 4px ${c}` : 'none' }}
+                    style={{ boxShadow: on ? `0 0 0 2px ${isDark ? 'var(--dash-surface)' : 'var(--dash-text)'}, 0 0 0 4px ${c}` : 'none' }}
                 >
                     <span className="w-5 h-5 rounded-full" style={{ background: c }} />
                 </button>

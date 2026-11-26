@@ -297,9 +297,9 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         onClose();
     };
 
-    const fieldBg = isDark ? 'bg-white/5 border-border' : 'bg-black/[0.03] border-black/10';
-    const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-primary text-sm outline-none focus:border-accent/50 transition-colors`;
-    const labelCls = 'text-xs font-semibold text-sec uppercase tracking-wider mb-3 block';
+    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10';
+    const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-dash-text text-sm outline-none focus:border-dash-accent/50 transition-colors`;
+    const labelCls = 'text-xs font-semibold text-dash-text-2 uppercase tracking-wider mb-3 block';
 
     const activeCurrency = mode === 'project' ? priceCurrency : kind === 'expense' ? expCurrency : incCurrency;
 
@@ -307,7 +307,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
         <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
             {CURRENCIES.map(c => (
                 <button key={c} type="button" onClick={() => onChange(c)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-accent text-white shadow' : 'text-sec hover:text-primary'}`}>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${value === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                     {CURRENCY_SYMBOL[c]} {c}
                 </button>
             ))}
@@ -329,17 +329,17 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`te-content w-full max-w-lg max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[#0f0f14] border-white/10' : 'bg-white border-black/5'}`}
+                className={`te-content w-full max-w-lg max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--bg-surface)' : 'var(--border)' }}>
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
                     <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-sm flex items-center justify-center ${mode === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-accent/10 text-accent'}`}>
+                        <div className={`w-9 h-9 rounded-sm flex items-center justify-center ${mode === 'income' ? 'bg-dash-accent-soft text-dash-success' : 'bg-dash-accent/10 text-dash-accent-text'}`}>
                             <HeaderIcon size={18} />
                         </div>
-                        <h3 className="text-lg font-bold text-primary font-body m-0">{isEdit ? 'Edit' : 'New'} {titleLabel}</h3>
+                        <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} {titleLabel}</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -369,7 +369,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                     aria-label="Project status"
                                 />
                                 {!statusMeta(status).publicly && (
-                                    <p className="text-[11px] text-sec mt-1.5 m-0">Not shown on your public site.</p>
+                                    <p className="text-[11px] text-dash-text-2 mt-1.5 m-0">Not shown on your public site.</p>
                                 )}
                             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -384,20 +384,20 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             </div>
                             <div className="flex items-center gap-3 select-none">
                                 <Toggle checked={monthly} onChange={setMonthly} aria-label="Pays monthly (retainer)" />
-                                <span className="text-sm text-primary font-medium">Pays monthly (retainer) - the amount above is per month</span>
+                                <span className="text-sm text-dash-text font-medium">Pays monthly (retainer) - the amount above is per month</span>
                             </div>
 
                             {/* Installments: only for a fixed price. A retainer has no total to split,
                                 so the two are mutually exclusive. */}
                             {!monthly && (
-                                <div className="rounded-sm border p-3 flex flex-col" style={{ borderColor: 'var(--section-border)' }}>
+                                <div className="rounded-sm border p-3 flex flex-col" style={{ borderColor: 'var(--dash-border)' }}>
                                     <div className="flex items-center gap-3 select-none">
                                         <Toggle
                                             checked={installmentsOn}
                                             onChange={(v) => { setInstallmentsOn(v); if (!v) setInstOverflow('hidden'); }}
                                             aria-label="Pay in installments"
                                         />
-                                        <span className="text-sm text-primary font-medium">Pay in installments - split the price over months</span>
+                                        <span className="text-sm text-dash-text font-medium">Pay in installments - split the price over months</span>
                                     </div>
 
                                     {/* Expands/collapses instead of snapping in. The padding + gap live on
@@ -446,14 +446,14 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                                 const total = installmentTotal({ priceAmount: price, installmentPercent });
                                                 const per = total / (installmentMonths || 1);
                                                 return (
-                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'var(--accent-text)' }}>
-                                                        <span className="text-sec">{formatMoney(price, priceCurrency)}</span>
+                                                    <div className="rounded-lg px-3 py-2 text-[11.5px] leading-relaxed" style={{ background: 'var(--dash-accent)' }}>
+                                                        <span className="text-dash-text-2">{formatMoney(price, priceCurrency)}</span>
                                                         {installmentPercent > 0 && (
-                                                            <span className="text-sec"> + {installmentPercent}% = <span className="font-bold text-primary">{formatMoney(total, priceCurrency)}</span></span>
+                                                            <span className="text-dash-text-2"> + {installmentPercent}% = <span className="font-bold text-dash-text">{formatMoney(total, priceCurrency)}</span></span>
                                                         )}
-                                                        <span className="text-sec"> → </span>
-                                                        <span className="font-bold text-primary tnum">{formatMoney(per, priceCurrency)}</span>
-                                                        <span className="text-sec">/mo for {installmentMonths} months</span>
+                                                        <span className="text-dash-text-2"> → </span>
+                                                        <span className="font-bold text-dash-text tnum">{formatMoney(per, priceCurrency)}</span>
+                                                        <span className="text-dash-text-2">/mo for {installmentMonths} months</span>
                                                     </div>
                                                 );
                                             })()}
@@ -464,7 +464,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                 </div>
                             )}
 
-                            <p className="text-[11px] text-sec -mt-1">Money received is logged separately in <span className="font-semibold">Income</span> - so payments can come in over time.</p>
+                            <p className="text-[11px] text-dash-text-2 -mt-1">Money received is logged separately in <span className="font-semibold">Income</span> - so payments can come in over time.</p>
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className={labelCls}>Started</label>
@@ -502,7 +502,7 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {(['income', 'expense'] as const).map(k => (
                                     <button key={k} type="button" disabled={isEdit} onClick={() => setKind(k)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-emerald-500 text-white shadow' : 'bg-rose-500 text-white shadow') : 'text-sec hover:text-primary'} ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${kind === k ? (k === 'income' ? 'bg-dash-success text-white shadow' : 'bg-dash-danger text-white shadow') : 'text-dash-text-2 hover:text-dash-text'} ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
                                         {k === 'income' ? 'Income (money in)' : 'Expense (money out)'}
                                     </button>
                                 ))}
@@ -531,28 +531,28 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             exit={{ opacity: 0, y: -6, scale: 0.98 }}
                                             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
                                             style={{ transformOrigin: 'top center' }}
-                                            className={`absolute left-0 right-0 top-full mt-1.5 z-30 rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--bg-primary)] border-white/10' : 'bg-white border-black/10'}`}
+                                            className={`absolute left-0 right-0 top-full mt-1.5 z-30 rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-black/10'}`}
                                         >
-                                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-sec">Repeat a past expense</div>
+                                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Repeat a past expense</div>
                                             {labelSuggestions.map(t => (
                                                 <button
                                                     key={t.label}
                                                     type="button"
                                                     onMouseDown={e => { e.preventDefault(); applyTemplate(t); }}
-                                                    className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                                                    className="w-full flex items-center justify-between gap-3 px-3.5 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-dash-surface/[0.06] transition-colors"
                                                 >
                                                     <span className="min-w-0">
-                                                        <span className="flex items-center gap-1.5 text-sm font-semibold text-primary truncate">
+                                                        <span className="flex items-center gap-1.5 text-sm font-semibold text-dash-text truncate">
                                                             {t.label}
-                                                            {t.recurring && <Repeat size={11} className="text-accent shrink-0" />}
+                                                            {t.recurring && <Repeat size={11} className="text-dash-accent-text shrink-0" />}
                                                         </span>
                                                         {(t.category || t.count > 1) && (
-                                                            <span className="block text-[11px] text-sec truncate">
+                                                            <span className="block text-[11px] text-dash-text-2 truncate">
                                                                 {t.category || ''}{t.category && t.count > 1 ? ' · ' : ''}{t.count > 1 ? `used ${t.count}×` : ''}
                                                             </span>
                                                         )}
                                                     </span>
-                                                    <span className="text-xs font-bold text-sec whitespace-nowrap">{formatMoney(t.amount, t.currency)}</span>
+                                                    <span className="text-xs font-bold text-dash-text-2 whitespace-nowrap">{formatMoney(t.amount, t.currency)}</span>
                                                 </button>
                                             ))}
                                         </motion.div>
@@ -592,15 +592,15 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             exit={{ opacity: 0, y: -6, scale: 0.98 }}
                                             transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
                                             style={{ transformOrigin: 'top center' }}
-                                            className={`absolute left-0 right-0 top-full mt-1.5 z-30 rounded-sm border shadow-2xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar ${isDark ? 'bg-[var(--bg-primary)] border-white/10' : 'bg-white border-black/10'}`}
+                                            className={`absolute left-0 right-0 top-full mt-1.5 z-30 rounded-sm border shadow-2xl overflow-hidden max-h-[220px] overflow-y-auto custom-scrollbar ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-black/10'}`}
                                         >
-                                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-sec">Past categories</div>
+                                            <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Past categories</div>
                                             {categorySuggestions.map(c => (
                                                 <button
                                                     key={c}
                                                     type="button"
                                                     onMouseDown={e => { e.preventDefault(); setCategory(c); setShowCatSug(false); }}
-                                                    className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors truncate"
+                                                    className="w-full px-3.5 py-2.5 text-left text-sm font-medium text-dash-text hover:bg-black/[0.04] dark:hover:bg-dash-surface/[0.06] transition-colors truncate"
                                                 >
                                                     {c}
                                                 </button>
@@ -624,25 +624,25 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'client') === expClientPaid;
                                             return (
                                                 <button key={val} type="button" onClick={() => setExpClientPaid(val === 'client')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-accent text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );
                                         })}
                                     </div>
-                                    {expClientPaid && <p className="text-[11px] text-sec mt-1.5">Recorded for reference only - not counted as your spending or pulled from any account.</p>}
+                                    {expClientPaid && <p className="text-[11px] text-dash-text-2 mt-1.5">Recorded for reference only - not counted as your spending or pulled from any account.</p>}
                                 </div>
                             )}
                             {!expIsClientPaid && (accounts?.length ?? 0) > 0 && (
                                 <div>
                                     <label className={labelCls}>Paid from account</label>
                                     <Select value={expAccountName} options={expAccountOpts} onChange={setExpAccountName} isDark={isDark} placeholder="Which account?" />
-                                    <p className="text-[11px] text-sec mt-1.5">Deducts this from the account&apos;s balance.</p>
+                                    <p className="text-[11px] text-dash-text-2 mt-1.5">Deducts this from the account&apos;s balance.</p>
                                 </div>
                             )}
                             <div className="flex items-center gap-3 select-none">
                                 <Toggle checked={recurring} onChange={setRecurring} aria-label="Monthly fee (recurring)" />
-                                <span className="text-sm text-primary font-medium">Monthly fee (recurring)</span>
+                                <span className="text-sm text-dash-text font-medium">Monthly fee (recurring)</span>
                             </div>
                         </>
                     )}
@@ -666,25 +666,25 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             <div>
                                 <label className={labelCls}>From project (optional)</label>
                                 <Select value={incProjectName} options={incProjectOpts} onChange={setIncProjectName} isDark={isDark} placeholder="Link to a project" />
-                                <p className="text-[11px] text-sec mt-1.5">Linking counts this toward that project&apos;s received amount.</p>
+                                <p className="text-[11px] text-dash-text-2 mt-1.5">Linking counts this toward that project&apos;s received amount.</p>
                             </div>
 
                             {(accounts?.length ?? 0) > 0 && (
                                 <div>
                                     <label className={labelCls}>Into account</label>
                                     <Select value={incAccountName} options={incAccountOpts} onChange={setIncAccountName} isDark={isDark} placeholder="Which account?" />
-                                    <p className="text-[11px] text-sec mt-1.5">Adds this to the account&apos;s balance.</p>
+                                    <p className="text-[11px] text-dash-text-2 mt-1.5">Adds this to the account&apos;s balance.</p>
                                 </div>
                             )}
 
                             {/* Monthly retainer: is this THE monthly payment, or a one-off extra? */}
                             {isMonthlyProject && (
-                                <div className={`rounded-sm border p-3.5 flex flex-col gap-3 ${isDark ? 'bg-emerald-500/[0.04] border-emerald-500/20' : 'bg-emerald-500/[0.04] border-emerald-500/20'}`}>
+                                <div className={`rounded-sm border p-3.5 flex flex-col gap-3 ${'bg-dash-success/[0.04] border-dash-success/30'}`}>
                                     <div className="flex items-start gap-2.5">
-                                        <Repeat size={16} className="text-emerald-500 mt-0.5 shrink-0" />
+                                        <Repeat size={16} className="text-dash-success mt-0.5 shrink-0" />
                                         <div className="min-w-0">
-                                            <p className="text-sm font-bold text-primary leading-snug">Is this {selectedIncProject?.name}&apos;s monthly payment?</p>
-                                            <p className="text-[11px] text-sec leading-snug mt-0.5">Whether it came early or late, marking it as the monthly payment sets the next expected date. Choose &ldquo;No&rdquo; to log it as a normal one-off income.</p>
+                                            <p className="text-sm font-bold text-dash-text leading-snug">Is this {selectedIncProject?.name}&apos;s monthly payment?</p>
+                                            <p className="text-[11px] text-dash-text-2 leading-snug mt-0.5">Whether it came early or late, marking it as the monthly payment sets the next expected date. Choose &ldquo;No&rdquo; to log it as a normal one-off income.</p>
                                         </div>
                                     </div>
                                     <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
@@ -692,14 +692,14 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                                             const on = (val === 'yes') === incIsMonthly;
                                             return (
                                                 <button key={val} type="button" onClick={() => setIncIsMonthly(val === 'yes')}
-                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-emerald-500 text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                                    className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${on ? 'bg-dash-success text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                                     {lbl}
                                                 </button>
                                             );
                                         })}
                                     </div>
                                     {nextDuePreview && (
-                                        <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                                        <p className="text-[11px] font-semibold text-dash-success dark:text-dash-success flex items-center gap-1.5">
                                             <Banknote size={12} className="shrink-0" />
                                             Next payment will be expected on {new Date(`${nextDuePreview}T00:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
                                         </p>
@@ -714,28 +714,28 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                             <label className={labelCls}>Attachments (optional)</label>
                             <div className="flex flex-wrap gap-2.5">
                                 {attachments.map(url => (
-                                    <div key={url} className="relative w-16 h-16 rounded-sm overflow-hidden border border-[var(--input-border)] group/att">
+                                    <div key={url} className="relative w-16 h-16 rounded-sm overflow-hidden border border-[var(--dash-border)] group/att">
                                         <a href={url} target="_blank" rel="noopener noreferrer" title="Open full size">
                                             <img src={url} alt="Attachment" className="w-full h-full object-cover" />
                                         </a>
                                         <button type="button" onClick={() => removeAttachment(url)} aria-label="Remove attachment"
-                                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center opacity-0 group-hover/att:opacity-100 transition-opacity hover:bg-rose-500">
+                                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/65 text-white flex items-center justify-center opacity-0 group-hover/att:opacity-100 transition-opacity hover:bg-dash-danger">
                                             <X size={12} />
                                         </button>
                                     </div>
                                 ))}
                                 {uploading > 0 && Array.from({ length: uploading }).map((_, i) => (
                                     <div key={`up-${i}`} className={`w-16 h-16 rounded-sm border border-dashed ${fieldBg} flex items-center justify-center`}>
-                                        <Loader2 size={18} className="animate-spin text-accent" />
+                                        <Loader2 size={18} className="animate-spin text-dash-accent-text" />
                                     </div>
                                 ))}
-                                <label className={`w-16 h-16 rounded-sm border border-dashed ${fieldBg} flex flex-col items-center justify-center gap-1 cursor-pointer text-sec hover:text-primary hover:border-accent/50 transition-colors`}>
+                                <label className={`w-16 h-16 rounded-sm border border-dashed ${fieldBg} flex flex-col items-center justify-center gap-1 cursor-pointer text-dash-text-2 hover:text-dash-text hover:border-dash-accent/50 transition-colors`}>
                                     <ImagePlus size={18} />
                                     <span className="text-[9px] font-bold uppercase tracking-wide">Add</span>
                                     <input type="file" accept="image/*" multiple className="hidden" onChange={e => { addFiles(e.target.files); e.target.value = ''; }} />
                                 </label>
                             </div>
-                            <p className="text-[11px] text-sec mt-1.5 flex items-center gap-1"><Paperclip size={11} /> Receipts or proof - images only, private to you.</p>
+                            <p className="text-[11px] text-dash-text-2 mt-1.5 flex items-center gap-1"><Paperclip size={11} /> Receipts or proof - images only, private to you.</p>
                         </div>
                     )}
 
@@ -746,15 +746,15 @@ const MTreasuryEntry = ({ mode, config, project, expense, income, projects, acco
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 flex gap-3 border-t border-[var(--section-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--bg-surface)' : 'var(--border)' }}>
+                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
                     {isEdit && onDelete && (
-                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-red-500 hover:bg-red-500/10 transition-all flex items-center gap-2">
+                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
                     <div className="flex-1" />
-                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-sec hover:bg-black/5 dark:hover:bg-white/10 transition-all">Cancel</button>
-                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-accent hover:bg-accent shadow-blue-500/20' : kind === 'income' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'}`}>
+                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
+                    <button onClick={save} disabled={uploading > 0} className={`px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2 ${mode === 'project' ? 'bg-dash-accent hover:bg-dash-accent shadow-blue-500/20' : kind === 'income' ? 'bg-dash-success hover:bg-dash-success shadow-emerald-500/20' : 'bg-dash-danger hover:bg-dash-danger shadow-rose-500/20'}`}>
                         {uploading > 0 && <Loader2 size={15} className="animate-spin" />}
                         {uploading > 0 ? 'Uploading…' : isEdit ? 'Save' : 'Add'}
                     </button>

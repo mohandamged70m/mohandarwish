@@ -17,7 +17,7 @@ interface MTagFormProps {
 
 const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
     const [name, setName] = useState('');
-    const [color, setColor] = useState('var(--accent-text)');
+    const [color, setColor] = useState('var(--dash-accent-text)');
     const [iconSvg, setIconSvg] = useState<string>('');
     const [iconFile, setIconFile] = useState<File | null>(null);
     const [firebaseBrowserOpen, setFirebaseBrowserOpen] = useState(false);
@@ -27,12 +27,12 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
             requestAnimationFrame(() => {
                 if (initialData) {
                     setName(initialData.name);
-                    setColor(initialData.color || 'var(--accent-text)');
+                    setColor(initialData.color || 'var(--dash-accent-text)');
                     setIconSvg(initialData.iconSvg || '');
                     setIconFile(null);
                 } else {
                     setName('');
-                    setColor('var(--accent-text)');
+                    setColor('var(--dash-accent-text)');
                     setIconSvg('');
                     setIconFile(null);
                 }
@@ -141,7 +141,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         <label className="input-label">Color Code</label>
                         <div className="relative">
                             {/* Prefix # */}
-                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted font-heading select-none z-10 text-lg">#</span>
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dash-text-3 font-heading select-none z-10 text-lg">#</span>
 
                             {/* Main Input - Drastically increased padding-left to fix overlap */}
                             <input
@@ -160,13 +160,13 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-10">
                                 <input
                                     type="color"
-                                    value={color.length === 7 ? color : 'var(--accent-text)'}
+                                    value={color.length === 7 ? color : 'var(--dash-accent-text)'}
                                     onChange={(e) => setColor(e.target.value)}
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 />
                                 <div
                                     className="w-full h-full rounded-md shadow-sm border border-input-border transition-all hover:scale-105"
-                                    style={{ backgroundColor: color.length === 7 ? color : 'var(--accent-text)' }}
+                                    style={{ backgroundColor: color.length === 7 ? color : 'var(--dash-accent-text)' }}
                                 />
                             </div>
                         </div>
@@ -200,8 +200,8 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                                 onClick={() => document.getElementById('tagIconUpload')?.click()}
                                 className="flex-1 border-2 border-dashed border-input-border rounded-sm p-4 text-center cursor-pointer bg-input-bg hover:bg-[var(--bg-secondary)] flex flex-col items-center gap-2 transition-all group"
                             >
-                                <HardDrive size={24} className="text-sec group-hover:text-primary transition-colors" />
-                                <span className="text-xs text-sec group-hover:text-primary transition-colors">Local File</span>
+                                <HardDrive size={24} className="text-dash-text-2 group-hover:text-dash-text transition-colors" />
+                                <span className="text-xs text-dash-text-2 group-hover:text-dash-text transition-colors">Local File</span>
                                 <input
                                     id="tagIconUpload"
                                     type="file"
@@ -214,10 +214,10 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                             {/* Firebase Storage */}
                             <div
                                 onClick={() => setFirebaseBrowserOpen(true)}
-                                className="flex-1 border-2 border-dashed border-amber-500/30 rounded-sm p-4 text-center cursor-pointer bg-amber-500/5 hover:bg-amber-500/10 flex flex-col items-center gap-2 transition-all group"
+                                className="flex-1 border-2 border-dashed border-dash-warning/30 rounded-sm p-4 text-center cursor-pointer bg-dash-warning/5 hover:bg-dash-accent-soft flex flex-col items-center gap-2 transition-all group"
                             >
                                 <img src={firebaseIcon} alt="Firebase" className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all" />
-                                <span className="text-xs text-amber-600/70 group-hover:text-amber-600 transition-colors">Firebase Storage</span>
+                                <span className="text-xs text-dash-warning group-hover:text-dash-warning transition-colors">Firebase Storage</span>
                             </div>
                         </div>
                     </div>
@@ -231,7 +231,7 @@ const MTagForm = ({ isOpen, onClose, onSave, initialData }: MTagFormProps) => {
                         title="Select Icon from Firebase"
                     />
 
-                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-[var(--card-border)]">
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-[var(--dash-border)]">
                         <button
                             type="button"
                             onClick={onClose}

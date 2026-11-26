@@ -94,7 +94,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 const tagsData = Object.entries(data).map(([id, val]: [string, RawFirestoreTag]) => ({
                     id,
                     name: val.Name || 'Untitled',
-                    color: val.Color || 'var(--accent-text)',
+                    color: val.Color || 'var(--dash-accent-text)',
                     iconSvg: val.Icon || ''
                 }));
                 tagsData.sort((a, b) => a.name.localeCompare(b.name));
@@ -264,27 +264,27 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 28, stiffness: 320 }}
-                        className={`project-modal-container w-full max-w-[95vw] lg:max-w-[1200px] h-[95vh] rounded-sm overflow-hidden flex flex-row shadow-2xl ${isDark ? 'bg-bg-primary' : 'bg-white'} border ${isDark ? 'border-border' : 'border-gray-200'}`}
+                        className={`project-modal-container w-full max-w-[95vw] lg:max-w-[1200px] h-[95vh] rounded-sm overflow-hidden flex flex-row shadow-2xl ${isDark ? 'bg-dash-bg' : 'bg-dash-surface'} border ${isDark ? 'border-dash-border' : 'border-dash-border'}`}
                         style={{ transformOrigin: 'center' }}
                     >
                 {/* LEFT PANEL - Form (Hidden on mobile when preview is active) */}
-                <div className={`project-form-left ${activeView === 'preview' ? 'hidden-mobile' : ''} min-w-0 flex-1 flex flex-col overflow-hidden ${isDark ? 'bg-[#0a0a0a]' : 'bg-gray-50'}`}>
+                <div className={`project-form-left ${activeView === 'preview' ? 'hidden-mobile' : ''} min-w-0 flex-1 flex flex-col overflow-hidden ${isDark ? 'bg-[var(--dash-bg)]' : 'bg-dash-surface-2'}`}>
                     {/* Header */}
-                    <div className={`px-4 lg:px-8 py-4 lg:py-6 border-b ${isDark ? 'border-white/10' : 'border-gray-200'}`}
-                        style={{ background: isDark ? 'linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, var(--accent-primary) 100%)' : 'linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, var(--accent-primary) 100%)' }}>
+                    <div className={`px-4 lg:px-8 py-4 lg:py-6 border-b ${isDark ? 'border-dash-border' : 'border-dash-border'}`}
+                        style={{ background: isDark ? 'linear-gradient(135deg, var(--dash-accent-soft) 0%, var(--dash-accent) 100%)' : 'linear-gradient(135deg, var(--dash-accent-soft) 0%, var(--dash-accent) 100%)' }}>
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 lg:gap-4 flex-1">
                                 <div className="relative shrink-0">
                                     <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center shadow-lg`}
-                                        style={{ background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)' }}>
+                                        style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                         <Edit className="text-white" size={belowLg ? 20 : 24} />
                                     </div>
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <h2 className={`text-lg lg:text-2xl font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                                    <h2 className={`text-lg lg:text-2xl font-bold truncate ${isDark ? 'text-white' : 'text-dash-text'}`}>
                                         {initialData ? 'Edit Project' : 'Create Project'}
                                     </h2>
-                                    <p className={`text-xs lg:text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    <p className={`text-xs lg:text-sm font-semibold ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>
                                         {completionPercentage}% Complete
                                     </p>
                                 </div>
@@ -293,7 +293,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                 <div className="project-mobile-toggle flex">
                                     <button
                                         onClick={() => setActiveView('preview')}
-                                        className={`px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-white/10 text-gray-400 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                        className={`px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 ${isDark ? 'bg-dash-surface/10 text-dash-text-3 hover:bg-dash-surface/20' : 'bg-dash-surface-2 text-dash-text-2 hover:bg-dash-surface-3'}`}
                                     >
                                         <Eye size={14} />
                                         Preview
@@ -302,17 +302,17 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             </div>
                             <button
                                 onClick={onClose}
-                                className={`shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-200 text-gray-500 hover:text-gray-900'}`}
+                                className={`shrink-0 w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center transition-all ${isDark ? 'hover:bg-dash-surface/10 text-dash-text-3 hover:text-white' : 'hover:bg-dash-surface-3 text-dash-text-3 hover:text-dash-text'}`}
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {/* Progress Bar */}
-                        <div className={`mt-3 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-gray-200'}`}>
+                        <div className={`mt-3 h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-3'}`}>
                             <div
                                 className="h-full transition-all duration-500 ease-out"
-                                style={{ width: `${completionPercentage}%`, background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)' }}
+                                style={{ width: `${completionPercentage}%`, background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}
                             />
                         </div>
                     </div>
@@ -323,10 +323,10 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             {/* Basic Info Card */}
                             <div className="dashboard-card shadow-lg">
                                 <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.15)', color: 'var(--accent-text)' }}>
+                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'var(--dash-accent-soft)' : 'var(--dash-accent-soft)', color: 'var(--dash-accent-text)' }}>
                                         <span>1</span>
                                     </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Basic Information</h3>
+                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Basic Information</h3>
                                 </div>
 
                                 <div className="flex flex-col gap-6">
@@ -367,7 +367,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                             className="dashboard-textarea"
                                             rows={10}
                                         />
-                                        <p className="text-xs text-gray-500 mt-2">Only on the project's own page, folded under &quot;The story behind it&quot;. ### starts a heading, - a bullet, **bold**, a blank line a new paragraph.</p>
+                                        <p className="text-xs text-dash-text-3 mt-2">Only on the project's own page, folded under &quot;The story behind it&quot;. ### starts a heading, - a bullet, **bold**, a blank line a new paragraph.</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,10 +420,10 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             {/* Media Card */}
                             <div className="dashboard-card shadow-lg">
                                 <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'var(--accent-primary)' : 'var(--accent-primary)', color: 'var(--accent-primary)' }}>
+                                    <div className="dashboard-section-number" style={{ backgroundColor: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                                         <span>2</span>
                                     </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Media & Assets</h3>
+                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Media & Assets</h3>
                                 </div>
 
                                 <div className="flex flex-col gap-6">
@@ -434,7 +434,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                             <div
                                                 onClick={() => iconInputRef.current?.click()}
                                                 className={`w-16 h-16 rounded-lg overflow-hidden cursor-pointer group relative border-2 border-dashed transition-all`}
-                                                style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)', backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                                style={{ borderColor: 'var(--dash-border)', backgroundColor: 'var(--dash-surface-2)' }}
                                             >
                                                 {formData.icon ? (
                                                     <FileImage
@@ -444,7 +444,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center">
-                                                        <Upload size={20} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
+                                                        <Upload size={20} className={isDark ? 'text-dash-text-2' : 'text-dash-text-3'} />
                                                     </div>
                                                 )}
                                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -452,8 +452,8 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                 </div>
                                             </div>
                                             <div className="flex-1">
-                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Upload icon</p>
-                                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Square, min 400x400px</p>
+                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dash-text'}`}>Upload icon</p>
+                                                <p className={`text-xs ${'text-dash-text-3'}`}>Square, min 400x400px</p>
                                             </div>
                                             <input ref={iconInputRef} type="file" accept="image/*" onChange={handleIconChange} className="hidden" />
                                         </div>
@@ -465,7 +465,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         {formData.images.length > 0 ? (
                                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                                 {formData.images.map((file, idx) => (
-                                                    <div key={idx} className={`aspect-video rounded-lg overflow-hidden relative group ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
+                                                    <div key={idx} className={`aspect-video rounded-lg overflow-hidden relative group ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                                                         {isVideo(file) ? (
                                                             <GalleryVideoPreview file={file} />
                                                         ) : (
@@ -479,7 +479,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeFile(idx)}
-                                                                className="w-8 h-8 rounded-lg bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors"
+                                                                className="w-8 h-8 rounded-lg bg-dash-danger hover:bg-dash-danger flex items-center justify-center transition-colors"
                                                             >
                                                                 <Trash2 size={16} className="text-white" />
                                                             </button>
@@ -489,22 +489,22 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                 <button
                                                     type="button"
                                                     onClick={() => imagesInputRef.current?.click()}
-                                                    className={`aspect-video rounded-lg border-2 border-dashed flex items-center justify-center transition-all hover:border-[var(--accent-primary)]`}
-                                                    style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                                    className={`aspect-video rounded-lg border-2 border-dashed flex items-center justify-center transition-all hover:border-[var(--dash-accent)]`}
+                                                    style={{ borderColor: 'var(--dash-border)' }}
                                                 >
-                                                    <Plus size={24} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+                                                    <Plus size={24} className={isDark ? 'text-dash-text-3' : 'text-dash-text-3'} />
                                                 </button>
                                             </div>
                                         ) : (
                                             <button
                                                 type="button"
                                                 onClick={() => imagesInputRef.current?.click()}
-                                                className={`w-full py-8 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all hover:border-[var(--accent-primary)]`}
-                                                style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                                className={`w-full py-8 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
+                                                style={{ borderColor: 'var(--dash-border)' }}
                                             >
-                                                <ImageIcon size={28} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
-                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>Click to upload</p>
-                                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>PNG, JPG, GIF, MP4 up to 50MB</p>
+                                                <ImageIcon size={28} className={isDark ? 'text-dash-text-2' : 'text-dash-text-3'} />
+                                                <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dash-text'}`}>Click to upload</p>
+                                                <p className={`text-xs ${'text-dash-text-3'}`}>PNG, JPG, GIF, MP4 up to 50MB</p>
                                             </button>
                                         )}
                                         <input ref={imagesInputRef} type="file" multiple accept="image/*,video/*" onChange={handleFileChange} className="hidden" />
@@ -515,17 +515,17 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             {/* Tech Stack Card */}
                             <div className="dashboard-card shadow-lg">
                                 <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'var(--success)' : 'var(--success)', color: 'rgb(16, 185, 129)' }}>
+                                    <div className="dashboard-section-number" style={{ backgroundColor: 'var(--dash-success)', color: 'var(--text-on-accent)' }}>
                                         <span>3</span>
                                     </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Tech Stack</h3>
+                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Tech Stack</h3>
                                 </div>
 
                                 <div className="flex flex-wrap gap-2">
                                     {formData.tags.map((tag, idx) => (
                                         <div
                                             key={idx}
-                                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-white/10 border border-white/20' : 'bg-gray-100 border border-gray-200'} group hover:scale-105 transition-all`}
+                                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg ${isDark ? 'bg-dash-surface/10 border border-white/20' : 'bg-dash-surface-2 border border-dash-border'} group hover:scale-105 transition-all`}
                                         >
                                             {tag.iconSvg && (
                                                 tag.iconSvg.startsWith('http') || tag.iconSvg.startsWith('data:image') ? (
@@ -534,11 +534,11 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                     <span className="w-4 h-4 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
                                                 )
                                             )}
-                                            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{tag.name}</span>
+                                            <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-dash-text'}`}>{tag.name}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => removeTag(idx)}
-                                                className={`ml-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
+                                                className={`ml-1 opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-dash-text-3 hover:text-dash-danger' : 'text-dash-text-3 hover:text-dash-danger'}`}
                                             >
                                                 <X size={14} />
                                             </button>
@@ -547,8 +547,8 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     <button
                                         type="button"
                                         onClick={() => setSelectTagOpen(true)}
-                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-all hover:border-[var(--accent-primary)]`}
-                                        style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-all hover:border-[var(--dash-accent)]`}
+                                        style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <Plus size={16} />
                                         <span className="text-sm font-medium">Add Tech</span>
@@ -559,17 +559,17 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             {/* Team Card */}
                             <div className="dashboard-card shadow-lg">
                                 <div className="dashboard-section-header">
-                                    <div className="dashboard-section-number" style={{ backgroundColor: isDark ? 'var(--warning)' : 'var(--warning)', color: 'var(--warning)' }}>
+                                    <div className="dashboard-section-number" style={{ backgroundColor: 'var(--dash-warning)', color: 'var(--dash-warning)' }}>
                                         <span>4</span>
                                     </div>
-                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Team Members</h3>
+                                    <h3 className={`text-base lg:text-lg font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Team Members</h3>
                                 </div>
 
                                 <div className="flex flex-col gap-3">
                                     {formData.contributors.map((contrib, idx) => (
                                         <div
                                             key={idx}
-                                            className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'} group`}
+                                            className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-dash-surface/5 border border-dash-border' : 'bg-dash-surface-2 border border-dash-border'} group`}
                                         >
                                             {contrib.image ? (
                                                 <FileImage
@@ -579,12 +579,12 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                 />
                                             ) : (
                                                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                                                    style={{ background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)' }}>
+                                                    style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                                     {contrib.name.charAt(0)}
                                                 </div>
                                             )}
                                             <div className="flex-1 min-w-0">
-                                                <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{contrib.name}</p>
+                                                <p className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-dash-text'}`}>{contrib.name}</p>
                                                 <input
                                                     type="text"
                                                     value={contrib.role}
@@ -596,7 +596,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                             <button
                                                 type="button"
                                                 onClick={() => removeContributor(idx)}
-                                                className={`opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500'}`}
+                                                className={`opacity-0 group-hover:opacity-100 transition-opacity ${isDark ? 'text-dash-text-3 hover:text-dash-danger' : 'text-dash-text-3 hover:text-dash-danger'}`}
                                             >
                                                 <X size={18} />
                                             </button>
@@ -605,8 +605,8 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                     <button
                                         type="button"
                                         onClick={() => setSelectContribOpen(true)}
-                                        className={`py-3 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all hover:border-[var(--accent-primary)]`}
-                                        style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                        className={`py-3 rounded-lg border-2 border-dashed flex items-center justify-center gap-2 transition-all hover:border-[var(--dash-accent)]`}
+                                        style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <Plus size={18} />
                                         <span className="font-medium text-sm">Add Member</span>
@@ -617,7 +617,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                     </div>
 
                     {/* Footer */}
-                    <div className={`px-4 lg:px-8 py-4 border-t ${isDark ? 'border-white/10 bg-black/20' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className={`px-4 lg:px-8 py-4 border-t ${isDark ? 'border-dash-border bg-black/20' : 'border-dash-border bg-dash-surface-2'}`}>
                         <div className="flex items-center justify-between gap-3">
                             <button
                                 type="button"
@@ -632,7 +632,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                 disabled={saving}
                                 aria-busy={saving}
                                 className="btn btn-primary px-6 py-2 shadow-lg hover:scale-105 disabled:opacity-60 disabled:hover:scale-100 text-sm font-bold"
-                                style={{ background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)' }}
+                                style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}
                             >
                                 {saving ? 'Saving...' : `${initialData ? 'Update' : 'Create'} Project`}
                             </button>
@@ -641,14 +641,14 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 </div>
 
                 {/* RIGHT PANEL - Live Preview */}
-                <div className={`project-form-right ${activeView === 'edit' ? 'hidden-mobile' : ''} flex-col border-l min-w-0 ${isDark ? 'border-white/10 bg-[#080808]' : 'border-gray-200 bg-gray-100'}`}>
-                    <div className={`px-4 lg:px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-200'} flex items-center justify-between`}>
+                <div className={`project-form-right ${activeView === 'edit' ? 'hidden-mobile' : ''} flex-col border-l min-w-0 ${isDark ? 'border-dash-border bg-dash-surface-2' : 'border-dash-border bg-dash-surface-2'}`}>
+                    <div className={`px-4 lg:px-6 py-4 border-b ${isDark ? 'border-dash-border' : 'border-dash-border'} flex items-center justify-between`}>
                         <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center`}
-                                style={{ background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%)' }}>
+                                style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent) 100%)' }}>
                                 <Eye className="text-white" size={16} />
                             </div>
-                            <h3 className={`text-xs lg:text-sm font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
+                            <h3 className={`text-xs lg:text-sm font-bold uppercase tracking-wider ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>
                                 Live Preview
                             </h3>
                         </div>
@@ -656,7 +656,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             <div className="project-preview-edit-btn flex">
                                 <button
                                     onClick={() => setActiveView('edit')}
-                                    className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 bg-accent text-white hover:scale-105"
+                                    className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all duration-300 flex items-center gap-2 bg-dash-accent text-white hover:scale-105"
                                 >
                                     <Edit size={14} />
                                     Edit
@@ -689,12 +689,12 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 15 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-200'} shadow-2xl`}
+                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Tech Stack</h3>
-                                <button type="button" onClick={() => setSelectTagOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
+                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Select Tech Stack</h3>
+                                <button type="button" onClick={() => setSelectTagOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-dash-surface/10' : 'hover:bg-dash-surface-2'}`}>
                                     <X size={20} />
                                 </button>
                             </div>
@@ -704,8 +704,8 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         key={tag.id}
                                         type="button"
                                         onClick={() => selectTag(tag)}
-                                        className={`p-4 rounded-lg border text-left transition-all hover:border-[var(--accent-primary)]`}
-                                        style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                        className={`p-4 rounded-lg border text-left transition-all hover:border-[var(--dash-accent)]`}
+                                        style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <div className="flex items-center gap-3">
                                             {tag.iconSvg && (
@@ -715,7 +715,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                                     <span className="w-8 h-8 flex items-center justify-center" dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg) }} />
                                                 )
                                             )}
-                                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{tag.name}</span>
+                                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-dash-text'}`}>{tag.name}</span>
                                         </div>
                                     </button>
                                 ))}
@@ -740,12 +740,12 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 15 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-200'} shadow-2xl`}
+                            className={`w-full max-w-2xl rounded-lg p-6 ${isDark ? 'bg-[var(--dash-bg)] border border-dash-border' : 'bg-dash-surface border border-dash-border'} shadow-2xl`}
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-center justify-between mb-2">
-                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Select Contributors</h3>
-                                <button type="button" onClick={() => setSelectContribOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
+                                <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>Select Contributors</h3>
+                                <button type="button" onClick={() => setSelectContribOpen(false)} className={`p-2 rounded-lg ${isDark ? 'hover:bg-dash-surface/10' : 'hover:bg-dash-surface-2'}`}>
                                     <X size={20} />
                                 </button>
                             </div>
@@ -755,13 +755,13 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                                         key={contrib.id}
                                         type="button"
                                         onClick={() => selectContributor(contrib)}
-                                        className={`flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:border-[var(--accent-primary)]`}
-                                        style={{ borderColor: isDark ? 'var(--border)' : 'var(--border)' }}
+                                        className={`flex items-center gap-4 p-4 rounded-lg border text-left transition-all hover:border-[var(--dash-accent)]`}
+                                        style={{ borderColor: 'var(--dash-border)' }}
                                     >
                                         <img src={contrib.image as string} className="w-12 h-12 rounded-lg object-cover" alt="" />
                                         <div>
-                                            <p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{contrib.name}</p>
-                                            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{contrib.role}</p>
+                                            <p className={`font-semibold ${isDark ? 'text-white' : 'text-dash-text'}`}>{contrib.name}</p>
+                                            <p className={`text-sm ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>{contrib.role}</p>
                                         </div>
                                     </button>
                                 ))}
@@ -779,7 +779,7 @@ const MProjectForm = ({ isOpen, onClose, onSave, initialData }: Omit<MProjectFor
                 .custom-scrollbar::-webkit-scrollbar { width: 8px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background-color: ${isDark ? 'var(--border)' : 'var(--border)'};
+                    background-color: ${'var(--dash-border)'};
                     border-radius: 20px;
                 }
             `}</style>

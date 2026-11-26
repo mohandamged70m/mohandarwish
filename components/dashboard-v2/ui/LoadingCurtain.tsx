@@ -21,12 +21,12 @@ export default function LoadingCurtain({ open, portal, text = "Loading…", chil
       aria-live="polite"
       aria-busy="true"
       className={`${portal ? "fixed" : "absolute"} inset-0 z-[200] flex flex-col items-center justify-center gap-3 font-body ${className}`}
-      style={{ background: "var(--bg-surface)", color: "var(--text-primary)" }}
+      style={{ background: "var(--dash-surface)", color: "var(--dash-text)" }}
     >
       <span
         aria-hidden
         className="h-7 w-7 animate-spin rounded-full border-2"
-        style={{ borderColor: "var(--border)", borderTopColor: "var(--accent-primary)" }}
+        style={{ borderColor: "var(--dash-border)", borderTopColor: "var(--dash-accent)" }}
       />
       <span className="text-sm">{children ?? text}</span>
     </div>

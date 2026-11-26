@@ -154,7 +154,7 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
                         </div>
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-4">
-                                <ZoomIn size={20} className="text-sec" />
+                                <ZoomIn size={20} className="text-dash-text-2" />
                                 <input
                                     type="range"
                                     value={zoom}
@@ -178,11 +178,11 @@ const MContributorForm = ({ isOpen, onClose, onSave, initialData }: MContributor
                 ) : (
                     <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-accent/20 bg-accent/5 flex items-center justify-center group relative">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-dash-accent/20 bg-dash-accent/5 flex items-center justify-center group relative">
                                 {previewUrl ? (
                                     <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
-                                    <Upload size={32} className="text-accent/40" />
+                                    <Upload size={32} className="text-dash-accent-text/40" />
                                 )}
                             </div>
                             <div className="flex gap-3">

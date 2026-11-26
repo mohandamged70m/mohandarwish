@@ -39,35 +39,35 @@ const CustomTooltip = ({ active, payload, isDark }: TooltipContentProps & { isDa
 
         return (
             <div className={`p-4 rounded-[2.5rem] border shadow-2xl backdrop-blur-3xl transition-all duration-300 ${isDark
-                ? 'bg-black/80 border-border'
-                : 'bg-white/60 border-black/5 shadow-[0_20px_40px_var(--border)]'
+                ? 'bg-black/80 border-dash-border'
+                : 'bg-dash-surface/60 border-black/5 shadow-[0_20px_40px_var(--dash-border)]'
                 }`}>
-                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-slate-500'
+                <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-dash-text-3'
                     }`}>
                     {headerText}
                 </div>
                 <div className="flex flex-col gap-2.5">
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-[0_0_10px_var(--accent-text)]" />
-                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-dash-accent shadow-[0_0_10px_var(--dash-accent-text)]" />
+                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>
                             {(item.value || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-dash-text-3'
                                 }`}>{subLabel}</span>
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_var(--success)]" />
-                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-dash-success shadow-[0_0_10px_var(--dash-success)]" />
+                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>
                             {(item.projectViews || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-dash-text-3'
                                 }`}>Project Views</span>
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_10px_var(--accent-primary)]" />
-                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_10px_var(--dash-accent)]" />
+                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>
                             {(item.socialClicks || 0).toLocaleString()}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-dash-text-3'
                                 }`}>Social Clicks</span>
                         </span>
                     </div>
@@ -188,7 +188,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
         if (pageIndex !== target) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setPageIndex(target);
-             
+
             setDirection(0);
         }
     }, [totalPages, filter]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -288,37 +288,37 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
     };
 
     return (
-        <div ref={containerRef} className={`w-full ${isDark ? 'bg-[var(--bg-primary)] border-white/[0.06]' : 'bg-white border-black/[0.06] shadow-sm'} rounded-[28px] p-5 sm:p-8 md:p-10 relative overflow-hidden border transition-all duration-300`}>
+        <div ref={containerRef} className={`w-full ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-dash-border shadow-sm'} rounded-[28px] p-5 sm:p-8 md:p-10 relative overflow-hidden border transition-all duration-300`}>
 
             {/* Row 1: Stats + Filter */}
             <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
                 <div className="flex items-end gap-6 sm:gap-10">
                     <div>
-                        <p className={`${isDark ? 'text-[#555]' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>
+                        <p className={`${isDark ? 'text-[#555]' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>
                             {filter === 'daily' ? 'Month Views' : filter === 'weekly' ? 'Period Views' : 'Total Views'}
                         </p>
-                        <h3 className={`${isDark ? 'text-white' : 'text-slate-900'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
+                        <h3 className={`${isDark ? 'text-white' : 'text-dash-text'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
                             {pageTotal.toLocaleString()}
                         </h3>
                     </div>
                     <div>
-                        <p className={`${isDark ? 'text-[#555]' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>Today</p>
+                        <p className={`${isDark ? 'text-[#555]' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5`}>Today</p>
                         <div className="flex items-center gap-2">
-                            <h3 className={`${isDark ? 'text-white' : 'text-slate-900'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
+                            <h3 className={`${isDark ? 'text-white' : 'text-dash-text'} text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-none tabular-nums`}>
                                 {todayViews}
                             </h3>
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-dash-success animate-pulse" />
                         </div>
                     </div>
                 </div>
-                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-slate-100 border-black/5'}`}>
+                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/5'}`}>
                     {(['daily', 'weekly', 'monthly'] as const).map(f => (
                         <button
                             key={f}
                             onClick={(e) => { e.stopPropagation(); setFilter(f); }}
                             className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all cursor-pointer ${filter === f
-                                ? 'bg-accent text-white shadow-lg shadow-blue-600/25'
-                                : `${isDark ? 'text-[#666] hover:text-[#999]' : 'text-slate-400 hover:text-slate-700'}`
+                                ? 'bg-dash-accent text-white shadow-lg shadow-blue-600/25'
+                                : `${isDark ? 'text-[#666] hover:text-[#999]' : 'text-dash-text-3 hover:text-dash-text-2'}`
                                 }`}
                         >
                             {f === 'daily' ? 'Day' : f === 'weekly' ? 'Week' : 'Month'}
@@ -333,17 +333,17 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                     <button
                         onClick={() => changePage(safePageIndex - 1)}
                         disabled={safePageIndex === 0}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronLeft size={16} />
                     </button>
-                    <span className={`text-sm font-semibold tracking-tight select-none ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+                    <span className={`text-sm font-semibold tracking-tight select-none ${isDark ? 'text-white/70' : 'text-dash-text-2'}`}>
                         {getPageTitle()}
                     </span>
                     <button
                         onClick={() => changePage(safePageIndex + 1)}
                         disabled={safePageIndex === totalPages - 1}
-                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}
+                        className={`p-1 rounded-md transition-colors cursor-pointer ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}
                     >
                         <ChevronRight size={16} />
                     </button>
@@ -353,8 +353,8 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                                 key={i}
                                 onClick={() => changePage(i)}
                                 className={`rounded-full transition-all duration-300 cursor-pointer ${i === safePageIndex
-                                    ? 'w-4 h-1.5 bg-accent'
-                                    : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`
+                                    ? 'w-4 h-1.5 bg-dash-accent'
+                                    : `w-1.5 h-1.5 ${isDark ? 'bg-dash-surface/15 hover:bg-dash-surface/30' : 'bg-black/10 hover:bg-black/20'}`
                                     }`}
                             />
                         ))}
@@ -386,19 +386,19 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                                     </filter>
                                     <linearGradient id={`areaFill-${isDark ? 'd' : 'l'}`} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--accent-text)" stopOpacity={isDark ? 0.15 : 0.3} />
-                                        <stop offset="100%" stopColor="var(--accent-text)" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="var(--dash-accent-text)" stopOpacity={isDark ? 0.15 : 0.3} />
+                                        <stop offset="100%" stopColor="var(--dash-accent-text)" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="projectFill" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--success)" stopOpacity={isDark ? 0.1 : 0.2} />
-                                        <stop offset="100%" stopColor="var(--success)" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="var(--dash-success)" stopOpacity={isDark ? 0.1 : 0.2} />
+                                        <stop offset="100%" stopColor="var(--dash-success)" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="socialFill" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--accent-primary)" stopOpacity={isDark ? 0.1 : 0.2} />
-                                        <stop offset="100%" stopColor="var(--accent-primary)" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="var(--dash-accent)" stopOpacity={isDark ? 0.1 : 0.2} />
+                                        <stop offset="100%" stopColor="var(--dash-accent)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="0 0" vertical={false} stroke={isDark ? 'var(--border)' : 'var(--border)'} />
+                                <CartesianGrid strokeDasharray="0 0" vertical={false} stroke={'var(--dash-border)'} />
                                 <XAxis
                                     dataKey="label"
                                     axisLine={false}
@@ -410,40 +410,40 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                                 <YAxis hide domain={['auto', 'auto']} />
                                 <Tooltip
                                     content={(props) => <CustomTooltip {...props} isDark={isDark} />}
-                                    cursor={{ stroke: isDark ? 'var(--accent-text)' : 'var(--accent-text)', strokeWidth: 1, strokeDasharray: '4 4' }}
+                                    cursor={{ stroke: 'var(--dash-accent-text)', strokeWidth: 1, strokeDasharray: '4 4' }}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="socialClicks"
-                                    stroke="var(--accent-primary)"
+                                    stroke="var(--dash-accent)"
                                     fillOpacity={1}
                                     fill="url(#socialFill)"
                                     strokeWidth={cw < 500 ? 1.5 : 2}
                                     dot={false}
-                                    activeDot={{ r: 4, fill: 'var(--accent-primary)', strokeWidth: 2, stroke: isDark ? 'var(--bg-primary)' : '#fff' }}
+                                    activeDot={{ r: 4, fill: 'var(--dash-accent)', strokeWidth: 2, stroke: isDark ? 'var(--dash-bg)' : 'var(--dash-text)' }}
                                     animationDuration={600}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="projectViews"
-                                    stroke="var(--success)"
+                                    stroke="var(--dash-success)"
                                     fillOpacity={1}
                                     fill="url(#projectFill)"
                                     strokeWidth={cw < 500 ? 1.5 : 2}
                                     dot={false}
-                                    activeDot={{ r: 4, fill: 'var(--success)', strokeWidth: 2, stroke: isDark ? 'var(--bg-primary)' : '#fff' }}
+                                    activeDot={{ r: 4, fill: 'var(--dash-success)', strokeWidth: 2, stroke: isDark ? 'var(--dash-bg)' : 'var(--dash-text)' }}
                                     animationDuration={500}
                                 />
                                 <Area
                                     type="monotone"
                                     dataKey="value"
-                                    stroke="var(--accent-text)"
+                                    stroke="var(--dash-accent-text)"
                                     fillOpacity={1}
                                     fill={`url(#areaFill-${isDark ? 'd' : 'l'})`}
                                     strokeWidth={cw < 500 ? 2 : 3}
                                     filter="url(#lineGlow)"
-                                    dot={{ r: cw < 500 ? 2.5 : 3.5, fill: isDark ? 'var(--bg-primary)' : '#fff', strokeWidth: cw < 500 ? 1.5 : 2, stroke: 'var(--accent-text)', opacity: 1, strokeOpacity: 1 }}
-                                    activeDot={{ r: cw < 500 ? 4.5 : 6, fill: 'var(--accent-text)', strokeWidth: 2, stroke: isDark ? 'var(--bg-primary)' : '#fff' }}
+                                    dot={{ r: cw < 500 ? 2.5 : 3.5, fill: isDark ? 'var(--dash-bg)' : 'var(--dash-text)', strokeWidth: cw < 500 ? 1.5 : 2, stroke: 'var(--dash-accent-text)', opacity: 1, strokeOpacity: 1 }}
+                                    activeDot={{ r: cw < 500 ? 4.5 : 6, fill: 'var(--dash-accent-text)', strokeWidth: 2, stroke: isDark ? 'var(--dash-bg)' : 'var(--dash-text)' }}
                                     animationDuration={400}
                                     animationEasing="ease-out"
                                 />
@@ -455,7 +455,7 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
 
             {/* Bottom Widgets Integrated */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                <div className={`${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-slate-50 border-black/[0.04]'} border rounded-[24px] p-6 relative overflow-hidden group`}>
+                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/[0.04]'} border rounded-[24px] p-6 relative overflow-hidden group`}>
                     <div className="absolute inset-0 bg-radial-at-tl from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="flex justify-between items-start relative z-10 mb-4">
                         <div className={`${isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-100 text-purple-600'} w-10 h-10 flex items-center justify-center rounded-sm`}>
@@ -463,25 +463,25 @@ export const AnalyticsChart = ({ data, filter, setFilter, isDark, windowWidth }:
                         </div>
                     </div>
                     <div className="relative z-10">
-                        <h4 className={`${isDark ? 'text-white' : 'text-slate-900'} text-3xl font-bold tracking-tight tabular-nums`}>
+                        <h4 className={`${isDark ? 'text-white' : 'text-dash-text'} text-3xl font-bold tracking-tight tabular-nums`}>
                             {pageSocials.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-white/30' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
+                        <p className={`${isDark ? 'text-white/30' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Social Clicks</p>
                     </div>
                 </div>
 
-                <div className={`${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-slate-50 border-black/[0.04]'} border rounded-[24px] p-6 relative overflow-hidden group`}>
+                <div className={`${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/[0.04]'} border rounded-[24px] p-6 relative overflow-hidden group`}>
                     <div className="absolute inset-0 bg-radial-at-tl from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="flex justify-between items-start relative z-10 mb-4">
-                        <div className={`${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-100 text-emerald-600'} w-10 h-10 flex items-center justify-center rounded-sm`}>
+                        <div className={`${isDark ? 'bg-dash-accent-soft text-dash-success' : 'bg-dash-accent-soft text-dash-success'} w-10 h-10 flex items-center justify-center rounded-sm`}>
                             <Briefcase size={20} />
                         </div>
                     </div>
                     <div className="relative z-10">
-                        <h4 className={`${isDark ? 'text-white' : 'text-slate-900'} text-3xl font-bold tracking-tight tabular-nums`}>
+                        <h4 className={`${isDark ? 'text-white' : 'text-dash-text'} text-3xl font-bold tracking-tight tabular-nums`}>
                             {pageProjects.toLocaleString()}
                         </h4>
-                        <p className={`${isDark ? 'text-white/30' : 'text-slate-400'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
+                        <p className={`${isDark ? 'text-white/30' : 'text-dash-text-3'} text-[9px] font-bold uppercase tracking-[0.2em] mt-1`}>Project Views</p>
                     </div>
                 </div>
             </div>

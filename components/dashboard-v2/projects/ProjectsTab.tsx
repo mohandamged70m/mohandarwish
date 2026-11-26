@@ -106,21 +106,21 @@ const ProjectRow = ({
             className="grid p-4 border-b items-center transition-colors cursor-pointer"
             style={{
                 gridTemplateColumns: `${dragWidth} ${tableColumns}`,
-                borderColor: isDark ? 'var(--border)' : 'var(--border)',
+                borderColor: 'var(--dash-border)',
                 minWidth: `calc(${tableMinWidth} + ${dragWidth})`,
                 position: 'relative',
-                background: 'var(--card-bg)'
+                background: 'var(--dash-surface)'
             }}
             onClick={() => setViewingProject(project)}
             onDragEnd={onReorderEnd}
             whileDrag={{
-                background: isDark ? 'var(--border)' : 'var(--border)',
+                background: 'var(--dash-surface-2)',
                 zIndex: 100
             }}
         >
             {/* Drag Handle */}
             <div
-                className={`flex items-center justify-center text-sec transition-opacity ${searchQuery.length < 2 ? 'opacity-40 hover:opacity-100 cursor-grab' : 'opacity-10 cursor-not-allowed'}`}
+                className={`flex items-center justify-center text-dash-text-2 transition-opacity ${searchQuery.length < 2 ? 'opacity-40 hover:opacity-100 cursor-grab' : 'opacity-10 cursor-not-allowed'}`}
                 onPointerDown={(e) => searchQuery.length < 2 && controls.start(e)}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -129,18 +129,18 @@ const ProjectRow = ({
 
             {/* Project Info */}
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }}>
+                <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                     {project.icon ? (
                         <FileImage src={project.icon} alt={project.name} className="w-full h-full object-cover" />
                     ) : project.images.length > 0 ? (
-                        <div className="w-full h-full bg-accent text-white flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
+                        <div className="w-full h-full bg-dash-accent text-white flex items-center justify-center font-bold">{project.name.charAt(0)}</div>
                     ) : (
                         <span className="text-xl"></span>
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-primary truncate" style={{ maxWidth: '100%' }} title={project.name}>{project.name}</div>
-                    <div className="text-xs text-sec opacity-70" style={{
+                    <div className="font-semibold text-dash-text truncate" style={{ maxWidth: '100%' }} title={project.name}>{project.name}</div>
+                    <div className="text-xs text-dash-text-2 opacity-70" style={{
                         maxWidth: '250px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -159,12 +159,12 @@ const ProjectRow = ({
                             <div key={idx} title={tag.name}
                                 className="w-8 h-8 rounded-full flex items-center justify-center border shadow-sm relative transition-all hover:z-20 cursor-help hover:scale-110"
                                 style={{
-                                    backgroundColor: tag.color ? `${tag.color}40` : 'var(--accent-text)',
-                                    borderColor: tag.color || 'var(--accent-text)',
+                                    backgroundColor: tag.color ? `${tag.color}40` : 'var(--dash-accent-text)',
+                                    borderColor: tag.color || 'var(--dash-accent-text)',
                                     color: 'white',
                                     zIndex: 10 - idx,
                                     marginLeft: idx === 0 ? 0 : -12,
-                                    
+
                                     transform: `translateX(-${idx * 2}px)`
                                 }}>
                                 {tag.iconSvg ? (
@@ -176,18 +176,18 @@ const ProjectRow = ({
                                             dangerouslySetInnerHTML={{ __html: sanitizeSvg(tag.iconSvg || '') }} />
                                     )
                                 ) : (
-                                    <span className="text-[10px] font-bold text-gray-700 dark:text-gray-200">{tag.name.charAt(0)}</span>
+                                    <span className="text-[10px] font-bold text-dash-text-2 dark:text-dash-text-3">{tag.name.charAt(0)}</span>
                                 )}
                             </div>
                         ))}
                         {project.tags.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--bg-primary)] bg-gray-100 dark:bg-white/10 text-[9px] font-bold text-sec shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-2 dark:bg-dash-surface/10 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -10 }}>
                                 +{project.tags.length - 5}
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div className="text-xs text-sec">-</div>
+                    <div className="text-xs text-dash-text-2">-</div>
                 )}
             </div>
 
@@ -197,7 +197,7 @@ const ProjectRow = ({
                     <div className="flex items-center">
                         {project.contributors.slice(0, 5).map((c, i) => (
                             <div key={i}
-                                className="w-7 h-7 rounded-full overflow-hidden border-2 border-white dark:border-[var(--bg-primary)] bg-gray-200 shadow-sm relative transition-all hover:z-20 cursor-pointer hover:scale-110"
+                                className="w-7 h-7 rounded-full overflow-hidden border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-3 shadow-sm relative transition-all hover:z-20 cursor-pointer hover:scale-110"
                                 title={c.name}
                                 style={{
                                     zIndex: 10 - i,
@@ -212,23 +212,23 @@ const ProjectRow = ({
                                 {c.image ? (
                                     <FileImage src={c.image} alt={c.name} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold bg-accent/10 text-accent">{c.name.charAt(0)}</div>
+                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold bg-dash-accent/10 text-dash-accent-text">{c.name.charAt(0)}</div>
                                 )}
                             </div>
                         ))}
                         {project.contributors.length > 5 && (
-                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--bg-primary)] bg-gray-200 dark:bg-white/10 text-[9px] font-bold text-sec shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center border-2 border-white dark:border-[var(--dash-bg)] bg-dash-surface-3 dark:bg-dash-surface/10 text-[9px] font-bold text-dash-text-2 shadow-sm relative" style={{ zIndex: 0, marginLeft: -12 }}>
                                 +{project.contributors.length - 5}
                             </div>
                         )}
                     </div>
                 ) : (
-                    <div className="text-xs text-sec">-</div>
+                    <div className="text-xs text-dash-text-2">-</div>
                 )}
             </div>
 
             {/* Views */}
-            <div className="flex items-center gap-1.5 text-sec">
+            <div className="flex items-center gap-1.5 text-dash-text-2">
                 <Eye size={16} />
                 {typeof project.views === 'number' ? project.views : 0}
             </div>
@@ -245,7 +245,7 @@ const ProjectRow = ({
                         });
                         setActiveMenu(activeMenu === project.id ? null : project.id!);
                     }}
-                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-accent bg-accent/10' : 'text-sec hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    className={`p-2 rounded-lg border-none bg-transparent cursor-pointer transition-all ${activeMenu === project.id ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/5'}`}
                 >
                     <MoreVertical size={20} />
                 </button>
@@ -693,7 +693,7 @@ const DProjects = () => {
                 gap: isExtraSmall ? '12px' : '0'
             }}>
                 <div className="relative" style={{ width: searchWidth, minWidth: isExtraSmall ? '100%' : 'auto' }}>
-                    <Search size={isExtraSmall ? 18 : 20} className="absolute left-3 top-1/2 -translate-y-1/2 text-sec" />
+                    <Search size={isExtraSmall ? 18 : 20} className="absolute left-3 top-1/2 -translate-y-1/2 text-dash-text-2" />
                     <input
                         type="text"
                         placeholder="Search projects..."
@@ -726,9 +726,9 @@ const DProjects = () => {
             <div className="flex-1 glass-panel flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-auto custom-scrollbar">
                     {/* Header */}
-                    <div className="grid p-4 border-b text-sec font-semibold text-sm" style={{
+                    <div className="grid p-4 border-b text-dash-text-2 font-semibold text-sm" style={{
                         gridTemplateColumns: `${dragWidth} ${tableColumns}`,
-                        borderColor: isDark ? 'var(--border)' : 'var(--border)',
+                        borderColor: 'var(--dash-border)',
                         minWidth: `calc(${tableMinWidth} + ${dragWidth})`
                     }}>
                         <div style={{ textAlign: 'center' }}></div>
@@ -747,7 +747,7 @@ const DProjects = () => {
                         className="min-w-0"
                     >
                         {filteredProjects.length === 0 ? (
-                            <div className="p-12 text-center text-sec">
+                            <div className="p-12 text-center text-dash-text-2">
                                 {searchQuery ? "No projects match your search." : "No projects found. Click \"Add Project\" to start."}
                             </div>
                         ) : (
@@ -809,7 +809,7 @@ const DProjects = () => {
                         className="fixed inset-0 z-[999]"
                         onClick={() => setActiveMenu(null)}
                     />
-                    <div className="fixed z-[1000] glass-panel min-w-[160px] p-2 animate-pop flex flex-col gap-2 shadow-2xl border border-border" style={{
+                    <div className="fixed z-[1000] glass-panel min-w-[160px] p-2 animate-pop flex flex-col gap-2 shadow-2xl border border-dash-border" style={{
                         top: `${menuPos.top}px`,
                         right: `${menuPos.right}px`,
                         borderRadius: '16px'
@@ -823,10 +823,10 @@ const DProjects = () => {
                             }}
                             className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
                             style={{
-                                color: 'var(--text-primary)',
+                                color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--border)' : 'var(--border)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-border)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Eye size={16} /> View
@@ -839,10 +839,10 @@ const DProjects = () => {
                             }}
                             className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
                             style={{
-                                color: 'var(--text-primary)',
+                                color: 'var(--dash-text)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--border)' : 'var(--border)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-border)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Edit2 size={16} /> Edit
@@ -850,7 +850,7 @@ const DProjects = () => {
 
                         {/* Links in Menu */}
                         {(projects.find(p => p.id === activeMenu)?.repoLink || projects.find(p => p.id === activeMenu)?.liveLink) && (
-                            <div className="mx-2 my-1 h-[1px]" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }} />
+                            <div className="mx-2 my-1 h-[1px]" style={{ backgroundColor: 'var(--dash-surface-2)' }} />
                         )}
                         {projects.find(p => p.id === activeMenu)?.repoLink && (
                             <a
@@ -859,11 +859,11 @@ const DProjects = () => {
                                 rel="noopener noreferrer"
                                 className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 no-underline transition-colors"
                                 style={{
-                                    color: isDark ? 'var(--accent-text)' : 'var(--accent-primary)',
+                                    color: isDark ? 'var(--dash-accent-text)' : 'var(--dash-accent)',
                                     fontFamily: "var(--font-body)"
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--accent-text)' : 'var(--accent-primary)'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--dash-accent-text)' : 'var(--dash-accent)'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 <Github size={16} /> View Code
@@ -876,18 +876,18 @@ const DProjects = () => {
                                 rel="noopener noreferrer"
                                 className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 no-underline transition-colors"
                                 style={{
-                                    color: isDark ? '#4ade80' : '#16a34a',
+                                    color: isDark ? 'var(--dash-success)' : 'var(--dash-success)',
                                     fontFamily: "var(--font-body)"
                                 }}
                                 onClick={(e) => e.stopPropagation()}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--accent-soft)' : 'rgba(22, 163, 74, 0.05)'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--dash-accent-soft)' : 'var(--dash-accent-soft)'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                             >
                                 <ExternalLink size={16} /> Visit Live
                             </a>
                         )}
 
-                        <div className="mx-2 my-1 h-[1px]" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }} />
+                        <div className="mx-2 my-1 h-[1px]" style={{ backgroundColor: 'var(--dash-surface-2)' }} />
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -895,10 +895,10 @@ const DProjects = () => {
                             }}
                             className="w-full text-left flex items-center gap-2 bg-transparent border-none cursor-pointer rounded-lg text-sm p-2.5 transition-colors"
                             style={{
-                                color: 'var(--danger)',
+                                color: 'var(--dash-danger)',
                                 fontFamily: "var(--font-body)"
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'var(--danger)' : 'var(--danger)'}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--dash-danger)'}
                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                             <Trash2 size={16} /> Remove

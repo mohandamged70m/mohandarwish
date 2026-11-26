@@ -67,11 +67,11 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
         <div
             className="group flex flex-col w-full max-w-sm"
             style={{
-                backgroundColor: 'var(--card-bg)',
+                backgroundColor: 'var(--dash-surface)',
                 borderRadius: '20px',
                 overflow: 'hidden',
                 boxShadow: 'var(--card-shadow)',
-                border: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}`,
+                border: `1px solid ${'var(--dash-border)'}`,
                 transition: 'all 0.3s ease',
             }}
         >
@@ -103,8 +103,8 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                         );
                     })
                 ) : (
-                    <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-white/5' : 'bg-gray-100'}`}>
-                        <ImageIcon size={48} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
+                    <div className={`w-full h-full flex items-center justify-center ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
+                        <ImageIcon size={48} className={isDark ? 'text-dash-text-2' : 'text-dash-text-3'} />
                     </div>
                 )}
 
@@ -128,13 +128,13 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                         {visibleStack.map((tech, i) => (
                             <span key={i} style={{
                                 padding: '6px 14px',
-                                backgroundColor: tech.color ? `${tech.color}40` : 'var(--accent-text)',
+                                backgroundColor: tech.color ? `${tech.color}40` : 'var(--dash-accent-text)',
                                 color: 'white',
                                 borderRadius: '20px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
-                                border: `1px solid ${tech.color ? tech.color : 'var(--border)'}`,
-                                boxShadow: '0 4px 6px var(--border)',
+                                border: `1px solid ${tech.color ? tech.color : 'var(--dash-border)'}`,
+                                boxShadow: '0 4px 6px var(--dash-border)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '6px'
@@ -154,12 +154,12 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                         {remainingStackCount > 0 && (
                             <span style={{
                                 padding: '6px 14px',
-                                backgroundColor: 'var(--border)',
+                                backgroundColor: 'var(--dash-surface-2)',
                                 color: 'white',
                                 borderRadius: '20px',
                                 fontSize: '0.75rem',
                                 fontWeight: 600,
-                                border: '1px solid var(--border)'
+                                border: '1px solid var(--dash-border)'
                             }}>
                                 +{remainingStackCount}
                             </span>
@@ -183,31 +183,31 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                     >
                         <span style={{
                             padding: '6px 14px',
-                            backgroundColor: 'var(--border)',
+                            backgroundColor: 'var(--dash-surface-2)',
                             color: 'white',
                             borderRadius: '20px',
                             fontSize: '0.75rem',
                             fontWeight: 600,
-                            border: '1px solid var(--border)',
+                            border: '1px solid var(--dash-border)',
                             marginRight: '4px',
-                            boxShadow: '0 4px 6px var(--border)'
+                            boxShadow: '0 4px 6px var(--dash-border)'
                         }}>
                             Contributors
                         </span>
                         <div className="flex ml-1">
                             {project.contributors.slice(0, 3).map((contributor, i) => (
-                                <div key={i} className={`w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-gray-200 ${i > 0 ? '-ml-4' : ''}`} style={{ transform: `translateX(${i * -12}px)` }}>
+                                <div key={i} className={`w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-dash-surface-3 ${i > 0 ? '-ml-4' : ''}`} style={{ transform: `translateX(${i * -12}px)` }}>
                                     {typeof contributor.image === 'string' ? (
                                         <img src={contributor.image} alt={contributor.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-accent text-white text-xs font-bold">
+                                        <div className="w-full h-full flex items-center justify-center bg-dash-accent text-white text-xs font-bold">
                                             {contributor.name.charAt(0)}
                                         </div>
                                     )}
                                 </div>
                             ))}
                             {project.contributors.length > 3 && (
-                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-gray-800 text-white flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
+                                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/80 shadow-sm bg-dash-surface-3 text-white flex items-center justify-center text-[10px] font-bold -ml-4" style={{ transform: `translateX(-36px)` }}>
                                     +{project.contributors.length - 3}
                                 </div>
                             )}
@@ -218,10 +218,10 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
 
             {/* Content Section */}
             <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <h3 className="font-body font-bold text-2xl mb-2 text-[var(--text-primary)]">
+                <h3 className="font-body font-bold text-2xl mb-2 text-[var(--dash-text)]">
                     {project.name || 'Untitled Project'}
                 </h3>
-                <p className="font-body text-base text-[var(--text-secondary)] leading-relaxed flex-1 line-clamp-3">
+                <p className="font-body text-base text-[var(--dash-text-2)] leading-relaxed flex-1 line-clamp-3">
                     {project.description || 'Project description will appear here...'}
                 </p>
 
@@ -229,12 +229,12 @@ export const LiveProjectCard = ({ project, isDark }: { project: ProjectFormData;
                 {(project.repoLink || project.liveLink) && (
                     <div className="mt-6 flex gap-3">
                         {project.repoLink && (
-                            <div className="flex items-center gap-2 text-sm font-semibold text-accent">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-dash-accent-text">
                                 <Github size={16} /> Code
                             </div>
                         )}
                         {project.liveLink && (
-                            <div className="flex items-center gap-2 text-sm font-semibold text-green-500">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-dash-success">
                                 <ExternalLink size={16} /> Live
                             </div>
                         )}

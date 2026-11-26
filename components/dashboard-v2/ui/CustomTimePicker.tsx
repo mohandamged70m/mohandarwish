@@ -91,9 +91,9 @@ export default function CustomTimePicker({
   };
 
   const controlStyle: CSSProperties = {
-    background: "var(--bg-surface)",
-    color: "var(--text-primary)",
-    border: "1px solid var(--border)",
+    background: "var(--dash-surface)",
+    color: "var(--dash-text)",
+    border: "1px solid var(--dash-border)",
     borderRadius: 4,
     padding: "6px 8px",
   };
@@ -102,7 +102,7 @@ export default function CustomTimePicker({
     padding: "8px 10px",
     borderRadius: 4,
     cursor: "pointer",
-    color: "var(--text-primary)",
+    color: "var(--dash-text)",
   };
   const panelStyle: CSSProperties = {
     position: "fixed",
@@ -110,8 +110,8 @@ export default function CustomTimePicker({
     left: anchor.left,
     width: anchor.width,
     zIndex: zIndex + 1,
-    background: "var(--bg-surface)",
-    border: "1px solid var(--border)",
+    background: "var(--dash-surface)",
+    border: "1px solid var(--dash-border)",
     borderRadius: 8,
     padding: 14,
     display: "flex",
@@ -143,14 +143,14 @@ export default function CustomTimePicker({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                style={{ ...buttonStyle, border: "1px solid var(--border)", background: "transparent" }}
+                style={{ ...buttonStyle, border: "1px solid var(--dash-border)", background: "transparent" }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={apply}
-                style={{ ...buttonStyle, border: "1px solid var(--accent-primary)", background: "var(--accent-primary)" }}
+                style={{ ...buttonStyle, border: "1px solid var(--dash-accent)", background: "var(--dash-accent)" }}
               >
                 Set time
               </button>

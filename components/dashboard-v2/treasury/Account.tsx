@@ -28,11 +28,11 @@ export const ACCOUNT_ICON: Record<AccountType, typeof Wallet> = {
 
 // A distinct accent per account type, so each is recognisable at a glance.
 export const ACCOUNT_COLOR: Record<AccountType, string> = {
-    cash: 'var(--success)',    // emerald
-    bank: 'var(--accent-text)',    // blue
-    card: 'var(--accent-primary)',    // violet
-    wallet: 'var(--warning)',  // amber
-    other: 'var(--accent-primary)',   // pink
+    cash: 'var(--dash-success)',    // emerald
+    bank: 'var(--dash-accent-text)',    // blue
+    card: 'var(--dash-accent)',    // violet
+    wallet: 'var(--dash-warning)',  // amber
+    other: 'var(--dash-accent)',   // pink
 };
 
 const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Props) => {
@@ -71,9 +71,9 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
         onClose();
     };
 
-    const fieldBg = isDark ? 'bg-white/5 border-border' : 'bg-black/[0.03] border-black/10';
-    const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-primary text-sm outline-none focus:border-accent/50 transition-colors`;
-    const labelCls = 'text-xs font-semibold text-sec uppercase tracking-wider mb-3 block';
+    const fieldBg = isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10';
+    const inputCls = `w-full px-3.5 py-2.5 rounded-sm border ${fieldBg} text-dash-text text-sm outline-none focus:border-dash-accent/50 transition-colors`;
+    const labelCls = 'text-xs font-semibold text-dash-text-2 uppercase tracking-wider mb-3 block';
 
     return createPortal(
         <motion.div
@@ -90,17 +90,17 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                 exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`te-content w-full max-w-md max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[#0f0f14] border-white/10' : 'bg-white border-black/5'}`}
+                className={`te-content w-full max-w-md max-h-[92vh] overflow-y-auto custom-scrollbar rounded-sm border shadow-2xl ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--bg-surface)' : 'var(--border)' }}>
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)] sticky top-0 z-10 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-accent/10 text-accent">
+                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text">
                             <Wallet size={18} />
                         </div>
-                        <h3 className="text-lg font-bold text-primary font-body m-0">{isEdit ? 'Edit' : 'New'} account</h3>
+                        <h3 className="text-lg font-bold text-dash-text font-body m-0">{isEdit ? 'Edit' : 'New'} account</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body */}
@@ -118,7 +118,7 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                                 const on = type === t;
                                 return (
                                     <button key={t} type="button" onClick={() => setType(t)} title={t}
-                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold capitalize transition-colors ${on ? 'text-white' : 'text-sec hover:text-primary'}`}>
+                                        className={`relative flex flex-col items-center gap-1 py-2 rounded-lg text-[10px] font-bold capitalize transition-colors ${on ? 'text-white' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {on && (
                                             <motion.span
                                                 layoutId="account-type-pill"
@@ -145,14 +145,14 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                             <div className={`flex rounded-sm border ${fieldBg} p-1 gap-1`}>
                                 {CURRENCIES.map(c => (
                                     <button key={c} type="button" onClick={() => setCurrency(c)}
-                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-accent text-white shadow' : 'text-sec hover:text-primary'}`}>
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${currency === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>
                                         {CURRENCY_SYMBOL[c]}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     </div>
-                    <p className="text-[11px] text-sec -mt-1">The balance updates as you log income into and expenses from this account.</p>
+                    <p className="text-[11px] text-dash-text-2 -mt-1">The balance updates as you log income into and expenses from this account.</p>
 
                     <div>
                         <label className={labelCls}>Notes</label>
@@ -162,30 +162,30 @@ const MAccount = ({ config, account, nextOrder, onSave, onDelete, onClose }: Pro
                     <div>
                         <div className="flex items-center gap-3 select-none">
                             <Toggle checked={countsTowardNetProfit} onChange={setCountsTowardNetProfit} aria-label="Counts toward net profit" />
-                            <span className="text-sm text-primary font-medium flex items-center gap-1.5"><TrendingUp size={14} /> Counts toward net profit</span>
+                            <span className="text-sm text-dash-text font-medium flex items-center gap-1.5"><TrendingUp size={14} /> Counts toward net profit</span>
                         </div>
-                        <p className="text-[11px] text-sec mt-1.5 ml-7">Turn off for money that isn't real business P&amp;L (e.g. savings, a client's escrow) - income/expenses here still update this account's balance, just not Net profit or the earnings chart.</p>
+                        <p className="text-[11px] text-dash-text-2 mt-1.5 ml-7">Turn off for money that isn't real business P&amp;L (e.g. savings, a client's escrow) - income/expenses here still update this account's balance, just not Net profit or the earnings chart.</p>
                     </div>
 
                     {isEdit && (
                         <div className="flex items-center gap-3 select-none">
                             {/* Archive keeps amber: it's a warning state, not the primary action. */}
-                            <Toggle checked={archived} onChange={setArchived} color="var(--warning)" aria-label="Archive account" />
-                            <span className="text-sm text-primary font-medium flex items-center gap-1.5"><Archive size={14} /> Archive (hide from pickers, keep history)</span>
+                            <Toggle checked={archived} onChange={setArchived} color="var(--dash-warning)" aria-label="Archive account" />
+                            <span className="text-sm text-dash-text font-medium flex items-center gap-1.5"><Archive size={14} /> Archive (hide from pickers, keep history)</span>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 flex gap-3 border-t border-[var(--section-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--bg-surface)' : 'var(--border)' }}>
+                <div className="p-4 flex gap-3 border-t border-[var(--dash-border)] sticky bottom-0 backdrop-blur-xl" style={{ background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)' }}>
                     {isEdit && onDelete && (
-                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-red-500 hover:bg-red-500/10 transition-all flex items-center gap-2">
+                        <button onClick={() => { onDelete(); onClose(); }} className="px-4 py-2.5 rounded-sm font-semibold text-sm text-dash-danger hover:bg-dash-accent-soft transition-all flex items-center gap-2">
                             <Trash2 size={16} /> Delete
                         </button>
                     )}
                     <div className="flex-1" />
-                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-sec hover:bg-black/5 dark:hover:bg-white/10 transition-all">Cancel</button>
-                    <button onClick={save} className="px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 bg-accent hover:bg-accent shadow-blue-500/20">
+                    <button onClick={onClose} className="px-5 py-2.5 rounded-sm font-semibold text-sm text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
+                    <button onClick={save} className="px-6 py-2.5 rounded-sm font-bold text-sm text-white shadow-lg transition-all active:scale-95 bg-dash-accent hover:bg-dash-accent shadow-blue-500/20">
                         {isEdit ? 'Save' : 'Add'}
                     </button>
                 </div>

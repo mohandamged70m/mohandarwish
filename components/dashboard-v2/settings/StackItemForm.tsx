@@ -60,7 +60,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
         <>
             <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[1100] flex items-center justify-center animate-fade-in p-4">
                 <div className="glass-panel w-full max-w-[500px] overflow-hidden animate-scale-in">
-                    <div className="p-6 border-b border-gray-500/10 flex justify-between items-center">
+                    <div className="p-6 border-b border-dash-border flex justify-between items-center">
                         <h2 className="heading-md text-base sm:text-lg md:text-xl">{initialData ? 'Edit Stack' : 'Add Stack'}</h2>
                         <button onClick={onClose} className="btn-icon"><X size={24} /></button>
                     </div>
@@ -80,7 +80,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                             <div className="flex flex-col sm:flex-row gap-4">
                                 {/* Preview */}
                                 <div className="flex-shrink-0 mx-auto sm:mx-0">
-                                    <div className={`w-24 h-24 rounded-sm border-2 border-dashed ${icon ? 'border-accent bg-accent/5' : 'border-gray-500/20'} flex items-center justify-center p-2 relative group`}>
+                                    <div className={`w-24 h-24 rounded-sm border-2 border-dashed ${icon ? 'border-dash-accent bg-dash-accent/5' : 'border-dash-border'} flex items-center justify-center p-2 relative group`}>
                                         {icon ? (
                                             <>
                                                 <img src={icon} alt="Icon" className="w-full h-full object-contain" />
@@ -89,7 +89,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                                 </div>
                                             </>
                                         ) : (
-                                            <Code size={32} className="text-sec opacity-50" />
+                                            <Code size={32} className="text-dash-text-2 opacity-50" />
                                         )}
                                     </div>
                                 </div>
@@ -99,12 +99,12 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     {/* Local Upload */}
                                     <div
                                         onClick={() => iconInputRef.current?.click()}
-                                        className="p-3 rounded-lg border border-gray-500/20 hover:bg-gray-500/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
+                                        className="p-3 rounded-lg border border-dash-border hover:bg-dash-surface-20/5 cursor-pointer flex items-center justify-center sm:justify-start gap-3 transition-colors"
                                     >
-                                        <div className="p-1.5 rounded-md bg-gray-500/10">
-                                            <HardDrive size={16} className="text-sec" />
+                                        <div className="p-1.5 rounded-md bg-dash-surface-3">
+                                            <HardDrive size={16} className="text-dash-text-2" />
                                         </div>
-                                        <span className="text-xs text-sec font-medium">Upload Local File</span>
+                                        <span className="text-xs text-dash-text-2 font-medium">Upload Local File</span>
                                         <input ref={iconInputRef} type="file" accept=".svg,image/svg+xml" onChange={handleIconUpload} style={{ display: 'none' }} />
                                     </div>
 
@@ -120,7 +120,7 @@ const MStackItem = ({ isOpen, onClose, onSave, initialData }: MStackItemProps) =
                                     </div>
                                 </div>
                             </div>
-                            <p className="text-center sm:text-left text-muted text-[10px] mt-1 pl-1">SVG files recommended for best quality</p>
+                            <p className="text-center sm:text-left text-dash-text-3 text-[10px] mt-1 pl-1">SVG files recommended for best quality</p>
                         </div>
 
                         <div className="flex justify-end gap-3 mt-4">

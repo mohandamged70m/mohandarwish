@@ -910,7 +910,7 @@ export default function DSettings() {
                     setProfileImagePreview(downloadURL);
                     setProfileImageFile(null);
                     setProfileImageDirty(false);
-                    
+
                     safeSetAlert({ show: true, type: 'success', message: 'Profile image cropped and saved!', duration: 3000 });
                 }
             } catch (e) {
@@ -1041,21 +1041,21 @@ export default function DSettings() {
         return createPortal(
             <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[3000] flex items-center justify-center p-4 animate-fade-in">
                 <div className="w-full max-w-lg">
-                    <div className={`glass-panel overflow-hidden rounded-sm border ${isDark ? 'border-border bg-zinc-900/90' : 'border-black/5 bg-white/90'}`}>
+                    <div className={`glass-panel overflow-hidden rounded-sm border ${isDark ? 'border-dash-border bg-zinc-900/90' : 'border-black/5 bg-dash-surface/90'}`}>
                         {/* Header */}
-                        <div className="flex items-center justify-between p-5 border-b border-white/5">
+                        <div className="flex items-center justify-between p-5 border-b border-dash-border">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-accent/10 text-accent">
+                                <div className="p-2 rounded-lg bg-dash-accent/10 text-dash-accent-text">
                                     <ZoomIn size={20} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base leading-none">Crop Photo</h3>
-                                    <p className="text-[11px] text-muted mt-1 uppercase tracking-wider font-medium opacity-60">Adjust your profile image</p>
+                                    <p className="text-[11px] text-dash-text-3 mt-1 uppercase tracking-wider font-medium opacity-60">Adjust your profile image</p>
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 onClick={handleCropCancel}
-                                className="p-2 rounded-full hover:bg-white/5 text-muted transition-colors"
+                                className="p-2 rounded-full hover:bg-dash-surface/5 text-dash-text-3 transition-colors"
                             >
                                 <X size={20} />
                             </button>
@@ -1077,7 +1077,7 @@ export default function DSettings() {
                                     containerStyle: { background: 'transparent' },
                                     cropAreaStyle: {
                                         border: '2px solid white',
-                                        boxShadow: '0 0 0 9999px var(--border)'
+                                        boxShadow: '0 0 0 9999px var(--dash-border)'
                                     }
                                 }}
                             />
@@ -1086,7 +1086,7 @@ export default function DSettings() {
                         {/* Controls */}
                         <div className="p-6 flex flex-col gap-6">
                             <div className="flex items-center gap-4">
-                                <span className="text-xs font-semibold text-muted w-10">Zoom</span>
+                                <span className="text-xs font-semibold text-dash-text-3 w-10">Zoom</span>
                                 <input
                                     type="range"
                                     value={zoom}
@@ -1094,18 +1094,18 @@ export default function DSettings() {
                                     max={3}
                                     step={0.01}
                                     onChange={(e) => setZoom(Number(e.target.value))}
-                                    className="flex-1 h-1.5 bg-gray-500/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                    className="flex-1 h-1.5 bg-dash-surface-20/20 rounded-lg appearance-none cursor-pointer accent-blue-500"
                                 />
-                                <span className="text-xs font-heading text-accent w-10 text-right font-bold">
+                                <span className="text-xs font-heading text-dash-accent-text w-10 text-right font-bold">
                                     {Math.round(zoom * 100)}%
                                 </span>
                             </div>
 
                             <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div className="text-[11px] text-muted max-w-[200px]">
+                                <div className="text-[11px] text-dash-text-3 max-w-[200px]">
                                     <span className="opacity-60">Drag to move. Scroll or use slider to zoom.</span>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
@@ -1114,12 +1114,12 @@ export default function DSettings() {
                                     >
                                         Cancel
                                     </button>
-                                    
+
                                     {originalImageSrc.startsWith('http') && (
                                         <button
                                             type="button"
                                             onClick={handleSkipCrop}
-                                            className="btn btn-secondary text-xs px-4 py-2 bg-accent/5 border-accent/10 text-accent hover:bg-accent/10"
+                                            className="btn btn-secondary text-xs px-4 py-2 bg-dash-accent/5 border-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/10"
                                         >
                                             Skip
                                         </button>
@@ -1165,7 +1165,7 @@ export default function DSettings() {
                             onClick={() => handleTabChange(tab.id)}
                             className={`
                                 settings-tab-btn flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
-                                ${isActive ? 'tab-active bg-accent/15 text-accent' : 'bg-transparent text-gray-500 hover:bg-accent/10 hover:text-accent dark:text-gray-400 dark:hover:text-accent'}
+                                ${isActive ? 'tab-active bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}
                             `}
                         >
                             <Icon size={18} />
@@ -1196,11 +1196,11 @@ export default function DSettings() {
                                 {/* Current Availability Slider */}
                                 <div>
                                     <div className="flex-row-between">
-                                        <label className="text-sec text-sm">Current Availability</label>
+                                        <label className="text-dash-text-2 text-sm">Current Availability</label>
                                         <span className="font-bold text-sm" style={{ color: getAvailabilityColor(availability) }}>{availability}%</span>
                                     </div>
-                                    <div className="h-2 bg-gray-500/10 overflow-hidden relative">
-                                        <div className="absolute left-0 top-0 h-full" style={{ width: `${availability}%`, background: 'linear-gradient(to right, var(--danger), rgb(234, 179, 8), var(--success))' }} />
+                                    <div className="h-2 bg-dash-surface-3 overflow-hidden relative">
+                                        <div className="absolute left-0 top-0 h-full" style={{ width: `${availability}%`, background: 'linear-gradient(to right, var(--dash-danger), var(--dash-warning), var(--dash-success))' }} />
                                     </div>
                                     <input
                                         type="range"
@@ -1212,20 +1212,20 @@ export default function DSettings() {
                                         style={{ accentColor: getAvailabilityColor(availability) }}
                                     />
                                     <div className="flex justify-between text-xs sm:text-sm">
-                                        <span className="text-red-500">Not Available</span>
-                                        <span className="text-green-500">Available</span>
+                                        <span className="text-dash-danger">Not Available</span>
+                                        <span className="text-dash-success">Available</span>
                                     </div>
                                 </div>
 
                                 {/* Current Time / Timezone */}
                                 <div>
                                     <div className="flex-row-between stack-on-small">
-                                        <label className="text-sec text-sm sm:text-base md:text-lg flex items-center gap-2">
+                                        <label className="text-dash-text-2 text-sm sm:text-base md:text-lg flex items-center gap-2">
                                             <Clock size={16} />
                                             Current Time
                                         </label>
                                         <div className="text-right">
-                                            <span className="text-lg sm:text-xl md:text-2xl font-bold text-accent font-heading">{currentTime}</span>
+                                            <span className="text-lg sm:text-xl md:text-2xl font-bold text-dash-accent-text font-heading">{currentTime}</span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col sm:flex-row gap-3">
@@ -1266,14 +1266,14 @@ export default function DSettings() {
                             </div>
                             <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6 content-start">
                                 {stackItems.length === 0 ? (
-                                    <div className="col-span-full text-center p-12 text-sec">No stack items. Add your tech stack!</div>
+                                    <div className="col-span-full text-center p-12 text-dash-text-2">No stack items. Add your tech stack!</div>
                                 ) : stackItems.map(item => (
-                                    <div key={item.id} className="p-3 sm:p-4 md:p-6 rounded-sm sm:rounded-sm bg-gray-500/5 border border-gray-500/5 flex flex-col gap-2 sm:gap-3 md:gap-3.5 relative min-w-0">
+                                    <div key={item.id} className="p-3 sm:p-4 md:p-6 rounded-sm sm:rounded-sm bg-dash-surface-20/5 border border-dash-border flex flex-col gap-2 sm:gap-3 md:gap-3.5 relative min-w-0">
                                         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 flex gap-0.5 sm:gap-1">
                                             <button onClick={() => { setEditingStack(item); setStackModalOpen(true); }} className="btn-icon p-1 sm:p-1.5"><Edit2 size={14} className="sm:w-4 sm:h-4" /></button>
-                                            <button onClick={() => handleDeleteStack(item.id)} className="btn-icon p-1 sm:p-1.5 text-red-500 hover:bg-red-500/10"><Trash2 size={14} className="sm:w-4 sm:h-4" /></button>
+                                            <button onClick={() => handleDeleteStack(item.id)} className="btn-icon p-1 sm:p-1.5 text-dash-danger hover:bg-dash-accent-soft"><Trash2 size={14} className="sm:w-4 sm:h-4" /></button>
                                         </div>
-                                        {item.icon ? <img src={item.icon} alt={item.name} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 opacity-90 object-contain" /> : <Code size={40} className="text-gray-500/50 sm:w-12 sm:h-12 md:w-[60px] md:h-[60px]" />}
+                                        {item.icon ? <img src={item.icon} alt={item.name} className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 opacity-90 object-contain" /> : <Code size={40} className="text-dash-text-3/50 sm:w-12 sm:h-12 md:w-[60px] md:h-[60px]" />}
                                         <h4 className="heading-sm text-xs sm:text-sm md:text-base truncate">{item.name}</h4>
 
                                     </div>
@@ -1301,7 +1301,7 @@ export default function DSettings() {
                                 {heroImageMode === 'dark' && heroImagePreviewDark && (
                                     <button
                                         onClick={handleClearHeroImageDark}
-                                        className="text-[10px] uppercase tracking-wider text-red-400/70 hover:text-red-400 transition shrink-0"
+                                        className="text-[10px] uppercase tracking-wider text-dash-danger/70 hover:text-dash-danger transition shrink-0"
                                         title="Clear dark hero image"
                                     >
                                         Clear
@@ -1314,7 +1314,7 @@ export default function DSettings() {
                                 role="tablist"
                                 aria-label="Hero image mode"
                                 className="grid grid-cols-2 gap-1 p-1 rounded-sm"
-                                style={{ background: 'rgba(128,128,128,0.06)', border: '1px solid var(--section-border)' }}
+                                style={{ background: 'var(--dash-surface-2)', border: '1px solid var(--dash-border)' }}
                             >
                                 {(['light', 'dark'] as const).map((mode) => {
                                     const active = heroImageMode === mode;
@@ -1328,8 +1328,8 @@ export default function DSettings() {
                                             onClick={() => setHeroImageMode(mode)}
                                             className="flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                                             style={active
-                                                ? { background: 'var(--accent)', color: '#fff', boxShadow: '0 1px 4px var(--border)' }
-                                                : { background: 'transparent', color: 'var(--text-muted)' }}
+                                                ? { background: 'var(--accent)', color: 'var(--dash-text)', boxShadow: '0 1px 4px var(--dash-border)' }
+                                                : { background: 'transparent', color: 'var(--dash-text-3)' }}
                                         >
                                             {isLight ? <Sun size={15} /> : <Moon size={15} />}
                                             {isLight ? 'Light' : 'Dark'}
@@ -1356,27 +1356,27 @@ export default function DSettings() {
                                 const onBrowse = () => { setFirebaseSelectTarget(isLight ? 'hero' : 'heroDark'); setFirebaseBrowserOpen(true); };
                                 return (
                                     <div className="flex flex-col gap-2">
-                                        <div className="group relative overflow-hidden w-full max-w-full mx-auto md:mx-0 rounded-md bg-[var(--input-bg)] flex items-center justify-center border border-[var(--section-border)]" style={{ paddingTop: '133%' }}>
+                                        <div className="group relative overflow-hidden w-full max-w-full mx-auto md:mx-0 rounded-md bg-[var(--dash-surface-2)] flex items-center justify-center border border-[var(--dash-border)]" style={{ paddingTop: '133%' }}>
                                             {preview ? (
                                                 <img src={preview} alt={isLight ? 'Hero Light Preview' : 'Hero Dark Preview'} className="absolute inset-0 w-full h-full object-cover rounded-md" />
                                             ) : (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted gap-2">
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-dash-text-3 gap-2">
                                                     {isLight ? <User size={48} className="opacity-20" /> : <Moon size={40} className="opacity-20" />}
                                                     <span className="text-xs font-semibold uppercase tracking-widest opacity-30">{isLight ? 'No Image' : 'No Dark Image'}</span>
-                                                    {!isLight && <span className="text-[10px] text-muted opacity-70 px-4 text-center">Falls back to light image if empty</span>}
+                                                    {!isLight && <span className="text-[10px] text-dash-text-3 opacity-70 px-4 text-center">Falls back to light image if empty</span>}
                                                 </div>
                                             )}
 
-                                            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
+                                            <div className="absolute inset-0 bg-dash-surface/10 backdrop-blur-sm flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity rounded-md">
                                                 <button
                                                     onClick={onUpload}
                                                     aria-label={isLight ? 'Upload light hero image' : 'Upload dark hero image'}
-                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-md bg-accent/10 border border-accent/20 text-accent font-semibold hover:bg-accent/20 transition"
+                                                    className="inline-flex items-center gap-3 px-4 py-2 rounded-md bg-dash-accent/10 border border-dash-accent/20 text-dash-accent-text font-semibold hover:bg-dash-accent/20 transition"
                                                 >
-                                                    <span className="p-1.5 rounded-full bg-accent/10 flex items-center justify-center border border-accent/10">
-                                                        <Upload size={16} className="text-accent" />
+                                                    <span className="p-1.5 rounded-full bg-dash-accent/10 flex items-center justify-center border border-dash-accent/10">
+                                                        <Upload size={16} className="text-dash-accent-text" />
                                                     </span>
-                                                    <span className="hidden sm:inline text-accent tracking-wide font-semibold">Upload</span>
+                                                    <span className="hidden sm:inline text-dash-accent-text tracking-wide font-semibold">Upload</span>
                                                 </button>
 
                                                 <button
@@ -1389,13 +1389,13 @@ export default function DSettings() {
                                             </div>
                                         </div>
                                         {resolution ? (
-                                            <p className="text-muted text-xs">
+                                            <p className="text-dash-text-3 text-xs">
                                                 Resolution: <span className="font-heading text-xs">{resolution}</span>
-                                                {fileSize && <span className="text-muted"> &nbsp;•&nbsp; <span className="font-heading text-xs">{fileSize}</span></span>}
-                                                {sizeLoading && <span className="text-muted"> &nbsp;•&nbsp; <span className="text-xs">checking...</span></span>}
+                                                {fileSize && <span className="text-dash-text-3"> &nbsp;•&nbsp; <span className="font-heading text-xs">{fileSize}</span></span>}
+                                                {sizeLoading && <span className="text-dash-text-3"> &nbsp;•&nbsp; <span className="text-xs">checking...</span></span>}
                                             </p>
                                         ) : (
-                                            <p className="text-muted text-xs">{isLight ? 'JPG, PNG or WebP. Max 2MB' : 'Optional · shown only in dark mode'}</p>
+                                            <p className="text-dash-text-3 text-xs">{isLight ? 'JPG, PNG or WebP. Max 2MB' : 'Optional · shown only in dark mode'}</p>
                                         )}
                                     </div>
                                 );
@@ -1415,19 +1415,19 @@ export default function DSettings() {
                                 </h3>
                                 <div className="flex flex-col md:flex-row items-center gap-6">
                                     <div className="group relative flex-shrink-0">
-                                        <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-accent p-0.5 flex-shrink-0 mx-auto sm:mx-0 bg-[var(--input-bg)] flex items-center justify-center">
+                                        <div className="w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-full overflow-hidden border-2 border-dash-accent p-0.5 flex-shrink-0 mx-auto sm:mx-0 bg-[var(--dash-surface-2)] flex items-center justify-center">
                                             {profileImagePreview ? (
                                                 <img src={profileImagePreview} alt="Profile Preview" className="w-full h-full object-cover rounded-full" />
                                             ) : (
-                                                <User size={40} className="text-muted opacity-40" />
+                                                <User size={40} className="text-dash-text-3 opacity-40" />
                                             )}
                                         </div>
 
-                                        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm rounded-full">
+                                        <div className="absolute inset-0 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity bg-dash-surface/10 backdrop-blur-sm rounded-full">
                                             <button
                                                 aria-label="Upload profile image"
                                                 onClick={() => profileImageInputRef.current?.click()}
-                                                className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 text-accent flex items-center justify-center hover:bg-accent/20 transition"
+                                                className="w-10 h-10 rounded-full bg-dash-accent/10 border border-dash-accent/20 text-dash-accent-text flex items-center justify-center hover:bg-dash-accent/20 transition"
                                             >
                                                 <Upload size={16} />
                                             </button>
@@ -1448,15 +1448,15 @@ export default function DSettings() {
                                                 {!isEditingProfile ? (
                                                     <>
                                                         <div className="font-bold">{profileName}</div>
-                                                        <div className="text-sec text-sm opacity-70">{profileTitle}</div>
+                                                        <div className="text-dash-text-2 text-sm opacity-70">{profileTitle}</div>
                                                         {profileImageResolution ? (
-                                                            <p className="text-muted text-xs mt-1">
+                                                            <p className="text-dash-text-3 text-xs mt-1">
                                                                 Resolution: <span className="font-heading text-xs">{profileImageResolution}</span>
-                                                                {profileImageSize && <span className="text-muted"> &nbsp;•&nbsp; <span className="font-heading text-xs">{profileImageSize}</span></span>}
-                                                                {profileImageSizeLoading && <span className="text-muted"> &nbsp;•&nbsp; <span className="text-xs">checking...</span></span>}
+                                                                {profileImageSize && <span className="text-dash-text-3"> &nbsp;•&nbsp; <span className="font-heading text-xs">{profileImageSize}</span></span>}
+                                                                {profileImageSizeLoading && <span className="text-dash-text-3"> &nbsp;•&nbsp; <span className="text-xs">checking...</span></span>}
                                                             </p>
                                                         ) : null}
-                                                        <p className="text-muted text-xs mt-2">Profile image is used across the site</p>
+                                                        <p className="text-dash-text-3 text-xs mt-2">Profile image is used across the site</p>
                                                     </>
                                                 ) : (
                                                     <div className="flex flex-col gap-2">
@@ -1526,42 +1526,42 @@ export default function DSettings() {
 
                                 {/* Email */}
                                 <div className="flex flex-col gap-1.5">
-                                    <label htmlFor="settings-contact-email" className="text-xs font-semibold text-muted">Email</label>
+                                    <label htmlFor="settings-contact-email" className="text-xs font-semibold text-dash-text-3">Email</label>
                                     <div className="relative">
-                                        <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+                                        <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dash-text-3 pointer-events-none" />
                                         <input
                                             id="settings-contact-email"
                                             type="email"
                                             autoComplete="email"
                                             className="input-field w-full !h-11 !py-0 !pl-10 !text-sm"
-                                            style={contactEmail.trim() && !isValidContactEmail(contactEmail) ? { borderColor: 'var(--danger)' } : undefined}
+                                            style={contactEmail.trim() && !isValidContactEmail(contactEmail) ? { borderColor: 'var(--dash-danger)' } : undefined}
                                             placeholder="hello@example.com"
                                             value={contactEmail}
                                             onChange={(e) => { setContactEmail(e.target.value); setProfileInfoDirty(true); setHasUnsavedChanges(true); }}
                                         />
                                     </div>
-                                    <span className="text-xs text-muted">Shown first on the book page and on the CV. Leave empty to hide it.</span>
+                                    <span className="text-xs text-dash-text-3">Shown first on the book page and on the CV. Leave empty to hide it.</span>
                                 </div>
 
                                 {/* Links */}
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-muted">Links</span>
-                                        <span className="text-xs text-muted tabular-nums">{socialLinks.length}/5</span>
+                                        <span className="text-xs font-semibold text-dash-text-3">Links</span>
+                                        <span className="text-xs text-dash-text-3 tabular-nums">{socialLinks.length}/5</span>
                                     </div>
                                     {socialLinks.length > 0 ? (
                                         <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
                                             {socialLinks.map((link, index) => (
-                                                <li key={index} className="flex items-center gap-3 h-12 pl-3 pr-1.5 rounded-sm bg-black/[0.03] dark:bg-white/[0.04]">
-                                                    <span className="w-7 h-7 rounded-lg bg-accent/10 text-accent grid place-items-center shrink-0">
+                                                <li key={index} className="flex items-center gap-3 h-12 pl-3 pr-1.5 rounded-sm bg-black/[0.03] dark:bg-dash-surface/[0.04]">
+                                                    <span className="w-7 h-7 rounded-lg bg-dash-accent/10 text-dash-accent-text grid place-items-center shrink-0">
                                                         <Link size={14} />
                                                     </span>
                                                     <span className="font-bold text-sm truncate shrink-0 max-w-[40%]">{link.name}</span>
-                                                    <span className="text-xs text-muted truncate min-w-0 flex-1">{link.url}</span>
+                                                    <span className="text-xs text-dash-text-3 truncate min-w-0 flex-1">{link.url}</span>
                                                     <button
                                                         type="button"
                                                         aria-label={`Remove ${link.name}`}
-                                                        className="w-9 h-9 grid place-items-center shrink-0 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        className="w-9 h-9 grid place-items-center shrink-0 text-dash-danger hover:bg-dash-accent-soft rounded-lg transition-colors"
                                                         onClick={() => {
                                                             const newLinks = [...socialLinks];
                                                             newLinks.splice(index, 1);
@@ -1576,7 +1576,7 @@ export default function DSettings() {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="text-center p-5 border border-dashed border-black/10 dark:border-white/10 rounded-sm text-muted text-sm">
+                                        <div className="text-center p-5 border border-dashed border-black/10 dark:border-dash-border rounded-sm text-dash-text-3 text-sm">
                                             No links yet. Add up to 5.
                                         </div>
                                     )}
@@ -1586,7 +1586,7 @@ export default function DSettings() {
                                 {socialLinks.length < 5 && (
                                     <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_auto] gap-2 items-end">
                                         <div className="flex flex-col gap-1.5">
-                                            <label htmlFor="settings-link-name" className="text-xs font-semibold text-muted">Name</label>
+                                            <label htmlFor="settings-link-name" className="text-xs font-semibold text-dash-text-3">Name</label>
                                             <input
                                                 id="settings-link-name"
                                                 className="input-field w-full !h-11 !py-0 !text-sm"
@@ -1596,7 +1596,7 @@ export default function DSettings() {
                                             />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
-                                            <label htmlFor="settings-link-url" className="text-xs font-semibold text-muted">Address</label>
+                                            <label htmlFor="settings-link-url" className="text-xs font-semibold text-dash-text-3">Address</label>
                                             <input
                                                 id="settings-link-url"
                                                 className="input-field w-full !h-11 !py-0 !text-sm"

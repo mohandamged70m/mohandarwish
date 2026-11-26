@@ -266,4 +266,20 @@ NO blur / NO glass on cards
 
 ---
 
-*Last updated: 2026-09-08. Dark: black #0A0A0A base + wine system. Light: warm paper + wine. Implemented across portfolio (tokens, fonts, buttons, badges, nav, sections).*
+## 10. Owner dashboard theme (`--dash-*`)
+
+The admin UI is denser than the marketing site, so it uses a scoped palette (`.dash-root` in `components/dashboard-v2/dashboard.css`) derived from the same wine system. Never use the site's `--border` token as a background in the dashboard.
+
+| Token | Dark | Light | Role |
+|---|---|---|---|
+| `--dash-bg` | `#0A0A0A` | `#FAF6F0` | App canvas |
+| `--dash-surface` / `-2` / `-3` | `#120504` / `#1B0807` / `#250902` | `#FFF` / `#FAF1EA` / `#F5ECE4` | Panels, inputs, hover/active |
+| `--dash-border` / `-strong` | `#381216` / `#6D1D24` | `#E8D5CC` / `#D6BFAF` | Hairlines and dividers |
+| `--dash-accent` / `-text` | `#AD2831` / `#F4896F` | `#800E13` / `#800E13` | Fills / AA-safe text & focus |
+| `--dash-success` / `-warning` / `-danger` / `-info` | `#4ADE80` / `#FBBF24` / `#FB7185` / `#7DD3FC` | `#047857` / `#B45309` / `#BE123C` / `#0369A1` | Status only — never decoration |
+
+Rules: flat panels (no blur), 4px radius, `font-display` for h1–h3, `font-heading` for labels, `font-body` for data. Blur is allowed only on the modal backdrop. Semantic colours carry status, never visual identity — wine remains the only accent.
+
+---
+
+*Last updated: 2026-09-08. Dark: black #0A0A0A base + wine system. Light: warm paper + wine. Implemented across portfolio (tokens, fonts, buttons, badges, nav, sections) and the owner dashboard (`--dash-*`).*

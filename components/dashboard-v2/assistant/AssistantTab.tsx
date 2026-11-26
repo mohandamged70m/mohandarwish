@@ -21,12 +21,12 @@ type Status = 'idle' | 'connecting' | 'thinking' | 'acting' | 'speaking' | 'erro
 // Each status animates the spark through its OWN set of colors - not one generic
 // hue. e.g. thinking = violet→pink→indigo shimmer; acting = amber→green hustle.
 const PALETTES: Record<Status, string[]> = {
-    idle: ['var(--text-muted)', '#cbd5e1', '#a5b4fc'],
-    connecting: ['var(--accent-primary)', 'var(--accent-text)', '#0ea5e9'],
-    thinking: ['var(--accent-primary)', 'var(--accent-primary)', '#6366f1', 'var(--accent-primary)'],
-    acting: ['var(--warning)', 'var(--success)', 'var(--success)', '#eab308'],
-    speaking: ['var(--success)', 'var(--success)', 'var(--success)'],
-    error: ['var(--danger)', 'var(--danger)', '#fb7185'],
+    idle: ['var(--dash-text-3)', 'var(--dash-text-3)', 'var(--dash-accent-text)'],
+    connecting: ['var(--dash-accent)', 'var(--dash-accent-text)', 'var(--dash-info)'],
+    thinking: ['var(--dash-accent)', 'var(--dash-accent)', 'var(--dash-accent)', 'var(--dash-accent)'],
+    acting: ['var(--dash-warning)', 'var(--dash-success)', 'var(--dash-success)', 'var(--dash-warning)'],
+    speaking: ['var(--dash-success)', 'var(--dash-success)', 'var(--dash-success)'],
+    error: ['var(--dash-danger)', 'var(--dash-danger)', 'var(--dash-danger)'],
 };
 const STATUS_LABEL: Record<Status, string> = {
     idle: 'Ready', connecting: 'Connecting…', thinking: 'Thinking…', acting: 'Working…', speaking: 'Done', error: 'Oops',
@@ -646,12 +646,12 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
     // ── render ───────────────────────────────────────────────────────────────
     const bubble = (m: DisplayMsg, i: number) => {
         if (m.role === 'tool') return (
-            <div key={i} className="flex items-center gap-2 text-[11px] text-sec font-heading pl-1 py-0.5"><ArrowRight size={11} className="text-accent" /> {m.text}</div>
+            <div key={i} className="flex items-center gap-2 text-[11px] text-dash-text-2 font-heading pl-1 py-0.5"><ArrowRight size={11} className="text-dash-accent-text" /> {m.text}</div>
         );
         const me = m.role === 'user';
         return (
             <div key={i} className={`flex ${me ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-sm text-sm ${me ? 'bg-accent text-white rounded-br-md' : isDark ? 'bg-white/10 text-white rounded-bl-md' : 'bg-black/[0.05] text-gray-900 rounded-bl-md'}`}>
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-sm text-sm ${me ? 'bg-dash-accent text-white rounded-br-md' : isDark ? 'bg-dash-surface/10 text-white rounded-bl-md' : 'bg-black/[0.05] text-dash-text rounded-bl-md'}`}>
                     {me ? m.text : <Markdown>{m.text}</Markdown>}
                 </div>
             </div>
@@ -665,8 +665,8 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                 onClick={() => setOpen(o => !o)}
                 data-spark-ui
                 aria-label="AI assistant"
-                className={`fixed bottom-5 right-5 z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[var(--bg-primary)]/90 border-border' : 'bg-white/90 border-black/10'} backdrop-blur-xl`}
-                style={{ boxShadow: '0 10px 40px var(--border)' }}
+                className={`fixed bottom-5 right-5 z-[1200] w-14 h-14 rounded-full flex items-center justify-center shadow-2xl border transition-transform active:scale-90 hover:scale-105 ${isDark ? 'bg-[var(--dash-bg)]/90 border-dash-border' : 'bg-dash-surface/90 border-black/10'} backdrop-blur-xl`}
+                style={{ boxShadow: '0 10px 40px var(--dash-border)' }}
             >
                 <Sparkles ref={iconRef} size={26} style={{ filter: 'drop-shadow(0 0 7px)' }} />
             </button>
@@ -674,56 +674,56 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
             {/* Human-like cursor */}
             {createPortal(
                 <div ref={cursorRef} data-spark-ui className="fixed z-[2000] pointer-events-none" style={{ left: 0, top: 0, opacity: 0, transform: 'translate(-2px,-2px)' }}>
-                    <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-blue-400/40" style={{ opacity: 0 }} />
-                    <MousePointer2 size={24} className="text-accent fill-blue-500/30" style={{ filter: 'drop-shadow(0 2px 4px var(--border))' }} />
+                    <div className="cursor-pulse absolute -left-2 -top-2 w-8 h-8 rounded-full bg-dash-info/40" style={{ opacity: 0 }} />
+                    <MousePointer2 size={24} className="text-dash-accent-text fill-blue-500/30" style={{ filter: 'drop-shadow(0 2px 4px var(--dash-border))' }} />
                 </div>,
                 document.body
             )}
 
             {/* Chat modal */}
             {open && createPortal(
-                <div data-spark-ui role="dialog" aria-label="Spark assistant" className="fixed bottom-24 right-5 z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-sm border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100vh - 8rem))', background: isDark ? 'var(--bg-surface)' : 'var(--border)', borderColor: isDark ? 'var(--border)' : 'var(--border)', }}>
+                <div data-spark-ui role="dialog" aria-label="Spark assistant" className="fixed bottom-24 right-5 z-[1300] w-[min(420px,calc(100vw-2.5rem))] flex flex-col rounded-sm border shadow-2xl overflow-hidden" style={{ maxHeight: 'min(640px, calc(100vh - 8rem))', background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)', borderColor: 'var(--dash-border)', }}>
                     {/* Header */}
-                    <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--section-border)]">
+                    <div className="flex items-center justify-between gap-2 p-4 border-b border-[var(--dash-border)]">
                         <div className="flex items-center gap-2.5 min-w-0">
-                            <Sparkles size={18} className="text-accent" />
+                            <Sparkles size={18} className="text-dash-accent-text" />
                             <div className="min-w-0">
-                                <div className="text-sm font-bold text-primary leading-tight">Spark</div>
-                                <div className="text-[11px] text-sec leading-tight flex items-center gap-1.5">
+                                <div className="text-sm font-bold text-dash-text leading-tight">Spark</div>
+                                <div className="text-[11px] text-dash-text-2 leading-tight flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: PALETTES[status][0] }} />{STATUS_LABEL[status]}
                                     {model && <span className="truncate">· {model}</span>}
                                 </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-emerald-500 bg-emerald-500/15' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
-                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-amber-500 bg-amber-500/15' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Zap size={17} className={autoMode ? 'fill-amber-500/40' : ''} /></button>
-                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-accent bg-accent/10' : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Settings2 size={17} /></button>
-                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><X size={17} /></button>
+                            <button onClick={toggleVoiceOut} aria-label={voiceOut ? 'Turn voice replies off' : 'Turn voice replies on'} aria-pressed={voiceOut} title={voiceOut ? 'Voice replies ON - Spark speaks answers' : 'Voice replies OFF'} className={`p-2 rounded-lg transition-colors ${voiceOut ? 'text-dash-success bg-dash-success/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}>{voiceOut ? <Volume2 size={17} /> : <VolumeX size={17} />}</button>
+                            <button onClick={toggleAuto} aria-label={autoMode ? 'Turn auto mode off' : 'Turn auto mode on'} aria-pressed={autoMode} title={autoMode ? 'Auto mode ON - acts without asking' : 'Auto mode OFF - confirms writes & deletes'} className={`p-2 rounded-lg transition-colors ${autoMode ? 'text-dash-warning bg-dash-warning/15' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Zap size={17} className={autoMode ? 'fill-amber-500/40' : ''} /></button>
+                            <button onClick={() => setShowSettings(s => !s)} aria-label="Spark settings" aria-expanded={showSettings} className={`p-2 rounded-lg transition-colors ${showSettings ? 'text-dash-accent-text bg-dash-accent/10' : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Settings2 size={17} /></button>
+                            <button onClick={() => setOpen(false)} aria-label="Close Spark" className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><X size={17} /></button>
                         </div>
                     </div>
 
                     {/* Settings panel */}
                     {showSettings && (
-                        <div className="p-4 flex flex-col gap-3 border-b border-[var(--section-border)] bg-black/[0.015] dark:bg-white/[0.02]">
+                        <div className="p-4 flex flex-col gap-3 border-b border-[var(--dash-border)] bg-dash-surface-2 dark:bg-dash-surface-2">
                             <div>
-                                <label className="text-[11px] font-semibold text-sec uppercase tracking-wider mb-1.5 block">API key (this browser)</label>
-                                <input value={keyInput} onChange={e => setKeyInput(e.target.value)} aria-label="API key override" type="password" placeholder={`active: ${maskedKey}`} className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary`} />
-                                <p className="text-[10px] text-sec mt-1">The key is held server-side by the <code>llm</code> Cloud Function - nothing ships in the bundle. Paste one here only to override it in this browser for testing. {provider ? `Provider: ${PROVIDER_LABEL[provider]}.` : ''}</p>
+                                <label className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider mb-1.5 block">API key (this browser)</label>
+                                <input value={keyInput} onChange={e => setKeyInput(e.target.value)} aria-label="API key override" type="password" placeholder={`active: ${maskedKey}`} className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text`} />
+                                <p className="text-[10px] text-dash-text-2 mt-1">The key is held server-side by the <code>llm</code> Cloud Function - nothing ships in the bundle. Paste one here only to override it in this browser for testing. {provider ? `Provider: ${PROVIDER_LABEL[provider]}.` : ''}</p>
                             </div>
                             <div className="flex items-end gap-2">
                                 <div className="flex-1">
-                                    <label className="text-[11px] font-semibold text-sec uppercase tracking-wider mb-1.5 block">Model</label>
+                                    <label className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider mb-1.5 block">Model</label>
                                     <Select value={model} options={models} onChange={chooseModel} isDark={isDark} placeholder={models.length ? 'Choose a model' : 'Load models first'} />
                                 </div>
-                                <button onClick={loadModels} disabled={loadingModels} className="px-3 py-2.5 rounded-sm text-sm font-semibold text-accent border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-all disabled:opacity-50 flex items-center gap-1.5">
+                                <button onClick={loadModels} disabled={loadingModels} className="px-3 py-2.5 rounded-sm text-sm font-semibold text-dash-accent-text border border-dash-accent/20 bg-dash-accent/5 hover:bg-dash-accent/10 transition-all disabled:opacity-50 flex items-center gap-1.5">
                                     {loadingModels ? <Loader2 size={15} className="animate-spin" /> : 'Load'}
                                 </button>
                             </div>
-                            {settingsMsg && <p className="text-[11px] text-sec">{settingsMsg}</p>}
+                            {settingsMsg && <p className="text-[11px] text-dash-text-2">{settingsMsg}</p>}
                             <div className="flex items-end gap-2">
                                 <div className="flex-1">
-                                    <label className="text-[11px] font-semibold text-sec uppercase tracking-wider mb-1.5 block">Voice</label>
+                                    <label className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider mb-1.5 block">Voice</label>
                                     <Select
                                         value={voiceName || (pickVoice()?.name ?? '')}
                                         options={enVoices.map(v => v.name)}
@@ -732,16 +732,16 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                         placeholder={enVoices.length ? 'Choose a voice' : 'No voices found'}
                                     />
                                 </div>
-                                <button onClick={() => speak('Hey, this is how I sound. Pick the voice you like best.')} className="px-3 py-2.5 rounded-sm text-sm font-semibold text-emerald-500 border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 transition-all flex items-center gap-1.5"><Volume2 size={15} /> Test</button>
+                                <button onClick={() => speak('Hey, this is how I sound. Pick the voice you like best.')} className="px-3 py-2.5 rounded-sm text-sm font-semibold text-dash-success border border-dash-success/30 bg-dash-success/5 hover:bg-dash-accent-soft transition-all flex items-center gap-1.5"><Volume2 size={15} /> Test</button>
                             </div>
-                            <p className="text-[10px] text-sec -mt-1">Tip: voices with “Natural”, “Google”, or “Online” in the name sound the most human. The mic button starts a hands-free voice chat.</p>
+                            <p className="text-[10px] text-dash-text-2 -mt-1">Tip: voices with “Natural”, “Google”, or “Online” in the name sound the most human. The mic button starts a hands-free voice chat.</p>
 
                             {/* Memory - persists in Firestore (Spark/Memory); Spark can also edit this herself */}
-                            <div className="pt-2 border-t border-[var(--section-border)] flex flex-col gap-2">
-                                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sec uppercase tracking-wider"><Brain size={13} /> Memory</div>
-                                <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec`} />
-                                <textarea value={memory.instructions || ''} onChange={e => setMemory(m => ({ ...m, instructions: e.target.value }))} rows={3} placeholder="Standing instructions for Spark (how she should behave, tone, defaults)…" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none resize-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec`} />
-                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions }).then(() => setSettingsMsg('Memory saved')).catch(() => setSettingsMsg('Save failed'))} className="self-end px-4 py-2 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent transition-all active:scale-95">Save memory</button>
+                            <div className="pt-2 border-t border-[var(--dash-border)] flex flex-col gap-2">
+                                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider"><Brain size={13} /> Memory</div>
+                                <input value={memory.userName || ''} onChange={e => setMemory(m => ({ ...m, userName: e.target.value }))} placeholder="Your name" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
+                                <textarea value={memory.instructions || ''} onChange={e => setMemory(m => ({ ...m, instructions: e.target.value }))} rows={3} placeholder="Standing instructions for Spark (how she should behave, tone, defaults)…" className={`w-full px-3 py-2 rounded-sm border text-sm outline-none resize-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2`} />
+                                <button onClick={() => saveMemory({ userName: memory.userName, instructions: memory.instructions }).then(() => setSettingsMsg('Memory saved')).catch(() => setSettingsMsg('Save failed'))} className="self-end px-4 py-2 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent transition-all active:scale-95">Save memory</button>
                             </div>
                         </div>
                     )}
@@ -749,31 +749,31 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                     {/* Messages */}
                     <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-4 flex flex-col gap-2.5 min-h-[160px]">
                         {messages.length === 0 ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center text-sec gap-2 py-8">
-                                <Sparkles size={28} className="text-accent/60" />
-                                <p className="text-sm font-medium text-primary">Hey, I'm Spark</p>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center text-dash-text-2 gap-2 py-8">
+                                <Sparkles size={28} className="text-dash-accent-text/60" />
+                                <p className="text-sm font-medium text-dash-text">Hey, I'm Spark</p>
                                 <p className="text-xs max-w-[260px]">Ask me to navigate, click buttons, or read/change your data. e.g. "open treasury", "how many projects do I have?", "add a tag called VIP".</p>
                             </div>
                         ) : messages.map(bubble)}
 
                         {/* Confirm card */}
                         {pending && (
-                            <div className={`rounded-sm border p-3.5 flex flex-col gap-2.5 ${isDark ? 'bg-amber-500/10 border-amber-500/30' : 'bg-amber-50 border-amber-300'}`}>
-                                <div className="flex items-center gap-2 text-sm font-bold text-primary"><Database size={15} className="text-amber-500" /> Confirm action</div>
-                                <p className="text-sm text-primary">{pending.desc}</p>
-                                {pending.detail && <pre className="text-[11px] text-sec bg-black/5 dark:bg-white/5 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
+                            <div className={`rounded-sm border p-3.5 flex flex-col gap-2.5 ${isDark ? 'bg-dash-accent-soft border-dash-warning/30' : 'bg-dash-accent-soft border-dash-warning'}`}>
+                                <div className="flex items-center gap-2 text-sm font-bold text-dash-text"><Database size={15} className="text-dash-warning" /> Confirm action</div>
+                                <p className="text-sm text-dash-text">{pending.desc}</p>
+                                {pending.detail && <pre className="text-[11px] text-dash-text-2 bg-black/5 dark:bg-dash-surface/5 rounded-lg p-2 overflow-x-auto whitespace-pre-wrap">{pending.detail}</pre>}
                                 <div className="flex gap-2 justify-end">
-                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-sec hover:bg-black/5 dark:hover:bg-white/10">Cancel</button>
-                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 flex items-center gap-1.5"><Check size={15} /> Do it</button>
+                                    <button onClick={() => pending.resolve(false)} className="px-3.5 py-1.5 rounded-lg text-sm font-semibold text-dash-text-2 hover:bg-black/5 dark:hover:bg-dash-surface/10">Cancel</button>
+                                    <button onClick={() => pending.resolve(true)} className="px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-dash-warning hover:bg-dash-warning flex items-center gap-1.5"><Check size={15} /> Do it</button>
                                 </div>
                             </div>
                         )}
 
                         {/* ask_user quiz */}
                         {quiz && (
-                            <div className={`rounded-sm border p-3.5 flex flex-col gap-3 ${isDark ? 'bg-accent/10 border-accent/30' : 'bg-blue-50 border-blue-300'}`}>
-                                <div className="flex items-center gap-2 text-sm font-bold text-primary"><HelpCircle size={15} className="text-accent" /> Quick question</div>
-                                <p className="text-sm text-primary">{quiz.question}</p>
+                            <div className={`rounded-sm border p-3.5 flex flex-col gap-3 ${isDark ? 'bg-dash-accent/10 border-dash-accent/30' : 'bg-dash-accent-soft border-dash-info'}`}>
+                                <div className="flex items-center gap-2 text-sm font-bold text-dash-text"><HelpCircle size={15} className="text-dash-accent-text" /> Quick question</div>
+                                <p className="text-sm text-dash-text">{quiz.question}</p>
                                 <div className="flex flex-col gap-2">
                                     {quiz.options.map((o, i) => {
                                         const sel = quizSel.includes(o);
@@ -782,22 +782,22 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                                 key={i}
                                                 onClick={() => quiz.multi ? toggleQuiz(o) : answerQuiz(o)}
                                                 className={`w-full text-left px-3.5 py-2.5 rounded-sm border text-sm font-medium transition-all flex items-center gap-2.5
-                                                    ${sel ? 'bg-accent text-white border-accent' : isDark ? 'bg-white/5 border-white/10 text-primary hover:border-accent/50' : 'bg-white border-black/10 text-primary hover:border-accent/50'}`}
+                                                    ${sel ? 'bg-dash-accent text-white border-dash-accent' : isDark ? 'bg-dash-surface/5 border-dash-border text-dash-text hover:border-dash-accent/50' : 'bg-dash-surface border-black/10 text-dash-text hover:border-dash-accent/50'}`}
                                             >
-                                                {quiz.multi && <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${sel ? 'bg-white/20 border-white/50' : 'border-current opacity-50'}`}>{sel && <Check size={12} />}</span>}
+                                                {quiz.multi && <span className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${sel ? 'bg-dash-surface/20 border-dash-border0' : 'border-current opacity-50'}`}>{sel && <Check size={12} />}</span>}
                                                 <span>{o}</span>
                                             </button>
                                         );
                                     })}
                                 </div>
                                 {quiz.multi && (
-                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-accent hover:bg-accent disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
+                                    <button onClick={() => answerQuiz(quizSel.join(', '))} disabled={!quizSel.length} className="self-end px-4 py-1.5 rounded-lg text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent disabled:opacity-40 flex items-center gap-1.5"><Check size={15} /> Submit</button>
                                 )}
                                 {/* Own answer - when none of the choices fit */}
                                 <div className="flex items-center gap-1.5 pt-1">
-                                    <div className="flex-1 h-px bg-[var(--input-border)]" />
-                                    <span className="text-[10px] uppercase tracking-wider text-sec font-semibold">or your own</span>
-                                    <div className="flex-1 h-px bg-[var(--input-border)]" />
+                                    <div className="flex-1 h-px bg-dash-surface-3" />
+                                    <span className="text-[10px] uppercase tracking-wider text-dash-text-2 font-semibold">or your own</span>
+                                    <div className="flex-1 h-px bg-dash-surface-3" />
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -805,19 +805,19 @@ const Assistant = ({ onNavigate, currentPage }: { onNavigate: (page: string) => 
                                         onChange={e => setQuizCustom(e.target.value)}
                                         onKeyDown={e => { if (e.key === 'Enter' && quizCustom.trim()) answerQuiz(quizCustom.trim()); }}
                                         placeholder="Type your own answer…"
-                                        className={`flex-1 px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-black/10'} text-primary placeholder:text-sec`}
+                                        className={`flex-1 px-3 py-2 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-dash-surface border-black/10'} text-dash-text placeholder:text-dash-text-2`}
                                     />
-                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} aria-label="Send your answer" className="p-2 rounded-sm bg-accent text-white hover:bg-accent disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
+                                    <button onClick={() => quizCustom.trim() && answerQuiz(quizCustom.trim())} disabled={!quizCustom.trim()} aria-label="Send your answer" className="p-2 rounded-sm bg-dash-accent text-white hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95"><Send size={16} /></button>
                                 </div>
                             </div>
                         )}
                     </div>
 
                     {/* Input */}
-                    <div className="p-3 border-t border-[var(--section-border)] flex items-center gap-2">
-                        <input value={input} onChange={e => setInput(e.target.value)} aria-label="Message Spark" onKeyDown={e => { if (e.key === 'Enter') send(); }} disabled={busy} placeholder={busy ? 'Working…' : listening ? 'Listening…' : 'Ask Spark…'} className={`flex-1 px-3.5 py-2.5 rounded-sm border text-sm outline-none ${isDark ? 'bg-white/5 border-white/10' : 'bg-black/[0.03] border-black/10'} text-primary placeholder:text-sec disabled:opacity-60`} />
-                        <button onClick={toggleConvo} aria-label={convoMode ? 'Stop voice chat' : 'Start voice chat'} aria-pressed={convoMode} title={convoMode ? 'Stop voice chat' : 'Start hands-free voice chat'} className={`p-2.5 rounded-sm transition-all flex-shrink-0 active:scale-95 ${convoMode ? (listening ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-500 text-white') : 'text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10'}`}><Mic size={18} /></button>
-                        <button onClick={() => send()} disabled={busy || !input.trim()} aria-label="Send message" className="p-2.5 rounded-sm bg-accent text-white hover:bg-accent disabled:opacity-40 transition-all active:scale-95">
+                    <div className="p-3 border-t border-[var(--dash-border)] flex items-center gap-2">
+                        <input value={input} onChange={e => setInput(e.target.value)} aria-label="Message Spark" onKeyDown={e => { if (e.key === 'Enter') send(); }} disabled={busy} placeholder={busy ? 'Working…' : listening ? 'Listening…' : 'Ask Spark…'} className={`flex-1 px-3.5 py-2.5 rounded-sm border text-sm outline-none ${isDark ? 'bg-dash-surface/5 border-dash-border' : 'bg-black/[0.03] border-black/10'} text-dash-text placeholder:text-dash-text-2 disabled:opacity-60`} />
+                        <button onClick={toggleConvo} aria-label={convoMode ? 'Stop voice chat' : 'Start voice chat'} aria-pressed={convoMode} title={convoMode ? 'Stop voice chat' : 'Start hands-free voice chat'} className={`p-2.5 rounded-sm transition-all flex-shrink-0 active:scale-95 ${convoMode ? (listening ? 'bg-dash-danger text-white animate-pulse' : 'bg-dash-success text-white') : 'text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10'}`}><Mic size={18} /></button>
+                        <button onClick={() => send()} disabled={busy || !input.trim()} aria-label="Send message" className="p-2.5 rounded-sm bg-dash-accent text-white hover:bg-dash-accent disabled:opacity-40 transition-all active:scale-95">
                             {busy ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                         </button>
                     </div>

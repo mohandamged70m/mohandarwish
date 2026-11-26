@@ -26,8 +26,8 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
             <div
                 className="flex items-center gap-3 sm:gap-4 p-2.5 sm:p-4 rounded-full shadow-2xl border pointer-events-auto"
                 style={{
-                    background: isDark ? 'rgba(10, 10, 12, 0.95)' : 'var(--border)',
-                    borderColor: isDark ? 'var(--border)' : 'var(--border)',
+                    background: isDark ? 'var(--dash-surface)' : 'var(--dash-border)',
+                    borderColor: 'var(--dash-border)',
                 }}
             >
                 <button
@@ -40,7 +40,7 @@ const SaveBar = ({ show, onApply, onCancel, isDark, applyLabel = 'Apply Settings
                 <button
                     onClick={onCancel}
                     className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-full border transition-all font-semibold text-[13px] sm:text-[14px] whitespace-nowrap ${isDark
-                        ? 'bg-white/5 hover:bg-white/10 text-white border-border'
+                        ? 'bg-dash-surface/5 hover:bg-dash-surface/10 text-white border-dash-border'
                         : 'bg-black/5 hover:bg-black/10 text-black border-black/10'}`}
                 >
                     {cancelLabel}

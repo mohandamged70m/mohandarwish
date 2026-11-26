@@ -49,46 +49,46 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
 
     // Medal accents for the podium (gold / silver / bronze), neutral after.
     const medalColor = (i: number): string | null =>
-        i === 0 ? 'var(--warning)' : i === 1 ? 'var(--text-muted)' : i === 2 ? 'var(--warning)' : null;
+        i === 0 ? 'var(--dash-warning)' : i === 1 ? 'var(--dash-text-3)' : i === 2 ? 'var(--dash-warning)' : null;
 
     const stat = (icon: React.ReactNode, value: number, color: string, label: string) => (
         <div className="flex items-center gap-1" title={`${label}: ${value.toLocaleString()}`}>
             <span style={{ color }}>{icon}</span>
-            <span className={`text-[11px] font-bold tabular-nums ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
+            <span className={`text-[11px] font-bold tabular-nums ${isDark ? 'text-white/70' : 'text-dash-text-2'}`}>
                 {value.toLocaleString()}
             </span>
         </div>
     );
 
     return (
-        <div className={`w-full ${isDark ? 'bg-[var(--bg-primary)] border-white/[0.06]' : 'bg-white border-black/[0.06] shadow-sm'} rounded-[28px] p-5 sm:p-8 md:p-10 relative overflow-hidden border transition-all duration-300`}>
+        <div className={`w-full ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-dash-border shadow-sm'} rounded-[28px] p-5 sm:p-8 md:p-10 relative overflow-hidden border transition-all duration-300`}>
             {/* Header */}
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
-                    <div className={`${isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-100 text-amber-600'} w-10 h-10 flex items-center justify-center rounded-sm`}>
+                    <div className={`${isDark ? 'bg-dash-accent-soft text-dash-warning' : 'bg-dash-accent-soft text-dash-warning'} w-10 h-10 flex items-center justify-center rounded-sm`}>
                         <Trophy size={20} />
                     </div>
                     <div>
-                        <h3 className={`${isDark ? 'text-white' : 'text-slate-900'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
+                        <h3 className={`${isDark ? 'text-white' : 'text-dash-text'} text-xl sm:text-2xl font-bold tracking-[-0.02em] leading-none`}>
                             Project Rankings
                         </h3>
-                        <p className={`${isDark ? 'text-[#666]' : 'text-slate-400'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
+                        <p className={`${isDark ? 'text-[#666]' : 'text-dash-text-3'} text-[10px] font-bold uppercase tracking-[0.15em] mt-1.5`}>
                             Weighted engagement score
                         </p>
                     </div>
                 </div>
                 {/* Weight legend */}
-                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-sm border text-[10px] font-bold ${isDark ? 'bg-white/[0.03] border-white/[0.06] text-white/40' : 'bg-slate-50 border-black/5 text-slate-400'}`}>
-                    <span className="flex items-center gap-1"><Eye size={12} className="text-accent" />×{RANK_WEIGHTS.view}</span>
-                    <span className="flex items-center gap-1"><ExternalLink size={12} className="text-emerald-500" />×{RANK_WEIGHTS.live}</span>
+                <div className={`hidden sm:flex items-center gap-3 px-3.5 py-2 rounded-sm border text-[10px] font-bold ${isDark ? 'bg-dash-surface-2 border-dash-border text-white/40' : 'bg-dash-surface-2 border-black/5 text-dash-text-3'}`}>
+                    <span className="flex items-center gap-1"><Eye size={12} className="text-dash-accent-text" />×{RANK_WEIGHTS.view}</span>
+                    <span className="flex items-center gap-1"><ExternalLink size={12} className="text-dash-success" />×{RANK_WEIGHTS.live}</span>
                     <span className="flex items-center gap-1"><Github size={12} className="text-purple-500" />×{RANK_WEIGHTS.github}</span>
-                    <span className="flex items-center gap-1"><Download size={12} className="text-amber-500" />×{RANK_WEIGHTS.download}</span>
+                    <span className="flex items-center gap-1"><Download size={12} className="text-dash-warning" />×{RANK_WEIGHTS.download}</span>
                 </div>
             </div>
 
             {/* List */}
             {ranked.length === 0 ? (
-                <div className={`text-center py-12 text-sm italic ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+                <div className={`text-center py-12 text-sm italic ${isDark ? 'text-white/30' : 'text-dash-text-3'}`}>
                     No engagement recorded yet.
                 </div>
             ) : (
@@ -99,52 +99,52 @@ export const ProjectRankings = ({ projects, isDark }: { projects: RankInput[]; i
                         return (
                             <div
                                 key={p.id}
-                                className={`relative flex items-center gap-4 sm:gap-6 px-4 sm:px-5 py-4 rounded-sm border transition-colors ${isDark ? 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.04]' : 'bg-slate-50 border-black/[0.04] hover:bg-slate-100'}`}
+                                className={`relative flex items-center gap-4 sm:gap-6 px-4 sm:px-5 py-4 rounded-sm border transition-colors ${isDark ? 'bg-dash-surface-2 border-dash-border hover:bg-dash-surface/[0.04]' : 'bg-dash-surface-2 border-black/[0.04] hover:bg-dash-surface-2'}`}
                             >
                                 {/* Rank */}
                                 <div
                                     className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-sm flex items-center justify-center font-bold text-sm tabular-nums"
                                     style={{
-                                        backgroundColor: accent ? `${accent}1f` : (isDark ? 'var(--border)' : 'var(--border)'),
-                                        color: accent || (isDark ? 'var(--border)' : 'var(--text-muted)')
+                                        backgroundColor: accent ? `${accent}1f` : ('var(--dash-border)'),
+                                        color: accent || (isDark ? 'var(--dash-border)' : 'var(--dash-text-3)')
                                     }}
                                 >
                                     {i + 1}
                                 </div>
 
                                 {/* Icon */}
-                                <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }}>
+                                <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                     {p.icon ? (
                                         <FileImage src={p.icon} alt={p.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full bg-accent text-white flex items-center justify-center font-bold">{p.name.charAt(0).toUpperCase()}</div>
+                                        <div className="w-full h-full bg-dash-accent text-white flex items-center justify-center font-bold">{p.name.charAt(0).toUpperCase()}</div>
                                     )}
                                 </div>
 
                                 {/* Name + breakdown + bar */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-slate-900'}`} title={p.name}>{p.name}</span>
-                                        <span className={`shrink-0 text-sm font-bold tabular-nums ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                                        <span className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-dash-text'}`} title={p.name}>{p.name}</span>
+                                        <span className={`shrink-0 text-sm font-bold tabular-nums ${isDark ? 'text-white' : 'text-dash-text'}`}>
                                             {p.score.toLocaleString()}
-                                            <span className={`font-bold text-[9px] uppercase tracking-wider ml-1 ${isDark ? 'text-white/30' : 'text-slate-400'}`}>pts</span>
+                                            <span className={`font-bold text-[9px] uppercase tracking-wider ml-1 ${isDark ? 'text-white/30' : 'text-dash-text-3'}`}>pts</span>
                                         </span>
                                     </div>
                                     {/* Relative score bar */}
-                                    <div className={`h-1.5 rounded-full mt-3 overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-black/[0.05]'}`}>
+                                    <div className={`h-1.5 rounded-full mt-3 overflow-hidden ${isDark ? 'bg-dash-surface/[0.06]' : 'bg-black/[0.05]'}`}>
                                         <div
                                             className="h-full rounded-full transition-all duration-500"
-                                            style={{ width: `${barPct}%`, backgroundColor: accent || 'var(--accent-text)' }}
+                                            style={{ width: `${barPct}%`, backgroundColor: accent || 'var(--dash-accent-text)' }}
                                         />
                                     </div>
                                     {/* Breakdown */}
                                     <div className="flex items-center flex-wrap gap-x-4 gap-y-1.5 mt-3">
-                                        {stat(<Eye size={12} />, p.views, 'var(--accent-text)', 'Views')}
-                                        {stat(<ExternalLink size={12} />, p.liveViews, 'var(--success)', 'Demo opens')}
-                                        {stat(<Github size={12} />, p.githubViews, 'var(--accent-primary)', 'Repo opens')}
-                                        {stat(<Download size={12} />, p.downloadViews, 'var(--warning)', 'Downloads')}
+                                        {stat(<Eye size={12} />, p.views, 'var(--dash-accent-text)', 'Views')}
+                                        {stat(<ExternalLink size={12} />, p.liveViews, 'var(--dash-success)', 'Demo opens')}
+                                        {stat(<Github size={12} />, p.githubViews, 'var(--dash-accent)', 'Repo opens')}
+                                        {stat(<Download size={12} />, p.downloadViews, 'var(--dash-warning)', 'Downloads')}
                                         <span
-                                            className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-white/[0.05] text-white/50' : 'bg-black/[0.04] text-slate-500'}`}
+                                            className={`ml-auto text-[10px] font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-dash-surface/[0.05] text-white/50' : 'bg-black/[0.04] text-dash-text-3'}`}
                                             title="Conversion - actions per view"
                                         >
                                             {Math.round(p.conversion * 100)}% conv

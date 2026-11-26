@@ -340,8 +340,8 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
         }
     };
 
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-sec mb-1.5';
-    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-border focus:border-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-accent/60'} text-primary`;
+    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
+    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-dash-accent/60'} text-dash-text`;
     const showPeriod = selectedProjects.some(p => p.monthly && perPayment[p.id]);
 
     return createPortal(
@@ -354,26 +354,26 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-6xl max-h-[92vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[#0f0f14] border-white/10' : 'bg-white border-black/5'}`}
+                className={`w-full max-w-6xl max-h-[92vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)]">
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-accent/10 text-accent"><Receipt size={18} /></div>
-                        <h3 className="text-lg font-bold text-primary font-body m-0">New receipt</h3>
+                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text"><Receipt size={18} /></div>
+                        <h3 className="text-lg font-bold text-dash-text font-body m-0">New receipt</h3>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all"><X size={18} /></button>
                 </div>
 
                 {/* Body: controls | preview */}
                 <div className="flex-1 min-h-0 flex flex-col md:flex-row">
                     {/* Controls. min-w-0 keeps a fixed-width child from pushing this column
                         wider than itself, which the modal's overflow-hidden would then clip. */}
-                    <div className="p-5 flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar border-b md:border-b-0 md:border-r border-[var(--section-border)] md:w-[400px] md:shrink-0 min-w-0">
+                    <div className="p-5 flex flex-col gap-4 overflow-y-auto overflow-x-hidden custom-scrollbar border-b md:border-b-0 md:border-r border-[var(--dash-border)] md:w-[400px] md:shrink-0 min-w-0">
                         {/* Is this confirming money received, or asking for money owed? */}
                         <div>
                             <span className={labelCls}>This is</span>
-                            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-sm bg-black/[0.04] dark:bg-white/[0.06]">
+                            <div className="grid grid-cols-2 gap-1.5 p-1 rounded-sm bg-black/[0.04] dark:bg-dash-surface/[0.06]">
                                 {([
                                     ['paid', 'Payment received', 'Thank-you receipt'],
                                     ['due', 'Payment request', 'Reminder of what is owed'],
@@ -383,7 +383,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         type="button"
                                         onClick={() => setKind(k)}
                                         title={hint}
-                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-accent text-white shadow-sm' : 'text-sec hover:text-primary'}`}
+                                        className={`px-2 py-2 rounded-lg text-[11px] font-bold transition-colors min-w-0 truncate ${kind === k ? 'bg-dash-accent text-white shadow-sm' : 'text-dash-text-2 hover:text-dash-text'}`}
                                     >
                                         {title}
                                     </button>
@@ -394,26 +394,26 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         <div>
                             <span className={labelCls}>Projects on this receipt</span>
                             <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                                {projects.length === 0 && <p className="text-sm text-sec">No projects yet.</p>}
+                                {projects.length === 0 && <p className="text-sm text-dash-text-2">No projects yet.</p>}
                                 {projects.map(p => {
                                     const on = selected.has(p.id);
                                     const onPlan = hasInstallments(p) || !!p.monthly;
                                     const single = !!perPayment[p.id];
                                     return (
-                                        <div key={p.id} className={`rounded-sm border transition-colors ${on ? 'border-accent/60 bg-accent/[0.06]' : 'border-transparent hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'}`}>
+                                        <div key={p.id} className={`rounded-sm border transition-colors ${on ? 'border-dash-accent/60 bg-dash-accent/[0.06]' : 'border-transparent hover:bg-black/[0.03] dark:hover:bg-dash-surface/[0.04]'}`}>
                                             <button
                                                 type="button"
                                                 onClick={() => toggle(p.id)}
                                                 className="w-full flex items-center gap-3 p-2.5 text-left bg-transparent border-none cursor-pointer"
                                             >
-                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-accent text-white' : 'border border-black/20 dark:border-white/20'}`}>
+                                                <span className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${on ? 'bg-dash-accent text-white' : 'border border-black/20 dark:border-white/20'}`}>
                                                     {on && <Check size={13} strokeWidth={3} />}
                                                 </span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block text-sm font-semibold text-primary truncate">{p.name}</span>
-                                                    {p.client && <span className="block text-[11px] text-sec truncate">{p.client}</span>}
+                                                    <span className="block text-sm font-semibold text-dash-text truncate">{p.name}</span>
+                                                    {p.client && <span className="block text-[11px] text-dash-text-2 truncate">{p.client}</span>}
                                                 </span>
-                                                <span className="text-xs font-bold text-sec tnum shrink-0">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
+                                                <span className="text-xs font-bold text-dash-text-2 tnum shrink-0">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
                                             </button>
 
                                             {/* Installment plans and retainers get a scope choice: bill the
@@ -427,14 +427,14 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                                                 key={mode}
                                                                 type="button"
                                                                 onClick={() => setPerPayment(prev => ({ ...prev, [p.id]: mode === 'payment' }))}
-                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-accent text-white' : 'text-sec hover:text-primary bg-black/[0.04] dark:bg-white/[0.06]'}`}
+                                                                className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors shrink-0 ${active ? 'bg-dash-accent text-white' : 'text-dash-text-2 hover:text-dash-text bg-black/[0.04] dark:bg-dash-surface/[0.06]'}`}
                                                             >
                                                                 {text}
                                                             </button>
                                                         );
                                                     })}
                                                     {single && (
-                                                        <span className="text-[10px] text-sec tnum ml-auto shrink-0 truncate">
+                                                        <span className="text-[10px] text-dash-text-2 tnum ml-auto shrink-0 truncate">
                                                             {p.monthly
                                                                 ? formatMoney(p.priceAmount || 0, p.priceCurrency)
                                                                 : `${formatMoney(installmentMonthlyAmount(p), p.priceCurrency)} x ${p.installmentMonths}`}
@@ -460,7 +460,7 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                         </div>
 
                         <div>
-                            <label className={labelCls}>Customer email {selectedProjects.length > 0 && !emailValid && <span className="text-amber-500 normal-case">- required to send</span>}</label>
+                            <label className={labelCls}>Customer email {selectedProjects.length > 0 && !emailValid && <span className="text-dash-warning normal-case">- required to send</span>}</label>
                             <input className={inputCls} type="email" value={customerEmail} onChange={e => { touched.current.email = true; setCustomerEmail(e.target.value); setSentTo(null); }} placeholder="name@example.com" />
                         </div>
 
@@ -498,22 +498,22 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                                         <div className="min-w-0"><input className={inputCls} value={paidTime} onChange={e => setPaidTime(e.target.value)} placeholder="Time (optional)" /></div>
                                     </div>
                                 ) : (
-                                    <div className={`rounded-sm border divide-y ${isDark ? 'border-white/10 divide-white/10 bg-white/[0.03]' : 'border-black/10 divide-black/5 bg-black/[0.02]'}`}>
+                                    <div className={`rounded-sm border divide-y ${isDark ? 'border-dash-border divide-white/10 bg-dash-surface-2' : 'border-black/10 divide-black/5 bg-dash-surface-2'}`}>
                                         {loggedPayments.map((r, i) => (
                                             <div key={`${r.date}-${i}`} className="flex items-center justify-between gap-3 px-3.5 py-2 min-w-0">
-                                                <span className={`text-sm truncate ${r.date ? 'text-primary' : 'text-sec italic'}`}>{r.dateLabel}</span>
-                                                <span className="text-sm font-bold text-emerald-500 tnum shrink-0">{formatMoney(r.amount, receiptCurrency)}</span>
+                                                <span className={`text-sm truncate ${r.date ? 'text-dash-text' : 'text-dash-text-2 italic'}`}>{r.dateLabel}</span>
+                                                <span className="text-sm font-bold text-dash-success tnum shrink-0">{formatMoney(r.amount, receiptCurrency)}</span>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                                 {datedCount === 0 ? (
-                                    <p className="mt-1.5 text-[11px] text-sec">No dated payment is logged against this project yet, so set the date yourself.</p>
+                                    <p className="mt-1.5 text-[11px] text-dash-text-2">No dated payment is logged against this project yet, so set the date yourself.</p>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={() => setManualDate(m => !m)}
-                                        className="mt-1.5 text-[11px] font-bold text-accent hover:underline bg-transparent border-none p-0 cursor-pointer"
+                                        className="mt-1.5 text-[11px] font-bold text-dash-accent-text hover:underline bg-transparent border-none p-0 cursor-pointer"
                                     >
                                         {useManualDate ? 'Use the logged dates' : 'Set the date manually'}
                                     </button>
@@ -531,19 +531,19 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                             <textarea className={`${inputCls} min-h-[60px] resize-y`} value={note} onChange={e => setNote(e.target.value)} placeholder="Thanks for your business, payment terms, etc." />
                         </div>
 
-                        <div className="text-[11px] text-sec">Receipt no. <span className="font-heading text-primary">{receiptNo}</span></div>
+                        <div className="text-[11px] text-dash-text-2">Receipt no. <span className="font-heading text-dash-text">{receiptNo}</span></div>
                     </div>
 
                     {/* Preview - scaled to fit the panel, no scrollbars */}
-                    <div className="p-5 flex flex-col gap-3 min-h-[360px] md:min-h-0 md:flex-1 min-w-0 bg-black/[0.02] dark:bg-white/[0.02]">
+                    <div className="p-5 flex flex-col gap-3 min-h-[360px] md:min-h-0 md:flex-1 min-w-0 bg-dash-surface-2 dark:bg-dash-surface-2">
                         <div className="flex items-center justify-between">
                             <span className={labelCls} style={{ margin: 0 }}>Preview</span>
-                            {sentTo && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500"><Check size={12} /> Sent to {sentTo}</span>}
+                            {sentTo && <span className="inline-flex items-center gap-1 text-[11px] font-bold text-dash-success"><Check size={12} /> Sent to {sentTo}</span>}
                         </div>
                         <div ref={fitRef} className="flex-1 min-h-0 overflow-hidden flex items-center justify-center">
                             {/* The border wraps the receipt itself (sized to the scaled doc), so the
                                 frame IS the receipt and leftover space stays neutral - no empty panel. */}
-                            <div className="overflow-hidden rounded-sm border border-[var(--section-border)] bg-white shadow-sm" style={{ width: NAT_W * scale, height: natH * scale }}>
+                            <div className="overflow-hidden rounded-sm border border-[var(--dash-border)] bg-dash-surface shadow-sm" style={{ width: NAT_W * scale, height: natH * scale }}>
                                 <iframe
                                     ref={iframeRef}
                                     title="Receipt preview"
@@ -561,14 +561,14 @@ const MReceipt = ({ projects, income, rates, displayCurrency, initialProjectId, 
                 </div>
 
                 {/* Footer actions */}
-                <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--section-border)]">
-                    <button onClick={download} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-bold text-primary bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] transition-colors">
+                <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--dash-border)]">
+                    <button onClick={download} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-bold text-dash-text bg-black/[0.04] dark:bg-dash-surface/[0.06] hover:bg-black/[0.07] dark:hover:bg-dash-surface/[0.1] transition-colors">
                         <Download size={16} /> Download
                     </button>
                     <button
                         onClick={send}
                         disabled={!canSend || !!sentTo}
-                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-emerald-500 disabled:opacity-100' : 'bg-accent hover:bg-accent disabled:opacity-40'}`}
+                        className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white transition-colors disabled:cursor-not-allowed ${sentTo ? 'bg-dash-success disabled:opacity-100' : 'bg-dash-accent hover:bg-dash-accent disabled:opacity-40'}`}
                     >
                         {sending ? <Loader2 size={16} className="animate-spin" /> : sentTo ? <Check size={16} strokeWidth={3} /> : <Send size={16} />}
                         {sending ? 'Sending…' : sentTo ? `Sent to ${sentTo}` : (kind === 'due' ? 'Send request' : 'Send receipt')}

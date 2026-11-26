@@ -33,31 +33,31 @@ const MConfirmModal = ({
         switch (type) {
             case 'danger':
                 return {
-                    icon: <AlertCircle className="text-red-500" size={28} />,
-                    bg: 'var(--danger)',
-                    border: 'var(--danger)',
-                    btn: 'bg-red-500 hover:bg-red-600 shadow-red-500/20'
+                    icon: <AlertCircle className="text-dash-danger" size={28} />,
+                    bg: 'var(--dash-danger)',
+                    border: 'var(--dash-danger)',
+                    btn: 'bg-dash-danger hover:bg-dash-danger shadow-red-500/20'
                 };
             case 'success':
                 return {
-                    icon: <AlertCircle className="text-green-500" size={28} />,
-                    bg: 'var(--accent-soft)',
-                    border: 'var(--accent-soft)',
+                    icon: <AlertCircle className="text-dash-success" size={28} />,
+                    bg: 'var(--dash-accent-soft)',
+                    border: 'var(--dash-accent-soft)',
                     btn: 'bg-green-500 hover:bg-green-600 shadow-green-500/20'
                 };
             case 'info':
                 return {
-                    icon: <Info className="text-accent" size={28} />,
-                    bg: 'var(--accent-text)',
-                    border: 'var(--accent-text)',
-                    btn: 'bg-accent hover:bg-accent shadow-blue-500/20'
+                    icon: <Info className="text-dash-accent-text" size={28} />,
+                    bg: 'var(--dash-accent-text)',
+                    border: 'var(--dash-accent-text)',
+                    btn: 'bg-dash-accent hover:bg-dash-accent shadow-blue-500/20'
                 };
             default:
                 return {
-                    icon: <AlertTriangle className="text-amber-500" size={28} />,
-                    bg: 'var(--warning)',
-                    border: 'var(--warning)',
-                    btn: 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20'
+                    icon: <AlertTriangle className="text-dash-warning" size={28} />,
+                    bg: 'var(--dash-warning)',
+                    border: 'var(--dash-warning)',
+                    btn: 'bg-dash-warning hover:bg-dash-warning shadow-amber-500/20'
                 };
         }
     };
@@ -82,7 +82,7 @@ const MConfirmModal = ({
                         role="alertdialog"
                         aria-modal="true"
                         aria-label={title}
-                        className={`w-full max-w-md overflow-hidden rounded-sm shadow-2xl border relative ${isDark ? 'bg-[var(--bg-primary)] border-border' : 'bg-white border-gray-200'}`}
+                        className={`w-full max-w-md overflow-hidden rounded-sm shadow-2xl border relative ${isDark ? 'bg-[var(--dash-bg)] border-dash-border' : 'bg-dash-surface border-dash-border'}`}
                         style={{ transformOrigin: 'center' }}
                     >
                         {/* Header/Banner Area */}
@@ -97,18 +97,18 @@ const MConfirmModal = ({
                                 {styles.icon}
                             </div>
                             <div>
-                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
-                                <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-dash-text'}`}>{title}</h3>
+                                <p className={`text-sm leading-relaxed ${isDark ? 'text-dash-text-3' : 'text-dash-text-2'}`}>
                                     {message}
                                 </p>
                             </div>
                         </div>
 
                         {/* Footer Buttons */}
-                        <div className={`p-4 flex gap-3 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                        <div className={`p-4 flex gap-3 ${isDark ? 'bg-dash-surface/5' : 'bg-dash-surface-2'}`}>
                             <button
                                 onClick={onClose}
-                                className={`flex-1 px-4 py-2.5 rounded-sm font-semibold text-sm transition-all ${isDark ? 'hover:bg-white/10 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}
+                                className={`flex-1 px-4 py-2.5 rounded-sm font-semibold text-sm transition-all ${isDark ? 'hover:bg-dash-surface/10 text-dash-text-3' : 'hover:bg-dash-surface-3 text-dash-text-2'}`}
                             >
                                 {cancelText}
                             </button>
@@ -127,7 +127,7 @@ const MConfirmModal = ({
                         <button
                             onClick={onClose}
                             aria-label="Close"
-                            className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-white/10 text-gray-500 hover:text-gray-300' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-600'}`}
+                            className={`absolute top-4 right-4 p-2 rounded-lg transition-all ${isDark ? 'hover:bg-dash-surface/10 text-dash-text-3 hover:text-dash-text-3' : 'hover:bg-dash-surface-2 text-dash-text-3 hover:text-dash-text-2'}`}
                         >
                             <X size={18} />
                         </button>

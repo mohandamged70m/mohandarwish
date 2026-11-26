@@ -24,7 +24,7 @@ export default function FileImage({ src, alt, className, style, size }: Props) {
           justifyContent: "center",
           width: size,
           height: size,
-          color: "var(--text-muted)",
+          color: "var(--dash-text-3)",
           ...style,
         }}
         aria-hidden

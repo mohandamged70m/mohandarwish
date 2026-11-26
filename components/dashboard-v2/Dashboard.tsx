@@ -9,6 +9,7 @@ import { PHONE_QUERY } from '@/lib/device';
 import { XS_QUERY, SM_QUERY } from './breakpoints';
 import { EASE } from './motion';
 import { parkCalendarReturn } from '@/lib/calendarReturn';
+import './dashboard.css';
 
 // The parameter name in the function type would trigger `no-unused-vars` in some
 // ESLint configurations, so we suppress that rule for the following type alias.
@@ -94,7 +95,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     };
 
     if (!authorized) {
-        return <div className="w-full h-screen bg-primary" aria-busy="true" />;
+        return <div className="dash-root w-full h-screen bg-dash-bg" aria-busy="true" />;
     }
 
     const sidebarWidth = isExtraSmall ? '56px' : (isMobile ? '72px' : '260px');
@@ -119,7 +120,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
-            className="w-full h-screen flex bg-primary relative overflow-hidden touch-pan-y"
+            className="dash-root w-full h-screen flex bg-dash-bg relative overflow-hidden touch-pan-y"
             style={{ ['--sidebar-width']: sidebarWidth } as unknown as React.CSSProperties}
         >
 
@@ -148,7 +149,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     `}
                 >
                     <div
-                        className="rounded-lg overflow-hidden flex items-center justify-center bg-[var(--border)] dark:bg-[var(--border)]"
+                        className="rounded-lg overflow-hidden flex items-center justify-center bg-dash-surface-3 dark:bg-dash-surface-3"
                         style={{
                             width: avatarSize,
                             height: avatarSize,
@@ -162,11 +163,11 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <User className="text-muted/50" size={isExtraSmall ? 16 : 20} />
+                            <User className="text-dash-text-3/50" size={isExtraSmall ? 16 : 20} />
                         )}
                     </div>
                     {!isMobile && (
-                        <span className="text-xl font-bold text-primary font-body">
+                        <span className="text-xl font-bold text-dash-text font-body">
                             Mohand
                         </span>
                     )}
@@ -192,13 +193,13 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                                     sidebar-item group relative w-full flex items-center transition-colors duration-200 border-0 cursor-pointer
                                     ${isMobile ? 'justify-center' : 'justify-start'}
                                     ${isExtraSmall ? 'p-2.5 rounded-[10px]' : 'p-3 rounded-sm gap-3'}
-                                    ${isActive ? 'bg-[var(--border)] dark:bg-[var(--border)] text-primary' : 'bg-transparent text-sec hover:bg-[var(--border)] dark:hover:bg-[var(--border)] hover:text-primary'}
+                                    ${isActive ? 'bg-dash-surface-3 dark:bg-dash-surface-3 text-dash-text' : 'bg-transparent text-dash-text-2 hover:bg-dash-surface-3 dark:hover:bg-dash-surface-3 hover:text-dash-text'}
                                 `}
                             >
                                 {isActive && (
                                     <motion.div
                                         layoutId="active-sidebar-pill"
-                                        className="active-sidebar-pill absolute left-0 w-1 h-[60%] bg-accent rounded-r"
+                                        className="active-sidebar-pill absolute left-0 w-1 h-[60%] bg-dash-accent rounded-r"
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 )}
@@ -217,14 +218,14 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                 </nav>
 
                 {/* Bottom Actions - Locked at the end */}
-                <div className="pt-4 mt-2 border-t border-[var(--section-border)]">
+                <div className="pt-4 mt-2 border-t border-[var(--dash-border)]">
                     <motion.button
                         {...sidebarItem(MENU_ITEMS.length)}
                         onClick={logout}
                         aria-label="Log out"
                         className={`
-                            sidebar-item w-full flex items-center transition-colors duration-200 border-0 cursor-pointer bg-transparent text-sec
-                            hover:bg-red-500/5 dark:hover:bg-red-500/10 hover:text-red-500
+                            sidebar-item w-full flex items-center transition-colors duration-200 border-0 cursor-pointer bg-transparent text-dash-text-2
+                            hover:bg-dash-danger/5 dark:hover:bg-dash-accent-soft hover:text-dash-danger
                             ${isMobile ? 'justify-center px-0' : 'justify-start px-3 gap-3'}
                             ${isExtraSmall ? 'py-2 rounded-[10px]' : 'py-3 rounded-sm'}
                         `}
@@ -258,13 +259,13 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
                     >
                         <div className={`flex items-center ${isExtraSmall ? 'gap-2' : 'gap-3'}`}>
                             {ActiveIcon && (
-                                <span className={`${headerIconBoxSize} flex items-center justify-center bg-accent/10 text-accent shrink-0`}>
+                                <span className={`${headerIconBoxSize} flex items-center justify-center bg-dash-accent/10 text-dash-accent-text shrink-0`}>
                                     <ActiveIcon size={headerIconSize} />
                                 </span>
                             )}
                             <h1
                                 className={`
-                                    font-bold text-primary font-body m-0
+                                    font-bold text-dash-text font-body m-0
                                     ${isExtraSmall ? 'text-xl' : isSmall ? 'text-2xl' : 'text-[2rem]'}
                                 `}
                             >

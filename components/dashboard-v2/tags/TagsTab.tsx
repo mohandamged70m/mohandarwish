@@ -98,7 +98,7 @@ const DTags = () => {
                     const tagsData = Object.entries(data).map(([id, val]: [string, RawFirestoreTag]) => ({
                         id,
                         name: val.Name || 'Untitled',
-                        color: val.Color || 'var(--accent-text)',
+                        color: val.Color || 'var(--dash-accent-text)',
                         iconSvg: val.Icon || ''
                     }));
                     // Sort by numeric ID if possible, otherwise by name
@@ -362,7 +362,7 @@ const DTags = () => {
                 gap: isExtraSmall ? '12px' : '0'
             }}>
                 <div className="relative" style={{ width: searchWidth, minWidth: isExtraSmall ? '100%' : 'auto' }}>
-                    <Search size={isExtraSmall ? 18 : 20} className="absolute left-3 top-1/2 -translate-y-1/2 text-sec" />
+                    <Search size={isExtraSmall ? 18 : 20} className="absolute left-3 top-1/2 -translate-y-1/2 text-dash-text-2" />
                     <input
                         type="text"
                         placeholder={`Search ${activeSection}...`}
@@ -392,7 +392,7 @@ const DTags = () => {
             {/* Section Tabs */}
             <div className="flex overflow-x-auto" style={{
                 gap: isExtraSmall ? '4px' : '8px',
-                backgroundColor: isDark ? 'var(--border)' : 'var(--border)',
+                backgroundColor: 'var(--dash-surface-2)',
                 padding: isExtraSmall ? '4px' : '6px',
                 borderRadius: isExtraSmall ? '12px' : '14px',
                 width: isExtraSmall ? '100%' : 'fit-content'
@@ -405,9 +405,9 @@ const DTags = () => {
                         padding: tabPadding,
                         borderRadius: isExtraSmall ? '8px' : '10px',
                         backgroundColor: activeSection === 'tags'
-                            ? (isDark ? 'var(--accent-text)' : 'var(--accent-text)')
+                            ? ('var(--dash-accent-text)')
                             : 'transparent',
-                        color: activeSection === 'tags' ? 'var(--accent-text)' : 'var(--text-secondary)',
+                        color: activeSection === 'tags' ? 'var(--dash-accent-text)' : 'var(--dash-text-2)',
                         fontSize: tabFontSize,
                         flex: isExtraSmall ? 1 : 'none'
                     }}
@@ -423,9 +423,9 @@ const DTags = () => {
                         padding: tabPadding,
                         borderRadius: isExtraSmall ? '8px' : '10px',
                         backgroundColor: activeSection === 'contributors'
-                            ? (isDark ? 'var(--accent-primary)' : 'var(--accent-primary)')
+                            ? ('var(--dash-accent)')
                             : 'transparent',
-                        color: activeSection === 'contributors' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                        color: activeSection === 'contributors' ? 'var(--dash-accent)' : 'var(--dash-text-2)',
                         fontSize: tabFontSize,
                         flex: isExtraSmall ? 1 : 'none'
                     }}
@@ -437,10 +437,10 @@ const DTags = () => {
 
             {/* Content Area */}
             <div className="flex-1 overflow-hidden" style={{
-                backgroundColor: isDark ? 'var(--border)' : 'var(--border)',
-                
+                backgroundColor: 'var(--dash-surface-2)',
+
                 borderRadius: containerRadius,
-                border: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}`,
+                border: `1px solid ${'var(--dash-border)'}`,
                 padding: containerPadding,
                 minHeight: 0,
                 maxHeight: '80vh'
@@ -461,7 +461,7 @@ const DTags = () => {
                         {activeSection === 'tags' ? (
                             <>
                                 {filteredTags.length === 0 ? (
-                                    <div className="p-12 text-center text-sec">
+                                    <div className="p-12 text-center text-dash-text-2">
                                         {searchQuery ? "No tags match your search." : "No tags yet. Click the + button to add one."}
                                     </div>
                                 ) : (
@@ -474,9 +474,9 @@ const DTags = () => {
                                                 className="flex flex-col p-4 sm:p-6 rounded-sm transition-[box-shadow,translate] duration-300 relative group cursor-pointer hover:shadow-lg hover:-translate-y-1"
                                                 onClick={() => { setEditingTag(tag); setTagModalOpen(true); }}
                                                 style={{
-                                                    backgroundColor: isDark ? 'var(--border)' : 'var(--border)',
-                                                    border: isDark ? '1px solid var(--border)' : '1px solid var(--border)',
-                                                    boxShadow: isDark ? '0 10px 30px -10px var(--border)' : '0 10px 30px -10px var(--border)'
+                                                    backgroundColor: 'var(--dash-surface-2)',
+                                                    border: '1px solid var(--dash-border)',
+                                                    boxShadow: '0 10px 30px -10px var(--dash-border)'
                                                 }}
                                             >
                                                 <div className="flex items-center justify-between mb-4 sm:mb-5">
@@ -500,20 +500,20 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingTag(tag); setTagModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-accent/10 hover:bg-accent/20 text-accent cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteTag(tag.id?.toString() ?? ''); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-red-500/10 hover:bg-red-500/20 text-red-500 cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
                                                         >
                                                             <Trash2 size={isSmall ? 14 : 18} />
                                                         </button>
                                                     </div>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <div className="font-bold text-primary text-lg sm:text-xl lg:text-2xl truncate mb-0.5 sm:mb-1">{tag.name}</div>
+                                                    <div className="font-bold text-dash-text text-lg sm:text-xl lg:text-2xl truncate mb-0.5 sm:mb-1">{tag.name}</div>
                                                     <div className="text-[10px] sm:text-xs font-heading uppercase tracking-widest opacity-40 truncate">{tag.color}</div>
                                                 </div>
                                             </motion.div>
@@ -524,7 +524,7 @@ const DTags = () => {
                         ) : (
                             <>
                                 {filteredContributors.length === 0 ? (
-                                    <div className="p-12 text-center text-sec">
+                                    <div className="p-12 text-center text-dash-text-2">
                                         {searchQuery ? "No contributors match your search." : "No contributors yet."}
                                     </div>
                                 ) : (
@@ -537,16 +537,16 @@ const DTags = () => {
                                                 className="flex flex-col p-4 sm:p-6 rounded-sm transition-[box-shadow,translate] duration-300 relative group cursor-pointer hover:shadow-lg hover:-translate-y-1"
                                                 onClick={() => { setEditingContributor(contributor); setContribModalOpen(true); }}
                                                 style={{
-                                                    backgroundColor: isDark ? 'var(--border)' : 'var(--border)',
-                                                    border: isDark ? '1px solid var(--border)' : '1px solid var(--border)',
-                                                    boxShadow: isDark ? '0 10px 30px -10px var(--border)' : '0 10px 30px -10px var(--border)'
+                                                    backgroundColor: 'var(--dash-surface-2)',
+                                                    border: '1px solid var(--dash-border)',
+                                                    boxShadow: '0 10px 30px -10px var(--dash-border)'
                                                 }}
                                             >
                                                 {/* Top: Image & Actions */}
                                                 <div className="flex items-center justify-between mb-4 sm:mb-5">
                                                     <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-sm sm:rounded-sm overflow-hidden border-2 p-1 shadow-md shrink-0 transition-transform group-hover:scale-105" style={{
-                                                        borderColor: isDark ? 'var(--border)' : 'var(--border)',
-                                                        backgroundColor: isDark ? 'var(--border)' : 'var(--border)'
+                                                        borderColor: 'var(--dash-border)',
+                                                        backgroundColor: 'var(--dash-surface-2)'
                                                     }}>
                                                         <div className="w-full h-full rounded-sm overflow-hidden flex items-center justify-center">
                                                             {contributor.image ? (
@@ -561,13 +561,13 @@ const DTags = () => {
                                                     <div className="flex gap-1 transition-all opacity-100">
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setEditingContributor(contributor); setContribModalOpen(true); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-accent/10 hover:bg-accent/20 text-accent cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent/10 hover:bg-dash-accent/20 text-dash-accent-text cursor-pointer transition-colors"
                                                         >
                                                             <Edit2 size={isSmall ? 14 : 18} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDeleteContributor(contributor.id!.toString()); }}
-                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-red-500/10 hover:bg-red-500/20 text-red-500 cursor-pointer transition-colors"
+                                                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-sm border-none bg-dash-accent-soft hover:bg-dash-danger/20 text-dash-danger cursor-pointer transition-colors"
                                                         >
                                                             <Trash2 size={isSmall ? 14 : 18} />
                                                         </button>
@@ -576,8 +576,8 @@ const DTags = () => {
 
                                                 {/* Bottom: Info */}
                                                 <div className="min-w-0">
-                                                    <div className="font-bold text-primary text-lg sm:text-xl truncate mb-0.5 sm:mb-1">{contributor.name}</div>
-                                                    <div className="text-[10px] sm:text-[11px] font-medium text-sec bg-accent/5 dark:bg-accent/10 px-2.5 py-1 rounded-full w-fit truncate max-w-full uppercase tracking-wider">
+                                                    <div className="font-bold text-dash-text text-lg sm:text-xl truncate mb-0.5 sm:mb-1">{contributor.name}</div>
+                                                    <div className="text-[10px] sm:text-[11px] font-medium text-dash-text-2 bg-dash-accent/5 dark:bg-dash-accent/10 px-2.5 py-1 rounded-full w-fit truncate max-w-full uppercase tracking-wider">
                                                         {contributor.role}
                                                     </div>
                                                 </div>
@@ -600,27 +600,27 @@ const DTags = () => {
                         initial={{ opacity: 0, scale: 0.85, y: -15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: 'spring', stiffness: 380, damping: 22 }}
-                        className="fixed z-[1001] p-2 min-w-[200px] border border-white dark:border-white/20 shadow-[0_25px_60px_var(--border)] dark:shadow-[0_25px_60px_var(--border)] ring-4 ring-black/[0.02] dark:ring-white/[0.02]"
+                        className="fixed z-[1001] p-2 min-w-[200px] border border-white dark:border-white/20 shadow-[0_25px_60px_var(--dash-border)] dark:shadow-[0_25px_60px_var(--dash-border)] ring-4 ring-black/[0.02] dark:ring-white/[0.02]"
                         style={{
                             top: optionsPos.y,
                             left: optionsPos.x,
                             borderRadius: '20px',
                             transformOrigin: 'top center',
-                            backgroundColor: isDark ? 'var(--bg-surface)' : 'var(--bg-surface)',
+                            backgroundColor: 'var(--dash-surface)',
                         }}
                     >
                         <button
                             onClick={() => { setOptionsOpen(false); setEditingTag(null); setTagModalOpen(true); }}
-                            className="w-full flex items-center gap-3 p-3 border-none bg-transparent text-primary cursor-pointer rounded-sm text-sm font-medium hover:bg-gray-500/10 transition-colors"
+                            className="w-full flex items-center gap-3 p-3 border-none bg-transparent text-dash-text cursor-pointer rounded-sm text-sm font-medium hover:bg-dash-surface-3 transition-colors"
                         >
-                            <Tag size={18} style={{ color: 'var(--accent-text)' }} />
+                            <Tag size={18} style={{ color: 'var(--dash-accent-text)' }} />
                             Add Tag
                         </button>
                         <button
                             onClick={() => { setOptionsOpen(false); setEditingContributor(null); setContribModalOpen(true); }}
-                            className="w-full flex items-center gap-3 p-3 border-none bg-transparent text-primary cursor-pointer rounded-sm text-sm font-medium hover:bg-gray-500/10 transition-colors"
+                            className="w-full flex items-center gap-3 p-3 border-none bg-transparent text-dash-text cursor-pointer rounded-sm text-sm font-medium hover:bg-dash-surface-3 transition-colors"
                         >
-                            <UserPlus size={18} style={{ color: 'var(--accent-primary)' }} />
+                            <UserPlus size={18} style={{ color: 'var(--dash-accent-text)' }} />
                             Add Contributor
                         </button>
                     </motion.div>

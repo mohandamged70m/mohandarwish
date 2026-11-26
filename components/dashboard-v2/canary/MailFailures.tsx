@@ -44,13 +44,13 @@ const MailFailures = ({ isDark, showAlert }: { isDark: boolean; showAlert: Notif
     const count = `${jobs.length} email${jobs.length === 1 ? '' : 's'} didn't send`;
 
     return (
-        <section aria-label="Undelivered email" className={`rounded-sm border px-4 py-3 text-sm ${isDark ? 'border-amber-400/20 bg-amber-400/[0.06]' : 'border-amber-500/20 bg-amber-500/[0.05]'}`}>
+        <section aria-label="Undelivered email" className={`rounded-sm border px-4 py-3 text-sm ${isDark ? 'border-dash-warning/30 bg-dash-accent-soft' : 'border-dash-warning/30 bg-dash-warning/[0.05]'}`}>
             <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
-                className="w-full flex items-center gap-2.5 bg-transparent border-none p-0 cursor-pointer text-left text-primary">
-                <MailWarning size={16} className="text-amber-500 shrink-0" />
+                className="w-full flex items-center gap-2.5 bg-transparent border-none p-0 cursor-pointer text-left text-dash-text">
+                <MailWarning size={16} className="text-dash-warning shrink-0" />
                 <span className="font-semibold">{count}</span>
-                <span className="text-sec hidden sm:inline">- the notification was given up on after its retries.</span>
-                <ChevronDown size={16} className={`ml-auto text-sec transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+                <span className="text-dash-text-2 hidden sm:inline">- the notification was given up on after its retries.</span>
+                <ChevronDown size={16} className={`ml-auto text-dash-text-2 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
             </button>
             <AnimatePresence initial={false}>
                 {open && (
@@ -62,18 +62,18 @@ const MailFailures = ({ isDark, showAlert }: { isDark: boolean; showAlert: Notif
                         className="overflow-hidden list-none m-0 p-0 flex flex-col"
                     >
                         {jobs.map(job => (
-                            <li key={job.id} className={`flex items-start gap-3 pt-3 mt-3 border-t ${isDark ? 'border-border' : 'border-black/5'}`}>
+                            <li key={job.id} className={`flex items-start gap-3 pt-3 mt-3 border-t ${isDark ? 'border-dash-border' : 'border-black/5'}`}>
                                 <div className="min-w-0 flex-1">
-                                    <div className="font-semibold text-primary truncate">{job.label}</div>
-                                    <div className="text-xs text-sec">
+                                    <div className="font-semibold text-dash-text truncate">{job.label}</div>
+                                    <div className="text-xs text-dash-text-2">
                                         {job.createdAt ? new Date(job.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown time'}
                                         {' · '}{job.attempts} {job.attempts === 1 ? 'try' : 'tries'}
                                     </div>
-                                    {job.lastError && <div className="mt-1 text-xs font-heading text-sec break-words">{job.lastError}</div>}
+                                    {job.lastError && <div className="mt-1 text-xs font-heading text-dash-text-2 break-words">{job.lastError}</div>}
                                 </div>
                                 <button type="button" onClick={() => retry(job)} disabled={busy !== null}
                                     aria-label={`Retry ${job.label}`}
-                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none text-xs font-bold cursor-pointer bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50 disabled:cursor-default">
+                                    className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-none text-xs font-bold cursor-pointer bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/20 transition-colors disabled:opacity-50 disabled:cursor-default">
                                     <RotateCw size={13} className={busy === job.id ? 'animate-spin' : ''} />
                                     {busy === job.id ? 'Sending...' : 'Retry'}
                                 </button>

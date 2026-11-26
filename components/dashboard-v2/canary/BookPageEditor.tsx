@@ -23,7 +23,7 @@ const FormattedTextarea = ({ id, value, onChange, maxLength, placeholder, fg, in
     id: string; value: string; onChange: (v: string) => void; maxLength: number; placeholder: string;
     fg: string; inputStyle: { backgroundColor: string; borderColor: string; color: string };
 }) => (
-    <div className="relative rounded-sm border transition-colors focus-within:!border-accent" style={{ backgroundColor: inputStyle.backgroundColor, borderColor: inputStyle.borderColor }}>
+    <div className="relative rounded-sm border transition-colors focus-within:!border-dash-accent" style={{ backgroundColor: inputStyle.backgroundColor, borderColor: inputStyle.borderColor }}>
         <div aria-hidden="true" className={`${INTRO_TYPE} min-h-[7.5rem]`} style={{ color: fg }}>
             {value.split(/(\*\*[^*\n]+\*\*)/g).map((part, i) =>
                 part.length > 4 && part.startsWith('**') && part.endsWith('**') ? (
@@ -43,7 +43,7 @@ const FormattedTextarea = ({ id, value, onChange, maxLength, placeholder, fg, in
             placeholder={placeholder}
             spellCheck
             onChange={e => onChange(e.target.value)}
-            className={`${INTRO_TYPE} absolute inset-0 w-full h-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-[var(--text-muted)]`}
+            className={`${INTRO_TYPE} absolute inset-0 w-full h-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-[var(--dash-text-3)]`}
             style={{ color: 'transparent', caretColor: fg, outline: 'none' }}
         />
     </div>
@@ -108,27 +108,27 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
         }
     };
 
-    const fg = isDark ? '#fff' : '#000';
-    const inputStyle = { backgroundColor: isDark ? 'var(--border)' : 'var(--border)', borderColor: isDark ? 'var(--border)' : 'var(--border)', color: fg };
-    const inputCls = 'w-full min-w-0 h-11 rounded-sm border px-4 text-sm font-medium outline-none focus:border-accent transition-colors';
-    const chipBg = isDark ? 'var(--border)' : 'var(--border)';
+    const fg = isDark ? 'var(--dash-text)' : 'var(--dash-bg)';
+    const inputStyle = { backgroundColor: 'var(--dash-surface-2)', borderColor: 'var(--dash-border)', color: fg };
+    const inputCls = 'w-full min-w-0 h-11 rounded-sm border px-4 text-sm font-medium outline-none focus:border-dash-accent transition-colors';
+    const chipBg = 'var(--dash-border)';
 
     return (
         <div
             className="canary-panel w-full flex flex-col gap-7 p-6 min-[460px]:p-8 rounded-[24px] min-[460px]:rounded-[32px] border shadow-sm"
-            style={{ backgroundColor: containerBg, borderColor: isDark ? 'var(--border)' : 'var(--border)', gridColumn: '1 / -1' }}
+            style={{ backgroundColor: containerBg, borderColor: 'var(--dash-border)', gridColumn: '1 / -1' }}
         >
             <div className="flex items-start gap-4">
-                <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--accent-text)', color: 'var(--accent-text)' }}>
+                <span className="grid place-items-center shrink-0 rounded-sm" style={{ width: 48, height: 48, background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                     <BookOpen size={24} />
                 </span>
                 <div className="flex-1 min-w-0">
                     <h3 className="text-lg sm:text-xl font-bold m-0" style={{ color: fg }}>Book page</h3>
-                    <p className="text-sm mt-1 max-w-xl" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-sm mt-1 max-w-xl" style={{ color: 'var(--dash-text-3)' }}>
                         What mohanddarwish.vercel.app/book says about you. Changes go live for visitors the moment you save.
                     </p>
                 </div>
-                <a href="/book" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold shrink-0" style={{ color: 'var(--accent-text)' }}>
+                <a href="/book" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold shrink-0" style={{ color: 'var(--dash-accent-text)' }}>
                     Open <ExternalLink size={14} />
                 </a>
             </div>
@@ -140,13 +140,13 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                         <label htmlFor="bp-slogan" className="text-sm font-bold" style={{ color: fg }}>Handwritten title</label>
                         <input id="bp-slogan" className={inputCls} style={inputStyle} maxLength={MAX_SLOGAN_LENGTH} value={draft.slogan}
                             placeholder={DEFAULT_BOOK_PAGE.slogan} onChange={e => patch({ slogan: e.target.value })} />
-                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Written in marker next to your name.</span>
+                        <span className="text-xs" style={{ color: 'var(--dash-text-3)' }}>Written in marker next to your name.</span>
                     </div>
 
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center justify-between gap-3">
                             <label htmlFor="bp-intro" className="text-sm font-bold" style={{ color: fg }}>Intro</label>
-                            <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>{draft.intro.length}/{MAX_INTRO_LENGTH}</span>
+                            <span className="text-xs tabular-nums" style={{ color: 'var(--dash-text-3)' }}>{draft.intro.length}/{MAX_INTRO_LENGTH}</span>
                         </div>
                         <FormattedTextarea id="bp-intro" value={draft.intro} maxLength={MAX_INTRO_LENGTH} onChange={v => patch({ intro: v })}
                             fg={fg} inputStyle={inputStyle} placeholder="I'm **your name**. What you build, and what a call is for." />
@@ -155,7 +155,7 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                     <div className="flex flex-col gap-3">
                         <div className="flex items-center justify-between gap-3">
                             <label htmlFor="bp-new-tag" className="text-sm font-bold" style={{ color: fg }}>What you build (tags)</label>
-                            <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>{draft.tags.length}/{MAX_TAGS}</span>
+                            <span className="text-xs tabular-nums" style={{ color: 'var(--dash-text-3)' }}>{draft.tags.length}/{MAX_TAGS}</span>
                         </div>
                         <div className="flex flex-wrap gap-2">
                             {draft.tags.map((t, i) => (
@@ -167,14 +167,14 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                                     </button>
                                 </span>
                             ))}
-                            {draft.tags.length === 0 && <span className="text-sm" style={{ color: 'var(--text-muted)' }}>No tags, the row is hidden.</span>}
+                            {draft.tags.length === 0 && <span className="text-sm" style={{ color: 'var(--dash-text-3)' }}>No tags, the row is hidden.</span>}
                         </div>
                         <div className="flex items-center gap-2">
                             <input id="bp-new-tag" className={inputCls} style={inputStyle} maxLength={MAX_TAG_LENGTH} value={newTag} placeholder="Add a tag"
                                 onChange={e => setNewTag(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }} />
                             <button type="button" onClick={addTag} disabled={!newTag.trim()}
                                 className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-sm text-sm font-bold cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-                                style={{ background: 'var(--accent-text)', color: '#fff' }}>
+                                style={{ background: 'var(--dash-accent)', color: 'var(--dash-text)' }}>
                                 <Plus size={16} /> Add
                             </button>
                         </div>
@@ -185,20 +185,20 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between gap-3">
                         <span className="text-sm font-bold" style={{ color: fg }}>Links</span>
-                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>From Settings</span>
+                        <span className="text-xs" style={{ color: 'var(--dash-text-3)' }}>From Settings</span>
                     </div>
                     <ul className="flex flex-col gap-1.5 m-0 p-0 list-none">
                         {links.map(l => (
-                            <li key={l.id} className="flex items-center gap-3 h-12 px-3 rounded-sm" style={{ background: isDark ? 'var(--border)' : 'var(--border)' }}>
-                                <span className="grid place-items-center w-7 h-7 rounded-lg shrink-0" style={{ background: 'var(--accent-text)', color: 'var(--accent-text)' }}>
+                            <li key={l.id} className="flex items-center gap-3 h-12 px-3 rounded-sm" style={{ background: 'var(--dash-surface-2)' }}>
+                                <span className="grid place-items-center w-7 h-7 rounded-lg shrink-0" style={{ background: 'var(--dash-accent)', color: 'var(--dash-accent-text)' }}>
                                     {l.kind === 'email' ? <Mail size={14} /> : <Link2 size={14} />}
                                 </span>
                                 <span className="text-sm font-bold truncate shrink-0 max-w-[45%]" style={{ color: fg }}>{l.label}</span>
-                                <span className="text-xs truncate min-w-0" style={{ color: 'var(--text-muted)' }}>{l.url.replace(/^mailto:/, '')}</span>
+                                <span className="text-xs truncate min-w-0" style={{ color: 'var(--dash-text-3)' }}>{l.url.replace(/^mailto:/, '')}</span>
                             </li>
                         ))}
                     </ul>
-                    <p className="flex items-start gap-2 text-xs leading-relaxed m-0" style={{ color: 'var(--text-muted)' }}>
+                    <p className="flex items-start gap-2 text-xs leading-relaxed m-0" style={{ color: 'var(--dash-text-3)' }}>
                         <Settings2 size={14} className="shrink-0 mt-px" />
                         The same links as the rest of the site. Change them, and the email, in Settings → Social Links.
                     </p>
@@ -211,7 +211,7 @@ const BookPageEditor = ({ isDark, containerBg, showAlert }: Props) => {
                     onClick={save}
                     disabled={!dirty || saving}
                     className="inline-flex items-center gap-2 px-6 py-2.5 rounded-sm text-sm font-bold cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: 'var(--accent-text)', color: '#fff' }}
+                    style={{ background: 'var(--dash-accent)', color: 'var(--dash-text)' }}
                 >
                     <Check size={16} />
                     {saving ? 'Saving…' : 'Save book page'}

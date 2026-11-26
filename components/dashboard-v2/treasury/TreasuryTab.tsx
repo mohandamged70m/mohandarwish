@@ -72,7 +72,7 @@ const INSIGHT_ICONS: Record<InsightIcon, typeof Wallet> = {
     noprice: Tag, recurring: Repeat, client: Users, unlinked: Unlink, email: Mail,
     rates: RefreshCcw, empty: Lightbulb,
 };
-const TONE_COLOR: Record<InsightTone, string> = { urgent: 'var(--danger)', warn: 'var(--warning)', good: 'var(--success)', info: 'var(--accent-text)' };
+const TONE_COLOR: Record<InsightTone, string> = { urgent: 'var(--dash-danger)', warn: 'var(--dash-warning)', good: 'var(--dash-success)', info: 'var(--dash-accent-text)' };
 // How many suggestions show before the rest fold away - two rows of the two-column
 // grid. Enough to act on, short enough that the chart stays on screen.
 const INSIGHT_PREVIEW = 4;
@@ -458,14 +458,14 @@ const DTreasury = () => {
     }, [dailySeries, chartFilter]);
 
     const cards = [
-        { label: 'Received', value: totals.earned, icon: TrendingUp, color: 'var(--success)' },
-        { label: 'Outstanding', value: totals.outstanding, icon: Clock, color: 'var(--warning)' },
-        { label: 'Spent', value: totals.spent, icon: TrendingDown, color: 'var(--danger)' },
-        { label: 'Net profit', value: totals.net, icon: Wallet, color: totals.net >= 0 ? 'var(--success)' : 'var(--danger)' },
+        { label: 'Received', value: totals.earned, icon: TrendingUp, color: 'var(--dash-success)' },
+        { label: 'Outstanding', value: totals.outstanding, icon: Clock, color: 'var(--dash-warning)' },
+        { label: 'Spent', value: totals.spent, icon: TrendingDown, color: 'var(--dash-danger)' },
+        { label: 'Net profit', value: totals.net, icon: Wallet, color: totals.net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' },
     ];
 
     const statusColor = (s: string) => statusMeta(s).color;
-    const payColor: Record<string, string> = { paid: 'var(--success)', partial: 'var(--warning)', unpaid: 'var(--danger)' };
+    const payColor: Record<string, string> = { paid: 'var(--dash-success)', partial: 'var(--dash-warning)', unpaid: 'var(--dash-danger)' };
 
     const TABS: { id: Tab; label: string; icon: typeof Wallet }[] = [
         { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -477,12 +477,12 @@ const DTreasury = () => {
     ];
 
     if (loading || !settingsLoaded) {
-        return <div className="w-full h-full flex items-center justify-center text-sec"><Sparkles className="animate-pulse mr-2" size={20} /> Loading treasury…</div>;
+        return <div className="w-full h-full flex items-center justify-center text-dash-text-2"><Sparkles className="animate-pulse mr-2" size={20} /> Loading treasury…</div>;
     }
 
     const sectionTitle = (icon: React.ReactNode, text: string, action?: React.ReactNode) => (
         <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-            <div className="flex items-center gap-2">{icon}<span className="text-sm font-bold text-primary">{text}</span></div>
+            <div className="flex items-center gap-2">{icon}<span className="text-sm font-bold text-dash-text">{text}</span></div>
             {action}
         </div>
     );
@@ -523,18 +523,18 @@ const DTreasury = () => {
                 onClick={act ? () => runInsight(act) : undefined}
                 className={`group text-left w-full flex items-start gap-3 p-3 rounded-sm border transition-[background-color,border-color] duration-200
                     ${ins.tone === 'urgent'
-                        ? 'border-rose-500/25 bg-rose-500/[0.06]'
-                        : 'border-black/[0.06] dark:border-white/[0.06] bg-black/[0.015] dark:bg-white/[0.02]'}
-                    ${act ? 'cursor-pointer hover:border-accent/40 hover:bg-accent/[0.05]' : 'cursor-default'}`}>
+                        ? 'border-dash-danger/25 bg-dash-accent-soft'
+                        : 'border-dash-border dark:border-dash-border bg-dash-surface-2 dark:bg-dash-surface-2'}
+                    ${act ? 'cursor-pointer hover:border-dash-accent/40 hover:bg-dash-accent/[0.05]' : 'cursor-default'}`}>
                 <span className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0" style={{ background: `${c}24`, color: c }}><Icon size={17} /></span>
                 <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
                         <span className="text-[10.5px] font-bold uppercase tracking-[0.08em] leading-tight" style={{ color: c }}>{ins.label}</span>
-                        {ins.value && <span className="text-xs font-bold text-primary tnum shrink-0">{ins.value}</span>}
+                        {ins.value && <span className="text-xs font-bold text-dash-text tnum shrink-0">{ins.value}</span>}
                     </span>
-                    <span className="block text-[13px] leading-snug text-sec mt-0.5">{ins.text}</span>
+                    <span className="block text-[13px] leading-snug text-dash-text-2 mt-0.5">{ins.text}</span>
                 </span>
-                {act && <ChevronRight size={15} className="shrink-0 mt-1.5 text-sec/35 group-hover:text-accent transition-colors" />}
+                {act && <ChevronRight size={15} className="shrink-0 mt-1.5 text-dash-text-2/35 group-hover:text-dash-accent-text transition-colors" />}
             </button>
         );
     };
@@ -546,15 +546,15 @@ const DTreasury = () => {
             const proj = i.projectId ? data.projects.find(p => p.id === i.projectId) : null;
             const acct = i.accountId ? data.accounts.find(a => a.id === i.accountId) : null;
             return (
-                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group">
-                    <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-emerald-500/10 text-emerald-500 flex-shrink-0"><Banknote size={16} /></div>
+                <div key={`i-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-dash-surface-2 transition-colors group">
+                    <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-success flex-shrink-0"><Banknote size={16} /></div>
                     <div className="min-w-0 flex-1">
-                        <span className="text-sm font-semibold text-primary truncate block">{proj ? proj.name : (i.note || 'Payment')}</span>
-                        <span className="text-xs text-sec truncate block">{i.date}{proj && i.note ? ` · ${i.note}` : ''}{acct ? ` · → ${acct.name}` : ''}</span>
+                        <span className="text-sm font-semibold text-dash-text truncate block">{proj ? proj.name : (i.note || 'Payment')}</span>
+                        <span className="text-xs text-dash-text-2 truncate block">{i.date}{proj && i.note ? ` · ${i.note}` : ''}{acct ? ` · → ${acct.name}` : ''}</span>
                     </div>
-                    {i.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-sec font-semibold flex-shrink-0" title={`${i.attachments.length} attachment${i.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{i.attachments.length}</span> : null}
-                    <span className="text-sm font-bold text-emerald-500 tnum flex-shrink-0">+{formatMoney(i.amount, i.currency)}</span>
-                    <Pencil size={14} className="text-sec opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                    {i.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-dash-text-2 font-semibold flex-shrink-0" title={`${i.attachments.length} attachment${i.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{i.attachments.length}</span> : null}
+                    <span className="text-sm font-bold text-dash-success tnum flex-shrink-0">+{formatMoney(i.amount, i.currency)}</span>
+                    <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                 </div>
             );
         }
@@ -562,19 +562,19 @@ const DTreasury = () => {
         const eproj = e.projectId ? data.projects.find(p => p.id === e.projectId) : null;
         const eacct = e.accountId ? data.accounts.find(a => a.id === e.accountId) : null;
         return (
-            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors group">
-                <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-rose-500/10 text-rose-400 flex-shrink-0"><Receipt size={16} /></div>
+            <div key={`e-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-black/[0.03] dark:hover:bg-dash-surface-2 transition-colors group">
+                <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent-soft text-dash-danger flex-shrink-0"><Receipt size={16} /></div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-primary truncate">{e.label}</span>
-                        {e.recurring && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-accent/15 text-accent">monthly</span>}
-                        {e.clientPaid && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500">client-paid</span>}
+                        <span className="text-sm font-semibold text-dash-text truncate">{e.label}</span>
+                        {e.recurring && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">monthly</span>}
+                        {e.clientPaid && <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-warning/15 text-dash-warning">client-paid</span>}
                     </div>
-                    <span className="text-xs text-sec truncate block">{e.category ? `${e.category} · ` : ''}{eproj ? `${eproj.name} · ` : ''}{e.date}{eacct ? ` · ← ${eacct.name}` : ''}</span>
+                    <span className="text-xs text-dash-text-2 truncate block">{e.category ? `${e.category} · ` : ''}{eproj ? `${eproj.name} · ` : ''}{e.date}{eacct ? ` · ← ${eacct.name}` : ''}</span>
                 </div>
-                {e.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-sec font-semibold flex-shrink-0" title={`${e.attachments.length} attachment${e.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{e.attachments.length}</span> : null}
-                <span className="text-sm font-bold text-rose-500 tnum flex-shrink-0">−{formatMoney(e.amount, e.currency)}</span>
-                <Pencil size={14} className="text-sec opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                {e.attachments?.length ? <span className="flex items-center gap-0.5 text-[11px] text-dash-text-2 font-semibold flex-shrink-0" title={`${e.attachments.length} attachment${e.attachments.length === 1 ? '' : 's'}`}><Paperclip size={12} />{e.attachments.length}</span> : null}
+                <span className="text-sm font-bold text-dash-danger tnum flex-shrink-0">−{formatMoney(e.amount, e.currency)}</span>
+                <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity flex-shrink-0" />
             </div>
         );
     };
@@ -616,20 +616,20 @@ const DTreasury = () => {
         const d = new Date(r.sentAt);
         return (
             <div key={r.id} className="flex items-center gap-3 p-3">
-                <div className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0 bg-accent/10 text-accent"><Receipt size={16} /></div>
+                <div className="w-9 h-9 rounded-sm flex items-center justify-center shrink-0 bg-dash-accent/10 text-dash-accent-text"><Receipt size={16} /></div>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-primary truncate">{r.to}</span>
-                        {r.via === 'mcp' && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-accent/15 text-accent">via AI</span>}
+                        <span className="text-sm font-bold text-dash-text truncate">{r.to}</span>
+                        {r.via === 'mcp' && <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-dash-accent/15 text-dash-accent-text">via AI</span>}
                     </div>
-                    <div className="text-[11px] text-sec truncate">
+                    <div className="text-[11px] text-dash-text-2 truncate">
                         {r.projectNames && r.projectNames.length ? r.projectNames.join(', ') : '-'} · {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at {d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </div>
-                    {r.receiptNo && <div className="text-[10px] text-sec/60 font-heading mt-0.5">{r.receiptNo}</div>}
+                    {r.receiptNo && <div className="text-[10px] text-dash-text-2/60 font-heading mt-0.5">{r.receiptNo}</div>}
                 </div>
                 <div className="text-right shrink-0">
-                    <div className="text-base font-bold text-primary tnum">{formatMoney(r.total, r.currency)}</div>
-                    {typeof r.balance === 'number' && r.balance > 0 && <div className="text-[10.5px] text-amber-500 font-semibold leading-tight mt-0.5">{formatMoney(r.balance, r.currency)} due</div>}
+                    <div className="text-base font-bold text-dash-text tnum">{formatMoney(r.total, r.currency)}</div>
+                    {typeof r.balance === 'number' && r.balance > 0 && <div className="text-[10.5px] text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(r.balance, r.currency)} due</div>}
                 </div>
             </div>
         );
@@ -642,7 +642,7 @@ const DTreasury = () => {
                 return (
                     <div key={c.label} className="glass-panel p-4 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-sec uppercase tracking-wider">{c.label}</span>
+                            <span className="text-[11px] font-semibold text-dash-text-2 uppercase tracking-wider">{c.label}</span>
                             <Icon size={16} style={{ color: c.color }} />
                         </div>
                         <RollingNumber
@@ -666,7 +666,7 @@ const DTreasury = () => {
                     return (
                         <button key={t.id} onClick={() => setTab(t.id)}
                             className={`flex items-center gap-2 px-5 py-3 rounded-lg border-none cursor-pointer font-sans font-semibold text-sm whitespace-nowrap transition-all
-                                ${active ? 'bg-accent/15 text-accent' : 'bg-transparent text-gray-500 hover:bg-accent/10 hover:text-accent dark:text-gray-400 dark:hover:text-accent'}`}>
+                                ${active ? 'bg-dash-accent/15 text-dash-accent-text' : 'bg-transparent text-dash-text-3 hover:bg-dash-accent/10 hover:text-dash-accent-text dark:text-dash-text-3 dark:hover:text-dash-accent-text'}`}>
                             <Icon size={18} />
                             <span className={isExtraSmall ? 'hidden' : ''}>{t.label}</span>
                         </button>
@@ -693,13 +693,13 @@ const DTreasury = () => {
                             <div className="glass-panel p-4 sm:p-5">
                                 <div className="flex items-center justify-between gap-3 mb-3.5">
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-amber-400/15 text-amber-500"><Lightbulb size={15} /></span>
-                                        <span className="text-sm font-bold text-primary">Suggestions</span>
-                                        <span className="text-xs text-sec truncate hidden sm:inline">
+                                        <span className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-dash-accent-soft text-dash-warning"><Lightbulb size={15} /></span>
+                                        <span className="text-sm font-bold text-dash-text">Suggestions</span>
+                                        <span className="text-xs text-dash-text-2 truncate hidden sm:inline">
                                             {insightsToAct ? `${insightsToAct} waiting on a decision` : 'Nothing is waiting on you'}
                                         </span>
                                     </div>
-                                    <span className={`text-[11px] font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-amber-500/15 text-amber-500' : 'bg-black/[0.05] dark:bg-white/[0.07] text-sec'}`}>{insights.length}</span>
+                                    <span className={`text-[11px] font-bold tnum px-2 py-0.5 rounded-full shrink-0 ${insightsToAct ? 'bg-dash-warning/15 text-dash-warning' : 'bg-black/[0.05] dark:bg-dash-surface/[0.07] text-dash-text-2'}`}>{insights.length}</span>
                                 </div>
                                 <div className="grid gap-1.5 sm:grid-cols-2">
                                     {insights.slice(0, INSIGHT_PREVIEW).map(renderInsight)}
@@ -716,14 +716,14 @@ const DTreasury = () => {
                                 </AnimatePresence>
                                 {insights.length > INSIGHT_PREVIEW && (
                                     <button onClick={() => setInsightsOpen(o => !o)}
-                                        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 rounded-sm border-none bg-transparent cursor-pointer text-xs font-bold text-sec hover:text-primary hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors">
+                                        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2 rounded-sm border-none bg-transparent cursor-pointer text-xs font-bold text-dash-text-2 hover:text-dash-text hover:bg-black/[0.03] dark:hover:bg-dash-surface/[0.04] transition-colors">
                                         {insightsOpen ? 'Show less' : `${insights.length - INSIGHT_PREVIEW} more`}
                                         <ChevronDown size={14} className={`transition-transform duration-200 ${insightsOpen ? 'rotate-180' : ''}`} />
                                     </button>
                                 )}
                             </div>
                             {chartData.length === 0 ? (
-                                <div className="glass-panel p-8 text-center text-sec text-sm">No dated activity yet - add a project payment or an expense and the graph fills in from that day.</div>
+                                <div className="glass-panel p-8 text-center text-dash-text-2 text-sm">No dated activity yet - add a project payment or an expense and the graph fills in from that day.</div>
                             ) : (
                                 <TreasuryChart data={chartData} filter={chartFilter} setFilter={setChartFilter} isDark={isDark} cur={cur} />
                             )}
@@ -737,14 +737,14 @@ const DTreasury = () => {
                                 {/* Left Column: Active Projects slider (col-span-2) */}
                                 <div className="lg:col-span-2 glass-panel p-5 flex flex-col gap-4">
                                     {sectionTitle(
-                                        <Briefcase size={16} className="text-accent" />,
+                                        <Briefcase size={16} className="text-dash-accent-text" />,
                                         'Active projects',
-                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Project</button>
+                                        <button onClick={() => setModal({ mode: 'project', project: null })} className="flex items-center gap-1.5 px-3.5 py-2 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Project</button>
                                     )}
-                                    <p className="text-xs text-sec -mt-2">Drag cards to reorder - everything not finished. Click a card to focus details.</p>
-                                    
+                                    <p className="text-xs text-dash-text-2 -mt-2">Drag cards to reorder - everything not finished. Click a card to focus details.</p>
+
                                     {activeProjects.length === 0 ? (
-                                        <div className="border-2 border-dashed border-input-border rounded-sm p-8 text-center text-sec text-sm">No active projects. Click "+ Project" to add one.</div>
+                                        <div className="border-2 border-dashed border-input-border rounded-sm p-8 text-center text-dash-text-2 text-sm">No active projects. Click "+ Project" to add one.</div>
                                     ) : (
                                         <Reorder.Group as="div" layoutScroll axis="x" values={activeProjects} onReorder={handleReorderActive} className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar">
                                             {activeProjects.map(p => {
@@ -756,41 +756,41 @@ const DTreasury = () => {
                                                     <Reorder.Item as="div" key={p.id} value={p} onDragEnd={persistOrder}
                                                         onClick={() => setFocusedProjectId(p.id)}
                                                         className={`group flex-shrink-0 w-[240px] p-4 flex flex-col gap-3 cursor-grab active:cursor-grabbing relative border rounded-sm backdrop-blur-md shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 select-none
-                                                            ${isFocused 
-                                                                ? 'bg-white border-accent/50 dark:border-accent/50 ring-1 ring-accent/30 dark:bg-bg-surface' 
-                                                                : 'bg-slate-50 dark:bg-bg-surface border-slate-200/80 dark:border-white/5'}`}
+                                                            ${isFocused
+                                                                ? 'bg-dash-surface border-dash-accent/50 dark:border-dash-accent/50 ring-1 ring-dash-accent/30 dark:bg-dash-surface'
+                                                                : 'bg-dash-surface-2 dark:bg-dash-surface border-dash-border dark:border-dash-border'}`}
                                                     >
                                                         <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full" style={{ background: statusColor(p.status) }} />
-                                                        
+
                                                         <div className="min-w-0 pr-14">
-                                                            <h4 className="text-[15px] font-bold text-primary truncate" title={p.name}>{p.name}</h4>
-                                                            {p.client && <p className="text-xs text-sec truncate">{p.client}</p>}
+                                                            <h4 className="text-[15px] font-bold text-dash-text truncate" title={p.name}>{p.name}</h4>
+                                                            {p.client && <p className="text-xs text-dash-text-2 truncate">{p.client}</p>}
                                                         </div>
 
                                                         <div className="absolute top-4 right-4 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                                                            <div className="p-1.5 rounded-lg text-sec/45 hover:text-primary cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                                                            <div className="p-1.5 rounded-lg text-dash-text-2/45 hover:text-dash-text cursor-grab active:cursor-grabbing hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors">
                                                                 <GripVertical size={14} />
                                                             </div>
-                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1.5 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><Pencil size={14} /></button>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${statusColor(p.status)}22`, color: statusColor(p.status) }}>{statusMeta(p.status).label}</span>
                                                             {p.monthly
-                                                                ? <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'var(--success)22', color: 'var(--success)' }}>monthly</span>
+                                                                ? <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: 'var(--dash-success)22', color: 'var(--dash-success)' }}>monthly</span>
                                                                 : <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" style={{ background: `${payColor[pay]}22`, color: payColor[pay] }}>{pay}</span>}
                                                             {/* The list already flags retainers; flag plans too, or installments are
                                                                 invisible until you open the project. */}
                                                             {hasInstallments(p) && (
-                                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'var(--accent-primary)22', color: 'var(--accent-primary)' }}>{p.installmentMonths}x</span>
+                                                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full tnum" style={{ background: 'var(--dash-accent)22', color: 'var(--dash-accent-text)' }}>{p.installmentMonths}x</span>
                                                             )}
                                                         </div>
                                                         <div>
-                                                            <span className="text-base font-bold text-primary tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}{p.monthly ? <span className="text-xs font-bold text-sec">/mo</span> : ''}</span>
-                                                            {received > 0 && <p className="text-[10.5px] text-emerald-500 font-semibold leading-tight mt-0.5">{formatMoney(received, p.priceCurrency)} received</p>}
-                                                            {!p.monthly && bal > 0 && <p className="text-[10.5px] text-amber-500 font-semibold leading-tight mt-0.5">{formatMoney(bal, p.priceCurrency)} to collect</p>}
-                                                            {p.monthly && (() => { const np = projectNextPaymentDate(p, data.income); return np ? <p className="text-[10.5px] text-sec font-semibold leading-tight mt-0.5">next {new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p> : null; })()}
+                                                            <span className="text-base font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}{p.monthly ? <span className="text-xs font-bold text-dash-text-2">/mo</span> : ''}</span>
+                                                            {received > 0 && <p className="text-[10.5px] text-dash-success font-semibold leading-tight mt-0.5">{formatMoney(received, p.priceCurrency)} received</p>}
+                                                            {!p.monthly && bal > 0 && <p className="text-[10.5px] text-dash-warning font-semibold leading-tight mt-0.5">{formatMoney(bal, p.priceCurrency)} to collect</p>}
+                                                            {p.monthly && (() => { const np = projectNextPaymentDate(p, data.income); return np ? <p className="text-[10.5px] text-dash-text-2 font-semibold leading-tight mt-0.5">next {new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p> : null; })()}
                                                         </div>
-                                                        <div className="text-[10.5px] text-sec flex items-center gap-1 mt-auto pt-2"><Clock size={11} /><span>{p.startDate || '-'}{p.endDate ? ` → ${p.endDate}` : isFinished(p) ? '' : ' → ongoing'}</span></div>
+                                                        <div className="text-[10.5px] text-dash-text-2 flex items-center gap-1 mt-auto pt-2"><Clock size={11} /><span>{p.startDate || '-'}{p.endDate ? ` → ${p.endDate}` : isFinished(p) ? '' : ' → ongoing'}</span></div>
                                                     </Reorder.Item>
                                                 );
                                             })}
@@ -806,9 +806,9 @@ const DTreasury = () => {
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
-                                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-accent font-body">Project Focus</span>
-                                                        <h3 className="text-lg font-bold text-primary truncate mt-0.5" title={focusedProject.name}>{focusedProject.name}</h3>
-                                                        {focusedProject.client && <p className="text-xs text-sec truncate">{focusedProject.client}</p>}
+                                                        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-dash-accent-text font-body">Project Focus</span>
+                                                        <h3 className="text-lg font-bold text-dash-text truncate mt-0.5" title={focusedProject.name}>{focusedProject.name}</h3>
+                                                        {focusedProject.client && <p className="text-xs text-dash-text-2 truncate">{focusedProject.client}</p>}
                                                     </div>
                                                     <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: `${statusColor(focusedProject.status)}22`, color: statusColor(focusedProject.status) }}>{statusMeta(focusedProject.status).label}</span>
                                                 </div>
@@ -828,35 +828,35 @@ const DTreasury = () => {
                                                     // carries the rounding tolerance a bare floor() got wrong).
                                                     const paidCount = installmentsPaidCount(focusedProject, data.income, data.config.rates);
                                                     return (
-                                                        <div className="flex flex-col gap-2 p-3.5 rounded-sm bg-black/[0.02] dark:bg-white/[0.02] border border-black/5 dark:border-white/5">
-                                                            <div className="flex items-center justify-between text-xs font-bold text-sec">
+                                                        <div className="flex flex-col gap-2 p-3.5 rounded-sm bg-dash-surface-2 dark:bg-dash-surface-2 border border-black/5 dark:border-dash-border">
+                                                            <div className="flex items-center justify-between text-xs font-bold text-dash-text-2">
                                                                 <span>Payment progress</span>
-                                                                <span className="tnum text-emerald-500">{pct}% paid</span>
+                                                                <span className="tnum text-dash-success">{pct}% paid</span>
                                                             </div>
-                                                            <div className="w-full h-2 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden relative">
-                                                                <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.4, ease: "easeOut" }} className="h-full bg-emerald-500 rounded-full" />
+                                                            <div className="w-full h-2 rounded-full bg-black/10 dark:bg-dash-surface/10 overflow-hidden relative">
+                                                                <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.4, ease: "easeOut" }} className="h-full bg-dash-success rounded-full" />
                                                                 {/* On a plan, notch the bar into one segment per installment, so you can
                                                                     read "how many months are covered" straight off the bar. */}
                                                                 {onPlan && Array.from({ length: months - 1 }, (_, i) => (
                                                                     <div
                                                                         key={i}
-                                                                        className="absolute top-0 bottom-0 w-px bg-white/70 dark:bg-black/50"
+                                                                        className="absolute top-0 bottom-0 w-px bg-dash-surface/70 dark:bg-black/50"
                                                                         style={{ left: `${((i + 1) / months) * 100}%` }}
                                                                     />
                                                                 ))}
                                                             </div>
                                                             {onPlan && (
                                                                 <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                                                                    <span className="inline-flex items-center gap-1.5 font-bold text-accent">
+                                                                    <span className="inline-flex items-center gap-1.5 font-bold text-dash-accent-text">
                                                                         <CalendarClock size={13} className="shrink-0" />
                                                                         <span className="tnum">{months} installments x {formatMoney(perMonth, focusedProject.priceCurrency)}/mo</span>
                                                                     </span>
-                                                                    <span className="font-semibold text-sec tnum">{paidCount} of {months} paid</span>
+                                                                    <span className="font-semibold text-dash-text-2 tnum">{paidCount} of {months} paid</span>
                                                                 </div>
                                                             )}
-                                                            <div className="flex flex-wrap items-center justify-between text-[11px] text-sec gap-2 mt-0.5">
-                                                                <span className="font-semibold text-emerald-500 tnum">{formatMoney(received, focusedProject.priceCurrency)} received</span>
-                                                                <span className="font-semibold text-amber-500 tnum">{formatMoney(projectBalance(focusedProject, data.income, data.config.rates), focusedProject.priceCurrency)} left</span>
+                                                            <div className="flex flex-wrap items-center justify-between text-[11px] text-dash-text-2 gap-2 mt-0.5">
+                                                                <span className="font-semibold text-dash-success tnum">{formatMoney(received, focusedProject.priceCurrency)} received</span>
+                                                                <span className="font-semibold text-dash-warning tnum">{formatMoney(projectBalance(focusedProject, data.income, data.config.rates), focusedProject.priceCurrency)} left</span>
                                                             </div>
                                                         </div>
                                                     );
@@ -864,17 +864,17 @@ const DTreasury = () => {
 
                                                 {/* Monthly retainer: rate + next due date */}
                                                 {focusedProject.monthly && (
-                                                    <div className="flex items-center justify-between gap-3 p-3.5 rounded-sm bg-emerald-500/[0.04] border border-emerald-500/15">
+                                                    <div className="flex items-center justify-between gap-3 p-3.5 rounded-sm bg-dash-success/[0.04] border border-dash-success/30">
                                                         <div className="flex items-center gap-2 min-w-0">
-                                                            <Repeat size={15} className="text-emerald-500 shrink-0" />
+                                                            <Repeat size={15} className="text-dash-success shrink-0" />
                                                             <div className="min-w-0">
-                                                                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Monthly retainer</div>
-                                                                <div className="text-xs text-sec truncate">{focusedProject.priceAmount ? `${formatMoney(focusedProject.priceAmount, focusedProject.priceCurrency)}/mo` : 'No rate set'}</div>
+                                                                <div className="text-[10px] font-bold uppercase tracking-wider text-dash-success">Monthly retainer</div>
+                                                                <div className="text-xs text-dash-text-2 truncate">{focusedProject.priceAmount ? `${formatMoney(focusedProject.priceAmount, focusedProject.priceCurrency)}/mo` : 'No rate set'}</div>
                                                             </div>
                                                         </div>
                                                         <div className="text-right shrink-0">
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-sec">Next payment</div>
-                                                            <div className="text-xs font-bold text-primary tnum">
+                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Next payment</div>
+                                                            <div className="text-xs font-bold text-dash-text tnum">
                                                                 {(() => { const np = projectNextPaymentDate(focusedProject, data.income); return np ? new Date(`${np}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Log a payment'; })()}
                                                             </div>
                                                         </div>
@@ -883,28 +883,28 @@ const DTreasury = () => {
 
                                                 {/* Sub-Ledger: Linked Transactions */}
                                                 <div className="flex flex-col gap-2">
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-sec font-body">Linked ledger</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2 font-body">Linked ledger</span>
                                                     <div className="max-h-[140px] overflow-y-auto pr-1 flex flex-col gap-1.5 custom-scrollbar min-h-[60px]">
                                                         {(() => {
                                                             const linkedInc = data.income.filter(i => i.projectId === focusedProject.id);
                                                             const linkedExp = data.expenses.filter(e => e.projectId === focusedProject.id);
                                                             if (linkedInc.length === 0 && linkedExp.length === 0) {
-                                                                return <div className="text-[11px] text-sec italic text-center py-4 bg-black/[0.01] dark:bg-white/[0.01] rounded-sm border border-dashed border-black/5 dark:border-white/5">No payments or expenses linked.</div>;
+                                                                return <div className="text-[11px] text-dash-text-2 italic text-center py-4 bg-black/[0.01] dark:bg-dash-surface/[0.01] rounded-sm border border-dashed border-black/5 dark:border-dash-border">No payments or expenses linked.</div>;
                                                             }
                                                             return (
                                                                 <>
                                                                     {linkedInc.map(i => (
                                                                         <div key={`li-${i.id}`} onClick={() => setModal({ mode: 'income', income: i })} role="button" tabIndex={0} title="Edit this payment"
-                                                                            className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-emerald-500/[0.03] dark:bg-emerald-500/[0.05] border border-emerald-500/10 text-xs cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/[0.08] transition-colors">
-                                                                            <span className="text-sec truncate max-w-[120px] flex items-center gap-1.5">{i.note || 'Payment'}<Pencil size={11} className="text-sec opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
-                                                                            <span className="font-bold text-emerald-500 tnum">+{formatMoney(i.amount, i.currency)}</span>
+                                                                            className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-dash-success/[0.03] dark:bg-dash-success/[0.05] border border-dash-success/30 text-xs cursor-pointer hover:border-dash-success/30 hover:bg-dash-success/[0.08] transition-colors">
+                                                                            <span className="text-dash-text-2 truncate max-w-[120px] flex items-center gap-1.5">{i.note || 'Payment'}<Pencil size={11} className="text-dash-text-2 opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
+                                                                            <span className="font-bold text-dash-success tnum">+{formatMoney(i.amount, i.currency)}</span>
                                                                         </div>
                                                                     ))}
                                                                     {linkedExp.map(e => (
                                                                         <div key={`le-${e.id}`} onClick={() => setModal({ mode: 'expense', expense: e })} role="button" tabIndex={0} title="Edit this expense"
-                                                                            className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-rose-500/[0.03] dark:bg-rose-500/[0.05] border border-rose-500/10 text-xs cursor-pointer hover:border-rose-500/40 hover:bg-rose-500/[0.08] transition-colors">
-                                                                            <span className="text-sec truncate max-w-[120px] flex items-center gap-1.5">{e.label}<Pencil size={11} className="text-sec opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
-                                                                            <span className="font-bold text-rose-500 tnum">-{formatMoney(e.amount, e.currency)}</span>
+                                                                            className="group flex items-center justify-between gap-2 p-2 rounded-sm bg-dash-accent-soft dark:bg-dash-accent-soft border border-dash-danger/30 text-xs cursor-pointer hover:border-dash-danger/30 hover:bg-dash-accent-soft transition-colors">
+                                                                            <span className="text-dash-text-2 truncate max-w-[120px] flex items-center gap-1.5">{e.label}<Pencil size={11} className="text-dash-text-2 opacity-0 group-hover:opacity-70 transition-opacity shrink-0" /></span>
+                                                                            <span className="font-bold text-dash-danger tnum">-{formatMoney(e.amount, e.currency)}</span>
                                                                         </div>
                                                                     ))}
                                                                 </>
@@ -915,13 +915,13 @@ const DTreasury = () => {
                                             </div>
 
                                             {/* Quick Actions Panel */}
-                                            <div className="flex flex-col gap-2 mt-auto pt-4 border-t border-[var(--section-border)]">
+                                            <div className="flex flex-col gap-2 mt-auto pt-4 border-t border-[var(--dash-border)]">
                                                 <div className="grid grid-cols-2 gap-2">
-                                                    <button onClick={() => setModal({ mode: 'income', income: { projectId: focusedProject.id, date: localDayKey(Date.now()), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/15 transition-all"><Plus size={14} /> Log income</button>
-                                                    <button onClick={() => setModal({ mode: 'expense', expense: { projectId: focusedProject.id, date: localDayKey(Date.now()), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '', label: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-rose-500 bg-rose-500/10 hover:bg-rose-500/15 transition-all"><Plus size={14} /> Log expense</button>
+                                                    <button onClick={() => setModal({ mode: 'income', income: { projectId: focusedProject.id, date: localDayKey(Date.now()), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-success dark:text-dash-success bg-dash-accent-soft hover:bg-dash-success/15 transition-all"><Plus size={14} /> Log income</button>
+                                                    <button onClick={() => setModal({ mode: 'expense', expense: { projectId: focusedProject.id, date: localDayKey(Date.now()), amount: 0, currency: focusedProject.priceCurrency, createdAt: Date.now(), id: '', label: '' } })} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-danger bg-dash-accent-soft hover:bg-dash-accent-soft transition-all"><Plus size={14} /> Log expense</button>
                                                 </div>
                                                 <div className="flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-sec"><CheckCircle2 size={12} /> Status</div>
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-dash-text-2"><CheckCircle2 size={12} /> Status</div>
                                                     <Select
                                                         value={focusedProject.status}
                                                         options={PROJECT_STATUSES.map(m => ({ value: m.id, label: m.label, hint: m.hint }))}
@@ -934,71 +934,71 @@ const DTreasury = () => {
                                                         rarely ended on the day someone got round to marking it. */}
                                                     {isFinished(focusedProject) && (
                                                         <div className="flex flex-col gap-1 mt-0.5">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-sec">Ended</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Ended</span>
                                                             <DatePicker value={focusedProject.endDate || ''} onChange={(d) => setProjectDate(focusedProject, 'endDate', d)} isDark={isDark} placeholder="Not ended" />
                                                         </div>
                                                     )}
                                                     {focusedProject.status === 'paused' && (
                                                         <div className="flex flex-col gap-1 mt-0.5">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-sec">Paused since</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Paused since</span>
                                                             <DatePicker value={focusedProject.pausedAt || ''} onChange={(d) => setProjectDate(focusedProject, 'pausedAt', d)} isDark={isDark} placeholder="Today" />
                                                         </div>
                                                     )}
                                                     {focusedProject.status === 'closed' && focusedProject.closedReason && (
-                                                        <p className="text-[11px] text-sec m-0">{focusedProject.closedReason}</p>
+                                                        <p className="text-[11px] text-dash-text-2 m-0">{focusedProject.closedReason}</p>
                                                     )}
                                                 </div>
-                                                <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-primary bg-black/[0.05] dark:bg-white/[0.07] hover:bg-black/[0.09] dark:hover:bg-white/[0.11] transition-all"><Receipt size={14} /> Receipt</button>
+                                                <button onClick={() => setReceiptFor(focusedProject.id)} className="flex items-center justify-center gap-1.5 py-2.5 rounded-sm text-xs font-bold text-dash-text bg-black/[0.05] dark:bg-dash-surface/[0.07] hover:bg-black/[0.09] dark:hover:bg-dash-surface/[0.11] transition-all"><Receipt size={14} /> Receipt</button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="h-full flex items-center justify-center text-center text-sec text-xs italic">Select an active project card to view detail actions.</div>
+                                        <div className="h-full flex items-center justify-center text-center text-dash-text-2 text-xs italic">Select an active project card to view detail actions.</div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Completed Projects Archive Section */}
                             <div className="glass-panel p-5 flex flex-col gap-3">
-                                <button onClick={() => setArchiveOpen(!archiveOpen)} className="flex items-center justify-between w-full border-none bg-transparent p-0 cursor-pointer text-sec hover:text-primary transition-colors">
+                                <button onClick={() => setArchiveOpen(!archiveOpen)} className="flex items-center justify-between w-full border-none bg-transparent p-0 cursor-pointer text-dash-text-2 hover:text-dash-text transition-colors">
                                     <div className="flex items-center gap-2">
-                                        <CheckCircle2 size={16} className="text-emerald-500" />
-                                        <span className="text-sm font-bold text-primary">Completed projects archive</span>
-                                        <span className="text-[11px] font-bold tnum px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">{completedProjects.length}</span>
+                                        <CheckCircle2 size={16} className="text-dash-success" />
+                                        <span className="text-sm font-bold text-dash-text">Completed projects archive</span>
+                                        <span className="text-[11px] font-bold tnum px-2 py-0.5 rounded-full bg-dash-accent-soft text-dash-success">{completedProjects.length}</span>
                                     </div>
                                     <motion.div animate={{ rotate: archiveOpen ? -90 : 0 }} transition={{ duration: 0.2 }}><ChevronLeft size={16} /></motion.div>
                                 </button>
-                                
+
                                 <AnimatePresence initial={false}>
                                     {archiveOpen && (
                                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: "easeInOut" }} className="overflow-hidden">
                                             {completedProjects.length === 0 ? (
-                                                <div className="text-xs text-sec italic py-6 text-center">No completed projects archived yet.</div>
+                                                <div className="text-xs text-dash-text-2 italic py-6 text-center">No completed projects archived yet.</div>
                                             ) : (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-3">
                                                     {completedProjects.map(p => {
                                                         const received = projectReceived(p, data.income, data.config.rates);
                                                         return (
-                                                            <div key={p.id} onClick={() => setFocusedProjectId(p.id)} 
+                                                            <div key={p.id} onClick={() => setFocusedProjectId(p.id)}
                                                                 className={`p-4 rounded-sm border flex flex-col gap-2 relative shadow-sm hover:shadow-md transition-[border-color,box-shadow,background-color] duration-200 cursor-pointer backdrop-blur-sm
-                                                                    ${focusedProject?.id === p.id 
-                                                                        ? 'bg-white border-accent/30 ring-1 ring-blue-500/30 dark:bg-[#1c1c24]' 
-                                                                        : 'bg-slate-50 dark:bg-[#13131a] border-slate-200/80 dark:border-white/5'}`}
+                                                                    ${focusedProject?.id === p.id
+                                                                        ? 'bg-dash-surface border-dash-accent/30 ring-1 ring-dash-accent/30 dark:bg-[var(--dash-surface)]'
+                                                                        : 'bg-dash-surface-2 dark:bg-[var(--dash-surface)] border-dash-border dark:border-dash-border'}`}
                                                             >
-                                                                <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-emerald-500" />
+                                                                <div className="absolute top-0 left-4 right-4 h-0.5 rounded-full bg-dash-success" />
                                                                 <div className="min-w-0 pr-10">
-                                                                    <h4 className="text-sm font-bold text-primary truncate" title={p.name}>{p.name}</h4>
-                                                                    {p.client && <p className="text-[11px] text-sec truncate">{p.client}</p>}
+                                                                    <h4 className="text-sm font-bold text-dash-text truncate" title={p.name}>{p.name}</h4>
+                                                                    {p.client && <p className="text-[11px] text-dash-text-2 truncate">{p.client}</p>}
                                                                 </div>
                                                                 <div className="absolute top-4 right-4 flex gap-1">
-                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-colors"><Pencil size={12} /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); setModal({ mode: 'project', project: p }); }} className="p-1 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-colors"><Pencil size={12} /></button>
                                                                 </div>
                                                                 <div className="flex items-center justify-between text-xs border-t border-black/[0.03] dark:border-white/[0.03] pt-2 mt-1 gap-2 flex-wrap">
-                                                                    <span className="font-bold text-primary tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
-                                                                    {received > 0 && <span className="text-[10px] text-emerald-500 font-semibold tnum">paid</span>}
+                                                                    <span className="font-bold text-dash-text tnum">{p.priceAmount ? formatMoney(p.priceAmount, p.priceCurrency) : '-'}</span>
+                                                                    {received > 0 && <span className="text-[10px] text-dash-success font-semibold tnum">paid</span>}
                                                                 </div>
                                                                 {/* This list holds both endings, so it says which one this was. */}
-                                                                <div className="text-[10px] text-sec flex items-center gap-1 mt-1"><Clock size={11} /><span>{statusMeta(p.status).label} {p.endDate || '-'}</span></div>
-                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-lg text-[10px] font-bold bg-accent/10 text-accent hover:bg-accent/15 transition-all w-fit px-3">Reopen</button>
+                                                                <div className="text-[10px] text-dash-text-2 flex items-center gap-1 mt-1"><Clock size={11} /><span>{statusMeta(p.status).label} {p.endDate || '-'}</span></div>
+                                                                <button onClick={(e) => { e.stopPropagation(); setProjectStatus(p, 'active'); }} className="mt-2 py-1.5 rounded-lg text-[10px] font-bold bg-dash-accent/10 text-dash-accent-text hover:bg-dash-accent/15 transition-all w-fit px-3">Reopen</button>
                                                             </div>
                                                         );
                                                     })}
@@ -1014,9 +1014,9 @@ const DTreasury = () => {
                     {tab === 'money' && (
                         <div className="glass-panel overflow-hidden">
                             {/* Sticky header */}
-                            <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--section-border)]" style={{ background: 'var(--bg-surface)' }}>
+                            <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--dash-border)]" style={{ background: 'var(--dash-surface)' }}>
                                 {sectionTitle(
-                                    <Wallet size={16} className="text-accent" />,
+                                    <Wallet size={16} className="text-dash-accent-text" />,
                                     'Money',
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <div className="w-[152px]">
@@ -1048,36 +1048,36 @@ const DTreasury = () => {
                                                 />
                                             </div>
                                         )}
-                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add money</button>
+                                        <button onClick={() => setModal({ mode: 'income', income: null })} className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add money</button>
                                     </div>
                                 )}
                                 {/* Day navigator: ‹  date  › */}
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => stepDay(-1)} title="Previous day" className="p-2 rounded-sm text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
+                                    <button onClick={() => stepDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                     <div className="w-44"><DatePicker value={selectedDay} onChange={setSelectedDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
-                                    <button onClick={() => stepDay(1)} title="Next day" className="p-2 rounded-sm text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
-                                    {selectedDay && <button onClick={() => setSelectedDay('')} className="text-xs font-semibold text-accent hover:text-blue-600 px-1">Clear</button>}
+                                    <button onClick={() => stepDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
+                                    {selectedDay && <button onClick={() => setSelectedDay('')} className="text-xs font-semibold text-dash-accent-text hover:text-dash-info px-1">Clear</button>}
                                 </div>
                             </div>
 
                             {/* Body */}
                             <div className="p-5">
                                 {moneyRows.length === 0 ? (
-                                    <div className="glass-surface p-6 text-center text-sec text-sm">Nothing yet. Click "+ Add money" to log income or an expense.</div>
+                                    <div className="glass-surface p-6 text-center text-dash-text-2 text-sm">Nothing yet. Click "+ Add money" to log income or an expense.</div>
                                 ) : !selectedDay && visibleRows.length === 0 ? (
-                                    <div className="glass-surface p-6 text-center text-sec text-sm">No entries match these filters.</div>
+                                    <div className="glass-surface p-6 text-center text-dash-text-2 text-sm">No entries match these filters.</div>
                                 ) : selectedDay ? (
                                     <div className="glass-surface overflow-hidden">
-                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]'}`}>
-                                            <span className="text-[11px] font-bold text-sec uppercase tracking-wider">{fmtDayHeader(selectedDay)}</span>
-                                            {dayRows.length > 0 && (() => { const net = dayNet(dayRows); return <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--success)' : 'var(--danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>; })()}
+                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                            <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(selectedDay)}</span>
+                                            {dayRows.length > 0 && (() => { const net = dayNet(dayRows); return <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>; })()}
                                         </div>
                                         {dayRows.length > 0
-                                            ? <div className="divide-y divide-[var(--input-border)]">{dayRows.map(renderMoneyRow)}</div>
-                                            : <div className="p-6 text-center text-sec text-sm">No entries on this day.</div>}
+                                            ? <div className="divide-y divide-[var(--dash-border)]">{dayRows.map(renderMoneyRow)}</div>
+                                            : <div className="p-6 text-center text-dash-text-2 text-sm">No entries on this day.</div>}
                                     </div>
                                 ) : moneyView === 'all' ? (
-                                    <div className="glass-surface divide-y divide-[var(--input-border)] overflow-hidden">
+                                    <div className="glass-surface divide-y divide-[var(--dash-border)] overflow-hidden">
                                         {visibleRows.map(renderMoneyRow)}
                                     </div>
                                 ) : (
@@ -1086,11 +1086,11 @@ const DTreasury = () => {
                                             const net = dayNet(rows);
                                             return (
                                                 <div key={day} className="glass-surface overflow-hidden">
-                                                    <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]'}`}>
-                                                        <span className="text-[11px] font-bold text-sec uppercase tracking-wider">{fmtDayHeader(day)}</span>
-                                                        <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--success)' : 'var(--danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>
+                                                    <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                                        <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
+                                                        <span className="text-xs font-bold tnum" style={{ color: net >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{net >= 0 ? '+' : '−'}{formatMoney(Math.abs(net), cur)}</span>
                                                     </div>
-                                                    <div className="divide-y divide-[var(--input-border)]">
+                                                    <div className="divide-y divide-[var(--dash-border)]">
                                                         {rows.map(renderMoneyRow)}
                                                     </div>
                                                 </div>
@@ -1107,21 +1107,21 @@ const DTreasury = () => {
                             {/* Liquid total + add */}
                             <div className="glass-panel p-5 flex items-center justify-between gap-4 flex-wrap">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <span className="w-11 h-11 rounded-sm flex items-center justify-center bg-accent/12 text-accent shrink-0"><Wallet2 size={22} /></span>
+                                    <span className="w-11 h-11 rounded-sm flex items-center justify-center bg-dash-accent/12 text-dash-accent-text shrink-0"><Wallet2 size={22} /></span>
                                     <div className="min-w-0">
-                                        <div className="text-[11px] font-bold uppercase tracking-wider text-sec">Total balance · {cur}</div>
-                                        <div className="text-2xl sm:text-3xl font-bold tnum text-primary leading-tight" style={{ color: liquidTotal >= 0 ? undefined : 'var(--danger)' }}>{formatMoney(liquidTotal, cur)}</div>
-                                        <div className="text-[11px] text-sec">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
+                                        <div className="text-[11px] font-bold uppercase tracking-wider text-dash-text-2">Total balance · {cur}</div>
+                                        <div className="text-2xl sm:text-3xl font-bold tnum text-dash-text leading-tight" style={{ color: liquidTotal >= 0 ? undefined : 'var(--dash-danger)' }}>{formatMoney(liquidTotal, cur)}</div>
+                                        <div className="text-[11px] text-dash-text-2">{liveAccounts.length} active account{liveAccounts.length === 1 ? '' : 's'}</div>
                                     </div>
                                 </div>
-                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Account</button>
+                                <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Account</button>
                             </div>
 
                             {data.accounts.length === 0 ? (
                                 <div className="glass-panel p-10 text-center flex flex-col items-center gap-3">
-                                    <span className="w-14 h-14 rounded-sm flex items-center justify-center bg-accent/10 text-accent"><Landmark size={26} /></span>
-                                    <p className="text-sm text-sec max-w-sm">No accounts yet. Add a bank, cash or wallet, then pick it when logging income or an expense to track each balance.</p>
-                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
+                                    <span className="w-14 h-14 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text"><Landmark size={26} /></span>
+                                    <p className="text-sm text-dash-text-2 max-w-sm">No accounts yet. Add a bank, cash or wallet, then pick it when logging income or an expense to track each balance.</p>
+                                    <button onClick={() => setAccountModal({ account: null })} className="flex items-center gap-1.5 px-4 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Plus size={16} /> Add your first account</button>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1137,22 +1137,22 @@ const DTreasury = () => {
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <span className="w-10 h-10 rounded-sm flex items-center justify-center shrink-0" style={{ background: `${tColor}1f`, color: tColor }}><Icon size={18} /></span>
                                                         <div className="min-w-0">
-                                                            <div className="text-sm font-bold text-primary truncate" title={a.name}>{a.name}</div>
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-sec">{a.type} · {a.currency}</div>
+                                                            <div className="text-sm font-bold text-dash-text truncate" title={a.name}>{a.name}</div>
+                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.type} · {a.currency}</div>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
                                                         {a.excludeFromNetProfit && (
-                                                            <span title="Excluded from Net profit and the earnings chart" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] text-sec">Off P&amp;L</span>
+                                                            <span title="Excluded from Net profit and the earnings chart" className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-black/[0.06] dark:bg-dash-surface/[0.08] text-dash-text-2">Off P&amp;L</span>
                                                         )}
-                                                        <Pencil size={14} className="text-sec opacity-40 group-hover:opacity-100 transition-opacity" />
+                                                        <Pencil size={14} className="text-dash-text-2 opacity-40 group-hover:opacity-100 transition-opacity" />
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-sec">Balance</div>
-                                                    <div className="text-xl font-bold tnum" style={{ color: bal >= 0 ? 'var(--success)' : 'var(--danger)' }}>{formatMoney(bal, a.currency)}</div>
+                                                    <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">Balance</div>
+                                                    <div className="text-xl font-bold tnum" style={{ color: bal >= 0 ? 'var(--dash-success)' : 'var(--dash-danger)' }}>{formatMoney(bal, a.currency)}</div>
                                                 </div>
-                                                <div className="text-[11px] text-sec flex items-center justify-between gap-2 pt-1 border-t border-[var(--section-border)]">
+                                                <div className="text-[11px] text-dash-text-2 flex items-center justify-between gap-2 pt-1 border-t border-[var(--dash-border)]">
                                                     <span>{moves} movement{moves === 1 ? '' : 's'}</span>
                                                     <span className="tnum">opening {formatMoney(a.openingBalance || 0, a.currency)}</span>
                                                 </div>
@@ -1164,7 +1164,7 @@ const DTreasury = () => {
 
                             {archivedAccounts.length > 0 && (
                                 <div className="glass-panel p-5 flex flex-col gap-3">
-                                    <span className="text-sm font-bold text-primary flex items-center gap-2"><Landmark size={15} className="text-sec" /> Archived accounts</span>
+                                    <span className="text-sm font-bold text-dash-text flex items-center gap-2"><Landmark size={15} className="text-dash-text-2" /> Archived accounts</span>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                         {archivedAccounts.map(a => {
                                             const bal = accountBalance(a, data.income, data.expenses, data.config.rates);
@@ -1173,13 +1173,13 @@ const DTreasury = () => {
                                                 <div key={a.id} onClick={() => setAccountModal({ account: a })} role="button" tabIndex={0}
                                                     className="glass-surface p-3.5 flex items-center justify-between gap-2 cursor-pointer opacity-70 hover:opacity-100 transition-opacity">
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-black/5 dark:bg-white/5 text-sec shrink-0"><Icon size={16} /></span>
+                                                        <span className="w-9 h-9 rounded-sm flex items-center justify-center bg-black/5 dark:bg-dash-surface/5 text-dash-text-2 shrink-0"><Icon size={16} /></span>
                                                         <div className="min-w-0">
-                                                            <div className="text-sm font-semibold text-primary truncate">{a.name}</div>
-                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-sec">{a.currency}</div>
+                                                            <div className="text-sm font-semibold text-dash-text truncate">{a.name}</div>
+                                                            <div className="text-[10px] font-bold uppercase tracking-wider text-dash-text-2">{a.currency}</div>
                                                         </div>
                                                     </div>
-                                                    <span className="text-sm font-bold tnum text-sec">{formatMoney(bal, a.currency)}</span>
+                                                    <span className="text-sm font-bold tnum text-dash-text-2">{formatMoney(bal, a.currency)}</span>
                                                 </div>
                                             );
                                         })}
@@ -1191,13 +1191,13 @@ const DTreasury = () => {
 
                     {tab === 'receipts' && (
                         <div className="glass-panel overflow-hidden">
-                            <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--section-border)]" style={{ background: 'var(--bg-surface)' }}>
+                            <div className="sticky top-0 z-10 px-5 pt-5 pb-3 border-b border-[var(--dash-border)]" style={{ background: 'var(--dash-surface)' }}>
                                 {sectionTitle(
-                                    <Receipt size={16} className="text-accent" />,
+                                    <Receipt size={16} className="text-dash-accent-text" />,
                                     'Receipts',
                                     data.receipts.length > 0 ? (
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-xs font-bold text-sec tnum mr-0.5">{filteredReceipts.length}{receiptCustomer !== 'all' ? ` of ${data.receipts.length}` : ''} sent</span>
+                                            <span className="text-xs font-bold text-dash-text-2 tnum mr-0.5">{filteredReceipts.length}{receiptCustomer !== 'all' ? ` of ${data.receipts.length}` : ''} sent</span>
                                             <div className="w-[176px]">
                                                 <Select
                                                     value={receiptCustomer === 'all' ? 'All customers' : receiptCustomer}
@@ -1221,43 +1221,43 @@ const DTreasury = () => {
                                 )}
                                 {data.receipts.length > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => stepReceiptDay(-1)} title="Previous day" className="p-2 rounded-sm text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
+                                        <button onClick={() => stepReceiptDay(-1)} title="Previous day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronLeft size={16} /></button>
                                         <div className="w-44"><DatePicker value={receiptDay} onChange={setReceiptDay} isDark={isDark} placeholder="Jump to a day" allowClear /></div>
-                                        <button onClick={() => stepReceiptDay(1)} title="Next day" className="p-2 rounded-sm text-sec hover:text-primary border border-[var(--input-border)] hover:bg-black/5 dark:hover:bg-white/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
-                                        {receiptDay && <button onClick={() => setReceiptDay('')} className="text-xs font-semibold text-accent hover:text-blue-600 px-1">Clear</button>}
+                                        <button onClick={() => stepReceiptDay(1)} title="Next day" className="p-2 rounded-sm text-dash-text-2 hover:text-dash-text border border-[var(--dash-border)] hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all flex-shrink-0"><ChevronRight size={16} /></button>
+                                        {receiptDay && <button onClick={() => setReceiptDay('')} className="text-xs font-semibold text-dash-accent-text hover:text-dash-info px-1">Clear</button>}
                                     </div>
                                 )}
                             </div>
                             <div className="p-5">
                                 {data.receipts.length === 0 ? (
-                                    <div className="glass-surface p-8 text-center text-sec text-sm">
+                                    <div className="glass-surface p-8 text-center text-dash-text-2 text-sm">
                                         No receipts sent yet. Open a project in <span className="font-semibold">Projects</span> and hit <span className="font-semibold">Receipt</span> to send one.
                                     </div>
                                 ) : !receiptDay && filteredReceipts.length === 0 ? (
-                                    <div className="glass-surface p-6 text-center text-sec text-sm">No receipts match these filters.</div>
+                                    <div className="glass-surface p-6 text-center text-dash-text-2 text-sm">No receipts match these filters.</div>
                                 ) : receiptDay ? (
                                     <div className="glass-surface overflow-hidden">
-                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]'}`}>
-                                            <span className="text-[11px] font-bold text-sec uppercase tracking-wider">{fmtDayHeader(receiptDay)}</span>
-                                            {receiptDayRows.length > 0 && <span className="text-xs font-bold text-sec tnum">{receiptDayRows.length} sent</span>}
+                                        <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                            <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(receiptDay)}</span>
+                                            {receiptDayRows.length > 0 && <span className="text-xs font-bold text-dash-text-2 tnum">{receiptDayRows.length} sent</span>}
                                         </div>
                                         {receiptDayRows.length > 0
-                                            ? <div className="divide-y divide-[var(--input-border)]">{receiptDayRows.map(renderReceiptRow)}</div>
-                                            : <div className="p-6 text-center text-sec text-sm">No receipts on this day.</div>}
+                                            ? <div className="divide-y divide-[var(--dash-border)]">{receiptDayRows.map(renderReceiptRow)}</div>
+                                            : <div className="p-6 text-center text-dash-text-2 text-sm">No receipts on this day.</div>}
                                     </div>
                                 ) : receiptView === 'all' ? (
-                                    <div className="glass-surface divide-y divide-[var(--input-border)] overflow-hidden">
+                                    <div className="glass-surface divide-y divide-[var(--dash-border)] overflow-hidden">
                                         {filteredReceipts.map(renderReceiptRow)}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col gap-3">
                                         {receiptsByDay.map(([day, rows]) => (
                                             <div key={day} className="glass-surface overflow-hidden">
-                                                <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-white/[0.04]' : 'bg-black/[0.03]'}`}>
-                                                    <span className="text-[11px] font-bold text-sec uppercase tracking-wider">{fmtDayHeader(day)}</span>
-                                                    <span className="text-xs font-bold text-sec tnum">{rows.length} sent</span>
+                                                <div className={`flex items-center justify-between px-3.5 py-2 ${isDark ? 'bg-dash-surface/[0.04]' : 'bg-black/[0.03]'}`}>
+                                                    <span className="text-[11px] font-bold text-dash-text-2 uppercase tracking-wider">{fmtDayHeader(day)}</span>
+                                                    <span className="text-xs font-bold text-dash-text-2 tnum">{rows.length} sent</span>
                                                 </div>
-                                                <div className="divide-y divide-[var(--input-border)]">{rows.map(renderReceiptRow)}</div>
+                                                <div className="divide-y divide-[var(--dash-border)]">{rows.map(renderReceiptRow)}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -1271,19 +1271,19 @@ const DTreasury = () => {
                             <div className="glass-panel p-5 flex flex-col gap-5">
                                 <h3 className="heading-sm m-0">Currency</h3>
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-semibold text-sec uppercase tracking-wider">Show totals in</label>
-                                    <div className={`flex rounded-sm border ${isDark ? 'border-border bg-white/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
+                                    <label className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">Show totals in</label>
+                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-accent text-white shadow' : 'text-sec hover:text-primary'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
+                                            <button key={c} onClick={() => stageConfig({ displayCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.displayCurrency === c ? 'bg-dash-accent text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{CURRENCY_SYMBOL[c]} {c}</button>
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-semibold text-sec uppercase tracking-wider">Default for new entries</label>
-                                    <p className="text-xs text-sec -mt-1">Used when you don't name a currency - e.g. "add 100" vs "add 100$". New projects & expenses are added in this currency.</p>
-                                    <div className={`flex rounded-sm border ${isDark ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
+                                    <label className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">Default for new entries</label>
+                                    <p className="text-xs text-dash-text-2 -mt-1">Used when you don't name a currency - e.g. "add 100" vs "add 100$". New projects & expenses are added in this currency.</p>
+                                    <div className={`flex rounded-sm border ${isDark ? 'border-dash-border bg-dash-surface/5' : 'border-black/10 bg-black/[0.03]'} p-1 gap-1 w-fit`}>
                                         {CURRENCIES.map(c => (
-                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-emerald-500 text-white shadow' : 'text-sec hover:text-primary'}`}>{c}</button>
+                                            <button key={c} onClick={() => stageConfig({ defaultCurrency: c })} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${draft.defaultCurrency === c ? 'bg-dash-success text-white shadow' : 'text-dash-text-2 hover:text-dash-text'}`}>{c}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -1293,20 +1293,20 @@ const DTreasury = () => {
                                 <div className="flex items-start justify-between gap-3 flex-wrap">
                                     <div>
                                         <h3 className="heading-sm m-0">Exchange rates</h3>
-                                        <p className="text-xs text-sec mt-1">
+                                        <p className="text-xs text-dash-text-2 mt-1">
                                             Live mid-market rates (units per $1), pulled from the internet.
                                             {draft.ratesUpdatedAt ? ` Updated ${new Date(draft.ratesUpdatedAt).toLocaleString()}.` : ' Not fetched yet.'}
                                         </p>
                                     </div>
-                                    <button onClick={() => refreshRates(false)} disabled={ratesLoading} className="flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-semibold text-accent border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-all disabled:opacity-50">
+                                    <button onClick={() => refreshRates(false)} disabled={ratesLoading} className="flex items-center gap-2 px-4 py-2 rounded-sm text-sm font-semibold text-dash-accent-text border border-dash-accent/20 bg-dash-accent/5 hover:bg-dash-accent/10 transition-all disabled:opacity-50">
                                         <RefreshCcw size={15} className={ratesLoading ? 'animate-spin' : ''} /> {ratesLoading ? 'Updating…' : 'Update now'}
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     {CURRENCIES.map(c => (
                                         <div key={c} className="glass-surface p-4 flex flex-col gap-1">
-                                            <span className="text-xs font-semibold text-sec uppercase tracking-wider">{CURRENCY_SYMBOL[c]} {c} per $1</span>
-                                            <span className="text-2xl font-bold text-primary tnum">{c === 'USD' ? '1.00' : (draft.rates[c] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
+                                            <span className="text-xs font-semibold text-dash-text-2 uppercase tracking-wider">{CURRENCY_SYMBOL[c]} {c} per $1</span>
+                                            <span className="text-2xl font-bold text-dash-text tnum">{c === 'USD' ? '1.00' : (draft.rates[c] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -1315,9 +1315,9 @@ const DTreasury = () => {
                             <div className="glass-panel p-5 flex items-center justify-between gap-4 flex-wrap">
                                 <div>
                                     <h3 className="heading-sm m-0">Export</h3>
-                                    <p className="text-xs text-sec mt-1">Download a styled, self-contained HTML report of all projects & spendings.</p>
+                                    <p className="text-xs text-dash-text-2 mt-1">Download a styled, self-contained HTML report of all projects & spendings.</p>
                                 </div>
-                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white bg-accent hover:bg-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Download size={16} /> Export report</button>
+                                <button onClick={exportHtml} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold text-white bg-dash-accent hover:bg-dash-accent shadow-lg shadow-blue-500/20 transition-all active:scale-95"><Download size={16} /> Export report</button>
                             </div>
                         </>
                     )}

@@ -22,20 +22,20 @@ const ChartTooltip = ({ active, payload, isDark, cur }: TooltipContentProps & { 
     else if (!isNaN(d.getTime())) header = `${d.toLocaleDateString('en-US', { weekday: 'short' })}, ${d.getDate()}/${d.getMonth() + 1}`;
     const net = (p.earned || 0) - (p.spent || 0);
     const rows = [
-        { c: 'var(--success)', label: 'Earned', v: p.earned || 0 },
-        { c: 'var(--danger)', label: 'Spent', v: p.spent || 0 },
-        { c: 'var(--accent-text)', label: 'Net', v: net },
+        { c: 'var(--dash-success)', label: 'Earned', v: p.earned || 0 },
+        { c: 'var(--dash-danger)', label: 'Spent', v: p.spent || 0 },
+        { c: 'var(--dash-accent-text)', label: 'Net', v: net },
     ];
     return (
-        <div className={`p-4 rounded-sm border shadow-2xl backdrop-blur-3xl ${isDark ? 'bg-black/80 border-border' : 'bg-white/70 border-black/5 shadow-[0_20px_40px_var(--border)]'}`}>
-            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{header}</div>
+        <div className={`p-4 rounded-sm border shadow-2xl backdrop-blur-3xl ${isDark ? 'bg-black/80 border-dash-border' : 'bg-dash-surface/70 border-black/5 shadow-[0_20px_40px_var(--dash-border)]'}`}>
+            <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDark ? 'text-white/40' : 'text-dash-text-3'}`}>{header}</div>
             <div className="flex flex-col gap-2">
                 {rows.map(r => (
                     <div key={r.label} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full" style={{ background: r.c, boxShadow: `0 0 10px ${r.c}` }} />
-                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                        <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-dash-text'}`}>
                             {formatMoney(r.v, cur)}
-                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-slate-400'}`}>{r.label}</span>
+                            <span className={`font-normal text-[10px] uppercase tracking-tight ml-1.5 ${isDark ? 'text-white/40' : 'text-dash-text-3'}`}>{r.label}</span>
                         </span>
                     </div>
                 ))}
@@ -136,21 +136,21 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             <div className="flex flex-wrap items-end justify-between gap-4 mb-5">
                 <div className="flex items-end gap-6 sm:gap-10">
                     <div>
-                        <p className="text-sec text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Earned · {cur}</p>
-                        <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--success)' }}>
+                        <p className="text-dash-text-2 text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Earned · {cur}</p>
+                        <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--dash-success)' }}>
                             {/* keyed on the value so paging the chart re-rolls the figure */}
                             <RollingNumber key={pageEarned} text={formatMoney(pageEarned, cur)} />
                         </h3>
                     </div>
                     <div>
-                        <p className="text-sec text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Spent</p>
-                        <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--danger)' }}>{formatMoney(pageSpent, cur)}</h3>
+                        <p className="text-dash-text-2 text-[9px] font-bold uppercase tracking-[0.25em] mb-1.5">Spent</p>
+                        <h3 className="text-3xl sm:text-4xl font-bold tracking-[-0.03em] leading-none tnum" style={{ color: 'var(--dash-danger)' }}>{formatMoney(pageSpent, cur)}</h3>
                     </div>
                 </div>
-                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-slate-100 border-black/5'}`}>
+                <div className={`flex p-0.5 rounded-sm border ${isDark ? 'bg-dash-surface-2 border-dash-border' : 'bg-dash-surface-2 border-black/5'}`}>
                     {(['daily', 'weekly', 'monthly'] as ChartFilter[]).map(f => (
                         <button key={f} onClick={() => setFilter(f)}
-                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-accent text-white shadow-lg shadow-blue-600/25' : isDark ? 'text-[#666] hover:text-[#999]' : 'text-slate-400 hover:text-slate-700'}`}>
+                            className={`px-4 sm:px-5 py-2 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.15em] transition-all ${filter === f ? 'bg-dash-accent text-white shadow-lg shadow-blue-600/25' : isDark ? 'text-[#666] hover:text-[#999]' : 'text-dash-text-3 hover:text-dash-text-2'}`}>
                             {f === 'daily' ? 'Day' : f === 'weekly' ? 'Week' : 'Month'}
                         </button>
                     ))}
@@ -160,15 +160,15 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
             {/* Row 2: period label (always shown) + pager (only when multiple pages) */}
             <div className="flex items-center gap-2 mb-4">
                 {totalPages > 1 && (
-                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
+                    <button onClick={() => changePage(safePageIndex - 1)} disabled={safePageIndex === 0} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronLeft size={16} /></button>
                 )}
-                <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-white/80' : 'text-slate-700'}`}>{pageTitle || '-'}</span>
+                <span className={`text-sm font-bold tracking-tight select-none ${isDark ? 'text-white/80' : 'text-dash-text-2'}`}>{pageTitle || '-'}</span>
                 {totalPages > 1 && (
                     <>
-                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-slate-300 hover:text-slate-800 disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
+                        <button onClick={() => changePage(safePageIndex + 1)} disabled={safePageIndex === totalPages - 1} className={`p-1 rounded-md transition-colors ${isDark ? 'text-white/30 hover:text-white disabled:opacity-15' : 'text-dash-text-3 hover:text-dash-text disabled:opacity-15'} disabled:cursor-not-allowed`}><ChevronRight size={16} /></button>
                         <div className="flex items-center gap-1 ml-1">
                             {pages.map((_, i) => (
-                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-accent' : `w-1.5 h-1.5 ${isDark ? 'bg-white/15 hover:bg-white/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
+                                <button key={i} onClick={() => changePage(i)} className={`rounded-full transition-all duration-300 ${i === safePageIndex ? 'w-4 h-1.5 bg-dash-accent' : `w-1.5 h-1.5 ${isDark ? 'bg-dash-surface/15 hover:bg-dash-surface/30' : 'bg-black/10 hover:bg-black/20'}`}`} />
                             ))}
                         </div>
                     </>
@@ -187,15 +187,15 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                                     </filter>
                                     <linearGradient id="earnedFill" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--success)" stopOpacity={isDark ? 0.25 : 0.35} />
-                                        <stop offset="100%" stopColor="var(--success)" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="var(--dash-success)" stopOpacity={isDark ? 0.25 : 0.35} />
+                                        <stop offset="100%" stopColor="var(--dash-success)" stopOpacity={0} />
                                     </linearGradient>
                                     <linearGradient id="spentFill" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--danger)" stopOpacity={isDark ? 0.18 : 0.25} />
-                                        <stop offset="100%" stopColor="var(--danger)" stopOpacity={0} />
+                                        <stop offset="0%" stopColor="var(--dash-danger)" stopOpacity={isDark ? 0.18 : 0.25} />
+                                        <stop offset="100%" stopColor="var(--dash-danger)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="0 0" vertical={false} stroke={isDark ? 'var(--border)' : 'var(--border)'} />
+                                <CartesianGrid strokeDasharray="0 0" vertical={false} stroke={'var(--dash-border)'} />
                                 <XAxis
                                     dataKey="label"
                                     axisLine={false}
@@ -205,20 +205,20 @@ export const TreasuryChart = ({ data, filter, setFilter, isDark, cur }: {
                                     padding={{ left: 16, right: 16 }}
                                     tickMargin={10}
                                     height={26}
-                                    tick={{ fontSize: cw < 480 ? 10 : 11, fontWeight: 700, fill: isDark ? 'var(--text-muted)' : 'var(--text-muted)' }}
+                                    tick={{ fontSize: cw < 480 ? 10 : 11, fontWeight: 700, fill: 'var(--dash-text-3)' }}
                                 />
                                 <YAxis hide domain={[0, 'auto']} />
-                                <Tooltip content={(props) => <ChartTooltip {...props} isDark={isDark} cur={cur} />} cursor={{ stroke: isDark ? 'var(--accent-text)' : 'var(--accent-text)', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                                <Area type="monotone" dataKey="spent" stroke="var(--danger)" fill="url(#spentFill)" fillOpacity={1} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: 'var(--danger)', strokeWidth: 2, stroke: isDark ? 'var(--bg-primary)' : '#fff' }} animationDuration={500} />
-                                <Area type="monotone" dataKey="earned" stroke="var(--success)" fill="url(#earnedFill)" fillOpacity={1} strokeWidth={3} filter="url(#treasuryGlow)" dot={{ r: 2.5, fill: isDark ? 'var(--bg-primary)' : '#fff', strokeWidth: 2, stroke: 'var(--success)' }} activeDot={{ r: 6, fill: 'var(--success)', strokeWidth: 2, stroke: isDark ? 'var(--bg-primary)' : '#fff' }} animationDuration={400} />
+                                <Tooltip content={(props) => <ChartTooltip {...props} isDark={isDark} cur={cur} />} cursor={{ stroke: 'var(--dash-accent-text)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                                <Area type="monotone" dataKey="spent" stroke="var(--dash-danger)" fill="url(#spentFill)" fillOpacity={1} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: 'var(--dash-danger)', strokeWidth: 2, stroke: isDark ? 'var(--dash-bg)' : 'var(--dash-text)' }} animationDuration={500} />
+                                <Area type="monotone" dataKey="earned" stroke="var(--dash-success)" fill="url(#earnedFill)" fillOpacity={1} strokeWidth={3} filter="url(#treasuryGlow)" dot={{ r: 2.5, fill: isDark ? 'var(--dash-bg)' : 'var(--dash-text)', strokeWidth: 2, stroke: 'var(--dash-success)' }} activeDot={{ r: 6, fill: 'var(--dash-success)', strokeWidth: 2, stroke: isDark ? 'var(--dash-bg)' : 'var(--dash-text)' }} animationDuration={400} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </motion.div>
                 </AnimatePresence>
             </div>
             <div className="flex items-center gap-5 mt-3 pl-1">
-                <span className="flex items-center gap-2 text-xs text-sec font-semibold"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Earned</span>
-                <span className="flex items-center gap-2 text-xs text-sec font-semibold"><span className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Spent</span>
+                <span className="flex items-center gap-2 text-xs text-dash-text-2 font-semibold"><span className="w-2.5 h-2.5 rounded-full bg-dash-success" /> Earned</span>
+                <span className="flex items-center gap-2 text-xs text-dash-text-2 font-semibold"><span className="w-2.5 h-2.5 rounded-full bg-dash-danger" /> Spent</span>
             </div>
         </div>
     );

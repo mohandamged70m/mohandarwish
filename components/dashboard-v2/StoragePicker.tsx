@@ -12,10 +12,10 @@ const storage = getStorage(app);
 const Spinner = () => (
     <div className="flex flex-col items-center gap-3">
         <div className="relative w-10 h-10">
-            <div className="absolute inset-0 border-4 border-accent/20 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+            <div className="absolute inset-0 border-4 border-dash-accent/20 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-dash-accent border-t-transparent rounded-full animate-spin"></div>
         </div>
-        <span className="text-[10px] font-bold text-accent/80 uppercase tracking-widest animate-pulse">Syncing...</span>
+        <span className="text-[10px] font-bold text-dash-accent-text/80 uppercase tracking-widest animate-pulse">Syncing...</span>
     </div>
 );
 
@@ -170,16 +170,16 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                         }}
                     >
                 {/* Header */}
-                <div className="modal-header" style={{ borderBottom: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}` }}>
+                <div className="modal-header" style={{ borderBottom: `1px solid ${'var(--dash-border)'}` }}>
                     <div className="flex items-center gap-3">
-                        <div className="icon-box icon-box-md" style={{ background: 'linear-gradient(135deg, #FFCA28 0%, #FFA000 100%)' }}>
+                        <div className="icon-box icon-box-md" style={{ background: 'linear-gradient(135deg, var(--dash-accent) 0%, var(--dash-accent-hover) 100%)' }}>
                             <svg viewBox="0 0 24 24" width="24" height="24" fill="white">
                                 <path d="M3.89 15.673L6.255.461A.542.542 0 0 1 7.27.289l2.543 4.771zm16.794 3.692l-2.25-14a.54.54 0 0 0-.919-.295L3.316 19.365l7.856 4.427a1.621 1.621 0 0 0 1.588 0zM14.3 7.148l-1.82-3.482a.542.542 0 0 0-.96 0L3.53 17.984z" />
                             </svg>
                         </div>
                         <div>
                             <h2 className="heading-md">{title}</h2>
-                            <div className="text-sm text-sec">Browse and select files from Firebase Storage</div>
+                            <div className="text-sm text-dash-text-2">Browse and select files from Firebase Storage</div>
                         </div>
                     </div>
                     <button onClick={onClose} className="btn-icon">
@@ -188,7 +188,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                 </div>
 
                 {/* Breadcrumb & Search */}
-                <div className="p-4" style={{ borderBottom: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}` }}>
+                <div className="p-4" style={{ borderBottom: `1px solid ${'var(--dash-border)'}` }}>
                     <div className="flex items-center gap-3 mb-3">
                         <button
                             onClick={handleGoBack}
@@ -201,16 +201,16 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                         <div className="flex items-center gap-1 flex-wrap text-sm">
                             <button
                                 onClick={() => { setCurrentPath(''); setSelectedFile(null); }}
-                                className="text-sec hover:text-primary transition-colors cursor-pointer bg-transparent border-none"
+                                className="text-dash-text-2 hover:text-dash-text transition-colors cursor-pointer bg-transparent border-none"
                             >
                                 Root
                             </button>
                             {pathParts.map((part, i) => (
                                 <React.Fragment key={i}>
-                                    <ChevronRight size={14} className="text-sec" />
+                                    <ChevronRight size={14} className="text-dash-text-2" />
                                     <button
                                         onClick={() => setCurrentPath(pathParts.slice(0, i + 1).join('/'))}
-                                        className="text-sec hover:text-primary transition-colors cursor-pointer bg-transparent border-none"
+                                        className="text-dash-text-2 hover:text-dash-text transition-colors cursor-pointer bg-transparent border-none"
                                     >
                                         {part}
                                     </button>
@@ -219,7 +219,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                         </div>
                     </div>
                     <div className="relative">
-                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-sec" />
+                        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-dash-text-2" />
                         <input
                             type="text"
                             placeholder="Search files..."
@@ -239,7 +239,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-white/[0.05] backdrop-blur-[4px] z-10 rounded-lg"
+                                className="absolute inset-0 flex items-center justify-center bg-black/[0.1] dark:bg-dash-surface/[0.05] backdrop-blur-[4px] z-10 rounded-lg"
                             >
                                 <Spinner />
                             </motion.div>
@@ -247,7 +247,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                     </AnimatePresence>
 
                     {filteredFiles.length === 0 && !isLoading ? (
-                        <div className="text-center py-12 text-sec">
+                        <div className="text-center py-12 text-dash-text-2">
                             {searchQuery ? 'No files match your search' : 'No files in this folder'}
                         </div>
                     ) : (
@@ -258,15 +258,15 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                     onClick={() => handleFileClick(file)}
                                     className={`p-3 rounded-lg cursor-pointer transition-all ${selectedFile?.fullPath === file.fullPath ? 'ring-2 ring-blue-500' : ''}`}
                                     style={{
-                                        backgroundColor: isDark ? 'var(--border)' : 'var(--border)',
-                                        border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'var(--accent-text)' : 'transparent'}`
+                                        backgroundColor: 'var(--dash-surface-2)',
+                                        border: `1px solid ${selectedFile?.fullPath === file.fullPath ? 'var(--dash-accent-text)' : 'transparent'}`
                                     }}
                                 >
                                     <div className="flex flex-col items-center gap-2">
                                         {file.isFolder ? (
-                                            <Folder size={48} className="text-yellow-500" />
+                                            <Folder size={48} className="text-dash-warning" />
                                         ) : file.url ? (
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }}>
+                                            <div className="w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                                 <img
                                                     src={file.url}
                                                     alt={file.name}
@@ -277,9 +277,9 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
                                                 />
                                             </div>
                                         ) : (
-                                            <FileImage size={48} className="text-sec" />
+                                            <FileImage size={48} className="text-dash-text-2" />
                                         )}
-                                        <span className="text-xs text-center text-primary truncate w-full" title={file.name}>
+                                        <span className="text-xs text-center text-dash-text truncate w-full" title={file.name}>
                                             {file.name.length > 15 ? file.name.slice(0, 12) + '...' : file.name}
                                         </span>
                                     </div>
@@ -291,16 +291,16 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
 
                 {/* Preview & Actions */}
                 {selectedFile && !selectedFile.isFolder && (
-                    <div className="p-4" style={{ borderTop: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}` }}>
+                    <div className="p-4" style={{ borderTop: `1px solid ${'var(--dash-border)'}` }}>
                         <div className="flex items-center gap-4">
                             {previewUrl && (
-                                <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: isDark ? 'var(--border)' : 'var(--border)' }}>
+                                <div className="w-16 h-16 rounded-lg overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dash-surface-2)' }}>
                                     <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
                                 </div>
                             )}
                             <div className="flex-1">
-                                <div className="font-semibold text-primary">{selectedFile.name}</div>
-                                <div className="text-xs text-sec">{selectedFile.fullPath}</div>
+                                <div className="font-semibold text-dash-text">{selectedFile.name}</div>
+                                <div className="text-xs text-dash-text-2">{selectedFile.fullPath}</div>
                             </div>
                             <button
                                 onClick={handleSelect}
@@ -314,7 +314,7 @@ const MFirebaseStorage = ({ isOpen, onClose, onSelect, fileTypes = ['svg', 'png'
 
                 {/* Close Button */}
                 {(!selectedFile || selectedFile.isFolder) && (
-                    <div className="p-4 flex justify-end" style={{ borderTop: `1px solid ${isDark ? 'var(--border)' : 'var(--border)'}` }}>
+                    <div className="p-4 flex justify-end" style={{ borderTop: `1px solid ${'var(--dash-border)'}` }}>
                         <button onClick={onClose} className="btn btn-secondary">
                             Cancel
                         </button>

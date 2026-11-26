@@ -130,8 +130,8 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
         }
     };
 
-    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-sec mb-1.5';
-    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-white/5 border-border focus:border-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-accent/60'} text-primary`;
+    const labelCls = 'block text-[11px] font-bold uppercase tracking-wider text-dash-text-2 mb-1.5';
+    const inputCls = `w-full rounded-sm border px-3.5 py-2.5 text-sm outline-none transition-colors ${isDark ? 'bg-dash-surface/5 border-dash-border focus:border-dash-accent/60' : 'bg-black/[0.03] border-black/10 focus:border-dash-accent/60'} text-dash-text`;
 
     return createPortal(
         <motion.div
@@ -143,24 +143,24 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                 initial={{ scale: 0.95, opacity: 0, y: 15 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 15 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                 onClick={e => e.stopPropagation()}
-                className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[#0f0f14] border-white/10' : 'bg-white border-black/5'}`}
+                className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm border shadow-2xl overflow-hidden ${isDark ? 'bg-[var(--dash-surface)] border-dash-border' : 'bg-dash-surface border-black/5'}`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-5 border-b border-[var(--section-border)]">
+                <div className="flex items-center justify-between p-5 border-b border-[var(--dash-border)]">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-accent/10 text-accent shrink-0"><Reply size={18} /></div>
+                        <div className="w-9 h-9 rounded-sm flex items-center justify-center bg-dash-accent/10 text-dash-accent-text shrink-0"><Reply size={18} /></div>
                         <div className="min-w-0">
-                            <h3 className="text-lg font-bold text-primary font-body m-0 leading-tight">Reply</h3>
-                            <p className="text-xs text-sec m-0 truncate">to {email.name} &middot; {email.email}</p>
+                            <h3 className="text-lg font-bold text-dash-text font-body m-0 leading-tight">Reply</h3>
+                            <p className="text-xs text-dash-text-2 m-0 truncate">to {email.name} &middot; {email.email}</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all shrink-0"><X size={18} /></button>
+                    <button onClick={onClose} className="p-2 rounded-lg text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all shrink-0"><X size={18} /></button>
                 </div>
 
                 {/* Body: compose | preview */}
                 <div className="flex-1 min-h-0 flex flex-col md:flex-row">
                     {/* Compose */}
-                    <div className="md:w-[380px] shrink-0 p-5 flex flex-col gap-4 overflow-y-auto custom-scrollbar border-b md:border-b-0 md:border-r border-[var(--section-border)]">
+                    <div className="md:w-[380px] shrink-0 p-5 flex flex-col gap-4 overflow-y-auto custom-scrollbar border-b md:border-b-0 md:border-r border-[var(--dash-border)]">
                         <div>
                             <label className={labelCls}>Subject</label>
                             <input value={subject} onChange={e => setSubject(e.target.value)} className={inputCls} placeholder="Subject" />
@@ -189,37 +189,37 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`w-full flex items-center justify-center gap-2 rounded-sm border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-white/15 text-sec hover:border-accent/50 hover:text-primary' : 'border-black/15 text-sec hover:border-accent/50 hover:text-primary'}`}
+                                className={`w-full flex items-center justify-center gap-2 rounded-sm border border-dashed px-3 py-2.5 text-sm font-medium transition-colors ${isDark ? 'border-white/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text' : 'border-black/15 text-dash-text-2 hover:border-dash-accent/50 hover:text-dash-text'}`}
                             >
                                 <Paperclip size={15} /> Attach files
                             </button>
                             {files.length > 0 && (
                                 <div className="mt-2 flex flex-col gap-1.5">
                                     {files.map(f => (
-                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-white/5' : 'bg-black/[0.04]'}`}>
-                                            <span className="text-accent shrink-0">{iconFor(f.name)}</span>
-                                            <span className="truncate flex-1 text-primary">{f.name}</span>
-                                            <span className="text-sec shrink-0">{humanSize(f.size)}</span>
-                                            <button onClick={() => removeFile(f.name, f.size)} className="text-sec hover:text-red-500 transition-colors shrink-0"><X size={13} /></button>
+                                        <div key={`${f.name}_${f.size}`} className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs ${isDark ? 'bg-dash-surface/5' : 'bg-black/[0.04]'}`}>
+                                            <span className="text-dash-accent-text shrink-0">{iconFor(f.name)}</span>
+                                            <span className="truncate flex-1 text-dash-text">{f.name}</span>
+                                            <span className="text-dash-text-2 shrink-0">{humanSize(f.size)}</span>
+                                            <button onClick={() => removeFile(f.name, f.size)} className="text-dash-text-2 hover:text-dash-danger transition-colors shrink-0"><X size={13} /></button>
                                         </div>
                                     ))}
-                                    <span className={`text-[11px] ${totalBytes > MAX_TOTAL_BYTES ? 'text-red-500' : 'text-sec'}`}>{humanSize(totalBytes)} of 20 MB</span>
+                                    <span className={`text-[11px] ${totalBytes > MAX_TOTAL_BYTES ? 'text-dash-danger' : 'text-dash-text-2'}`}>{humanSize(totalBytes)} of 20 MB</span>
                                 </div>
                             )}
                         </div>
 
                         <label className="flex items-center gap-2.5 cursor-pointer select-none">
                             <input type="checkbox" checked={includeQuote} onChange={e => setIncludeQuote(e.target.checked)} className="sr-only peer" />
-                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-accent border-accent' : isDark ? 'border-white/25' : 'border-black/25'}`}>
+                            <span className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${includeQuote ? 'bg-dash-accent border-dash-accent' : isDark ? 'border-white/25' : 'border-black/25'}`}>
                                 {includeQuote && <Check size={11} className="text-white" strokeWidth={3} />}
                             </span>
-                            <span className="text-xs text-sec">Quote their original message</span>
+                            <span className="text-xs text-dash-text-2">Quote their original message</span>
                         </label>
                     </div>
 
                     {/* Preview */}
                     <div className="flex-1 min-w-0 flex flex-col bg-black/[0.03] dark:bg-black/20">
-                        <div className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-sec">Preview</div>
+                        <div className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-dash-text-2">Preview</div>
                         <div ref={boxRef} className="flex-1 min-h-[240px] overflow-y-auto overflow-x-hidden custom-scrollbar px-5 pb-5">
                             <div style={{ width: 600 * scale, height: natH * scale }}>
                                 <iframe
@@ -230,7 +230,7 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                                        measured from contentDocument, and without allow-scripts the HTML gets nothing. */
                                     sandbox="allow-same-origin"
                                     onLoad={() => { measureHeight(); setTimeout(measureHeight, 60); }}
-                                    className="border-0 rounded-sm bg-white block"
+                                    className="border-0 rounded-sm bg-dash-surface block"
                                     style={{ width: 600, height: natH, transform: `scale(${scale})`, transformOrigin: 'top left', pointerEvents: 'none' }}
                                 />
                             </div>
@@ -239,14 +239,14 @@ export default function MReply({ email, isDark, onClose, onSent, notify }: MRepl
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--section-border)]">
-                    <span className="text-xs text-sec truncate">From mohandamged70m@gmail.com &middot; you get a bcc copy</span>
+                <div className="flex items-center justify-between gap-3 p-4 border-t border-[var(--dash-border)]">
+                    <span className="text-xs text-dash-text-2 truncate">From mohandamged70m@gmail.com &middot; you get a bcc copy</span>
                     <div className="flex items-center gap-2 shrink-0">
-                        <button onClick={onClose} className="px-4 py-2 rounded-sm text-sm font-semibold text-sec hover:text-primary hover:bg-black/5 dark:hover:bg-white/10 transition-all">Cancel</button>
+                        <button onClick={onClose} className="px-4 py-2 rounded-sm text-sm font-semibold text-dash-text-2 hover:text-dash-text hover:bg-black/5 dark:hover:bg-dash-surface/10 transition-all">Cancel</button>
                         <button
                             onClick={send}
                             disabled={!canSend}
-                            className="px-5 py-2 rounded-sm bg-accent text-white text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-accent active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                            className="px-5 py-2 rounded-sm bg-dash-accent text-white text-sm font-bold shadow-lg shadow-blue-500/20 hover:bg-dash-accent active:scale-95 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                             <Send size={15} /> {sending ? 'Sending...' : 'Send reply'}
                         </button>

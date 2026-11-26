@@ -1,0 +1,142 @@
+/*
+ * Owner dashboard theme. Scoped to the dashboard shell so the public site keeps
+ * its own tokens. Everything here is the portfolio's black + wine system, tuned
+ * for dense admin UI: deep surfaces, hairline borders, one accent, calm status
+ * colours, sharp editorial corners, no glass on panels.
+ */
+
+.dash-root {
+  --bg-secondary: var(--dash-surface-2);
+  --input-bg: var(--dash-surface-2);
+  --input-border: var(--dash-border);
+  --card-bg: var(--dash-surface);
+  --card-border: var(--dash-border);
+  --card-shadow: none;
+  --glass-bg-deep: var(--dash-surface);
+  --section-border: var(--dash-border);
+  --section-bg: var(--dash-surface);
+  --section-shadow: none;
+  --subnav-bg: var(--dash-surface-2);
+  --danger: var(--dash-danger);
+  --danger-rgb: 251, 113, 133;
+  --warning: var(--dash-warning);
+  --warning-rgb: 251, 191, 36;
+  --success: var(--dash-success);
+  --info: var(--dash-accent-text);
+
+  background: var(--dash-bg);
+  color: var(--dash-text);
+  font-family: var(--font-body);
+}
+
+/* Grotesk carries voice, mono carries system — Inter carries the data. */
+.dash-root h1,
+.dash-root h2,
+.dash-root h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.dash-root .dashboard-label,
+.dash-root .eyebrow {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dash-text-2);
+}
+
+.dash-root .dashboard-input,
+.dash-root .dashboard-textarea,
+.dash-root .input-field {
+  border-radius: 4px;
+  background-color: var(--dash-surface-2);
+  border: 1px solid var(--dash-border);
+  color: var(--dash-text);
+  font-family: var(--font-body);
+}
+
+.dash-root .dashboard-input::placeholder,
+.dash-root .dashboard-textarea::placeholder,
+.dash-root .input-field::placeholder {
+  color: var(--dash-text-3);
+}
+
+.dash-root .dashboard-input:focus,
+.dash-root .dashboard-textarea:focus,
+.dash-root .input-field:focus {
+  border-color: var(--dash-accent);
+  background-color: var(--dash-surface);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+  outline: none;
+}
+
+/* Cards and panels are flat; blur is only for the modal backdrop. */
+.dash-root .glass-panel,
+.dash-root .glass-panel-deep,
+.dash-root .modal-content {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
+.dash-root .modal-backdrop {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dash-root .btn,
+.dash-root .btn-secondary {
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  letter-spacing: 0.02em;
+}
+
+.dash-root .btn-primary {
+  background-color: var(--dash-accent);
+  color: #fff7ed;
+  box-shadow: none;
+}
+
+.dash-root .btn-primary:not(:disabled):hover {
+  background-color: var(--dash-accent-hover);
+  transform: none;
+  box-shadow: none;
+}
+
+.dash-root .btn-icon {
+  color: var(--dash-text-2);
+}
+
+.dash-root .icon-box {
+  border-radius: 4px;
+}
+
+.dash-root .toggle-switch {
+  background-color: var(--dash-surface-3);
+  border-radius: 4px;
+}
+
+.dash-root .toggle-switch.active {
+  background-color: var(--dash-accent);
+}
+
+.dash-root :focus-visible {
+  outline: 2px solid var(--dash-accent-text);
+  outline-offset: 2px;
+}
+
+.dash-root ::selection {
+  background: var(--dash-accent);
+  color: #fff7ed;
+}
+
+.dash-root .custom-scrollbar::-webkit-scrollbar-thumb,
+.dash-root ::-webkit-scrollbar-thumb {
+  background: var(--dash-border-strong);
+  border-radius: 4px;
+}

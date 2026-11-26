@@ -19,6 +19,26 @@
   --accent-ring: rgba(173, 40, 49, 0.35);
   --accent-soft-text: #ffd9cc;
 
+  /* Owner dashboard: dense admin UI. Deep near-black surfaces, wine accents,
+     calibrated borders and muted semantic colours — never border-as-background. */
+  --dash-bg: #0a0a0a;
+  --dash-surface: #120504;
+  --dash-surface-2: #1b0807;
+  --dash-surface-3: #250902;
+  --dash-border: #381216;
+  --dash-border-strong: #6d1d24;
+  --dash-text: #fff7ed;
+  --dash-text-2: #d8bfaf;
+  --dash-text-3: #a68a7a;
+  --dash-accent: #ad2831;
+  --dash-accent-hover: #c33a43;
+  --dash-accent-text: #f4896f;
+  --dash-accent-soft: rgba(173, 40, 49, 0.16);
+  --dash-success: #4ade80;
+  --dash-warning: #fbbf24;
+  --dash-danger: #fb7185;
+  --dash-info: #7dd3fc;
+
   /* Mohand compat aliases — mapped to wine palette */
   --accent: var(--accent-primary);
   --accent-rgb: 173,40,49;
@@ -87,6 +107,25 @@ html.light {
   --accent-soft: #fbe4da;
   --accent-ring: rgba(128, 14, 19, 0.14);
   --accent-soft-text: #5a0a10;
+
+  /* Dashboard — warm paper surfaces with wine accents (never blue/grey). */
+  --dash-bg: #faf6f0;
+  --dash-surface: #ffffff;
+  --dash-surface-2: #faf1ea;
+  --dash-surface-3: #f5ece4;
+  --dash-border: #e8d5cc;
+  --dash-border-strong: #d6bfaf;
+  --dash-text: #250902;
+  --dash-text-2: #6b4a3e;
+  --dash-text-3: #a08a7d;
+  --dash-accent: #800e13;
+  --dash-accent-hover: #640d14;
+  --dash-accent-text: #800e13;
+  --dash-accent-soft: #fbe4da;
+  --dash-success: #047857;
+  --dash-warning: #b45309;
+  --dash-danger: #be123c;
+  --dash-info: #0369a1;
 
   --text-primary: #250902;
   --text-secondary: #6b4a3e;
@@ -159,6 +198,24 @@ html.light {
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
   --color-text-on-accent: var(--text-on-accent);
+
+  /* Owner dashboard palette */
+  --color-dash-bg: var(--dash-bg);
+  --color-dash-surface: var(--dash-surface);
+  --color-dash-surface-2: var(--dash-surface-2);
+  --color-dash-surface-3: var(--dash-surface-3);
+  --color-dash-border: var(--dash-border);
+  --color-dash-border-strong: var(--dash-border-strong);
+  --color-dash-text: var(--dash-text);
+  --color-dash-text-2: var(--dash-text-2);
+  --color-dash-text-3: var(--dash-text-3);
+  --color-dash-accent: var(--dash-accent);
+  --color-dash-accent-text: var(--dash-accent-text);
+  --color-dash-accent-soft: var(--dash-accent-soft);
+  --color-dash-success: var(--dash-success);
+  --color-dash-warning: var(--dash-warning);
+  --color-dash-danger: var(--dash-danger);
+  --color-dash-info: var(--dash-info);
 
   /* Legacy */
   --color-background: var(--background);

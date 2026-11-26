@@ -153,7 +153,7 @@ const DDeveloper = () => {
                         <Github size={22} className="mr-3" />
                         Featured Repos
                     </h3>
-                    <p className="text-muted text-xs leading-relaxed">
+                    <p className="text-dash-text-3 text-xs leading-relaxed">
                         Pick up to {MAX_FEATURED} repos from <strong>@{GITHUB_USERNAME}</strong> to showcase on the
                         public Developer page. Drag to reorder.
                     </p>
@@ -181,29 +181,29 @@ const DDeveloper = () => {
                                     }}
                                     className="flex items-center gap-3 px-3 py-2.5 rounded-sm cursor-grab active:cursor-grabbing"
                                     style={{
-                                        background: 'var(--accent-primary)',
-                                        border: '1px solid var(--accent-primary)',
+                                        background: 'var(--dash-accent)',
+                                        border: '1px solid var(--dash-accent)',
                                     }}
                                 >
-                                    <GripVertical size={15} className="text-muted shrink-0" aria-hidden />
+                                    <GripVertical size={15} className="text-dash-text-3 shrink-0" aria-hidden />
                                     <span
                                         className="grid place-items-center shrink-0 text-[0.65rem] font-bold"
                                         style={{
                                             width: 22, height: 22, borderRadius: 6,
-                                            background: 'var(--accent-primary)',
-                                            border: '1px solid var(--accent-primary)',
+                                            background: 'var(--dash-accent)',
+                                            border: '1px solid var(--dash-accent)',
                                             color: 'var(--accent)',
                                         }}
                                     >
                                         {i + 1}
                                     </span>
-                                    <span className="flex-1 text-sm font-bold text-primary truncate">{name}</span>
+                                    <span className="flex-1 text-sm font-bold text-dash-text truncate">{name}</span>
                                     {/* Keyboard-accessible reorder controls (drag is pointer-only) */}
                                     <button
                                         onClick={() => moveRepo(name, -1)}
                                         disabled={i === 0}
                                         aria-label={`Move ${name} up`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
+                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowUp size={15} />
@@ -212,7 +212,7 @@ const DDeveloper = () => {
                                         onClick={() => moveRepo(name, 1)}
                                         disabled={i === repos.length - 1}
                                         aria-label={`Move ${name} down`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-primary"
+                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors disabled:opacity-30 disabled:cursor-not-allowed hover:text-dash-text"
                                         style={{ width: 44, height: 44 }}
                                     >
                                         <ArrowDown size={15} />
@@ -220,10 +220,10 @@ const DDeveloper = () => {
                                     <button
                                         onClick={() => removeRepo(name)}
                                         aria-label={`Remove ${name}`}
-                                        className="grid place-items-center shrink-0 rounded-lg text-muted transition-colors"
+                                        className="grid place-items-center shrink-0 rounded-lg text-dash-text-3 transition-colors"
                                         style={{ width: 44, height: 44 }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(var(--danger-rgb),0.1)'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--dash-danger)'; e.currentTarget.style.background = 'rgba(var(--danger-rgb),0.1)'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--dash-text-3)'; e.currentTarget.style.background = 'transparent'; }}
                                     >
                                         <Trash2 size={15} />
                                     </button>
@@ -232,8 +232,8 @@ const DDeveloper = () => {
                         </Reorder.Group>
                     ) : (
                         <div
-                            className="flex flex-col items-center justify-center text-center gap-2 py-8 px-4 rounded-sm text-muted"
-                            style={{ border: '2px dashed var(--section-border)' }}
+                            className="flex flex-col items-center justify-center text-center gap-2 py-8 px-4 rounded-sm text-dash-text-3"
+                            style={{ border: '2px dashed var(--dash-border)' }}
                         >
                             <ListChecks size={22} className="opacity-40" />
                             <span className="text-xs">Select repos from the list to feature them</span>
@@ -243,7 +243,7 @@ const DDeveloper = () => {
 
                 {/* Save / Discard */}
                 {hasChanges && (
-                    <div className="flex gap-2 pt-4" style={{ borderTop: '1px solid var(--section-border)' }}>
+                    <div className="flex gap-2 pt-4" style={{ borderTop: '1px solid var(--dash-border)' }}>
                         <button
                             onClick={save}
                             disabled={isSaving}
@@ -254,8 +254,8 @@ const DDeveloper = () => {
                         </button>
                         <button
                             onClick={() => setRepos(firestoreRepos)}
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold bg-transparent cursor-pointer transition-colors text-muted"
-                            style={{ border: '1px solid var(--section-border)' }}
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-sm text-sm font-bold bg-transparent cursor-pointer transition-colors text-dash-text-3"
+                            style={{ border: '1px solid var(--dash-border)' }}
                         >
                             <X size={16} />
                             Discard
@@ -271,14 +271,14 @@ const DDeveloper = () => {
                         <Search size={22} className="mr-3" />
                         All Repositories
                         {!reposLoading && (
-                            <span className="ml-2 text-xs font-semibold text-muted">({filteredRepos.length})</span>
+                            <span className="ml-2 text-xs font-semibold text-dash-text-3">({filteredRepos.length})</span>
                         )}
                     </h3>
                 </div>
 
                 {/* Search */}
                 <div className="relative">
-                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dash-text-3 pointer-events-none" />
                     <input
                         type="text"
                         value={search}
@@ -292,7 +292,7 @@ const DDeveloper = () => {
 
                 {/* Repo list */}
                 {reposLoading ? (
-                    <div className="flex items-center justify-center gap-2 py-12 text-muted text-sm">
+                    <div className="flex items-center justify-center gap-2 py-12 text-dash-text-3 text-sm">
                         <Loader2 size={16} className="animate-spin" />
                         Loading repositories…
                     </div>
@@ -300,13 +300,13 @@ const DDeveloper = () => {
                     <div
                         role="alert"
                         className="flex flex-col items-center gap-3 py-5 px-4 rounded-sm text-center text-sm"
-                        style={{ border: '1px solid rgba(var(--danger-rgb),0.3)', background: 'rgba(var(--danger-rgb),0.05)', color: 'var(--danger)' }}
+                        style={{ border: '1px solid rgba(var(--danger-rgb),0.3)', background: 'rgba(var(--danger-rgb),0.05)', color: 'var(--dash-danger)' }}
                     >
                         <span>{reposError}</span>
                         <button
                             onClick={() => setReloadKey(k => k + 1)}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold cursor-pointer transition-colors"
-                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--danger)' }}
+                            style={{ border: '1px solid rgba(var(--danger-rgb),0.4)', color: 'var(--dash-danger)' }}
                         >
                             <RefreshCw size={14} />
                             Retry
@@ -314,8 +314,8 @@ const DDeveloper = () => {
                     </div>
                 ) : filteredRepos.length === 0 ? (
                     <div
-                        className="py-8 px-4 rounded-sm text-center text-muted text-sm"
-                        style={{ border: '2px dashed var(--section-border)' }}
+                        className="py-8 px-4 rounded-sm text-center text-dash-text-3 text-sm"
+                        style={{ border: '2px dashed var(--dash-border)' }}
                     >
                         No repositories match &ldquo;{search}&rdquo;
                     </div>
@@ -335,8 +335,8 @@ const DDeveloper = () => {
                                     aria-label={selected ? `${repo.name}, featured at position ${rank + 1}. Activate to remove.` : `${repo.name}. Activate to feature.`}
                                     className="flex items-start gap-3 p-3 rounded-sm cursor-pointer text-left transition-colors"
                                     style={{
-                                        background: selected ? 'var(--accent-primary)' : 'rgba(128,128,128,0.03)',
-                                        border: `1px solid ${selected ? 'var(--accent-primary)' : 'var(--section-border)'}`,
+                                        background: selected ? 'var(--dash-accent)' : 'var(--dash-surface-2)',
+                                        border: `1px solid ${selected ? 'var(--dash-accent)' : 'var(--dash-border)'}`,
                                     }}
                                 >
                                     {/* Selection indicator - shows a check + rank when featured (not color-only) */}
@@ -344,8 +344,8 @@ const DDeveloper = () => {
                                         className="grid place-items-center shrink-0 mt-0.5 text-[0.6rem] font-bold"
                                         style={{
                                             width: 20, height: 20, borderRadius: 6,
-                                            background: selected ? 'var(--accent-primary)' : 'transparent',
-                                            border: `1.5px solid ${selected ? 'var(--accent)' : 'var(--input-border)'}`,
+                                            background: selected ? 'var(--dash-accent)' : 'transparent',
+                                            border: `1.5px solid ${selected ? 'var(--accent)' : 'var(--dash-border)'}`,
                                             color: 'var(--accent)',
                                         }}
                                     >
@@ -357,24 +357,24 @@ const DDeveloper = () => {
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-bold text-primary truncate">
+                                        <div className="text-sm font-bold text-dash-text truncate">
                                             {repo.name}
                                             {repo.fork && (
-                                                <span className="ml-1.5 align-middle text-[0.58rem] font-semibold px-1.5 py-0.5 rounded text-muted" style={{ background: 'rgba(128,128,128,0.12)' }}>fork</span>
+                                                <span className="ml-1.5 align-middle text-[0.58rem] font-semibold px-1.5 py-0.5 rounded text-dash-text-3" style={{ background: 'var(--dash-surface-3)' }}>fork</span>
                                             )}
                                             {repo.archived && (
-                                                <span className="ml-1.5 align-middle text-[0.58rem] font-semibold px-1.5 py-0.5 rounded text-muted" style={{ background: 'rgba(128,128,128,0.12)' }}>archived</span>
+                                                <span className="ml-1.5 align-middle text-[0.58rem] font-semibold px-1.5 py-0.5 rounded text-dash-text-3" style={{ background: 'var(--dash-surface-3)' }}>archived</span>
                                             )}
                                         </div>
                                         {repo.description && (
                                             <p
-                                                className="text-[0.7rem] text-muted mt-0.5 mb-1"
+                                                className="text-[0.7rem] text-dash-text-3 mt-0.5 mb-1"
                                                 style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.4 }}
                                             >
                                                 {repo.description}
                                             </p>
                                         )}
-                                        <div className="flex items-center gap-3 text-[0.65rem] text-muted">
+                                        <div className="flex items-center gap-3 text-[0.65rem] text-dash-text-3">
                                             {repo.language && <span className="font-semibold">{repo.language}</span>}
                                             <span className="flex items-center gap-1"><Star size={10} />{repo.stargazers_count}</span>
                                             {repo.forks_count > 0 && (
