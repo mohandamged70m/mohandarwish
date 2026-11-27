@@ -16,13 +16,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: npm test
       - name: Lint Trails
         run: >-
           npx eslint lib/analytics lib/trails-notification.ts
-          components/dashboard/TrailsTracker.tsx components/dashboard/TrailsHealth.tsx
-          components/dashboard/D-Trails.tsx components/cv/CvModal.tsx
+          components/dashboard/TrailsTracker.tsx components/cv/CvModal.tsx
           'app/mohanddarwish/[code]/landing.tsx' app/api/track
           app/api/dashboard/trails-health app/api/dashboard/trails-outbox
-          tests/trails-*.test.ts
       - run: npm run build

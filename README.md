@@ -112,8 +112,6 @@ Open http://localhost:3000.
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript |
-| `npm run test` | Security, persistence and route tests |
-| `npm run test:e2e` | Chromium browser checks (build first) |
 
 ## Environment Variables
 
