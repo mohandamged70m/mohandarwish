@@ -71,6 +71,15 @@
   --radius-md: 8px;
   --radius-pill: 4px;
 
+  /* Homepage Projects mock palette (dark). Literals live only in theme blocks. */
+  --projects-bg: #140b0c;
+  --projects-surface: #1d1213;
+  --projects-line: rgba(255, 255, 255, 0.12);
+  --projects-text: #f6ece8;
+  --projects-muted: #a8998f;
+  --projects-accent: #b3182b;
+  --projects-accent-ink: #ffffff;
+
   /* --- Legacy aliases: no colour literals below this line --- */
   --bg-primary: var(--background);
   --bg-surface: var(--surface);
@@ -155,6 +164,15 @@ html.light {
   --text-2: #6b4a3e;
   /* Darkened from #a08a7d (2.8:1) to pass 4.5:1 on raised surfaces. */
   --muted: #7c6357;
+
+  /* Homepage Projects mock palette (light). */
+  --projects-bg: #faf6f0;
+  --projects-surface: #ffffff;
+  --projects-line: rgba(0, 0, 0, 0.1);
+  --projects-text: #2a0a0e;
+  --projects-muted: #78716c;
+  --projects-accent: #7a0f1c;
+  --projects-accent-ink: #ffffff;
 
   --success: #047857;
   --warning: #b45309;
@@ -1205,4 +1223,19 @@ section[id="contact"] {
     color-mix(in srgb, var(--background) 92%, transparent),
     transparent
   );
+}
+
+/* Homepage Projects scope — remap the generic tokens to the mock palette.
+   Applied to both the section and its portaled dialog so cards and modal
+   read the same surface colours without touching the rest of the site. */
+.projects-scope {
+  --bg: var(--projects-bg);
+  --surface: var(--projects-surface);
+  --surface-raised: var(--projects-surface);
+  --card-bg: var(--projects-surface);
+  --line: var(--projects-line);
+  --text: var(--projects-text);
+  --muted: var(--projects-muted);
+  --accent: var(--projects-accent);
+  --accent-ink: var(--projects-accent-ink);
 }

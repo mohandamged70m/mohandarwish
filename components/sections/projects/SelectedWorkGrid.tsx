@@ -253,12 +253,11 @@ function ProjectDialog({
   const links = [
     project.liveUrl ? { label: "Visit live site", href: project.liveUrl, primary: true } : null,
     project.githubUrl ? { label: "View source code", href: project.githubUrl, primary: false } : null,
-    project.downloadUrl ? { label: "Download", href: project.downloadUrl, primary: false } : null,
   ].filter((link): link is { label: string; href: string; primary: boolean } => link !== null);
 
   return createPortal(
     <motion.div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-[var(--scrim)] p-3 backdrop-blur-md sm:p-6"
+      className="projects-scope fixed inset-0 z-[1200] flex items-center justify-center bg-[var(--scrim)] p-3 backdrop-blur-md sm:p-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -280,7 +279,7 @@ function ProjectDialog({
             ? { duration: 0 }
             : { type: "spring", stiffness: 320, damping: 30, mass: 0.9 }
         }
-        className="relative z-10 flex max-h-[min(90dvh,760px)] w-full max-w-2xl flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] shadow-[0_32px_80px_-32px_var(--shadow-color)]"
+        className="relative z-10 flex max-h-[min(90dvh,720px)] w-full max-w-3xl flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] shadow-[0_32px_80px_-32px_var(--shadow-color)]"
       >
         <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-5 py-4 sm:px-6">
           <div className="min-w-0">
@@ -296,9 +295,9 @@ function ProjectDialog({
             type="button"
             onClick={onClose}
             aria-label="Close project details"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--line)] text-sm text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface-raised)] text-xl text-[var(--text)] transition-colors hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none"
           >
-            <span aria-hidden="true">✕</span>
+            <span aria-hidden="true">×</span>
           </button>
         </div>
 
@@ -323,7 +322,7 @@ function ProjectDialog({
               {names.map((name) => (
                 <span
                   key={name}
-                  className="rounded-full border border-[var(--line)] bg-[var(--surface-raised)] px-3 py-1.5 font-heading text-[11px] uppercase tracking-wide text-[var(--text)]"
+                  className="rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface-raised)] px-2.5 py-1 font-heading text-[11px] uppercase tracking-wide text-[var(--text)]"
                 >
                   {name}
                 </span>
@@ -339,13 +338,14 @@ function ProjectDialog({
                   href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex min-h-11 items-center rounded-full px-5 text-sm font-semibold transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-sm)] px-4 text-sm font-medium transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none ${
                     link.primary
                       ? "bg-[var(--accent)] text-[var(--accent-ink)] hover:opacity-90"
                       : "border border-[var(--line)] text-[var(--text)] hover:border-[var(--accent)]"
                   }`}
                 >
                   {link.label}
+                  <span aria-hidden="true">↗</span>
                 </a>
               ))}
             </div>
