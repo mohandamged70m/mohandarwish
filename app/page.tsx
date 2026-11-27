@@ -4,8 +4,7 @@ import ProjectsSection from "@/components/sections/projects/ProjectsSection";
 import { StackSurvey } from "@/components/sections/stack/StackSurvey";
 import { AboutSection } from "@/components/sections/about/AboutSection";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
-import { SectionSlide, SectionTransition } from "@/components/transitions";
-import { PagerDots } from "@/components/transitions/PagerDots";
+import { Reveal, SectionDots } from "@/components/transitions";
 import { ScrollTop } from "@/components/layout/ScrollTop";
 
 import { getProjectsServer, getTagDirectoryServer } from "@/lib/projects-server";
@@ -20,13 +19,11 @@ export const metadata = createMetadata({
   path: "/",
 });
 
-// Module-level (referentially stable) pager sections — ids must match the
-// wrapper divs below. Desktop pager (md+, fine pointer, full motion) plays
-// the curtain + slide between these; everywhere else they free-scroll.
+// Module-level (referentially stable) list shared by the dot nav. Ids must
+// match the wrapper divs below and the main nav's scroll-spy ids.
 //
 // About is deliberately absent: it is `sr-only` on `/`, so it is no longer a
-// scroll destination. Leaving it in this array would give the wheel pager and
-// the curtain a blank full-height stop labelled "About".
+// scroll destination and must not become a blank dot.
 const SECTIONS = [
   { id: "hero", label: "Home" },
   { id: "stack-wrap", label: "Stack" },
@@ -35,43 +32,37 @@ const SECTIONS = [
 
 export default function Home() {
   return (
-    <SectionTransition sections={[...SECTIONS]}>
-      {/* Single <main> landmark for the whole page. Was previously a bare
-          fragment, so assistive tech and crawlers had no main region. */}
-      <main id="main-content" className="flex w-full max-w-full min-w-0 flex-1 flex-col">
-        <div className="w-full max-w-full min-w-0 overflow-x-clip">
-          <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
-            <SectionSlide section="hero" className="flex w-full min-w-0 flex-1 flex-col">
-              <HeroSection />
-            </SectionSlide>
-          </div>
-          {/* Crawl-only bio. `sr-only` is `position: absolute` + 1px, so it
-              contributes no flow height — hence no `min-h-[100svh]` wrapper and
-              no `SectionSlide` (the slide starts at opacity 0 and would never
-              animate in, since the section is no longer a pager target).
-              Kept server-rendered and in the accessibility tree on purpose:
-              this is the sentence answer engines quote. */}
-          <AboutSection />
-          <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
-            <SectionSlide section="stack-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-              <StackSurvey />
-            </SectionSlide>
-          </div>
-          <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
-            <SectionSlide section="projects-wrap" className="flex w-full min-w-0 flex-1 flex-col justify-center">
-              <Suspense fallback={null}>
-                <ProjectsData />
-              </Suspense>
-            </SectionSlide>
-          </div>
-          <span id="booking" aria-hidden="true" className="block h-0 w-0" />
-          <BookingHashHandler />
-          <PagerDots />
-          <ScrollTop />
-
+    // Single <main> landmark for the whole page.
+    <main id="main-content" className="flex w-full max-w-full min-w-0 flex-1 flex-col">
+      <div className="w-full max-w-full min-w-0 overflow-x-clip">
+        <div id="hero" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
+          {/* Hero is excluded from the reveal: no blur, no waiting. */}
+          <Reveal as="div" hero className="flex w-full min-w-0 flex-1 flex-col">
+            <HeroSection />
+          </Reveal>
         </div>
-      </main>
-    </SectionTransition>
+        {/* Crawl-only bio. `sr-only` is absolutely positioned, so it adds no
+            flow height and needs no reveal wrapper. Kept server-rendered and
+            in the accessibility tree: this is the sentence answer engines quote. */}
+        <AboutSection />
+        <div id="stack-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
+          <Reveal as="div" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+            <StackSurvey />
+          </Reveal>
+        </div>
+        <div id="projects-wrap" className="flex min-h-[100svh] w-full max-w-full min-w-0 flex-col justify-center overflow-x-clip supports-[min-height:100dvh]:min-h-[100dvh]">
+          <Reveal as="div" className="flex w-full min-w-0 flex-1 flex-col justify-center">
+            <Suspense fallback={null}>
+              <ProjectsData />
+            </Suspense>
+          </Reveal>
+        </div>
+        <span id="booking" aria-hidden="true" className="block h-0 w-0" />
+        <BookingHashHandler />
+        <SectionDots sections={SECTIONS} />
+        <ScrollTop />
+      </div>
+    </main>
   );
 }
 
@@ -81,8 +72,6 @@ export default function Home() {
 // client live subscriptions as before — just no longer TTFB-blocking.
 // Wrappers stay min-h-100svh, so late arrival causes no layout shift.
 async function ProjectsData() {
-  // Server-rendered project cards for instant first paint; the section's
-  // live subscriptions still attach client-side afterwards (see useProjects).
   const [projects, tagDir] = await Promise.all([
     getProjectsServer().catch(() => []),
     getTagDirectoryServer().catch(() => undefined),

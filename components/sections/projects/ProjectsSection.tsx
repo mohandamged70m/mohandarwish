@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
 import type { FilterCategory, Project, TagDirectory } from "@/data/projects";
 import { ProjectsGrid } from "./ProjectsGrid";
 import { ProjectsHeader } from "./ProjectsHeader";
@@ -14,8 +13,6 @@ import { ProjectsTabShell } from "./ProjectsTabShell";
  */
 export default function ProjectsSection({ initialProjects, initialTagDir }: { initialProjects?: Project[]; initialTagDir?: TagDirectory }) {
   const [active, setActive] = useState<FilterCategory>("Projects");
-  const reduce = useReducedMotion();
-  const noMotion = reduce ? { initial: false } : {};
 
   // The contribution calendar is 53 week columns wide; inside a 7xl column it
   // lands at ~20px cells on a large monitor and reads as a thin strip. Widen
@@ -32,16 +29,10 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
     >
       <div className="flex w-full max-w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden py-12 sm:py-16 lg:py-20">
         <div className={`mx-auto flex w-full min-w-0 flex-col items-center gap-8 sm:gap-10 overflow-hidden px-4 sm:px-6 lg:px-8 ${widthClass}`}>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: reduce ? 0.01 : 0.45, ease: [0.22, 1, 0.36, 1], delay: 0 }}
-            {...noMotion}
-            className="w-full min-w-0 overflow-hidden"
-          >
+          {/* Reveal handles this now — no competing framer entrance. */}
+          <div className="item w-full min-w-0 overflow-hidden">
             <ProjectsHeader active={active} />
-          </motion.div>
+          </div>
 
           <ProjectsTabShell
             value={active}

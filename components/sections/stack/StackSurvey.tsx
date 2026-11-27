@@ -170,16 +170,16 @@ export function StackSurvey(): React.JSX.Element {
           <h2
             data-pager-focus
             tabIndex={-1}
-            className={`${styles.headerTitle} max-w-[16ch] font-display text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary`}
+            className={`item ${styles.headerTitle} max-w-[16ch] font-display text-[clamp(2rem,5.4vw,3.5rem)] font-bold leading-[1.04] tracking-[-0.02em] text-balance text-text-primary`}
           >
             The stack<span aria-hidden className="text-accent-text">.</span>
           </h2>
-          <p className={`${styles.headerSubtitle} max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base`}>
+          <p className={`item ${styles.headerSubtitle} max-w-[52ch] font-body text-[15px] leading-[1.6] text-pretty text-text-secondary sm:text-base`}>
             The tools behind my full-stack work — UI, API, data, AI, and deployment.
           </p>
         </div>
 
-        <p className={styles.statement}>
+        <p className={`item ${styles.statement}`}>
           {tokens.map((token, index) =>
             token.kind === "tool" ? (
               <span

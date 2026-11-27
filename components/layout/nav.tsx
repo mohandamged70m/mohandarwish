@@ -5,7 +5,6 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
-import { pagerEnabled, requestSectionNavigate } from "@/components/transitions";
 import { requestCvOpen } from "@/components/cv/CvModal";
 import { ME } from "@/data/me";
 import {
@@ -22,7 +21,7 @@ type NavItem = {
   href: string;
 };
 
-// Mirrors the pager SECTIONS in app/page.tsx — every full-height section is
+// Mirrors the sections in app/page.tsx — every full-height section is
 // reachable from the nav, and every href resolves to a real element id.
 // About is omitted because it is `sr-only` on `/`: a menu link to a 1px box
 // would scroll sighted users somewhere meaningless.
@@ -33,7 +32,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: "Contact", href: "#booking" },
 ];
 
-/** Ids the pager/nav are allowed to jump to (see the scroll-target effect). */
+/** Ids the nav is allowed to jump to (see the scroll-target effect). */
 const NAV_TARGETS = ["hero", "projects", "stack", "booking"] as const;
 
 type NavDims = {
@@ -614,10 +613,9 @@ function PortfolioNav(): ReactNode {
     setOpen(false);
   }, [pathname]);
 
-// Section navigation: desktop pager plays the curtain + slide (via the
-// SectionTransition provider on the home page); mobile / touch /
-// reduced-motion keeps the Lenis smooth glide. Keyboard users land on the
-// section heading so focus follows the visible change.
+// Section navigation: Lenis smooth glide (or native smooth scroll when Lenis
+// is unavailable). Keyboard users land on the section heading so focus
+// follows the visible change.
 function scrollToSection(id: string, moveFocus = false): void {
   const el =
     document.getElementById(id) ?? document.getElementById(`${id}-wrap`);
@@ -674,11 +672,6 @@ function scrollToSection(id: string, moveFocus = false): void {
       return;
     }
     const moveFocus = e.detail === 0;
-    if (pagerEnabled()) {
-      requestSectionNavigate(id, moveFocus);
-      setCurrentHash(item.href);
-      return;
-    }
     scrollToSection(id, moveFocus);
     setCurrentHash(item.href);
   };
