@@ -12,6 +12,7 @@ import { parkCalendarReturn } from '@/lib/calendarReturn';
 import './dashboard.css';
 import './button-states.css';
 import { installDashboardDialogA11y } from './ui/dialog-a11y';
+import { DashboardSmoothScroll } from './DashboardSmoothScroll';
 
 // The parameter name in the function type would trigger `no-unused-vars` in some
 // ESLint configurations, so we suppress that rule for the following type alias.
@@ -133,6 +134,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             className="dash-root w-full h-screen flex bg-dash-bg relative overflow-hidden touch-pan-y"
             style={{ ['--sidebar-width']: sidebarWidth } as unknown as React.CSSProperties}
         >
+            <DashboardSmoothScroll />
             <a href="#dashboard-main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[2000] focus:rounded-sm focus:bg-dash-surface focus:px-4 focus:py-2 focus:text-dash-text">Skip to content</a>
 
             {/* Sidebar */}

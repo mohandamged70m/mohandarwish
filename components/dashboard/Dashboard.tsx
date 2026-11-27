@@ -125,8 +125,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
             className="w-full h-dvh max-w-[100vw] flex bg-bg-primary relative overflow-hidden"
-            // Belt-and-braces with the SmoothScroll /dashboard guard: Lenis must
-            // never hijack wheel events inside the dashboard's own scrollers.
+            // This legacy shell owns its scrollers; keep the window-level
+            // Lenis instance out of them (the live v2 shell smooths its panels
+            // with scoped instances instead).
             data-lenis-prevent
             style={{ ['--sidebar-width']: sidebarWidth } as unknown as React.CSSProperties}
         >
