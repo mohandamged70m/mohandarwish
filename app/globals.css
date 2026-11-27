@@ -1131,18 +1131,21 @@ section[id="contact"] {
   --reveal-text: #ededed;
   --reveal-muted: #8a8a8a;
   --reveal-accent: #7cffb2;
-  --reveal-stagger: 80ms;
+  --reveal-blur: 10px;
+  --reveal-rise: 28px;
+  --reveal-duration: 0.7s;
+  --reveal-stagger: 100ms;
 }
 
 /* Without JS the `.js` class is absent, so no item is ever hidden. */
 .js .item {
   opacity: 0;
-  filter: blur(6px);
-  transform: translateY(20px);
+  filter: blur(var(--reveal-blur));
+  transform: translateY(var(--reveal-rise));
   transition:
-    opacity 0.5s ease,
-    filter 0.5s ease,
-    transform 0.5s ease;
+    opacity var(--reveal-duration) ease,
+    filter var(--reveal-duration) ease,
+    transform var(--reveal-duration) ease;
   transition-delay: calc(var(--i, 0) * var(--reveal-stagger));
   will-change: opacity, filter, transform;
 }
@@ -1164,4 +1167,42 @@ section[id="contact"] {
     transition-delay: 0ms;
     will-change: auto;
   }
+}
+
+/* ── Hero → Stack soft seam ──────────────────────────────────────────────
+   Both sections share the same canvas, so their boundary is a content seam
+   rather than a colour change. A static gradient band on each side dissolves
+   the hero's bottom into the background and lets the stack emerge from it —
+   no hard line, no blur on a container, nothing to animate. */
+#hero,
+#stack-wrap {
+  position: relative;
+}
+
+#hero::after,
+#stack-wrap::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  z-index: 7;
+  height: clamp(80px, 12vh, 140px);
+  pointer-events: none;
+}
+
+#hero::after {
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--background) 92%, transparent)
+  );
+}
+
+#stack-wrap::before {
+  top: 0;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--background) 92%, transparent),
+    transparent
+  );
 }
