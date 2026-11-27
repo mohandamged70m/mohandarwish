@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FilterCategory, Project, TagDirectory } from "@/data/projects";
-import { ProjectsGrid } from "./ProjectsGrid";
+import { SelectedWorkGrid } from "./SelectedWorkGrid";
 import { ProjectsHeader } from "./ProjectsHeader";
 import { ProjectsTabShell } from "./ProjectsTabShell";
 
@@ -19,7 +19,7 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
   // only while the Developer tab is showing — the projects grid is not rendered
   // then, so this never changes the grid's layout.
   const isDeveloper = active === "Developer";
-  const widthClass = isDeveloper ? "lg:max-w-[1680px]" : "max-w-7xl";
+  const widthClass = isDeveloper ? "lg:max-w-[1680px]" : "max-w-[1120px]";
 
   return (
     <section
@@ -37,7 +37,7 @@ export default function ProjectsSection({ initialProjects, initialTagDir }: { in
           <ProjectsTabShell
             value={active}
             onChange={setActive}
-            projectsNode={<ProjectsGrid initialProjects={initialProjects} initialTagDir={initialTagDir} eagerCount={0} />}
+            projectsNode={<SelectedWorkGrid initialProjects={initialProjects} initialTagDir={initialTagDir} />}
           />
         </div>
       </div>
