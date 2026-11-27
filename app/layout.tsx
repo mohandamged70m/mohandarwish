@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Anton, Inter, JetBrains_Mono, Permanent_Marker, Space_Grotesk } from "next/font/google";
+import { Anton, Inter, Permanent_Marker, Space_Grotesk } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Nav } from "@/components/layout/nav";
@@ -25,14 +25,6 @@ const inter = Inter({
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-// Loaded for the reveal dot nav only (--reveal-font-heading); the rest of the
-// site keeps Space Grotesk / Plex Mono.
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -149,7 +141,7 @@ export default function RootLayout({ children, modal }: { children: ReactNode; m
       lang="en"
       dir="ltr"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${jetbrainsMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${plexMono.variable} ${heroDisplay.variable} ${heroHand.variable} antialiased`}
     >
       <body suppressHydrationWarning className="min-h-screen flex flex-col bg-bg-primary text-text-primary">
         {/* Runs before the rest of the body is parsed: .js .item can hide

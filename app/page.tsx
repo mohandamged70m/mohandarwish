@@ -4,7 +4,7 @@ import ProjectsSection from "@/components/sections/projects/ProjectsSection";
 import { StackSurvey } from "@/components/sections/stack/StackSurvey";
 import { AboutSection } from "@/components/sections/about/AboutSection";
 import { BookingHashHandler } from "@/components/booking/BookingHashHandler";
-import { Reveal, SectionDots } from "@/components/transitions";
+import { Reveal } from "@/components/transitions";
 import { ScrollTop } from "@/components/layout/ScrollTop";
 
 import { getProjectsServer, getTagDirectoryServer } from "@/lib/projects-server";
@@ -18,17 +18,6 @@ export const metadata = createMetadata({
     "Mohand Darwish is a software engineer and AI product builder in Alexandria, Egypt. He builds fast, accessible full-stack web apps with Next.js, TypeScript and Node.js. Projects, stack and booking are on this page.",
   path: "/",
 });
-
-// Module-level (referentially stable) list shared by the dot nav. Ids must
-// match the wrapper divs below and the main nav's scroll-spy ids.
-//
-// About is deliberately absent: it is `sr-only` on `/`, so it is no longer a
-// scroll destination and must not become a blank dot.
-const SECTIONS = [
-  { id: "hero", label: "Home" },
-  { id: "stack-wrap", label: "Stack" },
-  { id: "projects-wrap", label: "Projects" },
-] as const;
 
 export default function Home() {
   return (
@@ -59,7 +48,6 @@ export default function Home() {
         </div>
         <span id="booking" aria-hidden="true" className="block h-0 w-0" />
         <BookingHashHandler />
-        <SectionDots sections={SECTIONS} />
         <ScrollTop />
       </div>
     </main>
